@@ -43,7 +43,33 @@ export async function POST(request: Request): Promise<Response> {
       return NextResponse.json({ error: 'You cannot request an introduction with yourself' }, { status: 400 })
     }
 
-    // 4c. Monthly limit — count requests this calendar month
+    // 4c. Verify requesting profile is approved
+    const { data: requesterProfile, error: requesterError } = await supabase
+      .from('zawaaj_profiles')
+      .select('status')
+      .eq('id', activeProfileId)
+      .single()
+
+    if (requesterError || requesterProfile?.status !== 'approved') {
+      return NextResponse.json({ error: 'Your profile must be approved to send introduction requests' }, { status: 403 })
+    }
+
+    // 4d. Verify target profile is approved and still active
+    const { data: targetProfile, error: targetError } = await supabase
+      .from('zawaaj_profiles')
+      .select('status')
+      .eq('id', target_profile_id)
+      .single()
+
+    if (targetError || !targetProfile) {
+      return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
+    }
+
+    if (targetProfile.status !== 'approved') {
+      return NextResponse.json({ error: 'This profile is no longer available' }, { status: 422 })
+    }
+
+    // 4e. Monthly limit — count requests this calendar month
     const { count: monthlyCount, error: countError } = await supabase
       .from('zawaaj_introduction_requests')
       .select('id', { count: 'exact', head: true })
@@ -58,13 +84,13 @@ export async function POST(request: Request): Promise<Response> {
       return NextResponse.json({ error: 'Monthly limit reached' }, { status: 422 })
     }
 
-    // 4d. Not already requested (active or mutual)
+    // 4f. Not already requested (pending, active, mutual, or facilitated)
     const { data: existingRequest, error: existingError } = await supabase
       .from('zawaaj_introduction_requests')
       .select('id')
       .eq('requesting_profile_id', activeProfileId)
       .eq('target_profile_id', target_profile_id)
-      .in('status', ['pending', 'mutual'])
+      .in('status', ['pending', 'active', 'mutual', 'facilitated'])
       .maybeSingle()
 
     if (existingError) {

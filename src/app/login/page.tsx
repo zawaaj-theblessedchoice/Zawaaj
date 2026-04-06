@@ -27,7 +27,7 @@ export default function LoginPage() {
       return
     }
 
-    router.push('/directory')
+    router.push('/browse')
     router.refresh()
   }
 
@@ -72,12 +72,21 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-white/70 mb-1.5"
-              >
-                Password
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-medium text-white/70"
+                >
+                  Password
+                </label>
+                <Link
+                  href="/forgot-password"
+                  className="text-xs transition-opacity hover:opacity-80"
+                  style={{ color: '#B8960C' }}
+                >
+                  Forgot password?
+                </Link>
+              </div>
               <input
                 id="password"
                 type="password"

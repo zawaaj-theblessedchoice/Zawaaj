@@ -132,27 +132,31 @@ export default function Sidebar({
   profile,
 }: SidebarProps) {
   const isActive = (href: string) => {
-    // Exact match for route, ignoring query params
-    const path = href.split('?')[0]
-    // Handle tab-based sub-routes
+    // For tab-qualified links, exact match including query string
     if (href.includes('?tab=')) {
       return activeRoute === href
     }
-    return activeRoute === path || (path !== '/browse' && activeRoute.startsWith(path))
+    // /browse (no tab param) = recommended tab — active only when no tab param
+    if (href === '/browse') {
+      return activeRoute === '/browse'
+    }
+    // All other paths: prefix match
+    const path = href.split('?')[0]
+    return activeRoute === path || activeRoute.startsWith(path + '/')
   }
 
   const navItems: { section: string; items: NavItem[] }[] = [
     {
       section: 'Discover',
       items: [
-        { label: 'Browse', href: '/browse', icon: <BrowseIcon /> },
+        { label: 'Browse all', href: '/browse?tab=all', icon: <BrowseIcon /> },
+        { label: 'Recommended', href: '/browse', icon: <RecommendedIcon /> },
         {
           label: 'Shortlist',
           href: '/browse?tab=shortlist',
           icon: <ShortlistIcon />,
           badge: shortlistCount > 0 ? shortlistCount : undefined,
         },
-        { label: 'Recommended', href: '/browse?tab=recommended', icon: <RecommendedIcon /> },
       ],
     },
     {

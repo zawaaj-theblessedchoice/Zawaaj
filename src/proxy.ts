@@ -15,7 +15,7 @@ const AUTH_PATHS      = ['/login', '/signup']
 // Requires auth but not approval — allowed through once logged in
 const PENDING_PATHS   = ['/pending']
 // Fully public — no auth needed
-const PUBLIC_PATHS    = ['/terms', '/help']
+const PUBLIC_PATHS    = ['/terms', '/help', '/forgot-password', '/auth/reset-password']
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl

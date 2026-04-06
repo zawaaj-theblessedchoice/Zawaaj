@@ -56,8 +56,15 @@ export default async function BrowsePage() {
     redirect('/pending')
   }
 
-  // 4. Get all approved profiles (excluding own)
-  const { data: rawProfiles, error: profilesError } = await supabase
+  // 4. Get all approved profiles (excluding own, filtered by opposite gender)
+  const oppositeGender =
+    viewerProfile.gender === 'male'
+      ? 'female'
+      : viewerProfile.gender === 'female'
+      ? 'male'
+      : null
+
+  let profilesQuery = supabase
     .from('zawaaj_profiles')
     .select(
       `id, display_initials, first_name, last_name, gender, date_of_birth, age_display,
@@ -70,6 +77,12 @@ export default async function BrowsePage() {
     .eq('status', 'approved')
     .neq('id', activeProfileId)
     .order('listed_at', { ascending: false })
+
+  if (oppositeGender) {
+    profilesQuery = profilesQuery.eq('gender', oppositeGender)
+  }
+
+  const { data: rawProfiles, error: profilesError } = await profilesQuery
 
   if (profilesError) {
     redirect('/pending')
@@ -102,12 +115,12 @@ export default async function BrowsePage() {
 
   const lastBrowsedAt: string | null = existingBrowseState?.last_browsed_at ?? null
 
-  // 7. Get sent intro requests
+  // 7. Get sent intro requests (all non-expired/withdrawn)
   const { data: introRows } = await supabase
     .from('zawaaj_introduction_requests')
     .select('target_profile_id, status, created_at')
     .eq('requesting_profile_id', activeProfileId)
-    .in('status', ['pending', 'active', 'mutual'])
+    .in('status', ['pending', 'active', 'mutual', 'facilitated'])
 
   const introRequests = (introRows ?? []).map(r => ({
     target_profile_id: r.target_profile_id as string,

@@ -38,7 +38,29 @@
       "Bash(/c/Users/mrkha/AppData/Roaming/nvm/v22.14.0/node_modules/npm/bin/npm-cli.js run:*)",
       "Bash(/c/Program Files/nodejs/node.exe /c/Users/mrkha/OneDrive/Desktop/Zawaaj-MVP/node_modules/.bin/next build)",
       "Bash(/c/Program Files/nodejs/node.exe /c/Users/mrkha/OneDrive/Desktop/Zawaaj-MVP/node_modules/next/dist/bin/next build)",
-      "Bash(node node_modulesnextdistbinnext build)"
+      "Bash(node node_modulesnextdistbinnext build)",
+      "Bash(python3 -c \"import pandas; print\\(''pandas available:'', pandas.__version__\\)\")",
+      "Bash(py --version)",
+      "Bash(where python:*)",
+      "Bash(where python3:*)",
+      "Bash(where py:*)",
+      "Bash(cmd /c \"python --version\")",
+      "Bash(cmd /c \"py -3 --version\")",
+      "Bash(powershell -Command \"python --version\")",
+      "Bash(powershell -Command \"py --version\")",
+      "Bash(powershell -Command \"Get-Command python* | Select-Object -ExpandProperty Source\")",
+      "Bash(powershell -Command \"Get-ChildItem -Path ''C:\\\\'' -Filter ''python.exe'' -Recurse -ErrorAction SilentlyContinue | Select-Object -First 5 FullName\")",
+      "Bash(powershell -Command \"Get-ChildItem -Path ''C:\\\\Users\\\\mrkha'' -Filter ''python*.exe'' -Recurse -ErrorAction SilentlyContinue | Select-Object -First 10 FullName\")",
+      "Bash(powershell -Command \"ls ''C:\\\\Users\\\\mrkha\\\\AppData\\\\Local\\\\Packages'' | Where-Object { $_.Name -like ''*Python*'' } | Select Name\")",
+      "Bash(powershell -Command \":*)",
+      "Bash(powershell -Command \"ls ''C:\\\\Users\\\\mrkha\\\\AppData\\\\Roaming\\\\Claude\\\\local-agent-mode-sessions\\\\skills-plugin\\\\4b3136a8-1c77-438a-b3e2-25fb2fa0760e\\\\9cbc7e70-bb6f-4974-9842-8be66f2e97b8\\\\skills\\\\xlsx\\\\''\")",
+      "Bash(powershell -Command \"ls ''C:\\\\Users\\\\mrkha\\\\AppData\\\\Roaming\\\\Claude\\\\local-agent-mode-sessions\\\\skills-plugin\\\\4b3136a8-1c77-438a-b3e2-25fb2fa0760e\\\\9cbc7e70-bb6f-4974-9842-8be66f2e97b8\\\\skills\\\\xlsx\\\\scripts\\\\''\")",
+      "Bash(node -e \"require\\(''xlsx''\\); console.log\\(''xlsx available''\\)\")",
+      "Bash(node -e \"require\\(''/C:/Users/mrkha/OneDrive/Desktop/Zawaaj-MVP/node_modules/xlsx''\\); console.log\\(''found in project''\\)\")",
+      "Bash(mkdir -p \"/c/Users/mrkha/AppData/Local/Temp/xlsx-analysis\")",
+      "Bash(node -e \"require\\(''fs''\\); console.log\\(''node works''\\)\")",
+      "Bash(npm install:*)",
+      "Bash(node analyze.js)"
     ]
   }
 }

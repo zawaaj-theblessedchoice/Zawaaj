@@ -114,7 +114,6 @@ function ProfileCard({
   onToggleSave,
 }: ProfileCardProps) {
   const [hovered, setHovered] = useState(false)
-  const limitReached = introStatus === 'limit_reached'
 
   const displayName =
     `${profile.first_name ?? ''} ${profile.last_name ? profile.last_name[0] + '.' : ''}`.trim() ||
@@ -133,15 +132,14 @@ function ProfileCard({
         borderRadius: 13,
         background: 'var(--surface-2)',
         border: `0.5px solid ${isSaved || hovered ? 'var(--border-gold)' : 'var(--border-default)'}`,
-        cursor: limitReached ? 'default' : 'pointer',
-        opacity: limitReached ? 0.45 : 1,
-        transition: 'border-color 0.15s, opacity 0.15s',
+        cursor: 'pointer',
+        transition: 'border-color 0.15s',
         padding: '14px 14px 12px',
         display: 'flex',
         flexDirection: 'column',
         gap: 8,
       }}
-      onClick={limitReached ? undefined : onOpen}
+      onClick={onOpen}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
@@ -161,34 +159,32 @@ function ProfileCard({
       )}
 
       {/* Heart button */}
-      {!limitReached && (
-        <button
-          onClick={e => {
-            e.stopPropagation()
-            onToggleSave()
-          }}
-          aria-label={isSaved ? 'Remove from shortlist' : 'Save to shortlist'}
-          style={{
-            position: 'absolute',
-            top: 10,
-            right: 10,
-            background: 'none',
-            border: 'none',
-            color: 'var(--gold)',
-            opacity: isSaved ? 1 : 0.25,
-            fontSize: 14,
-            cursor: 'pointer',
-            padding: 2,
-            transition: 'opacity 0.15s',
-          }}
-          onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.opacity = '1')}
-          onMouseLeave={e =>
-            ((e.currentTarget as HTMLButtonElement).style.opacity = isSaved ? '1' : '0.25')
-          }
-        >
-          {isSaved ? '♥' : '♡'}
-        </button>
-      )}
+      <button
+        onClick={e => {
+          e.stopPropagation()
+          onToggleSave()
+        }}
+        aria-label={isSaved ? 'Remove from shortlist' : 'Save to shortlist'}
+        style={{
+          position: 'absolute',
+          top: 10,
+          right: 10,
+          background: 'none',
+          border: 'none',
+          color: 'var(--gold)',
+          opacity: isSaved ? 1 : 0.25,
+          fontSize: 14,
+          cursor: 'pointer',
+          padding: 2,
+          transition: 'opacity 0.15s',
+        }}
+        onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.opacity = '1')}
+        onMouseLeave={e =>
+          ((e.currentTarget as HTMLButtonElement).style.opacity = isSaved ? '1' : '0.25')
+        }
+      >
+        {isSaved ? '♥' : '♡'}
+      </button>
 
       {/* Avatar + Name */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -281,8 +277,8 @@ function ProfileCard({
         </div>
       )}
 
-      {/* Status line */}
-      {introStatus !== 'none' && introStatus !== 'limit_reached' && (
+      {/* Status line — only show for meaningful states */}
+      {(introStatus === 'mutual' || introStatus === 'requested') && (
         <div
           style={{
             fontSize: 11,
@@ -290,16 +286,7 @@ function ProfileCard({
             marginTop: 2,
           }}
         >
-          {introStatus === 'mutual'
-            ? 'Mutual interest'
-            : introStatus === 'requested'
-            ? 'Introduction requested'
-            : ''}
-        </div>
-      )}
-      {introStatus === 'limit_reached' && (
-        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
-          Monthly limit reached
+          {introStatus === 'mutual' ? 'Mutual interest' : 'Introduction requested'}
         </div>
       )}
     </div>
@@ -352,16 +339,17 @@ export default function BrowseClient({
 
   const filterRef = useRef<HTMLDivElement>(null)
 
-  // Close filter panel on outside click
+  // Close filter panel on outside click — sync pending state back to applied
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
         setFilterOpen(false)
+        setPendingFilters(appliedFilters) // discard uncommitted changes
       }
     }
     if (filterOpen) document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
-  }, [filterOpen])
+  }, [filterOpen, appliedFilters])
 
   // Compat scores cache
   const compatScores = useMemo(() => {
@@ -466,12 +454,14 @@ export default function BrowseClient({
     return profiles
   }, [activeTab, profiles, savedIds, newSince])
 
+  // Effective sort: "new" tab always defaults to newest
+  const effectiveSortKey: SortKey = activeTab === 'new' && sortKey === 'relevant' ? 'newest' : sortKey
+
   const displayedProfiles = useMemo(() => {
     const filtered = applyFilters(applySearch(tabProfiles))
-    const sort = activeTab === 'new' ? (sortKey === 'relevant' ? 'newest' : sortKey) : sortKey
-    return applySort(filtered, sort)
+    return applySort(filtered, effectiveSortKey)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tabProfiles, appliedFilters, searchQuery, sortKey])
+  }, [tabProfiles, appliedFilters, searchQuery, effectiveSortKey])
 
   const showCompatBar = activeTab === 'recommended' || activeTab === 'all'
 
@@ -525,42 +515,44 @@ export default function BrowseClient({
     }
   }
 
-  // Handle intro request
+  // Handle intro request — routes through the API to enforce all business rules
   async function handleRequestIntro(profileId: string) {
-    const supabase = createClient()
-    const expiresAt = new Date()
-    expiresAt.setDate(expiresAt.getDate() + 30)
+    const res = await fetch('/api/introduction-requests', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ target_profile_id: profileId }),
+    })
 
-    const { data, error } = await supabase
-      .from('zawaaj_introduction_requests')
-      .insert({
-        requesting_profile_id: viewerProfile.id,
-        target_profile_id: profileId,
-        status: 'pending',
-        expires_at: expiresAt.toISOString(),
-      })
-      .select()
-      .single()
+    const json = await res.json().catch(() => ({}))
 
-    if (error) {
-      setToast('Unable to send request — please try again')
+    if (!res.ok) {
+      const msg =
+        json.error === 'Monthly limit reached'
+          ? 'Monthly limit reached — 5 requests per calendar month'
+          : json.error === 'This profile is no longer available'
+          ? 'This profile is no longer available'
+          : 'Unable to send request — please try again'
+      setToast(msg)
       return
     }
 
-    const newRequest: IntroRequest = {
-      target_profile_id: profileId,
-      status: data.status ?? 'pending',
-      created_at: data.created_at,
-    }
+    const isMutual = json.mutual === true
 
-    setIntroRequests(prev => [...prev, newRequest])
+    setIntroRequests(prev => [
+      ...prev,
+      {
+        target_profile_id: profileId,
+        status: isMutual ? 'mutual' : 'pending',
+        created_at: new Date().toISOString(),
+      },
+    ])
     setMonthlyUsed(prev => prev + 1)
 
-    if (data.status === 'mutual') {
-      setToast('Mutual interest! The admin will be in touch.')
-    } else {
-      setToast('Introduction request sent')
-    }
+    setToast(
+      isMutual
+        ? 'Mutual interest — admin will be in touch'
+        : 'Introduction request sent'
+    )
   }
 
   const openProfile = openProfileId ? profiles.find(p => p.id === openProfileId) ?? null : null
@@ -660,7 +652,11 @@ export default function BrowseClient({
             {/* Filter button */}
             <div style={{ position: 'relative' }} ref={filterRef}>
               <button
-                onClick={() => setFilterOpen(o => !o)}
+                onClick={() => {
+                  const opening = !filterOpen
+                  setFilterOpen(opening)
+                  if (opening) setPendingFilters(appliedFilters)
+                }}
                 style={{
                   padding: '7px 12px',
                   borderRadius: 8,
@@ -955,7 +951,7 @@ export default function BrowseClient({
 
             {/* Sort dropdown */}
             <select
-              value={sortKey}
+              value={effectiveSortKey}
               onChange={e => setSortKey(e.target.value as SortKey)}
               style={{
                 padding: '7px 10px',
