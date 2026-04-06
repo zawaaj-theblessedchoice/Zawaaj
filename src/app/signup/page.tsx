@@ -1121,12 +1121,35 @@ export default function SignupPage() {
     setFormData((prev) => ({ ...prev, ...patch }))
   }
 
-  function handleNext() {
+  async function handleNext() {
     const err = validateStep(step, formData)
     if (err) {
       setError(err)
       return
     }
+
+    // At step 0 (Account), check email availability before the user fills 7 more steps
+    if (step === 0) {
+      setLoading(true)
+      try {
+        const res = await fetch('/api/check-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: formData.email }),
+        })
+        const json = await res.json() as { exists?: boolean }
+        if (json.exists) {
+          setError('An account with this email already exists. Please sign in, or use "Forgot password?" if you need to reset your password.')
+          setLoading(false)
+          return
+        }
+      } catch {
+        // Network error — allow user to proceed; duplicate caught at submission
+      } finally {
+        setLoading(false)
+      }
+    }
+
     setError('')
     setCompletedSteps((prev) => new Set([...prev, step]))
     setStep((s) => s + 1)
@@ -1417,6 +1440,7 @@ export default function SignupPage() {
               <button
                 type="button"
                 onClick={handleNext}
+                disabled={loading}
                 style={{
                   flex: 1,
                   padding: '11px 0',
@@ -1426,10 +1450,12 @@ export default function SignupPage() {
                   color: '#111',
                   fontSize: '14px',
                   fontWeight: 600,
-                  cursor: 'pointer',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  opacity: loading ? 0.5 : 1,
+                  transition: 'opacity 0.15s',
                 }}
               >
-                Continue
+                {loading && step === 0 ? 'Checking…' : 'Continue'}
               </button>
             ) : (
               <button
