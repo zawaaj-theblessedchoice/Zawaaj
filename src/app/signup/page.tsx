@@ -1122,101 +1122,27 @@ export default function SignupPage() {
     setLoading(true)
     setError('')
     try {
-      const supabase = createClient()
+      // All DB work runs server-side via /api/register (uses service-role client)
+      // so it is unaffected by email confirmation settings or RLS.
+      const res = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      })
 
-      // 1. Create auth user
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      const json = await res.json() as { success?: boolean; linked?: boolean; error?: string }
+
+      if (!res.ok || !json.success) {
+        throw new Error(json.error ?? 'Registration failed. Please try again.')
+      }
+
+      // Sign in to establish the browser session now that the account exists
+      const supabase = createClient()
+      const { error: signInError } = await supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.password,
       })
-      if (authError || !authData.user) throw authError ?? new Error('Signup failed')
-
-      const userId = authData.user.id
-      const initials = (formData.firstName[0] + formData.lastName[0]).toUpperCase()
-
-      // Shared profile fields collected from the wizard
-      const wizardFields = {
-        display_initials: initials,
-        first_name: formData.firstName,
-        last_name: formData.lastName,
-        gender: formData.gender,
-        date_of_birth: formData.dateOfBirth,
-        nationality: formData.nationality,
-        marital_status: formData.maritalStatus,
-        has_children: formData.hasChildren,
-        languages_spoken: formData.languagesSpoken,
-        height: formData.height || null,
-        living_situation: formData.livingSituation,
-        ethnicity: formData.ethnicity,
-        school_of_thought: formData.schoolOfThought,
-        education_level: formData.educationLevel,
-        education_detail: formData.institution || null,
-        profession_detail: formData.profession,
-        location: `${formData.city}, ${formData.country}`,
-        bio: formData.bio,
-        religiosity: formData.religiosity,
-        prayer_regularity: formData.prayerRegularity,
-        wears_hijab: formData.gender === 'female' ? formData.wearsHijab : null,
-        keeps_beard: formData.gender === 'male' ? formData.keepsBeard : null,
-        open_to_relocation: formData.openToRelocation,
-        open_to_partners_children: formData.openToPartnersChildren,
-        polygamy_openness: formData.polygamyOpenness || null,
-        pref_age_min: formData.prefAgeMin ? parseInt(formData.prefAgeMin, 10) : null,
-        pref_age_max: formData.prefAgeMax ? parseInt(formData.prefAgeMax, 10) : null,
-        pref_location: formData.prefLocation || null,
-        pref_ethnicity: formData.prefEthnicity || null,
-        pref_school_of_thought:
-          formData.prefSchoolOfThought.length > 0 ? formData.prefSchoolOfThought : null,
-        pref_relocation: formData.prefRelocation || null,
-        pref_partner_children: formData.prefPartnerChildren || null,
-        consent_given: true,
-        terms_agreed: true,
-      }
-
-      let profileId: string
-
-      // 2. Check for an existing imported profile with the same email (unlinked)
-      //    This allows members from the old Google Form to claim their profile
-      //    without admin intervention.
-      const { data: existingProfile } = await supabase
-        .from('zawaaj_profiles')
-        .select('id, status')
-        .eq('imported_email', formData.email)
-        .is('user_id', null)
-        .maybeSingle()
-
-      if (existingProfile) {
-        // 2a. Link existing profile — preserve status + legacy fields, enrich with wizard data
-        const { error: updateError } = await supabase
-          .from('zawaaj_profiles')
-          .update({ user_id: userId, ...wizardFields })
-          .eq('id', existingProfile.id)
-
-        if (updateError) throw updateError
-        profileId = existingProfile.id
-      } else {
-        // 2b. No matching imported profile — create a fresh one pending admin review
-        const { data: newProfile, error: profileError } = await supabase
-          .from('zawaaj_profiles')
-          .insert({
-            user_id: userId,
-            ...wizardFields,
-            status: 'pending',
-            submitted_date: new Date().toISOString(),
-          })
-          .select('id')
-          .single()
-
-        if (profileError || !newProfile) throw profileError ?? new Error('Profile creation failed')
-        profileId = newProfile.id
-      }
-
-      // 3. Create user settings pointing to the active profile
-      const { error: settingsError } = await supabase
-        .from('zawaaj_user_settings')
-        .insert({ user_id: userId, active_profile_id: profileId })
-
-      if (settingsError) throw settingsError
+      if (signInError) throw signInError
 
       setSubmitted(true)
     } catch (err) {
