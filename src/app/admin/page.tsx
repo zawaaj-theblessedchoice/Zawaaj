@@ -117,24 +117,24 @@ function avatarBg(gender: string | null): string {
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { bg: string; text: string }> = {
-    pending:           { bg: '#FEF3C7', text: '#92400E' },
-    approved:          { bg: '#D1FAE5', text: '#065F46' },
-    rejected:          { bg: '#FEE2E2', text: '#991B1B' },
-    withdrawn:         { bg: '#F3F4F6', text: '#374151' },
-    suspended:         { bg: '#FEF3C7', text: '#92400E' },
-    introduced:        { bg: '#DBEAFE', text: '#1E40AF' },
-    paused:            { bg: '#FEF9C3', text: '#854D0E' },
-    awaiting_admin:    { bg: '#EDE9FE', text: '#5B21B6' },
-    admin_reviewing:   { bg: '#FEF3C7', text: '#92400E' },
-    nikah:             { bg: '#D1FAE5', text: '#065F46' },
-    no_longer_proceeding: { bg: '#FEE2E2', text: '#991B1B' },
-    dismissed:         { bg: '#F3F4F6', text: '#374151' },
-    in_discussion:     { bg: '#DBEAFE', text: '#1E40AF' },
-    upcoming:          { bg: '#D1FAE5', text: '#065F46' },
-    ended:             { bg: '#FEF3C7', text: '#92400E' },
-    archived:          { bg: '#F3F4F6', text: '#374151' },
+    pending:              { bg: 'rgba(251,191,36,0.12)',  text: '#FBBF24' },
+    approved:             { bg: 'rgba(74,222,128,0.12)',  text: '#4ADE80' },
+    rejected:             { bg: 'rgba(248,113,113,0.12)', text: '#F87171' },
+    withdrawn:            { bg: 'rgba(255,255,255,0.08)', text: 'rgba(255,255,255,0.45)' },
+    suspended:            { bg: 'rgba(248,113,113,0.12)', text: '#F87171' },
+    introduced:           { bg: 'rgba(96,165,250,0.12)',  text: '#60A5FA' },
+    paused:               { bg: 'rgba(251,191,36,0.12)',  text: '#FBBF24' },
+    awaiting_admin:       { bg: 'rgba(167,139,250,0.12)', text: '#A78BFA' },
+    admin_reviewing:      { bg: 'rgba(251,191,36,0.12)',  text: '#FBBF24' },
+    nikah:                { bg: 'rgba(74,222,128,0.12)',  text: '#4ADE80' },
+    no_longer_proceeding: { bg: 'rgba(248,113,113,0.12)', text: '#F87171' },
+    dismissed:            { bg: 'rgba(255,255,255,0.08)', text: 'rgba(255,255,255,0.45)' },
+    in_discussion:        { bg: 'rgba(96,165,250,0.12)',  text: '#60A5FA' },
+    upcoming:             { bg: 'rgba(74,222,128,0.12)',  text: '#4ADE80' },
+    ended:                { bg: 'rgba(251,191,36,0.12)',  text: '#FBBF24' },
+    archived:             { bg: 'rgba(255,255,255,0.08)', text: 'rgba(255,255,255,0.45)' },
   }
-  const s = map[status] ?? { bg: '#F3F4F6', text: '#374151' }
+  const s = map[status] ?? { bg: 'rgba(255,255,255,0.08)', text: 'rgba(255,255,255,0.45)' }
   return (
     <span
       className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize"
@@ -161,10 +161,10 @@ function Confirm({
 }: { message: string; onConfirm: () => void; onCancel: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl">
-        <p className="text-[#1A1A1A] mb-6">{message}</p>
+      <div className="bg-[#1E1E1E] rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl">
+        <p className="text-white mb-6">{message}</p>
         <div className="flex gap-3 justify-end">
-          <button onClick={onCancel} className="px-4 py-2 rounded-lg text-sm border border-[#E8E4DC] text-[#1A1A1A] hover:bg-[#F8F6F1]">Cancel</button>
+          <button onClick={onCancel} className="px-4 py-2 rounded-lg text-sm border border-white/10 text-white hover:bg-white/5">Cancel</button>
           <button onClick={onConfirm} className="px-4 py-2 rounded-lg text-sm bg-[#1A1A1A] text-white hover:bg-[#333]">Confirm</button>
         </div>
       </div>
@@ -223,21 +223,21 @@ function ProfileEditModal({ profile, onClose, onSave }: {
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 flex items-start justify-center py-8 px-4">
-      <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl">
-        <div className="flex items-center justify-between p-6 border-b border-[#E8E4DC]">
-          <h2 className="text-lg font-semibold text-[#1A1A1A]">Edit Profile — {profile.display_initials}</h2>
-          <button onClick={onClose} className="text-[#1A1A1A]/40 hover:text-[#1A1A1A] text-2xl leading-none">&times;</button>
+      <div className="bg-[#1E1E1E] rounded-2xl w-full max-w-2xl shadow-2xl">
+        <div className="flex items-center justify-between p-6 border-b border-white/10">
+          <h2 className="text-lg font-semibold text-white">Edit Profile — {profile.display_initials}</h2>
+          <button onClick={onClose} className="text-white/30 hover:text-white text-2xl leading-none">&times;</button>
         </div>
         <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
           {error && <p className="text-red-600 text-sm">{error}</p>}
 
           <div className="grid grid-cols-2 gap-4">
             <label className="block">
-              <span className="text-xs text-[#1A1A1A]/60 mb-1 block">Display Initials</span>
+              <span className="text-xs text-white/60 mb-1 block">Display Initials</span>
               <input className="field" value={form.display_initials ?? ''} onChange={e => set('display_initials', e.target.value)} />
             </label>
             <label className="block">
-              <span className="text-xs text-[#1A1A1A]/60 mb-1 block">Gender</span>
+              <span className="text-xs text-white/60 mb-1 block">Gender</span>
               <select className="field" value={form.gender ?? ''} onChange={e => set('gender', e.target.value)}>
                 <option value="">—</option>
                 <option value="male">Male</option>
@@ -245,64 +245,64 @@ function ProfileEditModal({ profile, onClose, onSave }: {
               </select>
             </label>
             <label className="block">
-              <span className="text-xs text-[#1A1A1A]/60 mb-1 block">Age Display</span>
+              <span className="text-xs text-white/60 mb-1 block">Age Display</span>
               <input className="field" value={form.age_display ?? ''} onChange={e => set('age_display', e.target.value)} />
             </label>
             <label className="block">
-              <span className="text-xs text-[#1A1A1A]/60 mb-1 block">Height</span>
+              <span className="text-xs text-white/60 mb-1 block">Height</span>
               <input className="field" value={form.height ?? ''} onChange={e => set('height', e.target.value)} />
             </label>
             <label className="block">
-              <span className="text-xs text-[#1A1A1A]/60 mb-1 block">Ethnicity</span>
+              <span className="text-xs text-white/60 mb-1 block">Ethnicity</span>
               <input className="field" value={form.ethnicity ?? ''} onChange={e => set('ethnicity', e.target.value)} />
             </label>
             <label className="block">
-              <span className="text-xs text-[#1A1A1A]/60 mb-1 block">School of Thought</span>
+              <span className="text-xs text-white/60 mb-1 block">School of Thought</span>
               <input className="field" value={form.school_of_thought ?? ''} onChange={e => set('school_of_thought', e.target.value)} />
             </label>
             <label className="block">
-              <span className="text-xs text-[#1A1A1A]/60 mb-1 block">Education Level</span>
+              <span className="text-xs text-white/60 mb-1 block">Education Level</span>
               <input className="field" value={form.education_level ?? ''} onChange={e => set('education_level', e.target.value)} />
             </label>
             <label className="block">
-              <span className="text-xs text-[#1A1A1A]/60 mb-1 block">Education Detail</span>
+              <span className="text-xs text-white/60 mb-1 block">Education Detail</span>
               <input className="field" value={form.education_detail ?? ''} onChange={e => set('education_detail', e.target.value)} />
             </label>
             <label className="block">
-              <span className="text-xs text-[#1A1A1A]/60 mb-1 block">Profession Sector</span>
+              <span className="text-xs text-white/60 mb-1 block">Profession Sector</span>
               <input className="field" value={form.profession_sector ?? ''} onChange={e => set('profession_sector', e.target.value)} />
             </label>
             <label className="block">
-              <span className="text-xs text-[#1A1A1A]/60 mb-1 block">Profession Detail</span>
+              <span className="text-xs text-white/60 mb-1 block">Profession Detail</span>
               <input className="field" value={form.profession_detail ?? ''} onChange={e => set('profession_detail', e.target.value)} />
             </label>
             <label className="block col-span-2">
-              <span className="text-xs text-[#1A1A1A]/60 mb-1 block">Location</span>
+              <span className="text-xs text-white/60 mb-1 block">Location</span>
               <input className="field" value={form.location ?? ''} onChange={e => set('location', e.target.value)} />
             </label>
           </div>
 
-          <div className="border-t border-[#E8E4DC] pt-4">
-            <p className="text-xs font-semibold text-[#1A1A1A]/50 uppercase tracking-wider mb-3">Admin-only Fields</p>
+          <div className="border-t border-white/10 pt-4">
+            <p className="text-xs font-semibold text-white/50 uppercase tracking-wider mb-3">Admin-only Fields</p>
             <div className="grid grid-cols-2 gap-4">
               <label className="block">
-                <span className="text-xs text-[#1A1A1A]/60 mb-1 block">Contact Number</span>
+                <span className="text-xs text-white/60 mb-1 block">Contact Number</span>
                 <input className="field" value={form.contact_number ?? ''} onChange={e => set('contact_number', e.target.value)} />
               </label>
               <label className="block">
-                <span className="text-xs text-[#1A1A1A]/60 mb-1 block">Guardian Name</span>
+                <span className="text-xs text-white/60 mb-1 block">Guardian Name</span>
                 <input className="field" value={form.guardian_name ?? ''} onChange={e => set('guardian_name', e.target.value)} />
               </label>
               <label className="block">
-                <span className="text-xs text-[#1A1A1A]/60 mb-1 block">Legacy Ref</span>
+                <span className="text-xs text-white/60 mb-1 block">Legacy Ref</span>
                 <input className="field" value={form.legacy_ref ?? ''} onChange={e => set('legacy_ref', e.target.value)} />
               </label>
               <label className="block">
-                <span className="text-xs text-[#1A1A1A]/60 mb-1 block">Imported Email</span>
+                <span className="text-xs text-white/60 mb-1 block">Imported Email</span>
                 <input className="field" value={form.imported_email ?? ''} onChange={e => set('imported_email', e.target.value)} />
               </label>
               <label className="block">
-                <span className="text-xs text-[#1A1A1A]/60 mb-1 block">Status</span>
+                <span className="text-xs text-white/60 mb-1 block">Status</span>
                 <select className="field" value={form.status ?? ''} onChange={e => set('status', e.target.value as ProfileStatus)}>
                   {(['pending','approved','paused','rejected','withdrawn','suspended','introduced'] as ProfileStatus[]).map(s => (
                     <option key={s} value={s}>{s}</option>
@@ -311,17 +311,17 @@ function ProfileEditModal({ profile, onClose, onSave }: {
               </label>
             </div>
             <label className="block mt-4">
-              <span className="text-xs text-[#1A1A1A]/60 mb-1 block">Admin Comments (visible notes)</span>
+              <span className="text-xs text-white/60 mb-1 block">Admin Comments (visible notes)</span>
               <textarea className="field resize-none" rows={3} value={form.admin_comments ?? ''} onChange={e => set('admin_comments', e.target.value)} />
             </label>
             <label className="block mt-4">
-              <span className="text-xs text-[#1A1A1A]/60 mb-1 block">Admin Notes (private)</span>
+              <span className="text-xs text-white/60 mb-1 block">Admin Notes (private)</span>
               <textarea className="field resize-none" rows={3} value={form.admin_notes ?? ''} onChange={e => set('admin_notes', e.target.value)} />
             </label>
           </div>
         </div>
-        <div className="flex justify-end gap-3 p-6 border-t border-[#E8E4DC]">
-          <button onClick={onClose} className="px-5 py-2.5 rounded-xl text-sm border border-[#E8E4DC] text-[#1A1A1A] hover:bg-[#F8F6F1]">Cancel</button>
+        <div className="flex justify-end gap-3 p-6 border-t border-white/10">
+          <button onClick={onClose} className="px-5 py-2.5 rounded-xl text-sm border border-white/10 text-white hover:bg-white/5">Cancel</button>
           <button onClick={save} disabled={saving} className="px-5 py-2.5 rounded-xl text-sm font-medium bg-[#1A1A1A] text-[#B8960C] hover:bg-[#333] disabled:opacity-50">
             {saving ? 'Saving…' : 'Save Changes'}
           </button>
@@ -337,23 +337,23 @@ function ContactPopup({ profile, onClose }: { profile: Profile; onClose: () => v
   const digits = phoneDigits(profile.contact_number)
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl">
+      <div className="bg-[#1E1E1E] rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl">
         <div className="flex justify-between items-start mb-4">
-          <h3 className="font-semibold text-[#1A1A1A]">Contact — {profile.display_initials}</h3>
-          <button onClick={onClose} className="text-[#1A1A1A]/40 hover:text-[#1A1A1A] text-xl leading-none">&times;</button>
+          <h3 className="font-semibold text-white">Contact — {profile.display_initials}</h3>
+          <button onClick={onClose} className="text-white/30 hover:text-white text-xl leading-none">&times;</button>
         </div>
         <dl className="space-y-3 text-sm">
           <div>
-            <dt className="text-[#1A1A1A]/50 text-xs">Phone</dt>
-            <dd className="font-medium text-[#1A1A1A]">{profile.contact_number ?? '—'}</dd>
+            <dt className="text-white/40 text-xs">Phone</dt>
+            <dd className="font-medium text-white">{profile.contact_number ?? '—'}</dd>
           </div>
           <div>
-            <dt className="text-[#1A1A1A]/50 text-xs">Guardian</dt>
-            <dd className="font-medium text-[#1A1A1A]">{profile.guardian_name ?? '—'}</dd>
+            <dt className="text-white/40 text-xs">Guardian</dt>
+            <dd className="font-medium text-white">{profile.guardian_name ?? '—'}</dd>
           </div>
           <div>
-            <dt className="text-[#1A1A1A]/50 text-xs">Email</dt>
-            <dd className="font-medium text-[#1A1A1A]">{profile.imported_email ?? '—'}</dd>
+            <dt className="text-white/40 text-xs">Email</dt>
+            <dd className="font-medium text-white">{profile.imported_email ?? '—'}</dd>
           </div>
         </dl>
         {digits && (
@@ -407,31 +407,31 @@ function FacilitateModal({ match, onClose, onDone }: {
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 flex items-start justify-center py-8 px-4">
-      <div className="bg-white rounded-2xl w-full max-w-xl shadow-2xl">
-        <div className="flex items-center justify-between p-6 border-b border-[#E8E4DC]">
-          <h2 className="text-lg font-semibold text-[#1A1A1A]">Facilitate Introduction</h2>
-          <button onClick={onClose} className="text-[#1A1A1A]/40 hover:text-[#1A1A1A] text-2xl leading-none">&times;</button>
+      <div className="bg-[#1E1E1E] rounded-2xl w-full max-w-xl shadow-2xl">
+        <div className="flex items-center justify-between p-6 border-b border-white/10">
+          <h2 className="text-lg font-semibold text-white">Facilitate Introduction</h2>
+          <button onClick={onClose} className="text-white/30 hover:text-white text-2xl leading-none">&times;</button>
         </div>
 
         <div className="p-6 space-y-6">
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex gap-3">
+          <div className="bg-[#2A2200] border border-yellow-700/40 rounded-xl p-4 flex gap-3">
             <span className="text-amber-600 text-lg">⚠</span>
             <p className="text-sm text-amber-800 font-medium">Never share contact details without explicit verbal consent from both families.</p>
           </div>
 
           {/* Family A */}
-          <div className="border border-[#E8E4DC] rounded-xl p-4 space-y-3">
+          <div className="border border-white/10 rounded-xl p-4 space-y-3">
             <div className="flex items-center gap-3">
               <Avatar initials={pA?.display_initials ?? '?'} gender={pA?.gender ?? null} size={40} />
               <div>
-                <p className="font-semibold text-[#1A1A1A]">Family A — {pA?.display_initials}</p>
-                <p className="text-xs text-[#1A1A1A]/50">{pA?.legacy_ref}</p>
+                <p className="font-semibold text-white">Family A — {pA?.display_initials}</p>
+                <p className="text-xs text-white/50">{pA?.legacy_ref}</p>
               </div>
             </div>
             <dl className="space-y-1 text-sm">
-              <div className="flex gap-2"><dt className="text-[#1A1A1A]/50 w-20">Phone:</dt><dd>{pA?.contact_number ?? '—'}</dd></div>
-              <div className="flex gap-2"><dt className="text-[#1A1A1A]/50 w-20">Guardian:</dt><dd>{pA?.guardian_name ?? '—'}</dd></div>
-              <div className="flex gap-2"><dt className="text-[#1A1A1A]/50 w-20">Email:</dt><dd>{pA?.imported_email ?? '—'}</dd></div>
+              <div className="flex gap-2"><dt className="text-white/40 w-20">Phone:</dt><dd>{pA?.contact_number ?? '—'}</dd></div>
+              <div className="flex gap-2"><dt className="text-white/40 w-20">Guardian:</dt><dd>{pA?.guardian_name ?? '—'}</dd></div>
+              <div className="flex gap-2"><dt className="text-white/40 w-20">Email:</dt><dd>{pA?.imported_email ?? '—'}</dd></div>
             </dl>
             <div className="flex items-center gap-3">
               {digitsA && (
@@ -443,24 +443,24 @@ function FacilitateModal({ match, onClose, onDone }: {
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={consentA} onChange={e => toggleConsent('a', e.target.checked)}
                   className="w-4 h-4 accent-[#B8960C]" />
-                <span className="text-sm text-[#1A1A1A]">Family A verbally confirmed consent</span>
+                <span className="text-sm text-white">Family A verbally confirmed consent</span>
               </label>
             </div>
           </div>
 
           {/* Family B */}
-          <div className="border border-[#E8E4DC] rounded-xl p-4 space-y-3">
+          <div className="border border-white/10 rounded-xl p-4 space-y-3">
             <div className="flex items-center gap-3">
               <Avatar initials={pB?.display_initials ?? '?'} gender={pB?.gender ?? null} size={40} />
               <div>
-                <p className="font-semibold text-[#1A1A1A]">Family B — {pB?.display_initials}</p>
-                <p className="text-xs text-[#1A1A1A]/50">{pB?.legacy_ref}</p>
+                <p className="font-semibold text-white">Family B — {pB?.display_initials}</p>
+                <p className="text-xs text-white/50">{pB?.legacy_ref}</p>
               </div>
             </div>
             <dl className="space-y-1 text-sm">
-              <div className="flex gap-2"><dt className="text-[#1A1A1A]/50 w-20">Phone:</dt><dd>{pB?.contact_number ?? '—'}</dd></div>
-              <div className="flex gap-2"><dt className="text-[#1A1A1A]/50 w-20">Guardian:</dt><dd>{pB?.guardian_name ?? '—'}</dd></div>
-              <div className="flex gap-2"><dt className="text-[#1A1A1A]/50 w-20">Email:</dt><dd>{pB?.imported_email ?? '—'}</dd></div>
+              <div className="flex gap-2"><dt className="text-white/40 w-20">Phone:</dt><dd>{pB?.contact_number ?? '—'}</dd></div>
+              <div className="flex gap-2"><dt className="text-white/40 w-20">Guardian:</dt><dd>{pB?.guardian_name ?? '—'}</dd></div>
+              <div className="flex gap-2"><dt className="text-white/40 w-20">Email:</dt><dd>{pB?.imported_email ?? '—'}</dd></div>
             </dl>
             <div className="flex items-center gap-3">
               {digitsB && (
@@ -472,14 +472,14 @@ function FacilitateModal({ match, onClose, onDone }: {
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={consentB} onChange={e => toggleConsent('b', e.target.checked)}
                   className="w-4 h-4 accent-[#B8960C]" />
-                <span className="text-sm text-[#1A1A1A]">Family B verbally confirmed consent</span>
+                <span className="text-sm text-white">Family B verbally confirmed consent</span>
               </label>
             </div>
           </div>
         </div>
 
-        <div className="flex justify-end gap-3 p-6 border-t border-[#E8E4DC]">
-          <button onClick={onClose} className="px-5 py-2.5 rounded-xl text-sm border border-[#E8E4DC] text-[#1A1A1A] hover:bg-[#F8F6F1]">Close</button>
+        <div className="flex justify-end gap-3 p-6 border-t border-white/10">
+          <button onClick={onClose} className="px-5 py-2.5 rounded-xl text-sm border border-white/10 text-white hover:bg-white/5">Close</button>
           <button
             onClick={markIntroduced}
             disabled={!consentA || !consentB || saving}
@@ -515,7 +515,7 @@ function QueueTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh: () 
   }
 
   if (pending.length === 0)
-    return <p className="text-[#1A1A1A]/40 py-16 text-center text-sm">No applications pending review.</p>
+    return <p className="text-white/30 py-16 text-center text-sm">No applications pending review.</p>
 
   return (
     <>
@@ -531,32 +531,32 @@ function QueueTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh: () 
       )}
       <div className="space-y-3">
         {pending.map(p => (
-          <div key={p.id} className="bg-white rounded-2xl p-5 border border-[#E8E4DC] flex flex-col sm:flex-row gap-4">
+          <div key={p.id} className="bg-[#1E1E1E] rounded-2xl p-5 border border-white/10 flex flex-col sm:flex-row gap-4">
             <div className="flex gap-4 flex-1 min-w-0">
               <Avatar initials={p.display_initials} gender={p.gender} size={48} />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-semibold text-[#1A1A1A]">{p.display_initials}</span>
+                  <span className="font-semibold text-white">{p.display_initials}</span>
                   {p.legacy_ref && (
-                    <span className="px-2 py-0.5 rounded-full bg-[#F8F6F1] text-xs text-[#1A1A1A]/60 border border-[#E8E4DC]">
+                    <span className="px-2 py-0.5 rounded-full bg-white/10 text-xs text-white/60 border border-white/10">
                       {p.legacy_ref}
                     </span>
                   )}
                   {p.duplicate_flag && (
-                    <span className="px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 text-xs font-medium">
+                    <span className="px-2 py-0.5 rounded-full bg-yellow-900/40 text-yellow-400 text-xs font-medium">
                       Possible duplicate
                     </span>
                   )}
                 </div>
-                <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1.5 text-sm text-[#1A1A1A]/60">
+                <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1.5 text-sm text-white/60">
                   {p.gender && <span className="capitalize">{p.gender}</span>}
                   {p.age_display && <span>{p.age_display}</span>}
                   {p.location && <span>{p.location}</span>}
                   {p.school_of_thought && <span>{p.school_of_thought}</span>}
                 </div>
-                <p className="text-xs text-[#1A1A1A]/40 mt-1">Submitted {daysAgo(p.submitted_date)}</p>
+                <p className="text-xs text-white/40 mt-1">Submitted {daysAgo(p.submitted_date)}</p>
                 {p.admin_comments && (
-                  <div className="mt-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-xs text-amber-800">
+                  <div className="mt-2 bg-[#2A2200] border border-yellow-700/40 rounded-lg px-3 py-2 text-xs text-yellow-400">
                     <span className="font-medium">Admin note:</span> {p.admin_comments}
                   </div>
                 )}
@@ -564,7 +564,7 @@ function QueueTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh: () 
             </div>
             <div className="flex flex-col gap-2 flex-shrink-0 sm:w-28">
               <button onClick={() => setEditProfile(p)}
-                className="px-3 py-2 rounded-xl text-xs font-medium border border-[#E8E4DC] text-[#1A1A1A] hover:bg-[#F8F6F1]">
+                className="px-3 py-2 rounded-xl text-xs font-medium border border-white/10 text-white hover:bg-white/5">
                 Edit
               </button>
               <button onClick={() => setConfirmAction({ id: p.id, type: 'approve' })}
@@ -584,13 +584,13 @@ function QueueTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh: () 
                     Confirm Reject
                   </button>
                   <button onClick={() => setShowRejectInput(null)}
-                    className="w-full px-3 py-1.5 rounded-lg text-xs border border-[#E8E4DC] text-[#1A1A1A]/60 hover:bg-[#F8F6F1]">
+                    className="w-full px-3 py-1.5 rounded-lg text-xs border border-white/10 text-white/60 hover:bg-white/5">
                     Cancel
                   </button>
                 </div>
               ) : (
                 <button onClick={() => setShowRejectInput(p.id)}
-                  className="px-3 py-2 rounded-xl text-xs font-medium bg-red-50 text-red-700 hover:bg-red-100">
+                  className="px-3 py-2 rounded-xl text-xs font-medium bg-red-950/60 text-red-400 hover:bg-red-900/60">
                   Reject
                 </button>
               )}
@@ -617,7 +617,7 @@ function MutualTab({ matches, onRefresh }: { matches: Match[]; onRefresh: () => 
   }
 
   if (relevant.length === 0)
-    return <p className="text-[#1A1A1A]/40 py-16 text-center text-sm">No mutual matches awaiting review.</p>
+    return <p className="text-white/30 py-16 text-center text-sm">No mutual matches awaiting review.</p>
 
   return (
     <>
@@ -636,15 +636,15 @@ function MutualTab({ matches, onRefresh }: { matches: Match[]; onRefresh: () => 
           const pA = m.profile_a
           const pB = m.profile_b
           return (
-            <div key={m.id} className="bg-white rounded-2xl border border-[#E8E4DC] overflow-hidden">
+            <div key={m.id} className="bg-[#1E1E1E] rounded-2xl border border-white/10 overflow-hidden">
               <div className="grid sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-[#E8E4DC]">
                 {/* Profile A */}
                 <div className="p-5 flex gap-4">
                   <Avatar initials={pA?.display_initials ?? '?'} gender={pA?.gender ?? null} size={44} />
                   <div>
-                    <p className="font-semibold text-[#1A1A1A]">{pA?.display_initials ?? 'Unknown'}</p>
-                    {pA?.legacy_ref && <p className="text-xs text-[#1A1A1A]/40">{pA.legacy_ref}</p>}
-                    <div className="mt-1 text-sm text-[#1A1A1A]/60 space-y-0.5">
+                    <p className="font-semibold text-white">{pA?.display_initials ?? 'Unknown'}</p>
+                    {pA?.legacy_ref && <p className="text-xs text-white/40">{pA.legacy_ref}</p>}
+                    <div className="mt-1 text-sm text-white/60 space-y-0.5">
                       {pA?.age_display && <p>{pA.age_display}</p>}
                       {pA?.location && <p>{pA.location}</p>}
                       {pA?.school_of_thought && <p>{pA.school_of_thought}</p>}
@@ -655,9 +655,9 @@ function MutualTab({ matches, onRefresh }: { matches: Match[]; onRefresh: () => 
                 <div className="p-5 flex gap-4">
                   <Avatar initials={pB?.display_initials ?? '?'} gender={pB?.gender ?? null} size={44} />
                   <div>
-                    <p className="font-semibold text-[#1A1A1A]">{pB?.display_initials ?? 'Unknown'}</p>
-                    {pB?.legacy_ref && <p className="text-xs text-[#1A1A1A]/40">{pB.legacy_ref}</p>}
-                    <div className="mt-1 text-sm text-[#1A1A1A]/60 space-y-0.5">
+                    <p className="font-semibold text-white">{pB?.display_initials ?? 'Unknown'}</p>
+                    {pB?.legacy_ref && <p className="text-xs text-white/40">{pB.legacy_ref}</p>}
+                    <div className="mt-1 text-sm text-white/60 space-y-0.5">
                       {pB?.age_display && <p>{pB.age_display}</p>}
                       {pB?.location && <p>{pB.location}</p>}
                       {pB?.school_of_thought && <p>{pB.school_of_thought}</p>}
@@ -665,20 +665,20 @@ function MutualTab({ matches, onRefresh }: { matches: Match[]; onRefresh: () => 
                   </div>
                 </div>
               </div>
-              <div className="px-5 py-3 bg-[#F8F6F1] border-t border-[#E8E4DC] flex flex-wrap items-center gap-3">
+              <div className="px-5 py-3 bg-[#171717] border-t border-white/10 flex flex-wrap items-center gap-3">
                 <StatusBadge status={m.status} />
-                <span className="text-xs text-[#1A1A1A]/50">Mutual {daysAgo(m.mutual_date)}</span>
+                <span className="text-xs text-white/50">Mutual {daysAgo(m.mutual_date)}</span>
                 <div className="ml-auto flex flex-wrap gap-2">
                   <button onClick={() => setFacilitateMatch(m)}
                     className="px-3 py-1.5 rounded-lg text-xs font-medium bg-[#B8960C] text-white hover:bg-[#9a7a0a]">
                     Facilitate Introduction
                   </button>
                   <Link href={`/admin/sidebyside/${m.id}`}
-                    className="px-3 py-1.5 rounded-lg text-xs font-medium border border-[#E8E4DC] text-[#1A1A1A] hover:bg-white">
+                    className="px-3 py-1.5 rounded-lg text-xs font-medium border border-white/10 text-white hover:bg-[#1E1E1E]">
                     View Side by Side
                   </Link>
                   <button onClick={() => setDismissId(m.id)}
-                    className="px-3 py-1.5 rounded-lg text-xs font-medium bg-red-50 text-red-700 hover:bg-red-100">
+                    className="px-3 py-1.5 rounded-lg text-xs font-medium bg-red-950/60 text-red-400 hover:bg-red-900/60">
                     Dismiss
                   </button>
                 </div>
@@ -706,7 +706,7 @@ function IntroducedTab({ matches, onRefresh }: { matches: Match[]; onRefresh: ()
   }
 
   if (relevant.length === 0)
-    return <p className="text-[#1A1A1A]/40 py-16 text-center text-sm">No introduced matches yet.</p>
+    return <p className="text-white/30 py-16 text-center text-sm">No introduced matches yet.</p>
 
   return (
     <div className="space-y-3">
@@ -714,21 +714,21 @@ function IntroducedTab({ matches, onRefresh }: { matches: Match[]; onRefresh: ()
         const pA = m.profile_a
         const pB = m.profile_b
         return (
-          <div key={m.id} className="bg-white rounded-2xl p-5 border border-[#E8E4DC] flex flex-col sm:flex-row sm:items-center gap-4">
+          <div key={m.id} className="bg-[#1E1E1E] rounded-2xl p-5 border border-white/10 flex flex-col sm:flex-row sm:items-center gap-4">
             <div className="flex items-center gap-3 flex-1 min-w-0">
               <div className="flex -space-x-2">
                 <Avatar initials={pA?.display_initials ?? '?'} gender={pA?.gender ?? null} size={36} />
                 <Avatar initials={pB?.display_initials ?? '?'} gender={pB?.gender ?? null} size={36} />
               </div>
               <div className="min-w-0">
-                <p className="font-medium text-[#1A1A1A] text-sm">
+                <p className="font-medium text-white text-sm">
                   {pA?.display_initials ?? '?'} &amp; {pB?.display_initials ?? '?'}
                 </p>
                 <div className="flex flex-wrap gap-2 mt-0.5">
-                  {pA?.legacy_ref && <span className="text-xs text-[#1A1A1A]/40">{pA.legacy_ref}</span>}
-                  {pB?.legacy_ref && <span className="text-xs text-[#1A1A1A]/40">{pB.legacy_ref}</span>}
+                  {pA?.legacy_ref && <span className="text-xs text-white/40">{pA.legacy_ref}</span>}
+                  {pB?.legacy_ref && <span className="text-xs text-white/40">{pB.legacy_ref}</span>}
                 </div>
-                <p className="text-xs text-[#1A1A1A]/40 mt-0.5">
+                <p className="text-xs text-white/40 mt-0.5">
                   Introduced {fmtDate(m.introduced_date)}
                 </p>
               </div>
@@ -806,10 +806,10 @@ function MembersTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh: (
           ))}
         </select>
       </div>
-      <div className="overflow-x-auto rounded-2xl border border-[#E8E4DC]">
+      <div className="overflow-x-auto rounded-2xl border border-white/10">
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-[#F8F6F1] text-[#1A1A1A]/50 text-left text-xs">
+            <tr className="bg-[#171717] text-white/40 text-left text-xs">
               <th className="px-4 py-3 font-medium">Member</th>
               <th className="px-4 py-3 font-medium">Gender</th>
               <th className="px-4 py-3 font-medium">Age</th>
@@ -820,55 +820,55 @@ function MembersTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh: (
               <th className="px-4 py-3 font-medium">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#E8E4DC] bg-white">
+          <tbody className="divide-y divide-[#E8E4DC] bg-[#1E1E1E]">
             {filtered.map(p => (
-              <tr key={p.id} className="hover:bg-[#F8F6F1] transition-colors">
+              <tr key={p.id} className="hover:bg-white/5 transition-colors">
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
                     <Avatar initials={p.display_initials} gender={p.gender} size={32} />
                     <div>
-                      <p className="font-medium text-[#1A1A1A]">{p.display_initials}</p>
-                      {p.legacy_ref && <p className="text-xs text-[#1A1A1A]/40">{p.legacy_ref}</p>}
+                      <p className="font-medium text-white">{p.display_initials}</p>
+                      {p.legacy_ref && <p className="text-xs text-white/40">{p.legacy_ref}</p>}
                     </div>
                   </div>
                 </td>
-                <td className="px-4 py-3 text-[#1A1A1A]/70 capitalize">{p.gender ?? '—'}</td>
-                <td className="px-4 py-3 text-[#1A1A1A]/70">{p.age_display ?? '—'}</td>
-                <td className="px-4 py-3 text-[#1A1A1A]/70">{p.location ?? '—'}</td>
-                <td className="px-4 py-3 text-[#1A1A1A]/70">{p.profession_sector ?? '—'}</td>
+                <td className="px-4 py-3 text-white/70 capitalize">{p.gender ?? '—'}</td>
+                <td className="px-4 py-3 text-white/70">{p.age_display ?? '—'}</td>
+                <td className="px-4 py-3 text-white/70">{p.location ?? '—'}</td>
+                <td className="px-4 py-3 text-white/70">{p.profession_sector ?? '—'}</td>
                 <td className="px-4 py-3"><StatusBadge status={p.status} /></td>
-                <td className="px-4 py-3 text-[#1A1A1A]/40 text-xs">{fmtDate(p.created_at)}</td>
+                <td className="px-4 py-3 text-white/40 text-xs">{fmtDate(p.created_at)}</td>
                 <td className="px-4 py-3">
                   <div className="flex flex-wrap gap-1">
                     <button onClick={() => setContactProfile(p)}
-                      className="px-2 py-1 rounded text-xs border border-[#E8E4DC] text-[#1A1A1A] hover:bg-[#F8F6F1]">
+                      className="px-2 py-1 rounded text-xs border border-white/10 text-white hover:bg-white/5">
                       Contact
                     </button>
                     <button onClick={() => setEditProfile(p)}
-                      className="px-2 py-1 rounded text-xs border border-[#E8E4DC] text-[#1A1A1A] hover:bg-[#F8F6F1]">
+                      className="px-2 py-1 rounded text-xs border border-white/10 text-white hover:bg-white/5">
                       Edit
                     </button>
                     {p.status !== 'approved' && (
                       <button onClick={() => changeStatus(p.id, 'approved')}
-                        className="px-2 py-1 rounded text-xs bg-green-50 text-green-700 hover:bg-green-100">
+                        className="px-2 py-1 rounded text-xs bg-green-950/60 text-green-400 hover:bg-green-900/60">
                         Approve
                       </button>
                     )}
                     {p.status === 'approved' && (
                       <button onClick={() => changeStatus(p.id, 'suspended')}
-                        className="px-2 py-1 rounded text-xs bg-yellow-50 text-yellow-700 hover:bg-yellow-100">
+                        className="px-2 py-1 rounded text-xs bg-yellow-950/60 text-yellow-400 hover:bg-yellow-900/60">
                         Suspend
                       </button>
                     )}
                     {p.status === 'suspended' && (
                       <button onClick={() => changeStatus(p.id, 'approved')}
-                        className="px-2 py-1 rounded text-xs bg-blue-50 text-blue-700 hover:bg-blue-100">
+                        className="px-2 py-1 rounded text-xs bg-blue-950/60 text-blue-400 hover:bg-blue-900/60">
                         Reinstate
                       </button>
                     )}
                     {!['rejected'].includes(p.status) && (
                       <button onClick={() => changeStatus(p.id, 'rejected')}
-                        className="px-2 py-1 rounded text-xs bg-red-50 text-red-700 hover:bg-red-100">
+                        className="px-2 py-1 rounded text-xs bg-red-950/60 text-red-400 hover:bg-red-900/60">
                         Reject
                       </button>
                     )}
@@ -879,7 +879,7 @@ function MembersTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh: (
           </tbody>
         </table>
         {filtered.length === 0 && (
-          <p className="text-center text-[#1A1A1A]/40 py-10 text-sm">No members found.</p>
+          <p className="text-center text-white/40 py-10 text-sm">No members found.</p>
         )}
       </div>
     </>
@@ -905,7 +905,7 @@ function WithdrawnTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh:
   }
 
   if (withdrawn.length === 0)
-    return <p className="text-[#1A1A1A]/40 py-16 text-center text-sm">No withdrawn profiles.</p>
+    return <p className="text-white/30 py-16 text-center text-sm">No withdrawn profiles.</p>
 
   return (
     <>
@@ -918,17 +918,17 @@ function WithdrawnTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh:
       )}
       <div className="space-y-3">
         {withdrawn.map(p => (
-          <div key={p.id} className="bg-white rounded-2xl p-5 border border-[#E8E4DC] flex items-center gap-4">
+          <div key={p.id} className="bg-[#1E1E1E] rounded-2xl p-5 border border-white/10 flex items-center gap-4">
             <Avatar initials={p.display_initials} gender={p.gender} size={44} />
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-semibold text-[#1A1A1A]">{p.display_initials}</span>
-                {p.legacy_ref && <span className="text-xs text-[#1A1A1A]/40">{p.legacy_ref}</span>}
+                <span className="font-semibold text-white">{p.display_initials}</span>
+                {p.legacy_ref && <span className="text-xs text-white/40">{p.legacy_ref}</span>}
               </div>
               {p.withdrawal_reason && (
-                <p className="text-sm text-[#1A1A1A]/60 mt-0.5">Reason: {p.withdrawal_reason}</p>
+                <p className="text-sm text-white/60 mt-0.5">Reason: {p.withdrawal_reason}</p>
               )}
-              <p className="text-xs text-[#1A1A1A]/40 mt-0.5">Withdrawn {daysAgo(p.submitted_date)}</p>
+              <p className="text-xs text-white/40 mt-0.5">Withdrawn {daysAgo(p.submitted_date)}</p>
             </div>
             <div className="flex gap-2 flex-shrink-0">
               <button onClick={() => reinstate(p.id)}
@@ -936,7 +936,7 @@ function WithdrawnTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh:
                 Reinstate
               </button>
               <button onClick={() => setDeleteId(p.id)}
-                className="px-3 py-2 rounded-xl text-xs font-medium bg-red-50 text-red-700 hover:bg-red-100">
+                className="px-3 py-2 rounded-xl text-xs font-medium bg-red-950/60 text-red-400 hover:bg-red-900/60">
                 Delete
               </button>
             </div>
@@ -984,7 +984,7 @@ function UnlinkedTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh: 
   if (unlinked.length === 0)
     return (
       <div className="py-16 text-center">
-        <p className="text-[#1A1A1A]/40 text-sm">All approved profiles are linked to user accounts.</p>
+        <p className="text-white/30 text-sm">All approved profiles are linked to user accounts.</p>
       </div>
     )
 
@@ -992,9 +992,9 @@ function UnlinkedTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh: 
     <>
       {linkId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl">
-            <h3 className="font-semibold text-[#1A1A1A] mb-2">Link Profile to User</h3>
-            <p className="text-xs text-[#1A1A1A]/50 mb-3">
+          <div className="bg-[#1E1E1E] rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl">
+            <h3 className="font-semibold text-white mb-2">Link Profile to User</h3>
+            <p className="text-xs text-white/50 mb-3">
               Enter the user&apos;s Supabase Auth UUID. You can find this in the Supabase dashboard under Authentication &gt; Users.
             </p>
             <input
@@ -1006,7 +1006,7 @@ function UnlinkedTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh: 
             {linkError && <p className="text-red-600 text-xs mb-2">{linkError}</p>}
             <div className="flex gap-3 mt-4">
               <button onClick={() => { setLinkId(null); setUserId(''); setLinkError(null) }}
-                className="flex-1 px-4 py-2 rounded-xl text-sm border border-[#E8E4DC] text-[#1A1A1A] hover:bg-[#F8F6F1]">
+                className="flex-1 px-4 py-2 rounded-xl text-sm border border-white/10 text-white hover:bg-white/5">
                 Cancel
               </button>
               <button onClick={linkProfile} disabled={!userId.trim() || linking}
@@ -1018,7 +1018,7 @@ function UnlinkedTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh: 
         </div>
       )}
 
-      <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl px-5 py-4">
+      <div className="mb-6 bg-[#2A2200] border border-yellow-700/40 rounded-xl px-5 py-4">
         <p className="text-sm font-medium text-amber-800">
           {unlinked.length} approved {unlinked.length === 1 ? 'profile has' : 'profiles have'} not yet been claimed by a user account.
         </p>
@@ -1026,18 +1026,18 @@ function UnlinkedTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh: 
 
       <div className="space-y-3">
         {unlinked.map(p => (
-          <div key={p.id} className="bg-white rounded-2xl p-5 border border-[#E8E4DC] flex items-center gap-4">
+          <div key={p.id} className="bg-[#1E1E1E] rounded-2xl p-5 border border-white/10 flex items-center gap-4">
             <Avatar initials={p.display_initials} gender={p.gender} size={44} />
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-semibold text-[#1A1A1A]">{p.display_initials}</span>
+                <span className="font-semibold text-white">{p.display_initials}</span>
                 {p.legacy_ref && (
-                  <span className="px-2 py-0.5 rounded-full bg-[#F8F6F1] text-xs text-[#1A1A1A]/60 border border-[#E8E4DC]">
+                  <span className="px-2 py-0.5 rounded-full bg-white/10 text-xs text-white/60 border border-white/10">
                     {p.legacy_ref}
                   </span>
                 )}
               </div>
-              <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-sm text-[#1A1A1A]/60">
+              <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-sm text-white/60">
                 {p.imported_email && <span>{p.imported_email}</span>}
                 {p.contact_number && <span>{p.contact_number}</span>}
                 {p.age_display && <span>{p.age_display}</span>}
@@ -1119,23 +1119,23 @@ function EventsTab({ events, onRefresh }: { events: ZawaajEvent[]; onRefresh: ()
       )}
 
       {/* New Event Form */}
-      <div className="bg-white rounded-2xl p-5 border border-[#E8E4DC] mb-6">
-        <h3 className="text-sm font-semibold text-[#1A1A1A] mb-4">Add New Event</h3>
+      <div className="bg-[#1E1E1E] rounded-2xl p-5 border border-white/10 mb-6">
+        <h3 className="text-sm font-semibold text-white mb-4">Add New Event</h3>
         <div className="grid sm:grid-cols-2 gap-3">
           <label className="block">
-            <span className="text-xs text-[#1A1A1A]/60 mb-1 block">Title *</span>
+            <span className="text-xs text-white/60 mb-1 block">Title *</span>
             <input className="field" value={newForm.title} onChange={e => setNewForm(f => ({ ...f, title: e.target.value }))} />
           </label>
           <label className="block">
-            <span className="text-xs text-[#1A1A1A]/60 mb-1 block">Date &amp; Time</span>
+            <span className="text-xs text-white/60 mb-1 block">Date &amp; Time</span>
             <input type="datetime-local" className="field" value={newForm.event_date} onChange={e => setNewForm(f => ({ ...f, event_date: e.target.value }))} />
           </label>
           <label className="block">
-            <span className="text-xs text-[#1A1A1A]/60 mb-1 block">Location</span>
+            <span className="text-xs text-white/60 mb-1 block">Location</span>
             <input className="field" value={newForm.location_text} onChange={e => setNewForm(f => ({ ...f, location_text: e.target.value }))} />
           </label>
           <label className="block">
-            <span className="text-xs text-[#1A1A1A]/60 mb-1 block">Registration URL</span>
+            <span className="text-xs text-white/60 mb-1 block">Registration URL</span>
             <input type="url" className="field" value={newForm.registration_url} onChange={e => setNewForm(f => ({ ...f, registration_url: e.target.value }))} />
           </label>
         </div>
@@ -1147,24 +1147,24 @@ function EventsTab({ events, onRefresh }: { events: ZawaajEvent[]; onRefresh: ()
 
       {/* Event List */}
       {events.length === 0 && (
-        <p className="text-[#1A1A1A]/40 py-8 text-center text-sm">No events yet.</p>
+        <p className="text-white/30 py-8 text-center text-sm">No events yet.</p>
       )}
       <div className="space-y-3">
         {events.map(ev => (
-          <div key={ev.id} className="bg-white rounded-2xl border border-[#E8E4DC] overflow-hidden">
+          <div key={ev.id} className="bg-[#1E1E1E] rounded-2xl border border-white/10 overflow-hidden">
             <div className="p-5 flex flex-col sm:flex-row sm:items-center gap-3">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-semibold text-[#1A1A1A]">{ev.title}</span>
+                  <span className="font-semibold text-white">{ev.title}</span>
                   <StatusBadge status={ev.status} />
                 </div>
-                <div className="flex flex-wrap gap-x-3 mt-1 text-sm text-[#1A1A1A]/60">
+                <div className="flex flex-wrap gap-x-3 mt-1 text-sm text-white/60">
                   {ev.event_date && <span>{fmtDate(ev.event_date)}</span>}
                   {ev.location_text && <span>{ev.location_text}</span>}
                 </div>
               </div>
               <div className="flex flex-wrap gap-2 flex-shrink-0">
-                <label className="flex items-center gap-1.5 text-xs text-[#1A1A1A]/70 cursor-pointer">
+                <label className="flex items-center gap-1.5 text-xs text-white/70 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={ev.show_in_history}
@@ -1175,19 +1175,19 @@ function EventsTab({ events, onRefresh }: { events: ZawaajEvent[]; onRefresh: ()
                 </label>
                 {ev.status !== 'archived' && (
                   <button onClick={() => archive(ev.id)}
-                    className="px-2.5 py-1 rounded-lg text-xs border border-[#E8E4DC] text-[#1A1A1A] hover:bg-[#F8F6F1]">
+                    className="px-2.5 py-1 rounded-lg text-xs border border-white/10 text-white hover:bg-white/5">
                     Archive
                   </button>
                 )}
                 <button onClick={() => setDeleteId(ev.id)}
-                  className="px-2.5 py-1 rounded-lg text-xs bg-red-50 text-red-700 hover:bg-red-100">
+                  className="px-2.5 py-1 rounded-lg text-xs bg-red-950/60 text-red-400 hover:bg-red-900/60">
                   Delete
                 </button>
               </div>
             </div>
             {/* URL edit */}
-            <div className="px-5 py-3 border-t border-[#E8E4DC] bg-[#F8F6F1] flex items-center gap-2">
-              <span className="text-xs text-[#1A1A1A]/50 flex-shrink-0">Registration URL:</span>
+            <div className="px-5 py-3 border-t border-white/10 bg-[#171717] flex items-center gap-2">
+              <span className="text-xs text-white/50 flex-shrink-0">Registration URL:</span>
               <input
                 className="field flex-1 text-xs py-1"
                 defaultValue={ev.registration_url ?? ''}
@@ -1201,8 +1201,8 @@ function EventsTab({ events, onRefresh }: { events: ZawaajEvent[]; onRefresh: ()
             </div>
             {/* Attendance note (only for ended/archived) */}
             {(ev.status === 'ended' || ev.status === 'archived') && (
-              <div className="px-5 py-3 border-t border-[#E8E4DC] bg-[#F8F6F1] flex items-center gap-2">
-                <span className="text-xs text-[#1A1A1A]/50 flex-shrink-0">Attendance note:</span>
+              <div className="px-5 py-3 border-t border-white/10 bg-[#171717] flex items-center gap-2">
+                <span className="text-xs text-white/50 flex-shrink-0">Attendance note:</span>
                 <input
                   className="field flex-1 text-xs py-1"
                   defaultValue={ev.attendance_note ?? ''}
@@ -1226,11 +1226,11 @@ function EventsTab({ events, onRefresh }: { events: ZawaajEvent[]; onRefresh: ()
 function ImportTab() {
   return (
     <div className="max-w-xl mx-auto py-16 text-center space-y-4">
-      <div className="w-16 h-16 rounded-2xl bg-[#F8F6F1] border border-[#E8E4DC] flex items-center justify-center mx-auto text-3xl">
+      <div className="w-16 h-16 rounded-2xl bg-[#252525] border border-white/10 flex items-center justify-center mx-auto text-3xl">
         📥
       </div>
-      <h2 className="text-xl font-semibold text-[#1A1A1A]">CSV Import — Coming Soon</h2>
-      <p className="text-[#1A1A1A]/60 text-sm leading-relaxed">
+      <h2 className="text-xl font-semibold text-white">CSV Import — Coming Soon</h2>
+      <p className="text-white/50 text-sm leading-relaxed">
         Use the Supabase dashboard to bulk import profiles via SQL for now.
         Import tool will be available in a future update.
       </p>
@@ -1338,19 +1338,19 @@ export default function AdminPage() {
 
   if (!accessChecked) {
     return (
-      <div className="min-h-screen bg-[#F8F6F1] flex items-center justify-center">
-        <p className="text-[#1A1A1A]/40 text-sm">Checking access…</p>
+      <div className="min-h-screen bg-[#111111] flex items-center justify-center">
+        <p className="text-white/30 text-sm">Checking access…</p>
       </div>
     )
   }
 
   if (!isAdmin) {
     return (
-      <div className="min-h-screen bg-[#F8F6F1] flex flex-col items-center justify-center gap-4">
-        <div className="bg-white rounded-2xl p-10 border border-[#E8E4DC] text-center max-w-sm mx-4">
+      <div className="min-h-screen bg-[#111111] flex flex-col items-center justify-center gap-4">
+        <div className="bg-[#1E1E1E] rounded-2xl p-10 border border-white/10 text-center max-w-sm mx-4">
           <p className="text-2xl mb-2">🔒</p>
-          <h1 className="text-xl font-semibold text-[#1A1A1A] mb-2">Access Denied</h1>
-          <p className="text-[#1A1A1A]/60 text-sm mb-6">You do not have admin access to this page.</p>
+          <h1 className="text-xl font-semibold text-white mb-2">Access Denied</h1>
+          <p className="text-white/50 text-sm mb-6">You do not have admin access to this page.</p>
           <Link href="/browse" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium bg-[#1A1A1A] text-[#B8960C] hover:bg-[#333]">
             Return to Browse
           </Link>
@@ -1364,7 +1364,7 @@ export default function AdminPage() {
   const approvedCount = profiles.filter(p => p.status === 'approved').length
 
   return (
-    <div className="min-h-screen bg-[#F8F6F1]">
+    <div className="min-h-screen bg-[#111111]">
       {/* Header */}
       <header className="bg-[#1A1A1A] sticky top-0 z-30 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
@@ -1393,8 +1393,8 @@ export default function AdminPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         {/* Title */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-[#1A1A1A]">Admin Dashboard</h1>
-          <p className="text-[#1A1A1A]/50 text-sm mt-1">Manage applications, matches and members.</p>
+          <h1 className="text-2xl font-bold text-white">Admin Dashboard</h1>
+          <p className="text-white/40 text-sm mt-1">Manage applications, matches and members.</p>
         </div>
 
         {/* Stats Row */}
@@ -1407,15 +1407,15 @@ export default function AdminPage() {
             { label: 'Introduced', value: introducedCount, color: '#1E40AF' },
             { label: 'Unlinked', value: unlinkedCount, color: '#92400E' },
           ].map(stat => (
-            <div key={stat.label} className="bg-white rounded-2xl p-4 border border-[#E8E4DC]">
+            <div key={stat.label} className="bg-[#1E1E1E] rounded-2xl p-4 border border-white/10">
               <p className="text-2xl font-bold" style={{ color: stat.color }}>{stat.value}</p>
-              <p className="text-xs text-[#1A1A1A]/50 mt-0.5">{stat.label}</p>
+              <p className="text-xs text-white/50 mt-0.5">{stat.label}</p>
             </div>
           ))}
         </div>
 
         {/* Tab Bar */}
-        <div className="flex flex-wrap gap-1 mb-6 bg-white rounded-2xl p-1.5 border border-[#E8E4DC] w-fit">
+        <div className="flex flex-wrap gap-1 mb-6 bg-[#1E1E1E] rounded-2xl p-1.5 border border-white/10 w-fit">
           {tabs.map(({ key, label, badge }) => (
             <button
               key={key}
@@ -1444,7 +1444,7 @@ export default function AdminPage() {
 
         {/* Tab Content */}
         {loading ? (
-          <div className="flex items-center justify-center h-48 text-[#1A1A1A]/40 text-sm">
+          <div className="flex items-center justify-center h-48 text-white/40 text-sm">
             Loading…
           </div>
         ) : (
@@ -1468,14 +1468,18 @@ export default function AdminPage() {
           border-radius: 0.625rem;
           padding: 0.5rem 0.75rem;
           font-size: 0.875rem;
-          border: 1px solid #E8E4DC;
-          background: white;
-          color: #1A1A1A;
+          border: 1px solid rgba(255,255,255,0.12);
+          background: #141414;
+          color: rgba(255,255,255,0.9);
           outline: none;
           transition: border-color 0.15s;
         }
         .field:focus {
           border-color: #B8960C;
+        }
+        .field option {
+          background: #1E1E1E;
+          color: rgba(255,255,255,0.9);
         }
       `}</style>
     </div>

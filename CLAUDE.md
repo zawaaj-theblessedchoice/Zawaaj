@@ -28,6 +28,7 @@ Zawaaj is a **private, invite-only Muslim matrimonial platform** at **zawaaj.uk*
 - **Browser/Client components**: `import { createClient } from '@/lib/supabase/client'` → `createBrowserClient`
 - **Server components / Route handlers**: `import { createClient } from '@/lib/supabase/server'` → async `createServerClient` with `await cookies()`
 - **Proxy (proxy.ts)**: inline `createServerClient` directly (cookies via request object, not `next/headers`)
+- **Admin/server-only**: `import { supabaseAdmin } from '@/lib/supabase/admin'` → service role client, bypasses RLS
 
 ---
 
@@ -36,13 +37,18 @@ Zawaaj is a **private, invite-only Muslim matrimonial platform** at **zawaaj.uk*
 | Token | Value |
 |---|---|
 | Gold | `#B8960C` |
-| Dark | `#1A1A1A` |
-| Background | `#F8F6F1` |
+| Dark background | `#111111` / CSS var `--surface` |
+| Card surface | `#1A1A1A` / CSS var `--surface-2` |
+| Input surface | CSS var `--surface-3` |
+| Border | CSS var `--border-default` |
+| Gold border | CSS var `--border-gold` |
 | Female avatar bg | `#EEEDFE` |
 | Female avatar text | `#534AB7` |
 | Male avatar bg | `#E6F1FB` |
 | Male avatar text | `#185FA5` |
 | Font | Inter via Geist (`--font-geist-sans`) |
+
+The entire app uses a **dark theme**. Use CSS variables (`var(--surface)`, `var(--text-primary)`, etc.) for member-facing pages. The admin dashboard uses Tailwind dark classes (`bg-[#111111]`, `text-white`, `border-white/10`).
 
 ---
 
@@ -57,12 +63,19 @@ Key columns:
 - `id` uuid PK, `user_id` uuid → auth.users
 - `legacy_ref` text, `imported_email` text
 - `display_initials` text NOT NULL
+- `first_name` text, `last_name` text
 - `gender` text CHECK ('male','female')
 - `date_of_birth` date, `age_display` text, `height` text
-- `ethnicity` text, `school_of_thought` text
+- `ethnicity` text, `nationality` text, `school_of_thought` text
 - `education_level` text, `education_detail` text
 - `profession_sector` text, `profession_detail` text
-- `location` text
+- `location` text, `languages_spoken` text
+- `bio` text, `religiosity` text, `prayer_regularity` text
+- `wears_hijab` boolean, `keeps_beard` boolean
+- `marital_status` text, `has_children` boolean, `living_situation` text
+- `open_to_relocation` text, `open_to_partners_children` text, `polygamy_openness` text
+- `pref_age_min` int, `pref_age_max` int, `pref_location` text, `pref_ethnicity` text
+- `pref_school_of_thought` text[], `pref_relocation` text, `pref_partner_children` text
 - `attributes` text[], `spouse_preferences` text[]
 - `admin_comments` text, `admin_notes` text
 - `is_admin` boolean DEFAULT false
@@ -72,20 +85,21 @@ Key columns:
 - `consent_given` boolean, `terms_agreed` boolean
 - `interests_this_month` int DEFAULT 0, `interests_reset_date` date
 - `duplicate_flag` boolean
+- `listed_at` timestamptz — set when profile is approved, used for "new" badge in browse
 - `submitted_date` timestamptz, `approved_date` timestamptz
 - `created_at`, `updated_at` timestamptz
 
-### `zawaaj_interests`
-Tracks interest requests between profiles.
+### `zawaaj_introduction_requests`
+Tracks introduction requests between profiles (replaces old `zawaaj_interests` table).
 
 Key columns:
 - `id` uuid PK
-- `sender_profile_id` uuid → zawaaj_profiles
-- `recipient_profile_id` uuid → zawaaj_profiles
-- `sent_date` timestamptz, `expires_date` timestamptz
-- `status` text CHECK ('active','expired','matched','withdrawn')
-- `is_mutual` boolean, `match_id` uuid → zawaaj_matches
-- Partial unique index `unique_active_interest` on (sender, recipient) WHERE status='active'
+- `requesting_profile_id` uuid → zawaaj_profiles
+- `target_profile_id` uuid → zawaaj_profiles
+- `status` text CHECK ('pending','mutual','facilitated','expired','withdrawn')
+- `created_at` timestamptz, `expires_at` timestamptz
+
+API: `POST /api/introduction-requests` with `{ target_profile_id }` — enforces monthly limit, status checks, duplicate detection.
 
 ### `zawaaj_matches`
 Created when two interests are mutual and admin progresses them.
@@ -118,19 +132,45 @@ Key columns:
 - `active_profile_id` uuid → zawaaj_profiles (ON DELETE SET NULL)
 - `created_at`, `updated_at` timestamptz
 
+### `zawaaj_saved_profiles`
+Shortlist / saved profiles per member.
+
+Key columns:
+- `id` uuid PK
+- `profile_id` uuid — the profile doing the saving
+- `saved_profile_id` uuid — the profile being saved
+- `saved_by` uuid — also the saver's profile_id (used in queries)
+
+### `zawaaj_browse_state`
+Tracks when each member last visited the browse page (used for "new since your last visit" count).
+
+Key columns:
+- `id` uuid PK
+- `profile_id` uuid UNIQUE → zawaaj_profiles
+- `last_browsed_at` timestamptz
+
+---
+
+## Key SQL Functions (SECURITY DEFINER)
+
+- `zawaaj_is_admin()` → boolean — checks `zawaaj_profiles.is_admin = true` for current user. Used in RLS policies and browse page admin redirect.
+- `zawaaj_email_exists(p_email text)` → boolean — checks `auth.users` for email existence. Called by `/api/check-email` at signup step 0.
+
 ---
 
 ## Business Rules
 
-1. **Interests limit**: 5 interests per profile per calendar month. Tracked in `zawaaj_profiles.interests_this_month` + `interests_reset_date`. Reset at start of each month.
-2. **Interest expiry**: Interests expire after **30 days** (`expires_date = sent_date + 30 days`). Status → 'expired'.
-3. **No self-interest**: DB constraint `sender_profile_id <> recipient_profile_id`.
-4. **No sibling-interest**: Enforced at application layer (admin flags `duplicate_flag` on related profiles).
+1. **Introduction request limit**: 5 requests per profile per calendar month. Tracked in `zawaaj_profiles.interests_this_month` + `interests_reset_date`. Reset on the 1st of each month.
+2. **Request expiry**: Requests expire after **30 days** (`expires_at = created_at + 30 days`). Status → 'expired'.
+3. **No self-request**: DB constraint `requesting_profile_id <> target_profile_id`.
+4. **No sibling-request**: Enforced at application layer (admin flags `duplicate_flag` on related profiles).
 5. **Bilateral consent before introduction**: Both `family_a_consented` AND `family_b_consented` must be true before admin marks a match as 'introduced'.
-6. **Introduction flow**: mutual interest → admin reviews → admin contacts both families → verbal consent captured → admin updates match status to 'introduced'.
+6. **Introduction flow**: mutual request → admin reviews → admin contacts both families → verbal consent captured → admin updates match status to 'introduced'.
 7. **Status lifecycle** (profile): pending → approved → (paused | introduced | withdrawn | suspended | rejected)
-8. **Status lifecycle** (interest): active → (expired | matched | withdrawn)
+8. **Status lifecycle** (introduction request): pending → (mutual | facilitated | expired | withdrawn)
 9. **Status lifecycle** (match): awaiting_admin → admin_reviewing → (introduced → nikah | no_longer_proceeding | dismissed)
+10. **Browse filters**: Members only see opposite-gender approved profiles. Admins bypass browse and go directly to `/admin`.
+11. **Email check at signup**: Step 0 of signup calls `/api/check-email` before advancing, so users learn immediately if their email is taken.
 
 ---
 
@@ -138,15 +178,29 @@ Key columns:
 
 ### Member
 - `is_admin = false` on their profile
-- Can browse approved profiles in directory (non-sensitive fields only)
-- Can send/view their own interests
-- Can view their own matches
-- Can edit their own profile
+- Can browse approved opposite-gender profiles (`/browse`)
+- Can send/view their own introduction requests (`/introductions`)
+- Can shortlist profiles
+- Can edit their own profile (`/my-profile`)
 - Can pause or withdraw their profile
 
 ### Admin
 - `is_admin = true` on their profile
-- Full access to all tables via `zawaaj_is_admin()` SECURITY DEFINER function (defined in migration 002)
+- **First admin must be elevated manually via SQL** — signup never sets `is_admin = true`:
+  ```sql
+  UPDATE zawaaj_profiles SET is_admin = true, status = 'approved'
+  WHERE user_id = (SELECT id FROM auth.users WHERE email = 'admin@example.com');
+  ```
+- If the admin has no profile row yet, create one first:
+  ```sql
+  WITH new_profile AS (
+    INSERT INTO zawaaj_profiles (user_id, display_initials, is_admin, status, consent_given, terms_agreed)
+    VALUES ('<user-id>', 'ZA', true, 'approved', true, true) RETURNING id
+  )
+  INSERT INTO zawaaj_user_settings (user_id, active_profile_id)
+  SELECT '<user-id>', id FROM new_profile;
+  ```
+- Full access to all tables via `zawaaj_is_admin()` SECURITY DEFINER function (migration 002)
 - Can approve/reject/suspend profiles
 - Can manage matches and introductions
 - Admin paths: `/admin/*`
@@ -172,39 +226,71 @@ A user may have multiple profile rows (e.g. from legacy import + new signup). Th
 
 ---
 
-## Existing File Structure
+## Password Reset Flow (PKCE)
+
+1. User visits `/forgot-password`, enters email
+2. `resetPasswordForEmail` called with `redirectTo: https://zawaaj.uk/auth/callback?next=/auth/reset-password`
+   - **Always uses `zawaaj.uk`** (via `NEXT_PUBLIC_SITE_URL` env var or hardcoded fallback) — never `window.location.origin`, which would fail from Vercel preview URLs
+3. Supabase sends email with `?code=` link → user clicks → hits `/auth/callback`
+4. `/auth/callback` exchanges code for session (PKCE), sets cookie, redirects to `/auth/reset-password`
+5. Reset page calls `getSession()` on mount — if session exists, shows password form
+6. `updateUser({ password })` → success → redirect to `/browse`
+
+`https://zawaaj.uk/auth/callback` must be in **Supabase → Auth → URL Configuration → Redirect URLs allowlist**.
+
+---
+
+## File Structure
 
 ```
 src/
   app/
-    globals.css          — @import "tailwindcss" (Tailwind v4)
-    layout.tsx           — Geist font, bg-[#F8F6F1]
-    page.tsx             — root redirect (check auth → /directory or /login)
-    login/               — login page
-    signup/              — signup page
-    pending/             — post-signup pending approval page
-    terms/               — T&C (public)
-    help/                — FAQ (public)
-    directory/           — member profile directory (protected)
-    profile/             — individual profile view (protected)
-    my-profile/          — own profile management (protected)
-    events/              — events listing (protected)
-    admin/               — admin dashboard and tools (admin-only)
+    globals.css                    — @import "tailwindcss" (Tailwind v4) + CSS vars
+    layout.tsx                     — Geist font, dark background
+    page.tsx                       — root redirect (auth check → /browse or /login)
+    login/                         — sign in page
+    signup/                        — multi-step registration wizard (8 steps)
+    pending/                       — post-signup pending approval page
+    forgot-password/               — password reset request page
+    auth/
+      callback/route.ts            — PKCE code exchange (all OAuth + reset links land here)
+      reset-password/              — new password form (uses session from cookie)
+    browse/                        — member profile directory with filters/tabs (protected)
+      BrowseClient.tsx             — client component: tabs, filters, cards
+    profile/[id]/                  — individual profile view (protected)
+    my-profile/                    — own profile management (protected)
+    introductions/                 — sent introduction requests (protected)
+      IntroductionsClient.tsx
+    events/                        — events listing (protected)
+    admin/                         — admin dashboard (admin-only)
+      profile/[id]/                — admin individual profile view
+    terms/                         — T&C (public)
+    help/                          — FAQ (public)
+    api/
+      register/route.ts            — server-side signup (admin client, bypasses RLS)
+      check-email/route.ts         — email existence check for signup step 0
+      introduction-requests/route.ts — create intro requests (enforces limits + status checks)
   components/
-    ZawaajLogo.tsx       — <ZawaajLogo size={90} tagline={true} />
+    ZawaajLogo.tsx                 — <ZawaajLogo size={90} tagline={true} />
+    Sidebar.tsx                    — persistent left nav for member pages
+    AvatarInitials.tsx             — initials avatar with gender colour
+    ProfileModal.tsx               — profile detail modal used in browse
   lib/
     supabase/
-      client.ts          — createClient() → createBrowserClient
-      server.ts          — async createClient() → createServerClient + await cookies()
-  proxy.ts               — session refresh + route protection
+      client.ts                    — createClient() → createBrowserClient
+      server.ts                    — async createClient() → createServerClient + await cookies()
+      admin.ts                     — supabaseAdmin → service role client (server-only)
+  proxy.ts                         — session refresh + route protection
 supabase/
   migrations/
     001_initial_schema.sql
-    002_fix_rls_recursion.sql
+    002_fix_rls_recursion.sql      — zawaaj_is_admin() SECURITY DEFINER function
     003_schema_updates.sql
+    004_brief_schema.sql
+    005_email_exists_fn.sql        — zawaaj_email_exists() SECURITY DEFINER function
 public/
   logo.png
-  robots.txt             — Disallow: / (no public indexing)
+  robots.txt                       — Disallow: / (no public indexing)
 ```
 
 ---
@@ -229,6 +315,8 @@ npx tsc --noEmit
 ```
 NEXT_PUBLIC_SUPABASE_URL=https://nxytwfbzoxatyupqccba.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon key>
+SUPABASE_SERVICE_ROLE_KEY=<service role key>        # server-only, never expose to client
+NEXT_PUBLIC_SITE_URL=https://zawaaj.uk              # canonical origin for password reset emails
 ```
 
 ---
@@ -238,6 +326,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon key>
 - **No `any` types** without explicit justification in a comment
 - Server components are the default — add `'use client'` only when needed (event handlers, hooks, browser APIs)
 - All Supabase queries should handle errors explicitly
-- Use Tailwind utility classes; brand colours as inline `style` or arbitrary `bg-[#...]` classes
+- Use CSS variables (`var(--surface)`, `var(--text-primary)` etc.) for member-facing pages; Tailwind dark classes for admin
 - Keep components focused — extract sub-components when a file exceeds ~200 lines
 - RLS is the security layer — never rely solely on UI to hide sensitive data
+- Snake_case values in DB and form selects (e.g. `never_married`, `yes_regularly`) — use display maps for human-readable labels
