@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
+import NavBar from '@/components/NavBar'
+import AvatarInitials from '@/components/AvatarInitials'
 
 interface Profile {
   id: string
@@ -13,66 +14,11 @@ interface Profile {
   location: string | null
   school_of_thought: string | null
   profession_sector: string | null
+  profession_detail: string | null
   education_level: string | null
   ethnicity: string | null
+  height: string | null
   status: string
-}
-
-function InitialsAvatar({ initials, gender }: { initials: string; gender: string | null }) {
-  const isFemale = gender === 'female'
-  return (
-    <div
-      className="w-16 h-16 rounded-full flex items-center justify-center text-lg font-bold shadow-md flex-shrink-0"
-      style={{
-        backgroundColor: isFemale ? '#8B5CF6' : '#2563EB',
-        color: '#ffffff',
-        letterSpacing: '0.05em',
-      }}
-    >
-      {initials}
-    </div>
-  )
-}
-
-function ProfileCard({ profile }: { profile: Profile }) {
-  return (
-    <div
-      className="rounded-2xl p-6 flex flex-col gap-4 shadow-sm hover:shadow-md transition-shadow"
-      style={{ backgroundColor: '#FFFFFF', border: '1px solid #E8E4DC' }}
-    >
-      <div className="flex items-center gap-4">
-        <InitialsAvatar initials={profile.display_initials} gender={profile.gender} />
-        <div className="min-w-0">
-          <p className="font-semibold text-[#1A1A1A] text-lg leading-tight">
-            {profile.display_initials}
-          </p>
-          {profile.age_display && (
-            <p className="text-sm text-[#1A1A1A]/60 mt-0.5">
-              {profile.age_display} years old
-            </p>
-          )}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-2">
-        {profile.location && (
-          <Chip icon="📍" label={profile.location} />
-        )}
-        {profile.school_of_thought && (
-          <Chip icon="🕌" label={profile.school_of_thought} />
-        )}
-        {profile.profession_sector && (
-          <Chip icon="💼" label={profile.profession_sector} />
-        )}
-        {profile.education_level && (
-          <Chip icon="🎓" label={profile.education_level} />
-        )}
-        {profile.ethnicity && (
-          <Chip icon="🌍" label={profile.ethnicity} />
-        )}
-      </div>
-    </div>
-  )
 }
 
 function Chip({ icon, label }: { icon: string; label: string }) {
@@ -84,6 +30,51 @@ function Chip({ icon, label }: { icon: string; label: string }) {
       <span>{icon}</span>
       <span className="truncate">{label}</span>
     </span>
+  )
+}
+
+function ProfileCard({ profile }: { profile: Profile }) {
+  return (
+    <Link href={`/profile/${profile.id}`}>
+      <div
+        className="rounded-2xl p-6 flex flex-col gap-4 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 cursor-pointer"
+        style={{ backgroundColor: '#FFFFFF', border: '1px solid #E8E4DC' }}
+      >
+        <div className="flex items-center gap-4">
+          <AvatarInitials initials={profile.display_initials} gender={profile.gender} size="md" />
+          <div className="min-w-0">
+            <p className="font-semibold text-[#1A1A1A] text-lg leading-tight">
+              {profile.display_initials}
+            </p>
+            <div className="flex items-center gap-2 mt-0.5">
+              {profile.age_display && (
+                <span className="text-sm text-[#1A1A1A]/60">{profile.age_display} yrs</span>
+              )}
+              {profile.gender && (
+                <span
+                  className="text-xs px-2 py-0.5 rounded-full font-medium capitalize"
+                  style={{
+                    backgroundColor: profile.gender === 'female' ? '#EEEDFE' : '#E6F1FB',
+                    color: profile.gender === 'female' ? '#534AB7' : '#185FA5',
+                  }}
+                >
+                  {profile.gender === 'female' ? 'Sister' : 'Brother'}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          {profile.location && <Chip icon="📍" label={profile.location} />}
+          {profile.school_of_thought && <Chip icon="🕌" label={profile.school_of_thought} />}
+          {profile.profession_sector && <Chip icon="💼" label={profile.profession_sector} />}
+          {profile.education_level && <Chip icon="🎓" label={profile.education_level} />}
+          {profile.ethnicity && <Chip icon="🌍" label={profile.ethnicity} />}
+          {profile.height && <Chip icon="📏" label={profile.height} />}
+        </div>
+      </div>
+    </Link>
   )
 }
 
@@ -99,7 +90,7 @@ export default function DirectoryPage() {
     const supabase = createClient()
     supabase
       .from('zawaaj_profiles')
-      .select('id,display_initials,gender,age_display,location,school_of_thought,profession_sector,education_level,ethnicity,status')
+      .select('id,display_initials,gender,age_display,location,school_of_thought,profession_sector,profession_detail,education_level,ethnicity,height,status')
       .eq('status', 'approved')
       .then(({ data }) => {
         setProfiles((data as Profile[]) ?? [])
@@ -115,7 +106,8 @@ export default function DirectoryPage() {
         p.display_initials.toLowerCase().includes(q) ||
         (p.location ?? '').toLowerCase().includes(q) ||
         (p.school_of_thought ?? '').toLowerCase().includes(q) ||
-        (p.profession_sector ?? '').toLowerCase().includes(q)
+        (p.profession_sector ?? '').toLowerCase().includes(q) ||
+        (p.ethnicity ?? '').toLowerCase().includes(q)
       )
     }
     return true
@@ -123,34 +115,14 @@ export default function DirectoryPage() {
 
   return (
     <div className="min-h-screen bg-[#F8F6F1]">
-      {/* Header */}
-      <header
-        className="sticky top-0 z-10 shadow-sm"
-        style={{ backgroundColor: '#1A1A1A' }}
-      >
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <Image src="/logo.png" alt="Zawaaj" width={38} height={38} className="object-contain" />
-          <nav className="flex items-center gap-4 text-sm">
-            <Link href="/directory" className="text-white font-medium">
-              Directory
-            </Link>
-            <Link
-              href="/login"
-              className="px-4 py-1.5 rounded-lg font-medium transition-opacity hover:opacity-80"
-              style={{ backgroundColor: '#B8960C', color: '#1A1A1A' }}
-            >
-              My account
-            </Link>
-          </nav>
-        </div>
-      </header>
+      <NavBar />
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-10 pt-24">
         {/* Page title */}
-        <div className="mb-8">
+        <div className="mb-6">
           <h1 className="text-3xl font-bold text-[#1A1A1A]">Member Directory</h1>
-          <p className="text-[#1A1A1A]/60 mt-1">
-            Browse approved profiles — contact us to express an interest.
+          <p className="text-[#1A1A1A]/60 mt-1 text-sm">
+            Visible only to approved members · Not publicly searchable
           </p>
         </div>
 
@@ -158,7 +130,7 @@ export default function DirectoryPage() {
         <div className="flex flex-wrap gap-3 mb-8">
           <input
             type="search"
-            placeholder="Search by location, profession…"
+            placeholder="Search by location, profession, ethnicity…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="flex-1 min-w-[200px] rounded-lg px-4 py-2.5 text-sm border focus:outline-none focus:border-[#B8960C] transition-colors"
@@ -169,7 +141,7 @@ export default function DirectoryPage() {
               <button
                 key={g}
                 onClick={() => setGenderFilter(g)}
-                className="px-4 py-2.5 text-sm font-medium capitalize transition-colors"
+                className="px-4 py-2.5 text-sm font-medium transition-colors"
                 style={{
                   backgroundColor: genderFilter === g ? '#1A1A1A' : '#FFFFFF',
                   color: genderFilter === g ? '#B8960C' : '#1A1A1A',
@@ -187,8 +159,9 @@ export default function DirectoryPage() {
             Loading profiles…
           </div>
         ) : filtered.length === 0 ? (
-          <div className="flex items-center justify-center h-48 text-[#1A1A1A]/40">
-            No profiles found.
+          <div className="flex flex-col items-center justify-center h-48 gap-2">
+            <p className="text-[#1A1A1A]/40 text-lg">No profiles found</p>
+            <p className="text-[#1A1A1A]/30 text-sm">Try adjusting your filters</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -199,7 +172,7 @@ export default function DirectoryPage() {
         )}
 
         {!loading && (
-          <p className="text-center text-[#1A1A1A]/40 text-sm mt-8">
+          <p className="text-center text-[#1A1A1A]/30 text-sm mt-8">
             {filtered.length} profile{filtered.length !== 1 ? 's' : ''} shown
           </p>
         )}
