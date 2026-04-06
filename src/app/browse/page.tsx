@@ -16,20 +16,27 @@ export default async function BrowsePage() {
     redirect('/login')
   }
 
-  // 2. Get active_profile_id
-  const { data: settings, error: settingsError } = await supabase
+  // 2. Get active_profile_id from settings — may not exist for legacy admin accounts
+  const { data: settings } = await supabase
     .from('zawaaj_user_settings')
     .select('active_profile_id')
     .eq('user_id', user.id)
-    .single()
+    .maybeSingle()
 
-  if (settingsError || !settings?.active_profile_id) {
-    redirect('/pending')
+  if (!settings?.active_profile_id) {
+    // No active profile linked — check if this is an admin before sending to /pending
+    const { data: adminProfile } = await supabase
+      .from('zawaaj_profiles')
+      .select('is_admin')
+      .eq('user_id', user.id)
+      .maybeSingle()
+
+    redirect(adminProfile?.is_admin ? '/admin' : '/pending')
   }
 
   const activeProfileId = settings.active_profile_id
 
-  // 3. Get viewer's own profile
+  // 3. Get viewer's own profile (include is_admin so we can gate access correctly)
   const { data: viewerProfile, error: viewerError } = await supabase
     .from('zawaaj_profiles')
     .select(
@@ -38,7 +45,7 @@ export default async function BrowsePage() {
        languages_spoken, nationality, marital_status, has_children, height, living_situation,
        religiosity, prayer_regularity, wears_hijab, keeps_beard, bio, open_to_relocation,
        open_to_partners_children, pref_age_min, pref_age_max, pref_location, pref_ethnicity,
-       pref_school_of_thought, pref_relocation, pref_partner_children, status, listed_at`
+       pref_school_of_thought, pref_relocation, pref_partner_children, status, is_admin, listed_at`
     )
     .eq('id', activeProfileId)
     .single()
@@ -47,7 +54,11 @@ export default async function BrowsePage() {
     redirect('/pending')
   }
 
-  // is_admin is not in the select — check status only; admin check happens via RLS
+  // Admins always go to /admin — they don't use the member browse experience
+  if (viewerProfile.is_admin) {
+    redirect('/admin')
+  }
+
   if (viewerProfile.status !== 'approved') {
     redirect('/pending')
   }
