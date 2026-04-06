@@ -97,7 +97,7 @@ export default function DirectoryPage() {
   useEffect(() => {
     const supabase = createClient()
     supabase
-      .from('profiles')
+      .from('zawaaj_profiles')
       .select('id,display_initials,gender,age_display,location,school_of_thought,profession_sector,education_level,ethnicity,status')
       .eq('status', 'approved')
       .then(({ data }) => {

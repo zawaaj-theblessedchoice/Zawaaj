@@ -1,10 +1,14 @@
 -- Enable UUID extension
 create extension if not exists "pgcrypto";
 
+-- NOTE: Tables use a zawaaj_ prefix to coexist safely with an existing
+-- public schema from another application on the same Supabase project.
+-- Applied via Supabase MCP as migration "zawaaj_move_to_public_prefixed".
+
 -- ============================================================
 -- PROFILES
 -- ============================================================
-create table profiles (
+create table zawaaj_profiles (
   id                    uuid primary key default gen_random_uuid(),
   legacy_ref            text,
   imported_email        text,

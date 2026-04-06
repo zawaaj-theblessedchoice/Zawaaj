@@ -78,14 +78,14 @@ function QueueTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh: () 
 
   async function approve(id: string) {
     await supabase
-      .from('profiles')
+      .from('zawaaj_profiles')
       .update({ status: 'approved', approved_date: new Date().toISOString() })
       .eq('id', id)
     onRefresh()
   }
 
   async function reject(id: string) {
-    await supabase.from('profiles').update({ status: 'rejected' }).eq('id', id)
+    await supabase.from('zawaaj_profiles').update({ status: 'rejected' }).eq('id', id)
     onRefresh()
   }
 
@@ -310,16 +310,16 @@ export default function AdminPage() {
 
     const [{ data: profileData }, { data: matchData }] = await Promise.all([
       supabase
-        .from('profiles')
+        .from('zawaaj_profiles')
         .select('id,display_initials,gender,age_display,location,school_of_thought,profession_sector,status,submitted_date,contact_number,admin_comments,duplicate_flag,user_id,imported_email')
         .order('submitted_date', { ascending: false }),
       supabase
-        .from('matches')
+        .from('zawaaj_matches')
         .select(`
           id,profile_a_id,profile_b_id,mutual_date,status,
           family_a_consented,family_b_consented,introduced_date,outcome,admin_notes,
-          profile_a:profiles!matches_profile_a_id_fkey(display_initials,gender,location),
-          profile_b:profiles!matches_profile_b_id_fkey(display_initials,gender,location)
+          profile_a:zawaaj_profiles!zawaaj_matches_profile_a_id_fkey(display_initials,gender,location),
+          profile_b:zawaaj_profiles!zawaaj_matches_profile_b_id_fkey(display_initials,gender,location)
         `)
         .order('mutual_date', { ascending: false }),
     ])

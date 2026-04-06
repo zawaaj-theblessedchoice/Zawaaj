@@ -158,7 +158,7 @@ export default function SignupPage() {
     const ageDiff = Date.now() - dob.getTime()
     const age = Math.floor(ageDiff / (1000 * 60 * 60 * 24 * 365.25))
 
-    const { error: profileError } = await supabase.from('profiles').insert({
+    const { error: profileError } = await supabase.from('zawaaj_profiles').insert({
       user_id: userId,
       display_initials: form.display_initials.toUpperCase().slice(0, 3),
       gender: form.gender,
