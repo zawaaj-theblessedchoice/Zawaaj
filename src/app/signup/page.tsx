@@ -70,32 +70,49 @@ const SCHOOL_OPTIONS = [
   "Shafi'i",
   'Maliki',
   'Hanbali',
-  'No preference',
   'General Sunni',
+  'No preference',
 ]
 
 const ETHNICITY_OPTIONS = [
-  'British-Pakistani',
-  'British-Bangladeshi',
-  'British-Indian',
-  'British-Arab',
-  'British-Somali',
-  'British-Turkish',
-  'White British',
+  'Arab',
+  'Bangladeshi',
+  'Indian',
+  'Pakistani',
+  'Somali',
+  'Turkish / Kurdish',
+  'Afghan',
+  'Iranian / Persian',
+  'Malaysian / Indonesian',
+  'West African',
+  'East African',
   'White European',
-  'African',
-  'Other/mixed',
+  'Mixed heritage',
+  'Other',
 ]
 
 const EDUCATION_OPTIONS = [
   'Secondary school',
-  'College/A-levels',
+  'College / A-levels',
   'Undergraduate degree',
   'Postgraduate degree',
-  'Doctorate/PhD',
+  'Doctorate / PhD',
   'Professional qualification',
   'Other',
 ]
+
+// Heights from 4'8" to 6'8" in 1" increments
+const HEIGHT_OPTIONS: string[] = (() => {
+  const out: string[] = []
+  for (let feet = 4; feet <= 6; feet++) {
+    const minIn = feet === 4 ? 8 : 0
+    const maxIn = feet === 6 ? 8 : 11
+    for (let inches = minIn; inches <= maxIn; inches++) {
+      out.push(`${feet}'${inches}"`)
+    }
+  }
+  return out
+})()
 
 const INITIAL_FORM: FormData = {
   email: '',
@@ -184,11 +201,31 @@ const sectionLabelStyle: React.CSSProperties = {
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  required,
+  hint,
+  children,
+}: {
+  label: string
+  required?: boolean
+  hint?: string
+  children: React.ReactNode
+}) {
   return (
     <div style={{ marginBottom: '16px' }}>
-      <label style={labelStyle}>{label}</label>
+      <label style={labelStyle}>
+        {label}
+        {required && (
+          <span style={{ color: 'var(--gold)', marginLeft: 4, fontWeight: 600 }}>*</span>
+        )}
+      </label>
       {children}
+      {hint && (
+        <p style={{ fontSize: '11.5px', color: 'var(--text-muted)', margin: '5px 0 0', lineHeight: 1.5 }}>
+          {hint}
+        </p>
+      )}
     </div>
   )
 }
@@ -362,13 +399,7 @@ function ReviewRow({ label, value }: { label: string; value: string | null | und
       }}
     >
       <span style={{ fontSize: '12px', color: 'var(--text-muted)', flexShrink: 0 }}>{label}</span>
-      <span
-        style={{
-          fontSize: '13px',
-          color: value ? 'var(--text-primary)' : 'var(--text-muted)',
-          textAlign: 'right',
-        }}
-      >
+      <span style={{ fontSize: '13px', color: value ? 'var(--text-primary)' : 'var(--text-muted)', textAlign: 'right' }}>
         {value || '—'}
       </span>
     </div>
@@ -393,15 +424,7 @@ function ReviewSection({
         <button
           type="button"
           onClick={() => onEdit(stepIndex)}
-          style={{
-            fontSize: '11px',
-            color: 'var(--gold)',
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            padding: '2px 0',
-            fontWeight: 500,
-          }}
+          style={{ fontSize: '11px', color: 'var(--gold)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0', fontWeight: 500 }}
         >
           Edit
         </button>
@@ -422,7 +445,7 @@ function Step0({
 }) {
   return (
     <>
-      <Field label="Email address">
+      <Field label="Email address" required>
         <StyledInput
           type="email"
           placeholder="you@example.com"
@@ -431,7 +454,7 @@ function Step0({
           autoComplete="email"
         />
       </Field>
-      <Field label="Password">
+      <Field label="Password" required>
         <StyledInput
           type="password"
           placeholder="At least 8 characters"
@@ -440,7 +463,7 @@ function Step0({
           autoComplete="new-password"
         />
       </Field>
-      <Field label="Confirm password">
+      <Field label="Confirm password" required>
         <StyledInput
           type="password"
           placeholder="Repeat password"
@@ -476,7 +499,7 @@ function Step1({
   return (
     <>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-        <Field label="First name">
+        <Field label="First name" required>
           <StyledInput
             type="text"
             placeholder="First name"
@@ -487,7 +510,7 @@ function Step1({
         <div>
           <label style={labelStyle}>
             Last name{' '}
-            <span style={{ color: 'var(--text-muted)', textTransform: 'none', letterSpacing: 0 }}>
+            <span style={{ color: 'var(--text-muted)', textTransform: 'none', letterSpacing: 0, fontSize: '10px' }}>
               (kept private)
             </span>
           </label>
@@ -499,14 +522,14 @@ function Step1({
           />
         </div>
       </div>
-      <Field label="Date of birth">
+      <Field label="Date of birth" required>
         <StyledInput
           type="date"
           value={formData.dateOfBirth}
           onChange={(e) => update({ dateOfBirth: e.target.value })}
         />
       </Field>
-      <Field label="Gender">
+      <Field label="Gender" required>
         <StyledSelect
           value={formData.gender}
           onChange={(e) => update({ gender: e.target.value as 'male' | 'female' | '' })}
@@ -517,7 +540,7 @@ function Step1({
         </StyledSelect>
       </Field>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-        <Field label="City">
+        <Field label="City" required>
           <StyledInput
             type="text"
             placeholder="e.g. London"
@@ -525,7 +548,7 @@ function Step1({
             onChange={(e) => update({ city: e.target.value })}
           />
         </Field>
-        <Field label="Country">
+        <Field label="Country" required>
           <StyledInput
             type="text"
             placeholder="e.g. UK"
@@ -534,7 +557,7 @@ function Step1({
           />
         </Field>
       </div>
-      <Field label="Nationality">
+      <Field label="Nationality" required>
         <StyledInput
           type="text"
           placeholder="e.g. British"
@@ -542,18 +565,18 @@ function Step1({
           onChange={(e) => update({ nationality: e.target.value })}
         />
       </Field>
-      <Field label="Marital status">
+      <Field label="Marital status" required>
         <StyledSelect
           value={formData.maritalStatus}
           onChange={(e) => update({ maritalStatus: e.target.value })}
         >
           <option value="">Select…</option>
-          <option value="Never married">Never married</option>
-          <option value="Divorced">Divorced</option>
-          <option value="Widowed">Widowed</option>
+          <option value="never_married">Never married</option>
+          <option value="divorced">Divorced</option>
+          <option value="widowed">Widowed</option>
         </StyledSelect>
       </Field>
-      <Field label="Do you have children?">
+      <Field label="Do you have children?" required>
         <StyledSelect
           value={formData.hasChildren === null ? '' : String(formData.hasChildren)}
           onChange={(e) =>
@@ -565,23 +588,26 @@ function Step1({
           <option value="false">No</option>
         </StyledSelect>
       </Field>
-      <Field label="Height (optional)">
-        <StyledInput
-          type="text"
-          placeholder={`e.g. 5'8"`}
+      <Field label="Height" required>
+        <StyledSelect
           value={formData.height}
           onChange={(e) => update({ height: e.target.value })}
-        />
+        >
+          <option value="">Select height…</option>
+          {HEIGHT_OPTIONS.map((h) => (
+            <option key={h} value={h}>{h}</option>
+          ))}
+        </StyledSelect>
       </Field>
-      <Field label="Living situation">
+      <Field label="Living situation" required>
         <StyledSelect
           value={formData.livingSituation}
           onChange={(e) => update({ livingSituation: e.target.value })}
         >
           <option value="">Select…</option>
-          <option value="Independent">Independent</option>
-          <option value="With family">With family</option>
-          <option value="Shared accommodation">Shared accommodation</option>
+          <option value="independent">Independent</option>
+          <option value="with_family">With family</option>
+          <option value="shared">Shared accommodation</option>
         </StyledSelect>
       </Field>
     </>
@@ -597,28 +623,26 @@ function Step2({
 }) {
   return (
     <>
-      <Field label="Ethnicity">
+      <Field label="Ethnicity" required>
         <StyledSelect
           value={formData.ethnicity}
           onChange={(e) => update({ ethnicity: e.target.value })}
         >
           <option value="">Select…</option>
           {ETHNICITY_OPTIONS.map((opt) => (
-            <option key={opt} value={opt}>
-              {opt}
-            </option>
+            <option key={opt} value={opt}>{opt}</option>
           ))}
         </StyledSelect>
       </Field>
-      <Field label="Languages spoken">
+      <Field label="Languages spoken" required>
         <StyledInput
           type="text"
-          placeholder="English, Urdu, Arabic"
+          placeholder="e.g. English, Urdu, Arabic"
           value={formData.languagesSpoken}
           onChange={(e) => update({ languagesSpoken: e.target.value })}
         />
       </Field>
-      <Field label="Profession">
+      <Field label="Profession" required>
         <StyledInput
           type="text"
           placeholder="e.g. Software engineer"
@@ -626,20 +650,18 @@ function Step2({
           onChange={(e) => update({ profession: e.target.value })}
         />
       </Field>
-      <Field label="Education level">
+      <Field label="Education level" required>
         <StyledSelect
           value={formData.educationLevel}
           onChange={(e) => update({ educationLevel: e.target.value })}
         >
           <option value="">Select…</option>
           {EDUCATION_OPTIONS.map((opt) => (
-            <option key={opt} value={opt}>
-              {opt}
-            </option>
+            <option key={opt} value={opt}>{opt}</option>
           ))}
         </StyledSelect>
       </Field>
-      <Field label="Institution (optional)">
+      <Field label="Institution" hint="Optional — university, school, or professional body">
         <StyledInput
           type="text"
           placeholder="e.g. University of Manchester"
@@ -660,14 +682,14 @@ function Step3({
 }) {
   return (
     <>
-      <Field label="School of thought">
+      <Field label="School of thought" required>
         <ChipGroup
           options={SCHOOL_OPTIONS}
           value={formData.schoolOfThought}
           onChange={(val) => update({ schoolOfThought: val as string })}
         />
       </Field>
-      <Field label="Religiosity">
+      <Field label="Religiosity" required>
         <StyledSelect
           value={formData.religiosity}
           onChange={(e) => update({ religiosity: e.target.value })}
@@ -678,20 +700,20 @@ function Step3({
           <option value="Cultural Muslim">Cultural Muslim</option>
         </StyledSelect>
       </Field>
-      <Field label="Prayer regularity">
+      <Field label="Prayer regularity" required>
         <StyledSelect
           value={formData.prayerRegularity}
           onChange={(e) => update({ prayerRegularity: e.target.value })}
         >
           <option value="">Select…</option>
-          <option value="Yes regularly">Yes regularly</option>
-          <option value="Most of the time">Most of the time</option>
-          <option value="Working on it">Working on it</option>
-          <option value="Not currently">Not currently</option>
+          <option value="yes_regularly">Yes, regularly</option>
+          <option value="most_of_time">Most of the time</option>
+          <option value="working_on_it">Working on it</option>
+          <option value="not_currently">Not currently</option>
         </StyledSelect>
       </Field>
       {formData.gender === 'female' && (
-        <Field label="Do you wear hijab?">
+        <Field label="Do you wear hijab?" required>
           <ToggleGroup
             value={formData.wearsHijab}
             onChange={(val) => update({ wearsHijab: val })}
@@ -699,7 +721,7 @@ function Step3({
         </Field>
       )}
       {formData.gender === 'male' && (
-        <Field label="Do you keep a beard?">
+        <Field label="Do you keep a beard?" required>
           <ToggleGroup
             value={formData.keepsBeard}
             onChange={(val) => update({ keepsBeard: val })}
@@ -719,7 +741,7 @@ function Step4({
 }) {
   return (
     <>
-      <Field label="Open to relocation?">
+      <Field label="Open to relocation?" required>
         <StyledSelect
           value={formData.openToRelocation}
           onChange={(e) => update({ openToRelocation: e.target.value })}
@@ -731,7 +753,7 @@ function Step4({
           <option value="Not open to relocating">Not open to relocating</option>
         </StyledSelect>
       </Field>
-      <Field label="Open to partner having children?">
+      <Field label="Open to partner having children?" required>
         <StyledSelect
           value={formData.openToPartnersChildren}
           onChange={(e) => update({ openToPartnersChildren: e.target.value })}
@@ -755,14 +777,14 @@ function Step4({
               padding: '2px 6px',
             }}
           >
-            Optional — skip if preferred
+            Optional
           </span>
         </div>
         <StyledSelect
           value={formData.polygamyOpenness}
           onChange={(e) => update({ polygamyOpenness: e.target.value })}
         >
-          <option value="">Skip / no answer</option>
+          <option value="">Skip / prefer not to say</option>
           <option value="No">No</option>
           <option value="Open to discussion">Open to discussion</option>
         </StyledSelect>
@@ -779,28 +801,24 @@ function Step5({
   update: (patch: Partial<FormData>) => void
 }) {
   const wc = wordCount(formData.bio)
-  const tooFew = wc < 80
   const tooMany = wc > 200
 
   return (
     <>
-      <div
+      <p
         style={{
-          background: 'var(--surface-3)',
-          border: '0.5px solid var(--border-default)',
-          borderRadius: '9px',
-          padding: '12px 14px',
-          fontSize: '12px',
+          fontSize: '13px',
           color: 'var(--text-secondary)',
-          lineHeight: 1.5,
+          lineHeight: 1.6,
           marginBottom: '20px',
         }}
       >
-        Write naturally. No contact details, social handles, or external links permitted.
-      </div>
+        This section is optional. Write naturally about yourself — your values, interests, or what
+        you&apos;re looking for. Keep it genuine.
+      </p>
       <Field label="About me">
         <StyledTextarea
-          placeholder="Describe yourself, your values, what you're looking for…"
+          placeholder="Describe yourself in your own words…"
           value={formData.bio}
           onChange={(e) => update({ bio: e.target.value })}
           rows={8}
@@ -818,26 +836,22 @@ function Step5({
         <span
           style={{
             fontSize: '11px',
-            color: tooFew || tooMany ? '#e07070' : 'var(--text-muted)',
+            color: tooMany ? '#e07070' : 'var(--text-muted)',
           }}
         >
-          {wc} / 200 words
-          {tooFew && wc > 0 && ` — minimum 80 words`}
-          {tooMany && ` — over the 200 word limit`}
+          {wc > 0 ? `${wc} / 200 words` : ''}
+          {tooMany ? ` — please keep to 200 words or fewer` : ''}
         </span>
-        {!tooFew && !tooMany && wc >= 80 && (
-          <span style={{ fontSize: '11px', color: 'var(--gold)' }}>Looks good</span>
-        )}
       </div>
-      <div
+      <p
         style={{
-          fontSize: '11px',
+          fontSize: '11.5px',
           color: 'var(--text-muted)',
           lineHeight: 1.5,
         }}
       >
-        Your bio will be reviewed before your profile is approved.
-      </div>
+        No contact details, social handles, or external links.
+      </p>
     </>
   )
 }
@@ -851,6 +865,9 @@ function Step6({
 }) {
   return (
     <>
+      <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '20px' }}>
+        All preferences are optional and help us surface more relevant profiles for you.
+      </p>
       <div style={{ marginBottom: '16px' }}>
         <label style={labelStyle}>Preferred age range</label>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -875,26 +892,24 @@ function Step6({
           />
         </div>
       </div>
-      <Field label="Preferred location (optional)">
+      <Field label="Preferred location">
         <StyledInput
           type="text"
-          placeholder="e.g. London, UK"
+          placeholder="e.g. London, UK — or leave blank for open"
           value={formData.prefLocation}
           onChange={(e) => update({ prefLocation: e.target.value })}
         />
       </Field>
-      <Field label="Preferred ethnicity">
+      <Field label="Ethnicity preference">
         <StyledSelect
           value={formData.prefEthnicity}
           onChange={(e) => update({ prefEthnicity: e.target.value })}
         >
           <option value="">No preference</option>
-          <option value="No preference">No preference</option>
-          <option value="Open">Open</option>
           <option value="Same ethnicity preferred">Same ethnicity preferred</option>
           <option value="South Asian preferred">South Asian preferred</option>
           <option value="Arab preferred">Arab preferred</option>
-          <option value="Other">Other</option>
+          <option value="Open to any">Open to any</option>
         </StyledSelect>
       </Field>
       <Field label="Preferred school of thought">
@@ -911,9 +926,9 @@ function Step6({
           onChange={(e) => update({ prefRelocation: e.target.value })}
         >
           <option value="">No preference</option>
-          <option value="Yes open">Yes open</option>
+          <option value="Yes, open">Yes — open to relocating</option>
           <option value="Within UK only">Within UK only</option>
-          <option value="No relocation preferred">No relocation preferred</option>
+          <option value="No relocation preferred">Prefer local</option>
         </StyledSelect>
       </Field>
       <Field label="Partner having children?">
@@ -922,9 +937,8 @@ function Step6({
           onChange={(e) => update({ prefPartnerChildren: e.target.value })}
         >
           <option value="">No preference</option>
-          <option value="Open">Open</option>
           <option value="Prefer no children">Prefer no children</option>
-          <option value="No preference">No preference</option>
+          <option value="Open">Open to it</option>
         </StyledSelect>
       </Field>
     </>
@@ -938,6 +952,23 @@ function Step7({
   formData: FormData
   onEdit: (n: number) => void
 }) {
+  const maritalLabels: Record<string, string> = {
+    never_married: 'Never married',
+    divorced: 'Divorced',
+    widowed: 'Widowed',
+  }
+  const livingLabels: Record<string, string> = {
+    independent: 'Independent',
+    with_family: 'With family',
+    shared: 'Shared accommodation',
+  }
+  const prayerLabels: Record<string, string> = {
+    yes_regularly: 'Yes, regularly',
+    most_of_time: 'Most of the time',
+    working_on_it: 'Working on it',
+    not_currently: 'Not currently',
+  }
+
   return (
     <>
       <ReviewSection title="Account" stepIndex={0} onEdit={onEdit}>
@@ -951,13 +982,10 @@ function Step7({
         <ReviewRow label="Gender" value={formData.gender} />
         <ReviewRow label="Location" value={`${formData.city}, ${formData.country}`} />
         <ReviewRow label="Nationality" value={formData.nationality} />
-        <ReviewRow label="Marital status" value={formData.maritalStatus} />
-        <ReviewRow
-          label="Has children"
-          value={formData.hasChildren === null ? null : formData.hasChildren ? 'Yes' : 'No'}
-        />
-        <ReviewRow label="Height" value={formData.height || null} />
-        <ReviewRow label="Living situation" value={formData.livingSituation} />
+        <ReviewRow label="Marital status" value={maritalLabels[formData.maritalStatus] ?? formData.maritalStatus} />
+        <ReviewRow label="Has children" value={formData.hasChildren === null ? null : formData.hasChildren ? 'Yes' : 'No'} />
+        <ReviewRow label="Height" value={formData.height} />
+        <ReviewRow label="Living situation" value={livingLabels[formData.livingSituation] ?? formData.livingSituation} />
       </ReviewSection>
 
       <ReviewSection title="Background" stepIndex={2} onEdit={onEdit}>
@@ -971,24 +999,18 @@ function Step7({
       <ReviewSection title="Faith & practice" stepIndex={3} onEdit={onEdit}>
         <ReviewRow label="School of thought" value={formData.schoolOfThought} />
         <ReviewRow label="Religiosity" value={formData.religiosity} />
-        <ReviewRow label="Prayer regularity" value={formData.prayerRegularity} />
+        <ReviewRow label="Prayer regularity" value={prayerLabels[formData.prayerRegularity] ?? formData.prayerRegularity} />
         {formData.gender === 'female' && (
-          <ReviewRow
-            label="Wears hijab"
-            value={formData.wearsHijab === null ? null : formData.wearsHijab ? 'Yes' : 'No'}
-          />
+          <ReviewRow label="Wears hijab" value={formData.wearsHijab === null ? null : formData.wearsHijab ? 'Yes' : 'No'} />
         )}
         {formData.gender === 'male' && (
-          <ReviewRow
-            label="Keeps beard"
-            value={formData.keepsBeard === null ? null : formData.keepsBeard ? 'Yes' : 'No'}
-          />
+          <ReviewRow label="Keeps beard" value={formData.keepsBeard === null ? null : formData.keepsBeard ? 'Yes' : 'No'} />
         )}
       </ReviewSection>
 
       <ReviewSection title="Lifestyle" stepIndex={4} onEdit={onEdit}>
         <ReviewRow label="Open to relocation" value={formData.openToRelocation} />
-        <ReviewRow label="Partner's children" value={formData.openToPartnersChildren} />
+        <ReviewRow label="Partner&apos;s children" value={formData.openToPartnersChildren} />
         <ReviewRow label="Polygamy openness" value={formData.polygamyOpenness || null} />
       </ReviewSection>
 
@@ -997,12 +1019,12 @@ function Step7({
           style={{
             padding: '10px 0',
             fontSize: '13px',
-            color: 'var(--text-primary)',
+            color: formData.bio ? 'var(--text-primary)' : 'var(--text-muted)',
             lineHeight: 1.6,
             borderBottom: '0.5px solid var(--border-default)',
           }}
         >
-          {formData.bio || <span style={{ color: 'var(--text-muted)' }}>—</span>}
+          {formData.bio || 'Not provided'}
         </div>
       </ReviewSection>
 
@@ -1019,11 +1041,7 @@ function Step7({
         <ReviewRow label="Ethnicity" value={formData.prefEthnicity || null} />
         <ReviewRow
           label="School of thought"
-          value={
-            formData.prefSchoolOfThought.length > 0
-              ? formData.prefSchoolOfThought.join(', ')
-              : null
-          }
+          value={formData.prefSchoolOfThought.length > 0 ? formData.prefSchoolOfThought.join(', ') : null}
         />
         <ReviewRow label="Relocation" value={formData.prefRelocation || null} />
         <ReviewRow label="Partner children" value={formData.prefPartnerChildren || null} />
@@ -1053,6 +1071,7 @@ function validateStep(step: number, formData: FormData): string {
       if (!formData.nationality) return 'Nationality is required.'
       if (!formData.maritalStatus) return 'Marital status is required.'
       if (formData.hasChildren === null) return 'Please indicate whether you have children.'
+      if (!formData.height) return 'Height is required.'
       if (!formData.livingSituation) return 'Living situation is required.'
       return ''
     case 2:
@@ -1065,14 +1084,18 @@ function validateStep(step: number, formData: FormData): string {
       if (!formData.schoolOfThought) return 'Please select your school of thought.'
       if (!formData.religiosity) return 'Religiosity is required.'
       if (!formData.prayerRegularity) return 'Prayer regularity is required.'
+      if (formData.gender === 'female' && formData.wearsHijab === null)
+        return 'Please indicate whether you wear hijab.'
+      if (formData.gender === 'male' && formData.keepsBeard === null)
+        return 'Please indicate whether you keep a beard.'
       return ''
     case 4:
       if (!formData.openToRelocation) return 'Please answer the relocation question.'
       if (!formData.openToPartnersChildren) return "Please answer the partner's children question."
       return ''
     case 5: {
+      // Bio is optional — only validate max length
       const wc = wordCount(formData.bio)
-      if (wc < 80) return `Bio must be at least 80 words. Currently ${wc} words.`
       if (wc > 200) return `Bio must be 200 words or fewer. Currently ${wc} words.`
       return ''
     }
@@ -1091,6 +1114,7 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [submitted, setSubmitted] = useState(false)
+  const [linkedProfile, setLinkedProfile] = useState(false)
   const [formData, setFormData] = useState<FormData>(INITIAL_FORM)
 
   function update(patch: Partial<FormData>) {
@@ -1122,21 +1146,29 @@ export default function SignupPage() {
     setLoading(true)
     setError('')
     try {
-      // All DB work runs server-side via /api/register (uses service-role client)
-      // so it is unaffected by email confirmation settings or RLS.
       const res = await fetch('/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       })
 
-      const json = await res.json() as { success?: boolean; linked?: boolean; error?: string }
+      const json = await res.json() as { success?: boolean; linked?: boolean; error?: string; message?: string }
 
-      if (!res.ok || !json.success) {
-        throw new Error(json.error ?? 'Registration failed. Please try again.')
+      // Specific handling for duplicate email
+      if (res.status === 409) {
+        setError(
+          'An account with this email already exists. ' +
+          'Please sign in, or use "Forgot password?" if you need to reset your password.'
+        )
+        setLoading(false)
+        return
       }
 
-      // Sign in to establish the browser session now that the account exists
+      if (!res.ok || !json.success) {
+        throw new Error(json.error ?? json.message ?? 'Registration failed. Please try again.')
+      }
+
+      // Sign in to establish the browser session
       const supabase = createClient()
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email: formData.email,
@@ -1144,6 +1176,7 @@ export default function SignupPage() {
       })
       if (signInError) throw signInError
 
+      setLinkedProfile(json.linked === true)
       setSubmitted(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
@@ -1191,35 +1224,19 @@ export default function SignupPage() {
             {initials}
           </div>
           <h1
-            style={{
-              fontSize: '24px',
-              fontWeight: 600,
-              color: 'var(--text-primary)',
-              marginBottom: '12px',
-            }}
+            style={{ fontSize: '22px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '12px' }}
           >
-            Profile submitted
+            {linkedProfile ? 'Profile connected' : 'Profile submitted'}
           </h1>
           <p
-            style={{
-              fontSize: '14px',
-              color: 'var(--text-secondary)',
-              lineHeight: 1.6,
-              marginBottom: '32px',
-            }}
+            style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '32px' }}
           >
-            Thank you. Your profile is now under review. You will receive an email when approved
-            and your profile becomes visible to other members.
+            {linkedProfile
+              ? 'We matched your details to an existing profile. Your profile will be reviewed and you\'ll be notified once approved, insha\'Allah.'
+              : 'JazakAllahu Khayran. Your profile is under review. You will be notified once approved, insha\'Allah.'}
           </p>
-          <Link
-            href="/login"
-            style={{
-              fontSize: '13px',
-              color: 'var(--gold)',
-              textDecoration: 'none',
-            }}
-          >
-            Already approved? Sign in →
+          <Link href="/pending" style={{ fontSize: '13px', color: 'var(--gold)', textDecoration: 'none' }}>
+            View application status →
           </Link>
         </div>
       </div>
@@ -1228,20 +1245,8 @@ export default function SignupPage() {
 
   // ── Wizard layout ───────────────────────────────────────────────────────────
 
-  const isBioStep = step === 5
-  const bioContinueDisabled = isBioStep
-    ? wordCount(formData.bio) < 80 || wordCount(formData.bio) > 200
-    : false
-
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: 'var(--surface)',
-        display: 'flex',
-        flexDirection: 'column',
-      }}
-    >
+    <div style={{ minHeight: '100vh', background: 'var(--surface)', display: 'flex', flexDirection: 'column' }}>
       {/* Progress bar */}
       <div style={{ height: '2px', background: 'var(--surface-3)', flexShrink: 0 }}>
         <div
@@ -1268,17 +1273,15 @@ export default function SignupPage() {
             flexDirection: 'column',
           }}
         >
-          {/* Logo */}
           <div style={{ padding: '0 24px 32px' }}>
             <ZawaajLogo size={60} tagline={false} />
           </div>
 
-          {/* Steps list */}
           <nav>
             {STEPS.map((label, i) => {
               const isDone = completedSteps.has(i)
               const isActive = i === step
-              const isClickable = isDone || completedSteps.has(i)
+              const isClickable = isDone
 
               return (
                 <button
@@ -1294,14 +1297,11 @@ export default function SignupPage() {
                     padding: '10px 24px',
                     background: isActive ? 'var(--gold-muted)' : 'none',
                     border: 'none',
-                    borderLeft: isActive
-                      ? '2px solid var(--gold)'
-                      : '2px solid transparent',
+                    borderLeft: isActive ? '2px solid var(--gold)' : '2px solid transparent',
                     cursor: isClickable ? 'pointer' : 'default',
                     textAlign: 'left',
                   }}
                 >
-                  {/* Step dot */}
                   <span
                     style={{
                       width: '20px',
@@ -1313,14 +1313,8 @@ export default function SignupPage() {
                       justifyContent: 'center',
                       fontSize: '10px',
                       fontWeight: 600,
-                      background: isDone
-                        ? 'var(--gold)'
-                        : isActive
-                        ? 'var(--gold-muted)'
-                        : 'var(--surface-3)',
-                      border: isActive && !isDone
-                        ? '1px solid var(--gold-border)'
-                        : 'none',
+                      background: isDone ? 'var(--gold)' : isActive ? 'var(--gold-muted)' : 'var(--surface-3)',
+                      border: isActive && !isDone ? '1px solid var(--gold-border)' : 'none',
                       color: isDone ? '#111' : isActive ? 'var(--gold)' : 'var(--text-muted)',
                     }}
                   >
@@ -1330,11 +1324,7 @@ export default function SignupPage() {
                     style={{
                       fontSize: '12px',
                       fontWeight: isActive ? 600 : 400,
-                      color: isActive
-                        ? 'var(--gold-light)'
-                        : isDone
-                        ? 'var(--text-secondary)'
-                        : 'var(--text-muted)',
+                      color: isActive ? 'var(--gold-light)' : isDone ? 'var(--text-secondary)' : 'var(--text-muted)',
                     }}
                   >
                     {label}
@@ -1346,15 +1336,7 @@ export default function SignupPage() {
         </div>
 
         {/* Main form content */}
-        <div
-          style={{
-            flex: 1,
-            padding: '48px',
-            maxWidth: '648px',
-            overflowY: 'auto',
-          }}
-        >
-          {/* Step header */}
+        <div style={{ flex: 1, padding: '48px', maxWidth: '648px', overflowY: 'auto' }}>
           <p
             style={{
               fontSize: '11px',
@@ -1368,17 +1350,11 @@ export default function SignupPage() {
             Step {step + 1} of 8
           </p>
           <h1
-            style={{
-              fontSize: '22px',
-              fontWeight: 600,
-              color: 'var(--text-primary)',
-              marginBottom: '28px',
-            }}
+            style={{ fontSize: '22px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '28px' }}
           >
             {STEPS[step]}
           </h1>
 
-          {/* Step content */}
           <div>
             {step === 0 && <Step0 formData={formData} update={update} />}
             {step === 1 && <Step1 formData={formData} update={update} />}
@@ -1401,9 +1377,17 @@ export default function SignupPage() {
                 fontSize: '13px',
                 color: '#e07070',
                 marginBottom: '20px',
+                marginTop: '12px',
+                lineHeight: 1.5,
               }}
             >
               {error}
+              {error.includes('already exists') && (
+                <div style={{ marginTop: '8px', display: 'flex', gap: '12px' }}>
+                  <Link href="/login" style={{ color: 'var(--gold)', fontSize: '12px' }}>Sign in →</Link>
+                  <Link href="/forgot-password" style={{ color: 'var(--gold)', fontSize: '12px' }}>Forgot password? →</Link>
+                </div>
+              )}
             </div>
           )}
 
@@ -1433,7 +1417,6 @@ export default function SignupPage() {
               <button
                 type="button"
                 onClick={handleNext}
-                disabled={bioContinueDisabled}
                 style={{
                   flex: 1,
                   padding: '11px 0',
@@ -1443,8 +1426,7 @@ export default function SignupPage() {
                   color: '#111',
                   fontSize: '14px',
                   fontWeight: 600,
-                  cursor: bioContinueDisabled ? 'not-allowed' : 'pointer',
-                  opacity: bioContinueDisabled ? 0.4 : 1,
+                  cursor: 'pointer',
                 }}
               >
                 Continue
@@ -1472,20 +1454,9 @@ export default function SignupPage() {
             )}
           </div>
 
-          {/* Sign-in link */}
-          <p
-            style={{
-              textAlign: 'center',
-              marginTop: '24px',
-              fontSize: '13px',
-              color: 'var(--text-muted)',
-            }}
-          >
-            Already registered?{' '}
-            <Link
-              href="/login"
-              style={{ color: 'var(--gold)', textDecoration: 'none', fontWeight: 500 }}
-            >
+          <p style={{ textAlign: 'center', marginTop: '24px', fontSize: '13px', color: 'var(--text-muted)' }}>
+            Already have an account?{' '}
+            <Link href="/login" style={{ color: 'var(--gold)', textDecoration: 'none' }}>
               Sign in
             </Link>
           </p>

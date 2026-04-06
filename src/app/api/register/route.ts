@@ -24,21 +24,37 @@ export async function POST(request: Request): Promise<Response> {
     })
 
     if (authError || !authData.user) {
-      // Surface the real Supabase error so it is actionable
-      const msg = authError?.message ?? 'Failed to create account.'
-      return NextResponse.json({ error: msg }, { status: 400 })
+      // Detect "email already registered" and return a specific, friendly error code
+      const msg = authError?.message ?? ''
+      const isAlreadyRegistered =
+        msg.toLowerCase().includes('already registered') ||
+        msg.toLowerCase().includes('already been registered') ||
+        msg.toLowerCase().includes('already exists') ||
+        authError?.status === 422
+
+      if (isAlreadyRegistered) {
+        return NextResponse.json(
+          { error: 'email_exists', message: 'An account with this email already exists.' },
+          { status: 409 }
+        )
+      }
+      return NextResponse.json({ error: msg || 'Failed to create account.' }, { status: 400 })
     }
 
     const userId = authData.user.id
     const initials = ((fields.firstName?.[0] ?? '') + (fields.lastName?.[0] ?? '')).toUpperCase() || '??'
 
     // ── 2. Check for an existing imported profile matching this email ──────────
-    const { data: existingProfile } = await supabaseAdmin
+    // Find unclaimed imported profiles (user_id IS NULL) matching this email.
+    // If multiple exist (data anomaly), skip auto-link and create new pending profile.
+    const { data: importedProfiles } = await supabaseAdmin
       .from('zawaaj_profiles')
       .select('id, status')
       .eq('imported_email', email)
       .is('user_id', null)
-      .maybeSingle()
+
+    const existingProfile =
+      importedProfiles && importedProfiles.length === 1 ? importedProfiles[0] : null
 
     const sharedFields = buildSharedFields(userId, initials, fields)
     let profileId: string

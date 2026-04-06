@@ -21,9 +21,10 @@ export default function ForgotPasswordPage() {
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(
       email.trim().toLowerCase(),
       {
-        // Supabase appends the token as a URL fragment; the reset-password page
-        // reads it via the client-side auth listener.
-        redirectTo: `${window.location.origin}/auth/reset-password`,
+        // With @supabase/ssr (PKCE), the email link carries a ?code= param.
+        // We route via /auth/callback which exchanges the code server-side,
+        // sets the recovery session in cookies, then redirects to the target page.
+        redirectTo: `${window.location.origin}/auth/callback?next=/auth/reset-password`,
       }
     )
 

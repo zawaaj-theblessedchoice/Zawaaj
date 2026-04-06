@@ -13,38 +13,19 @@ export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(false)
   const [done, setDone] = useState(false)
   const [error, setError] = useState('')
-  const [sessionReady, setSessionReady] = useState(false)
-  const [invalidLink, setInvalidLink] = useState(false)
+  const [checking, setChecking] = useState(true)
+  const [hasSession, setHasSession] = useState(false)
 
   useEffect(() => {
-    // Supabase exchanges the token from the URL hash automatically on the client.
-    // We listen for the PASSWORD_RECOVERY event to confirm a valid reset session.
+    // With @supabase/ssr (PKCE), the code was already exchanged by /auth/callback
+    // before this page loaded. The recovery session lives in cookies.
+    // We just verify a session exists and show the form.
     const supabase = createClient()
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event) => {
-        if (event === 'PASSWORD_RECOVERY') {
-          setSessionReady(true)
-        } else if (event === 'SIGNED_IN') {
-          // Also handles cases where token already exchanged
-          setSessionReady(true)
-        }
-      }
-    )
-
-    // Check if we already have a valid session (page reload after exchange)
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) setSessionReady(true)
-      else {
-        // Give auth state change a moment to fire
-        setTimeout(() => {
-          if (!sessionReady) setInvalidLink(true)
-        }, 3000)
-      }
+      setHasSession(!!session)
+      setChecking(false)
     })
-
-    return () => subscription.unsubscribe()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -54,7 +35,6 @@ export default function ResetPasswordPage() {
       setError('Password must be at least 8 characters.')
       return
     }
-
     if (password !== confirm) {
       setError('Passwords do not match.')
       return
@@ -71,12 +51,28 @@ export default function ResetPasswordPage() {
     }
 
     setDone(true)
-    // Redirect to browse after 2 seconds
     setTimeout(() => router.push('/browse'), 2000)
   }
 
-  /* ── Invalid / expired link ── */
-  if (invalidLink) {
+  /* ── Loading ── */
+  if (checking) {
+    return (
+      <main
+        style={{
+          minHeight: '100vh',
+          background: 'var(--surface)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>Loading…</span>
+      </main>
+    )
+  }
+
+  /* ── No session — link was expired or already used ── */
+  if (!hasSession) {
     return (
       <main
         style={{
@@ -107,7 +103,7 @@ export default function ResetPasswordPage() {
               margin: '0 0 10px',
             }}
           >
-            Link expired or invalid
+            Link expired or already used
           </h1>
           <p
             style={{
@@ -117,7 +113,7 @@ export default function ResetPasswordPage() {
               margin: '0 0 20px',
             }}
           >
-            This reset link has expired or already been used. Please request a new one.
+            Reset links are single-use and expire after one hour. Please request a new one.
           </p>
           <Link
             href="/forgot-password"
@@ -135,23 +131,6 @@ export default function ResetPasswordPage() {
             Request new link
           </Link>
         </div>
-      </main>
-    )
-  }
-
-  /* ── Loading / waiting for session ── */
-  if (!sessionReady && !done) {
-    return (
-      <main
-        style={{
-          minHeight: '100vh',
-          background: 'var(--surface)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>Verifying link…</span>
       </main>
     )
   }
@@ -181,7 +160,6 @@ export default function ResetPasswordPage() {
           }}
         >
           {done ? (
-            /* ── Success ── */
             <div style={{ textAlign: 'center' }}>
               <div
                 style={{
@@ -197,49 +175,22 @@ export default function ResetPasswordPage() {
                 }}
               >
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                  <path
-                    d="M4 10l4 4 8-8"
-                    stroke="#4ADE80"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
+                  <path d="M4 10l4 4 8-8" stroke="#4ADE80" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </div>
-              <h1
-                style={{
-                  fontSize: 17,
-                  fontWeight: 600,
-                  color: 'var(--text-primary)',
-                  margin: '0 0 8px',
-                }}
-              >
+              <h1 style={{ fontSize: 17, fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 8px' }}>
                 Password updated
               </h1>
               <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0 }}>
-                Redirecting you to your profile…
+                Redirecting you now…
               </p>
             </div>
           ) : (
-            /* ── Form ── */
             <>
-              <h1
-                style={{
-                  fontSize: 18,
-                  fontWeight: 600,
-                  color: 'var(--text-primary)',
-                  margin: '0 0 6px',
-                }}
-              >
+              <h1 style={{ fontSize: 18, fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 6px' }}>
                 Set a new password
               </h1>
-              <p
-                style={{
-                  fontSize: 13,
-                  color: 'var(--text-secondary)',
-                  margin: '0 0 24px',
-                }}
-              >
+              <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '0 0 24px' }}>
                 Choose a strong password you haven&apos;t used before.
               </p>
 
@@ -247,13 +198,7 @@ export default function ResetPasswordPage() {
                 <div style={{ marginBottom: 14 }}>
                   <label
                     htmlFor="password"
-                    style={{
-                      display: 'block',
-                      fontSize: 12,
-                      fontWeight: 500,
-                      color: 'var(--text-secondary)',
-                      marginBottom: 6,
-                    }}
+                    style={{ display: 'block', fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6 }}
                   >
                     New password
                   </label>
@@ -275,7 +220,7 @@ export default function ResetPasswordPage() {
                       color: 'var(--text-primary)',
                       fontSize: 13.5,
                       outline: 'none',
-                      boxSizing: 'border-box',
+                      boxSizing: 'border-box' as const,
                     }}
                     onFocus={e => ((e.currentTarget as HTMLInputElement).style.borderColor = 'var(--border-gold)')}
                     onBlur={e => ((e.currentTarget as HTMLInputElement).style.borderColor = 'var(--border-default)')}
@@ -285,13 +230,7 @@ export default function ResetPasswordPage() {
                 <div style={{ marginBottom: 18 }}>
                   <label
                     htmlFor="confirm"
-                    style={{
-                      display: 'block',
-                      fontSize: 12,
-                      fontWeight: 500,
-                      color: 'var(--text-secondary)',
-                      marginBottom: 6,
-                    }}
+                    style={{ display: 'block', fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6 }}
                   >
                     Confirm password
                   </label>
@@ -312,15 +251,13 @@ export default function ResetPasswordPage() {
                       color: 'var(--text-primary)',
                       fontSize: 13.5,
                       outline: 'none',
-                      boxSizing: 'border-box',
+                      boxSizing: 'border-box' as const,
                     }}
                     onFocus={e => ((e.currentTarget as HTMLInputElement).style.borderColor = 'var(--border-gold)')}
                     onBlur={e => ((e.currentTarget as HTMLInputElement).style.borderColor = confirm && password !== confirm ? 'rgba(248,113,113,0.5)' : 'var(--border-default)')}
                   />
                   {confirm && password !== confirm && (
-                    <p style={{ fontSize: 11.5, color: '#F87171', margin: '4px 0 0' }}>
-                      Passwords do not match
-                    </p>
+                    <p style={{ fontSize: 11.5, color: '#F87171', margin: '4px 0 0' }}>Passwords do not match</p>
                   )}
                 </div>
 
