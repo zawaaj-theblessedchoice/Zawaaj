@@ -1372,9 +1372,21 @@ export default function AdminPage() {
             <ZawaajLogo size={30} tagline={false} />
             <span className="text-white/30 text-sm hidden sm:block">Admin Dashboard</span>
           </div>
-          <Link href="/browse" className="text-white/40 hover:text-white/80 text-xs transition-colors">
-            Back to Browse
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link href="/browse" className="text-white/40 hover:text-white/80 text-xs transition-colors">
+              Browse
+            </Link>
+            <button
+              onClick={async () => {
+                const supabase = createClient()
+                await supabase.auth.signOut()
+                window.location.href = '/login'
+              }}
+              className="text-white/40 hover:text-white/80 text-xs transition-colors"
+            >
+              Sign out
+            </button>
+          </div>
         </div>
       </header>
 
