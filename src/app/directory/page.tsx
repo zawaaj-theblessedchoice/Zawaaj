@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 
 interface Profile {
@@ -128,9 +129,7 @@ export default function DirectoryPage() {
         style={{ backgroundColor: '#1A1A1A' }}
       >
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <span className="text-xl font-bold tracking-widest" style={{ color: '#B8960C' }}>
-            زواج Zawaaj
-          </span>
+          <Image src="/logo.png" alt="Zawaaj" width={38} height={38} className="object-contain" />
           <nav className="flex items-center gap-4 text-sm">
             <Link href="/directory" className="text-white font-medium">
               Directory

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import ZawaajLogo from '@/components/ZawaajLogo'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -33,17 +34,9 @@ export default function LoginPage() {
   return (
     <main className="min-h-screen flex items-center justify-center bg-[#F8F6F1] px-4">
       <div className="w-full max-w-md">
-        {/* Logo / brand */}
-        <div className="text-center mb-8">
-          <span
-            className="text-4xl font-bold tracking-widest"
-            style={{ color: '#B8960C' }}
-          >
-            زواج
-          </span>
-          <p className="text-sm tracking-[0.3em] uppercase mt-1 text-[#1A1A1A]/60">
-            Zawaaj
-          </p>
+        {/* Logo */}
+        <div className="flex justify-center mb-8">
+          <ZawaajLogo size={90} tagline={true} />
         </div>
 
         {/* Card */}

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 
 // ─── Types ────────────────────────────────────────────────
@@ -347,9 +348,7 @@ export default function AdminPage() {
       {/* Header */}
       <header style={{ backgroundColor: '#1A1A1A' }} className="shadow-sm">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <span className="text-xl font-bold tracking-widest" style={{ color: '#B8960C' }}>
-            زواج Zawaaj
-          </span>
+          <Image src="/logo.png" alt="Zawaaj" width={38} height={38} className="object-contain" />
           <span className="text-white/40 text-sm">Admin Dashboard</span>
         </div>
       </header>
