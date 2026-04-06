@@ -20,6 +20,7 @@ interface Profile {
   duplicate_flag: boolean
   user_id: string | null
   imported_email: string | null
+  legacy_ref: string | null
 }
 
 interface Match {
