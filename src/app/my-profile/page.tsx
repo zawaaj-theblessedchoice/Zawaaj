@@ -1,7 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import Sidebar from '@/components/Sidebar'
 import AvatarInitials from '@/components/AvatarInitials'
 
 interface Profile {
@@ -118,7 +120,10 @@ function displayValue(map: Record<string, string>, v: string | null): string | n
 
 export default function MyProfilePage() {
   const supabase = createClient()
+  const pathname = usePathname()
   const [profile, setProfile] = useState<Profile | null>(null)
+  const [shortlistCount, setShortlistCount] = useState(0)
+  const [introRequestsCount, setIntroRequestsCount] = useState(0)
   const [introRequests, setIntroRequests] = useState<IntroRequest[]>([])
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
@@ -156,6 +161,22 @@ export default function MyProfilePage() {
         .limit(15)
 
       setIntroRequests(irRows ?? [])
+
+      // Sidebar counts
+      const [slResult, irCountResult] = await Promise.all([
+        supabase
+          .from('zawaaj_saved_profiles')
+          .select('id', { count: 'exact', head: true })
+          .eq('profile_id', active.id),
+        supabase
+          .from('zawaaj_introduction_requests')
+          .select('id', { count: 'exact', head: true })
+          .eq('requesting_profile_id', active.id)
+          .in('status', ['pending', 'mutual']),
+      ])
+      setShortlistCount(slResult.count ?? 0)
+      setIntroRequestsCount(irCountResult.count ?? 0)
+
       setLoading(false)
     }
     load()
@@ -182,21 +203,31 @@ export default function MyProfilePage() {
     setActionLoading(false)
   }
 
+  const sidebarProfile = profile
+    ? { display_initials: profile.display_initials, gender: profile.gender, first_name: profile.first_name }
+    : null
+
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', background: 'var(--surface)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>Loading…</span>
+      <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
+        <Sidebar activeRoute={pathname ?? ''} shortlistCount={0} introRequestsCount={0} profile={null} />
+        <main style={{ marginLeft: 200, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>Loading…</span>
+        </main>
       </div>
     )
   }
 
   if (!profile) {
     return (
-      <div style={{ minHeight: '100vh', background: 'var(--surface)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ textAlign: 'center' }}>
-          <p style={{ color: 'var(--text-primary)', fontSize: 15, fontWeight: 500, marginBottom: 8 }}>No profile found</p>
-          <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Please contact the admin team.</p>
-        </div>
+      <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
+        <Sidebar activeRoute={pathname ?? ''} shortlistCount={0} introRequestsCount={0} profile={null} />
+        <main style={{ marginLeft: 200, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ textAlign: 'center' }}>
+            <p style={{ color: 'var(--text-primary)', fontSize: 15, fontWeight: 500, marginBottom: 8 }}>No profile found</p>
+            <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Please contact the admin team.</p>
+          </div>
+        </main>
       </div>
     )
   }
@@ -210,7 +241,14 @@ export default function MyProfilePage() {
   }).length
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--surface)', color: 'var(--text-primary)' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)', color: 'var(--text-primary)' }}>
+      <Sidebar
+        activeRoute={pathname ?? ''}
+        shortlistCount={shortlistCount}
+        introRequestsCount={introRequestsCount}
+        profile={sidebarProfile}
+      />
+      <main style={{ marginLeft: 200, flex: 1 }}>
       <div style={{ maxWidth: 620, margin: '0 auto', padding: '48px 24px 80px' }}>
 
         {/* Header */}
@@ -362,6 +400,7 @@ export default function MyProfilePage() {
           )}
         </div>
       </div>
+      </main>
 
       {/* Withdrawal modal */}
       {showWithdrawModal && (

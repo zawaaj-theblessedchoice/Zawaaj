@@ -24,7 +24,9 @@ export default function ForgotPasswordPage() {
         // With @supabase/ssr (PKCE), the email link carries a ?code= param.
         // We route via /auth/callback which exchanges the code server-side,
         // sets the recovery session in cookies, then redirects to the target page.
-        redirectTo: `${window.location.origin}/auth/callback?next=/auth/reset-password`,
+        // Always use the canonical production origin so the redirectTo URL matches
+        // the Supabase allowlist regardless of which Vercel preview URL the user is on.
+        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://zawaaj.uk'}/auth/callback?next=/auth/reset-password`,
       }
     )
 

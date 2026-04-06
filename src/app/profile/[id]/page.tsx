@@ -2,8 +2,9 @@
 
 import { useEffect, useState, use } from 'react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import NavBar from '@/components/NavBar'
+import Sidebar from '@/components/Sidebar'
 import AvatarInitials from '@/components/AvatarInitials'
 
 interface Profile {
@@ -13,14 +14,28 @@ interface Profile {
   age_display: string | null
   height: string | null
   ethnicity: string | null
+  nationality: string | null
   school_of_thought: string | null
   education_level: string | null
   education_detail: string | null
-  profession_sector: string | null
   profession_detail: string | null
   location: string | null
-  attributes: string[] | null
-  spouse_preferences: string[] | null
+  bio: string | null
+  religiosity: string | null
+  prayer_regularity: string | null
+  wears_hijab: boolean | null
+  keeps_beard: boolean | null
+  marital_status: string | null
+  has_children: boolean | null
+  languages_spoken: string | null
+  living_situation: string | null
+  open_to_relocation: string | null
+  pref_age_min: number | null
+  pref_age_max: number | null
+  pref_location: string | null
+  pref_ethnicity: string | null
+  pref_school_of_thought: string[] | null
+  pref_partner_children: string | null
   status: string
 }
 
@@ -28,36 +43,59 @@ interface ActiveProfile {
   id: string
   status: string
   interests_this_month: number
-  user_id: string | null
+  gender: string | null
+  display_initials: string
+  first_name: string | null
 }
 
-type ButtonState =
-  | 'hidden'
-  | 'not_approved'
-  | 'limit_reached'
-  | 'already_requested'
-  | 'available'
+type ButtonState = 'hidden' | 'not_approved' | 'limit_reached' | 'already_requested' | 'available'
 
-function InfoField({ icon, label, value }: { icon: string; label: string; value: string | null }) {
+// ── Display-value maps ────────────────────────────────────────────────────────
+
+const MARITAL_MAP: Record<string, string> = {
+  never_married: 'Never married',
+  divorced: 'Divorced',
+  widowed: 'Widowed',
+}
+const LIVING_MAP: Record<string, string> = {
+  independent: 'Independent',
+  with_family: 'With family',
+  shared: 'Shared accommodation',
+}
+const PRAYER_MAP: Record<string, string> = {
+  yes_regularly: 'Yes, regularly',
+  most_of_time: 'Most of the time',
+  working_on_it: 'Working on it',
+  not_currently: 'Not currently',
+}
+
+function displayValue(map: Record<string, string>, v: string | null): string | null {
+  if (!v) return null
+  return map[v] ?? v
+}
+
+// ── Sub-components ────────────────────────────────────────────────────────────
+
+function FieldRow({ label, value }: { label: string; value: string | null | undefined }) {
   if (!value) return null
   return (
-    <div className="rounded-xl p-4" style={{ backgroundColor: '#F0EDE7', border: '1px solid #E0DBD1' }}>
-      <p className="text-xs text-[#1A1A1A]/50 uppercase tracking-wide font-medium mb-1">{label}</p>
-      <p className="text-sm font-medium text-[#1A1A1A] flex items-center gap-1.5">
-        <span>{icon}</span> {value}
-      </p>
+    <div style={{ marginBottom: 12 }}>
+      <div style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: 3 }}>
+        {label}
+      </div>
+      <div style={{ fontSize: 12.5, color: 'var(--text-primary)' }}>{value}</div>
     </div>
   )
 }
 
-function TagChip({ label }: { label: string }) {
+function SectionLabel({ children }: { children: string }) {
   return (
-    <span
-      className="text-xs px-3 py-1.5 rounded-full font-medium"
-      style={{ backgroundColor: '#EDE8DC', color: '#5A4E3A' }}
-    >
-      {label}
-    </span>
+    <div style={{
+      fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.06em',
+      color: 'var(--text-muted)', marginBottom: 14, marginTop: 24,
+    }}>
+      {children}
+    </div>
   )
 }
 
@@ -71,68 +109,55 @@ function RequestIntroductionButton({
   const supabase = createClient()
   const [buttonState, setButtonState] = useState<ButtonState>('available')
   const [loading, setLoading] = useState(true)
-  const [success, setSuccess] = useState<string | null>(null)
+  const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     async function determineState() {
-      // Can't request yourself
       if (activeProfile.id === profile.id) {
         setButtonState('hidden')
         setLoading(false)
         return
       }
-      // Active profile must be approved
       if (activeProfile.status !== 'approved') {
         setButtonState('not_approved')
         setLoading(false)
         return
       }
-      // Monthly limit
       if (activeProfile.interests_this_month >= 5) {
         setButtonState('limit_reached')
         setLoading(false)
         return
       }
-      // Check existing active interest
       const { data: existing } = await supabase
-        .from('zawaaj_interests')
+        .from('zawaaj_introduction_requests')
         .select('id')
-        .eq('sender_profile_id', activeProfile.id)
-        .eq('recipient_profile_id', profile.id)
-        .eq('status', 'active')
+        .eq('requesting_profile_id', activeProfile.id)
+        .eq('target_profile_id', profile.id)
+        .in('status', ['pending', 'mutual', 'facilitated'])
         .maybeSingle()
 
-      if (existing) {
-        setButtonState('already_requested')
-      } else {
-        setButtonState('available')
-      }
+      setButtonState(existing ? 'already_requested' : 'available')
       setLoading(false)
     }
     determineState()
-  }, [activeProfile, profile])
+  }, [activeProfile, profile]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleRequest() {
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch('/api/interests', {
+      const res = await fetch('/api/introduction-requests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ recipient_profile_id: profile.id }),
+        body: JSON.stringify({ target_profile_id: profile.id }),
       })
-      const json = await res.json()
+      const json = await res.json().catch(() => ({}))
       if (!res.ok) {
-        setError(json.error ?? 'Something went wrong')
+        setError(json.error ?? 'Something went wrong. Please try again.')
       } else {
         setButtonState('already_requested')
-        const remaining = json.remainingRequests ?? 0
-        if (json.mutual) {
-          setSuccess(`Mutual interest! An introduction is being arranged. ${remaining} request${remaining !== 1 ? 's' : ''} remaining this month.`)
-        } else {
-          setSuccess(`Introduction requested successfully. ${remaining} request${remaining !== 1 ? 's' : ''} remaining this month.`)
-        }
+        setSuccess(true)
       }
     } catch {
       setError('Network error. Please try again.')
@@ -144,61 +169,67 @@ function RequestIntroductionButton({
   if (buttonState === 'hidden') return null
 
   return (
-    <div className="flex flex-col gap-2">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       {buttonState === 'not_approved' && (
-        <button
-          disabled
-          className="w-full py-3 rounded-xl text-sm font-semibold bg-gray-200 text-gray-400 cursor-not-allowed"
-        >
-          Profile not approved
-        </button>
+        <div style={{ padding: '10px 14px', borderRadius: 9, background: 'var(--surface-3)', border: '0.5px solid var(--border-default)', fontSize: 13, color: 'var(--text-muted)', textAlign: 'center' }}>
+          Your profile must be approved before you can send introduction requests
+        </div>
       )}
       {buttonState === 'limit_reached' && (
-        <button
-          disabled
-          className="w-full py-3 rounded-xl text-sm font-semibold bg-gray-200 text-gray-400 cursor-not-allowed"
-        >
-          Monthly limit reached (5/5)
-        </button>
+        <div style={{ padding: '10px 14px', borderRadius: 9, background: 'var(--surface-3)', border: '0.5px solid var(--border-default)', fontSize: 13, color: 'var(--text-muted)', textAlign: 'center' }}>
+          Monthly limit reached (5/5) — resets on the 1st
+        </div>
       )}
-      {buttonState === 'already_requested' && (
-        <button
-          disabled
-          className="w-full py-3 rounded-xl text-sm font-semibold bg-gray-200 text-gray-400 cursor-not-allowed"
-        >
-          Introduction requested
-        </button>
+      {buttonState === 'already_requested' && !success && (
+        <div style={{ padding: '10px 14px', borderRadius: 9, background: 'var(--surface-3)', border: '0.5px solid var(--border-default)', fontSize: 13, color: 'var(--text-secondary)', textAlign: 'center' }}>
+          Introduction request already sent
+        </div>
+      )}
+      {success && (
+        <div style={{ padding: '10px 14px', borderRadius: 9, background: 'rgba(74,222,128,0.08)', border: '0.5px solid rgba(74,222,128,0.25)', fontSize: 13, color: '#4ADE80', textAlign: 'center' }}>
+          Introduction request sent — our team will be in touch with both families.
+        </div>
       )}
       {buttonState === 'available' && (
         <button
           onClick={handleRequest}
           disabled={loading}
-          className="w-full py-3 rounded-xl text-sm font-semibold text-white transition-opacity disabled:opacity-60"
-          style={{ backgroundColor: '#B8960C' }}
+          style={{
+            width: '100%',
+            padding: '11px 0',
+            borderRadius: 9,
+            background: loading ? 'var(--surface-3)' : 'var(--gold)',
+            border: 'none',
+            color: loading ? 'var(--text-muted)' : '#111',
+            fontSize: 13.5,
+            fontWeight: 600,
+            cursor: loading ? 'not-allowed' : 'pointer',
+            transition: 'opacity 0.15s',
+          }}
         >
-          {loading ? 'Requesting…' : 'Request introduction'}
+          {loading ? 'Checking…' : 'Request introduction'}
         </button>
       )}
-      {success && (
-        <p className="text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
-          {success}
-        </p>
-      )}
       {error && (
-        <p className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+        <div style={{ padding: '8px 12px', borderRadius: 8, background: 'rgba(248,113,113,0.1)', border: '0.5px solid rgba(248,113,113,0.3)', fontSize: 12.5, color: '#F87171' }}>
           {error}
-        </p>
+        </div>
       )}
     </div>
   )
 }
 
+// ── Page ──────────────────────────────────────────────────────────────────────
+
 export default function ProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
+  const pathname = usePathname()
   const supabase = createClient()
 
   const [profile, setProfile] = useState<Profile | null>(null)
   const [activeProfile, setActiveProfile] = useState<ActiveProfile | null>(null)
+  const [shortlistCount, setShortlistCount] = useState(0)
+  const [introRequestsCount, setIntroRequestsCount] = useState(0)
   const [notFound, setNotFound] = useState(false)
   const [loading, setLoading] = useState(true)
 
@@ -208,7 +239,7 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
         supabase
           .from('zawaaj_profiles')
           .select(
-            'id, display_initials, gender, age_display, height, ethnicity, school_of_thought, education_level, education_detail, profession_sector, profession_detail, location, attributes, spouse_preferences, status'
+            'id, display_initials, gender, age_display, height, ethnicity, nationality, school_of_thought, education_level, education_detail, profession_detail, location, bio, religiosity, prayer_regularity, wears_hijab, keeps_beard, marital_status, has_children, languages_spoken, living_situation, open_to_relocation, pref_age_min, pref_age_max, pref_location, pref_ethnicity, pref_school_of_thought, pref_partner_children, status'
           )
           .eq('id', id)
           .eq('status', 'approved')
@@ -232,138 +263,196 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
 
         const { data: userProfiles } = await supabase
           .from('zawaaj_profiles')
-          .select('id, status, interests_this_month, user_id')
+          .select('id, status, interests_this_month, gender, display_initials, first_name')
           .eq('user_id', user.id)
 
         if (userProfiles && userProfiles.length > 0) {
           const activeId = settings?.active_profile_id ?? userProfiles[0].id
-          const active = userProfiles.find((p) => p.id === activeId) ?? userProfiles[0]
+          const active = userProfiles.find(p => p.id === activeId) ?? userProfiles[0]
           setActiveProfile(active)
+
+          const [slResult, irCountResult] = await Promise.all([
+            supabase
+              .from('zawaaj_saved_profiles')
+              .select('id', { count: 'exact', head: true })
+              .eq('profile_id', active.id),
+            supabase
+              .from('zawaaj_introduction_requests')
+              .select('id', { count: 'exact', head: true })
+              .eq('requesting_profile_id', active.id)
+              .in('status', ['pending', 'mutual']),
+          ])
+          setShortlistCount(slResult.count ?? 0)
+          setIntroRequestsCount(irCountResult.count ?? 0)
         }
       }
 
       setLoading(false)
     }
     load()
-  }, [id])
+  }, [id]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const sidebarProfile = activeProfile
+    ? { display_initials: activeProfile.display_initials, gender: activeProfile.gender, first_name: activeProfile.first_name }
+    : null
 
   if (loading) {
     return (
-      <>
-        <NavBar />
-        <div className="pt-14 flex items-center justify-center min-h-screen">
-          <p className="text-[#1A1A1A]/50 text-sm">Loading profile…</p>
-        </div>
-      </>
+      <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
+        <Sidebar activeRoute={pathname ?? ''} shortlistCount={0} introRequestsCount={0} profile={null} />
+        <main style={{ marginLeft: 200, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>Loading…</span>
+        </main>
+      </div>
     )
   }
 
   if (notFound || !profile) {
     return (
-      <>
-        <NavBar />
-        <div className="pt-14 max-w-2xl mx-auto px-4 py-16 text-center">
-          <p className="text-lg font-semibold text-[#1A1A1A] mb-2">Profile not found</p>
-          <p className="text-sm text-[#1A1A1A]/50 mb-6">
-            This profile may not exist or is not currently available.
-          </p>
-          <Link
-            href="/directory"
-            className="text-sm font-semibold underline"
-            style={{ color: '#B8960C' }}
-          >
-            ← Back to directory
-          </Link>
-        </div>
-      </>
+      <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
+        <Sidebar activeRoute={pathname ?? ''} shortlistCount={shortlistCount} introRequestsCount={introRequestsCount} profile={sidebarProfile} />
+        <main style={{ marginLeft: 200, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ textAlign: 'center' }}>
+            <p style={{ fontSize: 15, fontWeight: 500, color: 'var(--text-primary)', marginBottom: 8 }}>Profile not found</p>
+            <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 20 }}>
+              This profile may not exist or is not currently available.
+            </p>
+            <Link href="/browse" style={{ fontSize: 13, color: 'var(--gold)', textDecoration: 'none' }}>
+              Back to browse
+            </Link>
+          </div>
+        </main>
+      </div>
     )
   }
 
+  const hasPref = profile.pref_age_min || profile.pref_age_max || profile.pref_location ||
+    profile.pref_ethnicity || (profile.pref_school_of_thought?.length ?? 0) > 0 || profile.pref_partner_children
+
   return (
-    <>
-      <NavBar />
-      <main className="pt-14">
-        <div className="max-w-2xl mx-auto px-4 py-8">
-          {/* Back link */}
+    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
+      <Sidebar
+        activeRoute={pathname ?? ''}
+        shortlistCount={shortlistCount}
+        introRequestsCount={introRequestsCount}
+        profile={sidebarProfile}
+      />
+      <main style={{ marginLeft: 200, flex: 1 }}>
+        <div style={{ maxWidth: 640, margin: '0 auto', padding: '40px 24px 80px' }}>
+
+          {/* Back */}
           <Link
-            href="/directory"
-            className="inline-flex items-center gap-1 text-sm mb-6 transition-colors"
-            style={{ color: '#B8960C' }}
+            href="/browse"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 13, color: 'var(--gold)', textDecoration: 'none', marginBottom: 28 }}
           >
-            ← Back to directory
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M7.5 2L3.5 6l4 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Back to browse
           </Link>
 
-          {/* Profile header */}
-          <div className="flex items-center gap-5 mb-8">
-            <AvatarInitials initials={profile.display_initials} gender={profile.gender} size="lg" />
-            <div>
-              <h1 className="text-2xl font-bold text-[#1A1A1A]">{profile.display_initials}</h1>
-              <div className="flex flex-wrap items-center gap-2 mt-1">
-                {profile.gender && (
-                  <span
-                    className="text-xs font-semibold px-2.5 py-0.5 rounded-full"
-                    style={
-                      profile.gender === 'female'
-                        ? { backgroundColor: '#EEEDFE', color: '#534AB7' }
-                        : { backgroundColor: '#E6F1FB', color: '#185FA5' }
-                    }
-                  >
-                    {profile.gender.charAt(0).toUpperCase() + profile.gender.slice(1)}
-                  </span>
-                )}
-                {profile.age_display && (
-                  <span className="text-sm text-[#1A1A1A]/60">{profile.age_display} years old</span>
-                )}
-                {profile.location && (
-                  <span className="text-sm text-[#1A1A1A]/60">📍 {profile.location}</span>
-                )}
+          {/* Profile card */}
+          <div style={{ background: 'var(--surface-2)', border: '0.5px solid var(--border-default)', borderRadius: 13, padding: 24, marginBottom: 16 }}>
+
+            {/* Header */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
+              <AvatarInitials initials={profile.display_initials} gender={profile.gender} size="xl" goldBorder />
+              <div>
+                <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--text-primary)', marginBottom: 6 }}>
+                  {profile.display_initials}
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
+                  {profile.gender && (
+                    <span style={{
+                      fontSize: 11, fontWeight: 500, padding: '2px 10px', borderRadius: 999,
+                      background: profile.gender === 'female' ? '#EEEDFE' : '#E6F1FB',
+                      color: profile.gender === 'female' ? '#534AB7' : '#185FA5',
+                    }}>
+                      {profile.gender.charAt(0).toUpperCase() + profile.gender.slice(1)}
+                    </span>
+                  )}
+                  {profile.age_display && (
+                    <span style={{ fontSize: 12.5, color: 'var(--text-secondary)' }}>{profile.age_display} years old</span>
+                  )}
+                  {profile.location && (
+                    <span style={{ fontSize: 12.5, color: 'var(--text-secondary)' }}>{profile.location}</span>
+                  )}
+                </div>
               </div>
             </div>
+
+            {/* About */}
+            <SectionLabel>About</SectionLabel>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 24px' }}>
+              <FieldRow label="Ethnicity" value={profile.ethnicity} />
+              <FieldRow label="Nationality" value={profile.nationality} />
+              <FieldRow label="Marital status" value={displayValue(MARITAL_MAP, profile.marital_status)} />
+              <FieldRow label="Has children" value={profile.has_children === true ? 'Yes' : profile.has_children === false ? 'No' : null} />
+              <FieldRow label="Height" value={profile.height} />
+              <FieldRow label="Living situation" value={displayValue(LIVING_MAP, profile.living_situation)} />
+              <FieldRow label="Languages" value={profile.languages_spoken} />
+              <FieldRow label="Open to relocation" value={profile.open_to_relocation} />
+            </div>
+
+            {/* Education & profession */}
+            <SectionLabel>Education & profession</SectionLabel>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 24px' }}>
+              <FieldRow label="Education level" value={profile.education_level} />
+              <FieldRow label="Institution" value={profile.education_detail} />
+              <FieldRow label="Profession" value={profile.profession_detail} />
+            </div>
+
+            {/* Faith */}
+            <SectionLabel>Faith & practice</SectionLabel>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 24px' }}>
+              <FieldRow label="School of thought" value={profile.school_of_thought} />
+              <FieldRow label="Religiosity" value={profile.religiosity} />
+              <FieldRow label="Prayer regularity" value={displayValue(PRAYER_MAP, profile.prayer_regularity)} />
+              {profile.gender === 'female' && (
+                <FieldRow label="Wears hijab" value={profile.wears_hijab === true ? 'Yes' : profile.wears_hijab === false ? 'No' : null} />
+              )}
+              {profile.gender === 'male' && (
+                <FieldRow label="Keeps beard" value={profile.keeps_beard === true ? 'Yes' : profile.keeps_beard === false ? 'No' : null} />
+              )}
+            </div>
+
+            {/* Bio */}
+            {profile.bio && (
+              <>
+                <SectionLabel>About me</SectionLabel>
+                <p style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.65, margin: 0 }}>{profile.bio}</p>
+              </>
+            )}
+
+            {/* Looking for */}
+            {hasPref && (
+              <>
+                <SectionLabel>Looking for</SectionLabel>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 24px' }}>
+                  <FieldRow
+                    label="Preferred age"
+                    value={(profile.pref_age_min || profile.pref_age_max) ? `${profile.pref_age_min ?? '?'} – ${profile.pref_age_max ?? '?'}` : null}
+                  />
+                  <FieldRow label="Location" value={profile.pref_location} />
+                  <FieldRow label="Ethnicity" value={profile.pref_ethnicity} />
+                  <FieldRow label="School of thought" value={profile.pref_school_of_thought?.join(', ') ?? null} />
+                  <FieldRow label="Partner's children" value={profile.pref_partner_children} />
+                </div>
+              </>
+            )}
           </div>
 
-          {/* Info grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-8">
-            <InfoField icon="🌍" label="Ethnicity" value={profile.ethnicity} />
-            <InfoField icon="🕌" label="School of thought" value={profile.school_of_thought} />
-            <InfoField icon="🎓" label="Education level" value={profile.education_level} />
-            <InfoField icon="🎓" label="Education detail" value={profile.education_detail} />
-            <InfoField icon="💼" label="Profession sector" value={profile.profession_sector} />
-            <InfoField icon="💼" label="Profession detail" value={profile.profession_detail} />
-            <InfoField icon="📏" label="Height" value={profile.height} />
-            <InfoField icon="📍" label="Location" value={profile.location} />
-          </div>
-
-          {/* Attributes */}
-          {profile.attributes && profile.attributes.length > 0 && (
-            <section className="mb-8">
-              <h2 className="text-base font-semibold text-[#1A1A1A] mb-3">About me</h2>
-              <div className="flex flex-wrap gap-2">
-                {profile.attributes.map((attr, i) => (
-                  <TagChip key={i} label={attr} />
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* Spouse preferences */}
-          {profile.spouse_preferences && profile.spouse_preferences.length > 0 && (
-            <section className="mb-8">
-              <h2 className="text-base font-semibold text-[#1A1A1A] mb-3">Looking for</h2>
-              <div className="flex flex-wrap gap-2">
-                {profile.spouse_preferences.map((pref, i) => (
-                  <TagChip key={i} label={pref} />
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* Contact info locked */}
-          <div
-            className="rounded-xl p-4 mb-4 flex items-start gap-3"
-            style={{ backgroundColor: '#F0EDE7', border: '1px solid #E0DBD1' }}
-          >
-            <span className="text-xl mt-0.5">🔒</span>
-            <p className="text-sm text-[#1A1A1A]/70 leading-relaxed">
+          {/* Contact privacy notice */}
+          <div style={{
+            background: 'var(--surface-2)', border: '0.5px solid var(--border-default)',
+            borderRadius: 13, padding: '14px 18px', marginBottom: 16,
+            display: 'flex', alignItems: 'flex-start', gap: 12,
+          }}>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0, marginTop: 1 }}>
+              <rect x="3" y="7" width="10" height="8" rx="1.5" stroke="var(--text-muted)" strokeWidth="1.2" />
+              <path d="M5 7V5a3 3 0 0 1 6 0v2" stroke="var(--text-muted)" strokeWidth="1.2" strokeLinecap="round" />
+            </svg>
+            <p style={{ fontSize: 12.5, color: 'var(--text-secondary)', lineHeight: 1.55, margin: 0 }}>
               Contact details are only shared after both families have verbally consented to an introduction.
             </p>
           </div>
@@ -374,6 +463,6 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
           )}
         </div>
       </main>
-    </>
+    </div>
   )
 }
