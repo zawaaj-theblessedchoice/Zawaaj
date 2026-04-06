@@ -1351,8 +1351,8 @@ export default function AdminPage() {
           <p className="text-2xl mb-2">🔒</p>
           <h1 className="text-xl font-semibold text-[#1A1A1A] mb-2">Access Denied</h1>
           <p className="text-[#1A1A1A]/60 text-sm mb-6">You do not have admin access to this page.</p>
-          <Link href="/directory" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium bg-[#1A1A1A] text-[#B8960C] hover:bg-[#333]">
-            Return to Directory
+          <Link href="/browse" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium bg-[#1A1A1A] text-[#B8960C] hover:bg-[#333]">
+            Return to Browse
           </Link>
         </div>
       </div>
@@ -1372,8 +1372,8 @@ export default function AdminPage() {
             <ZawaajLogo size={30} tagline={false} />
             <span className="text-white/30 text-sm hidden sm:block">Admin Dashboard</span>
           </div>
-          <Link href="/directory" className="text-white/40 hover:text-white/80 text-xs transition-colors">
-            Back to Directory
+          <Link href="/browse" className="text-white/40 hover:text-white/80 text-xs transition-colors">
+            Back to Browse
           </Link>
         </div>
       </header>
