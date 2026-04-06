@@ -1,0 +1,596 @@
+'use client'
+
+import { use, useEffect, useState, useCallback } from 'react'
+import Link from 'next/link'
+import { createClient } from '@/lib/supabase/client'
+import ZawaajLogo from '@/components/ZawaajLogo'
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface Profile {
+  id: string
+  user_id: string | null
+  legacy_ref: string | null
+  imported_email: string | null
+  display_initials: string
+  gender: string | null
+  age_display: string | null
+  height: string | null
+  ethnicity: string | null
+  school_of_thought: string | null
+  education_level: string | null
+  education_detail: string | null
+  profession_sector: string | null
+  profession_detail: string | null
+  location: string | null
+  attributes: string[] | null
+  spouse_preferences: string[] | null
+  admin_comments: string | null
+  admin_notes: string | null
+  status: string
+  contact_number: string | null
+  guardian_name: string | null
+  submitted_date: string | null
+  approved_date: string | null
+  created_at: string | null
+}
+
+interface Match {
+  id: string
+  profile_a_id: string
+  profile_b_id: string
+  mutual_date: string | null
+  status: string
+  family_a_consented: boolean
+  family_b_consented: boolean
+  introduced_date: string | null
+  outcome: string | null
+  outcome_date: string | null
+  admin_notes: string | null
+  admin_notified_date: string | null
+  created_at: string | null
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function fmtDate(dateStr: string | null): string {
+  if (!dateStr) return '—'
+  return new Date(dateStr).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
+function phoneDigits(phone: string | null): string {
+  if (!phone) return ''
+  return phone.replace(/\D/g, '')
+}
+
+function daysAgo(dateStr: string | null): string {
+  if (!dateStr) return '—'
+  const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000)
+  if (diff === 0) return 'Today'
+  if (diff === 1) return '1 day ago'
+  return `${diff} days ago`
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const map: Record<string, { bg: string; text: string }> = {
+    pending:              { bg: '#FEF3C7', text: '#92400E' },
+    approved:             { bg: '#D1FAE5', text: '#065F46' },
+    rejected:             { bg: '#FEE2E2', text: '#991B1B' },
+    withdrawn:            { bg: '#F3F4F6', text: '#374151' },
+    suspended:            { bg: '#FEF3C7', text: '#92400E' },
+    introduced:           { bg: '#DBEAFE', text: '#1E40AF' },
+    awaiting_admin:       { bg: '#EDE9FE', text: '#5B21B6' },
+    admin_reviewing:      { bg: '#FEF3C7', text: '#92400E' },
+    nikah:                { bg: '#D1FAE5', text: '#065F46' },
+    no_longer_proceeding: { bg: '#FEE2E2', text: '#991B1B' },
+    dismissed:            { bg: '#F3F4F6', text: '#374151' },
+    in_discussion:        { bg: '#DBEAFE', text: '#1E40AF' },
+  }
+  const s = map[status] ?? { bg: '#F3F4F6', text: '#374151' }
+  return (
+    <span
+      className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+      style={{ backgroundColor: s.bg, color: s.text }}
+    >
+      {status.replace(/_/g, ' ')}
+    </span>
+  )
+}
+
+// ─── Profile Column ───────────────────────────────────────────────────────────
+
+function ProfileColumn({
+  profile, label, consented, onConsentChange,
+}: {
+  profile: Profile
+  label: string
+  consented: boolean
+  onConsentChange: (value: boolean) => void
+}) {
+  const bg = profile.gender === 'female' ? '#8B5CF6' : '#2563EB'
+  const digits = phoneDigits(profile.contact_number)
+
+  function Row({ title, value }: { title: string; value: string | null | undefined }) {
+    return value ? (
+      <div className="flex gap-3 py-2.5 border-b border-[#F8F6F1]">
+        <dt className="text-xs text-[#1A1A1A]/40 w-36 flex-shrink-0 pt-0.5">{title}</dt>
+        <dd className="text-sm text-[#1A1A1A] break-words">{value}</dd>
+      </div>
+    ) : null
+  }
+
+  return (
+    <div className="bg-white rounded-2xl border border-[#E8E4DC] overflow-hidden">
+      {/* Avatar header */}
+      <div
+        className="px-6 py-8 flex flex-col items-center gap-2"
+        style={{ backgroundColor: `${bg}18` }}
+      >
+        <div
+          className="w-20 h-20 rounded-full flex items-center justify-center text-white font-bold text-2xl"
+          style={{ backgroundColor: bg }}
+        >
+          {profile.display_initials}
+        </div>
+        <p className="text-sm font-medium text-[#1A1A1A]/50">{label}</p>
+        <p className="text-lg font-bold text-[#1A1A1A]">{profile.display_initials}</p>
+        {profile.legacy_ref && (
+          <span className="px-2.5 py-0.5 rounded-full text-xs border border-[#E8E4DC] text-[#1A1A1A]/50 bg-white">
+            {profile.legacy_ref}
+          </span>
+        )}
+        <StatusBadge status={profile.status} />
+      </div>
+
+      {/* Fields */}
+      <div className="px-6 py-4">
+        <dl>
+          <Row title="Gender" value={profile.gender} />
+          <Row title="Age" value={profile.age_display} />
+          <Row title="Height" value={profile.height} />
+          <Row title="Ethnicity" value={profile.ethnicity} />
+          <Row title="Location" value={profile.location} />
+          <Row title="School of Thought" value={profile.school_of_thought} />
+          <Row title="Education Level" value={profile.education_level} />
+          <Row title="Education Detail" value={profile.education_detail} />
+          <Row title="Profession Sector" value={profile.profession_sector} />
+          <Row title="Profession Detail" value={profile.profession_detail} />
+          <Row title="Submitted" value={fmtDate(profile.submitted_date)} />
+          <Row title="Approved" value={fmtDate(profile.approved_date)} />
+        </dl>
+
+        {/* Attributes */}
+        {profile.attributes && profile.attributes.length > 0 && (
+          <div className="mt-4">
+            <p className="text-xs text-[#1A1A1A]/40 font-medium uppercase tracking-wide mb-2">Attributes</p>
+            <div className="flex flex-wrap gap-1.5">
+              {profile.attributes.map(a => (
+                <span key={a} className="px-2.5 py-1 rounded-full text-xs bg-[#F8F6F1] border border-[#E8E4DC] text-[#1A1A1A]/70">
+                  {a}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Spouse Preferences */}
+        {profile.spouse_preferences && profile.spouse_preferences.length > 0 && (
+          <div className="mt-4">
+            <p className="text-xs text-[#1A1A1A]/40 font-medium uppercase tracking-wide mb-2">Spouse Preferences</p>
+            <div className="flex flex-wrap gap-1.5">
+              {profile.spouse_preferences.map(p => (
+                <span key={p} className="px-2.5 py-1 rounded-full text-xs bg-[#EDE9FE] text-[#5B21B6] border border-[#DDD6FE]">
+                  {p}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Admin-only contact section */}
+      <div className="border-t border-[#E8E4DC] bg-[#F8F6F1] px-6 py-4">
+        <p className="text-xs font-semibold text-[#1A1A1A]/40 uppercase tracking-wider mb-3">Contact Details</p>
+        <dl className="space-y-2 text-sm">
+          <div className="flex gap-2">
+            <dt className="text-[#1A1A1A]/50 w-24 flex-shrink-0">Phone:</dt>
+            <dd className="font-medium text-[#1A1A1A]">{profile.contact_number ?? '—'}</dd>
+          </div>
+          <div className="flex gap-2">
+            <dt className="text-[#1A1A1A]/50 w-24 flex-shrink-0">Guardian:</dt>
+            <dd className="font-medium text-[#1A1A1A]">{profile.guardian_name ?? '—'}</dd>
+          </div>
+          <div className="flex gap-2">
+            <dt className="text-[#1A1A1A]/50 w-24 flex-shrink-0">Email:</dt>
+            <dd className="font-medium text-[#1A1A1A] break-all">{profile.imported_email ?? '—'}</dd>
+          </div>
+        </dl>
+        {digits && (
+          <a
+            href={`https://wa.me/${digits}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-3 flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-sm font-medium bg-green-600 text-white hover:bg-green-700 transition-colors"
+          >
+            WhatsApp {label}
+          </a>
+        )}
+      </div>
+
+      {/* Admin notes */}
+      {(profile.admin_comments || profile.admin_notes) && (
+        <div className="border-t border-[#E8E4DC] px-6 py-4">
+          {profile.admin_comments && (
+            <div className="mb-3">
+              <p className="text-xs font-medium text-[#1A1A1A]/40 uppercase tracking-wide mb-1">Admin Comments</p>
+              <p className="text-sm text-[#1A1A1A]/70">{profile.admin_comments}</p>
+            </div>
+          )}
+          {profile.admin_notes && (
+            <div>
+              <p className="text-xs font-medium text-[#1A1A1A]/40 uppercase tracking-wide mb-1">Admin Notes</p>
+              <p className="text-sm text-[#1A1A1A]/70">{profile.admin_notes}</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Consent checkbox */}
+      <div className="border-t border-[#E8E4DC] px-6 py-4 bg-white">
+        <label className="flex items-start gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={consented}
+            onChange={e => onConsentChange(e.target.checked)}
+            className="w-4 h-4 mt-0.5 accent-[#B8960C] flex-shrink-0"
+          />
+          <span className="text-sm text-[#1A1A1A]">
+            {label} has verbally confirmed consent to introduction
+          </span>
+        </label>
+      </div>
+    </div>
+  )
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
+export default function SideBySidePage({
+  params,
+}: {
+  params: Promise<{ matchId: string }>
+}) {
+  const { matchId } = use(params)
+  const supabase = createClient()
+
+  const [match, setMatch] = useState<Match | null>(null)
+  const [profileA, setProfileA] = useState<Profile | null>(null)
+  const [profileB, setProfileB] = useState<Profile | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [accessDenied, setAccessDenied] = useState(false)
+
+  const [consentA, setConsentA] = useState(false)
+  const [consentB, setConsentB] = useState(false)
+  const [introducing, setIntroducing] = useState(false)
+  const [dismissing, setDismissing] = useState(false)
+  const [confirmDismiss, setConfirmDismiss] = useState(false)
+  const [outcomeValue, setOutcomeValue] = useState('')
+  const [adminNotesValue, setAdminNotesValue] = useState('')
+  const [savingNotes, setSavingNotes] = useState(false)
+  const [notesSaved, setNotesSaved] = useState(false)
+
+  // Check admin
+  useEffect(() => {
+    async function checkAdmin() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { setAccessDenied(true); return }
+      const { data } = await supabase
+        .from('zawaaj_profiles')
+        .select('is_admin')
+        .eq('user_id', user.id)
+        .eq('is_admin', true)
+        .maybeSingle()
+      if (!data) setAccessDenied(true)
+    }
+    checkAdmin()
+  }, [supabase])
+
+  const loadMatch = useCallback(async () => {
+    const { data: matchData, error: matchErr } = await supabase
+      .from('zawaaj_matches')
+      .select('*')
+      .eq('id', matchId)
+      .single()
+
+    if (matchErr || !matchData) { setLoading(false); return }
+
+    const m = matchData as Match
+    setMatch(m)
+    setConsentA(m.family_a_consented)
+    setConsentB(m.family_b_consented)
+    setOutcomeValue(m.outcome ?? 'unknown')
+    setAdminNotesValue(m.admin_notes ?? '')
+
+    const [{ data: pA }, { data: pB }] = await Promise.all([
+      supabase.from('zawaaj_profiles').select('*').eq('id', m.profile_a_id).single(),
+      supabase.from('zawaaj_profiles').select('*').eq('id', m.profile_b_id).single(),
+    ])
+
+    setProfileA((pA as Profile) ?? null)
+    setProfileB((pB as Profile) ?? null)
+    setLoading(false)
+  }, [matchId, supabase])
+
+  useEffect(() => { loadMatch() }, [loadMatch])
+
+  async function updateConsent(side: 'a' | 'b', value: boolean) {
+    const field = side === 'a' ? 'family_a_consented' : 'family_b_consented'
+    if (side === 'a') setConsentA(value)
+    else setConsentB(value)
+    await supabase.from('zawaaj_matches').update({ [field]: value }).eq('id', matchId)
+  }
+
+  async function markIntroduced() {
+    setIntroducing(true)
+    await supabase
+      .from('zawaaj_matches')
+      .update({ status: 'introduced', introduced_date: new Date().toISOString() })
+      .eq('id', matchId)
+    setIntroducing(false)
+    loadMatch()
+  }
+
+  async function dismissMatch() {
+    setDismissing(true)
+    await supabase.from('zawaaj_matches').update({ status: 'dismissed' }).eq('id', matchId)
+    setDismissing(false)
+    setConfirmDismiss(false)
+    loadMatch()
+  }
+
+  async function updateOutcome(outcome: string) {
+    setOutcomeValue(outcome)
+    await supabase.from('zawaaj_matches').update({ outcome, outcome_date: new Date().toISOString() }).eq('id', matchId)
+  }
+
+  async function saveNotes() {
+    setSavingNotes(true)
+    await supabase.from('zawaaj_matches').update({ admin_notes: adminNotesValue }).eq('id', matchId)
+    setSavingNotes(false)
+    setNotesSaved(true)
+    setTimeout(() => setNotesSaved(false), 2500)
+  }
+
+  if (accessDenied) {
+    return (
+      <div className="min-h-screen bg-[#F8F6F1] flex items-center justify-center">
+        <div className="bg-white rounded-2xl p-10 border border-[#E8E4DC] text-center max-w-sm mx-4">
+          <p className="text-2xl mb-2">🔒</p>
+          <h1 className="text-xl font-semibold text-[#1A1A1A] mb-4">Access Denied</h1>
+          <Link href="/admin" className="text-[#B8960C] text-sm hover:underline">Back to Admin</Link>
+        </div>
+      </div>
+    )
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#F8F6F1] flex items-center justify-center">
+        <p className="text-[#1A1A1A]/40 text-sm">Loading match…</p>
+      </div>
+    )
+  }
+
+  if (!match) {
+    return (
+      <div className="min-h-screen bg-[#F8F6F1] flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-[#1A1A1A]/60 mb-4">Match not found.</p>
+          <Link href="/admin" className="text-[#B8960C] text-sm hover:underline">Back to Admin</Link>
+        </div>
+      </div>
+    )
+  }
+
+  const canIntroduce = consentA && consentB && match.status !== 'introduced'
+
+  return (
+    <div className="min-h-screen bg-[#F8F6F1]">
+      {/* Confirm Dismiss Modal */}
+      {confirmDismiss && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl">
+            <p className="text-[#1A1A1A] mb-6">Dismiss this match? This cannot be undone.</p>
+            <div className="flex gap-3 justify-end">
+              <button onClick={() => setConfirmDismiss(false)}
+                className="px-4 py-2 rounded-lg text-sm border border-[#E8E4DC] text-[#1A1A1A] hover:bg-[#F8F6F1]">
+                Cancel
+              </button>
+              <button onClick={dismissMatch} disabled={dismissing}
+                className="px-4 py-2 rounded-lg text-sm bg-red-600 text-white hover:bg-red-700 disabled:opacity-50">
+                {dismissing ? 'Dismissing…' : 'Dismiss Match'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Header */}
+      <header className="bg-[#1A1A1A] sticky top-0 z-30 shadow-sm">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <ZawaajLogo size={30} tagline={false} />
+            <span className="text-white/30 text-sm hidden sm:block">Side-by-Side Match View</span>
+          </div>
+          <Link href="/admin" className="text-white/40 hover:text-white/80 text-xs transition-colors">
+            Back to Dashboard
+          </Link>
+        </div>
+      </header>
+
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+        {/* Match Summary Bar */}
+        <div className="bg-white rounded-2xl p-5 border border-[#E8E4DC] flex flex-wrap items-center gap-4">
+          <div>
+            <p className="text-xs text-[#1A1A1A]/40 uppercase tracking-wide mb-1">Match Status</p>
+            <StatusBadge status={match.status} />
+          </div>
+          <div>
+            <p className="text-xs text-[#1A1A1A]/40 uppercase tracking-wide mb-1">Mutual Date</p>
+            <p className="text-sm font-medium text-[#1A1A1A]">{fmtDate(match.mutual_date)} <span className="text-[#1A1A1A]/40 font-normal">({daysAgo(match.mutual_date)})</span></p>
+          </div>
+          {match.introduced_date && (
+            <div>
+              <p className="text-xs text-[#1A1A1A]/40 uppercase tracking-wide mb-1">Introduced</p>
+              <p className="text-sm font-medium text-[#1A1A1A]">{fmtDate(match.introduced_date)}</p>
+            </div>
+          )}
+          <div>
+            <p className="text-xs text-[#1A1A1A]/40 uppercase tracking-wide mb-1">Consent</p>
+            <p className="text-sm text-[#1A1A1A]">
+              <span className={consentA ? 'text-green-600 font-medium' : 'text-red-500'}>
+                Family A {consentA ? '✓' : '✗'}
+              </span>
+              {' · '}
+              <span className={consentB ? 'text-green-600 font-medium' : 'text-red-500'}>
+                Family B {consentB ? '✓' : '✗'}
+              </span>
+            </p>
+          </div>
+          <div className="ml-auto flex gap-2 flex-wrap">
+            <select
+              className="rounded-lg px-3 py-1.5 text-xs border border-[#E8E4DC] bg-white text-[#1A1A1A] outline-none focus:border-[#B8960C]"
+              value={outcomeValue}
+              onChange={e => updateOutcome(e.target.value)}
+            >
+              <option value="unknown">Outcome: Unknown</option>
+              <option value="in_discussion">In Discussion</option>
+              <option value="nikah">Nikah</option>
+              <option value="no_longer_proceeding">No Longer Proceeding</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Warning banner */}
+        <div className="bg-amber-50 border border-amber-200 rounded-xl px-5 py-4 flex gap-3">
+          <span className="text-amber-600 text-lg flex-shrink-0">⚠</span>
+          <p className="text-sm text-amber-800 font-medium">
+            Never share contact details without explicit verbal consent from both families.
+            All contact information on this page is admin-only.
+          </p>
+        </div>
+
+        {/* Two-column profiles */}
+        <div className="grid sm:grid-cols-2 gap-5">
+          {profileA && (
+            <ProfileColumn
+              profile={profileA}
+              label="Family A"
+              consented={consentA}
+              onConsentChange={v => updateConsent('a', v)}
+            />
+          )}
+          {profileB && (
+            <ProfileColumn
+              profile={profileB}
+              label="Family B"
+              consented={consentB}
+              onConsentChange={v => updateConsent('b', v)}
+            />
+          )}
+        </div>
+
+        {/* Facilitate Introduction Section */}
+        <div className="bg-white rounded-2xl border border-[#E8E4DC] p-6">
+          <h2 className="text-base font-semibold text-[#1A1A1A] mb-4">Facilitate Introduction</h2>
+
+          {match.status === 'introduced' ? (
+            <div className="bg-green-50 border border-green-200 rounded-xl px-5 py-4">
+              <p className="text-sm font-medium text-green-700">
+                This match has been introduced on {fmtDate(match.introduced_date)}.
+              </p>
+            </div>
+          ) : match.status === 'dismissed' ? (
+            <div className="bg-[#F3F4F6] border border-[#E8E4DC] rounded-xl px-5 py-4">
+              <p className="text-sm text-[#1A1A1A]/60">This match has been dismissed.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex gap-3">
+                <div className="flex-1 grid sm:grid-cols-2 gap-3">
+                  <label className="flex items-start gap-3 bg-[#F8F6F1] rounded-xl p-4 cursor-pointer">
+                    <input type="checkbox" checked={consentA} onChange={e => updateConsent('a', e.target.checked)}
+                      className="w-4 h-4 mt-0.5 accent-[#B8960C] flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium text-[#1A1A1A]">Family A consent confirmed</p>
+                      <p className="text-xs text-[#1A1A1A]/50 mt-0.5">Verbal confirmation received from {profileA?.display_initials ?? 'Family A'}</p>
+                    </div>
+                  </label>
+                  <label className="flex items-start gap-3 bg-[#F8F6F1] rounded-xl p-4 cursor-pointer">
+                    <input type="checkbox" checked={consentB} onChange={e => updateConsent('b', e.target.checked)}
+                      className="w-4 h-4 mt-0.5 accent-[#B8960C] flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium text-[#1A1A1A]">Family B consent confirmed</p>
+                      <p className="text-xs text-[#1A1A1A]/50 mt-0.5">Verbal confirmation received from {profileB?.display_initials ?? 'Family B'}</p>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              {!canIntroduce && (
+                <p className="text-xs text-[#1A1A1A]/50">
+                  Both families must verbally confirm consent before marking as introduced.
+                </p>
+              )}
+
+              <div className="flex gap-3">
+                <button
+                  onClick={markIntroduced}
+                  disabled={!canIntroduce || introducing}
+                  className="px-6 py-3 rounded-xl text-sm font-semibold bg-[#B8960C] text-white hover:bg-[#9a7a0a] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  {introducing ? 'Saving…' : 'Mark as Introduced'}
+                </button>
+                <button
+                  onClick={() => setConfirmDismiss(true)}
+                  className="px-6 py-3 rounded-xl text-sm font-medium bg-red-50 text-red-700 hover:bg-red-100 transition-colors"
+                >
+                  Dismiss Match
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Admin Notes */}
+        <div className="bg-white rounded-2xl border border-[#E8E4DC] p-6">
+          <h2 className="text-base font-semibold text-[#1A1A1A] mb-4">Admin Notes</h2>
+          <textarea
+            className="w-full rounded-xl px-4 py-3 text-sm border border-[#E8E4DC] bg-white text-[#1A1A1A] outline-none focus:border-[#B8960C] resize-none transition-colors"
+            rows={4}
+            placeholder="Private notes about this match…"
+            value={adminNotesValue}
+            onChange={e => setAdminNotesValue(e.target.value)}
+          />
+          <div className="flex items-center gap-3 mt-3">
+            <button
+              onClick={saveNotes}
+              disabled={savingNotes}
+              className="px-5 py-2.5 rounded-xl text-sm font-medium bg-[#1A1A1A] text-[#B8960C] hover:bg-[#333] disabled:opacity-50 transition-colors"
+            >
+              {savingNotes ? 'Saving…' : 'Save Notes'}
+            </button>
+            {notesSaved && <p className="text-xs text-green-600">Saved.</p>}
+          </div>
+        </div>
+
+        {/* Back link */}
+        <div className="pb-4">
+          <Link href="/admin" className="text-sm text-[#1A1A1A]/50 hover:text-[#1A1A1A] transition-colors">
+            ← Back to Admin Dashboard
+          </Link>
+        </div>
+      </main>
+    </div>
+  )
+}

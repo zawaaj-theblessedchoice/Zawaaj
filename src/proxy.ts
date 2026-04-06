@@ -6,9 +6,16 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-const PROTECTED_PATHS = ['/directory', '/profile']
+// Require authentication AND an approved profile
+const PROTECTED_PATHS = ['/directory', '/profile', '/my-profile', '/events']
+// Require authentication AND admin role (checked server-side in page/layout)
 const ADMIN_PATHS     = ['/admin']
+// Pages that redirect already-authenticated users away
 const AUTH_PATHS      = ['/login', '/signup']
+// Requires auth but not approval — allowed through once logged in
+const PENDING_PATHS   = ['/pending']
+// Fully public — no auth needed
+const PUBLIC_PATHS    = ['/terms', '/help']
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -34,12 +41,19 @@ export async function proxy(request: NextRequest) {
   // IMPORTANT: always call getUser() to keep the session alive
   const { data: { user } } = await supabase.auth.getUser()
 
-  const isProtected = PROTECTED_PATHS.some((p) => pathname.startsWith(p))
-  const isAdmin     = ADMIN_PATHS.some((p) => pathname.startsWith(p))
-  const isAuthPage  = AUTH_PATHS.some((p) => pathname.startsWith(p))
+  const isProtected  = PROTECTED_PATHS.some((p) => pathname.startsWith(p))
+  const isAdmin      = ADMIN_PATHS.some((p) => pathname.startsWith(p))
+  const isAuthPage   = AUTH_PATHS.some((p) => pathname.startsWith(p))
+  const isPending    = PENDING_PATHS.some((p) => pathname.startsWith(p))
+  const isPublic     = PUBLIC_PATHS.some((p) => pathname.startsWith(p))
 
-  // Unauthenticated user trying to reach a protected page → login
-  if (!user && (isProtected || isAdmin)) {
+  // Fully public paths pass through unconditionally
+  if (isPublic) {
+    return supabaseResponse
+  }
+
+  // Unauthenticated user trying to reach a protected or pending page → login
+  if (!user && (isProtected || isAdmin || isPending)) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     url.searchParams.set('next', pathname)

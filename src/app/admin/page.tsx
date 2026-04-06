@@ -1,24 +1,59 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
-import Image from 'next/image'
+import { useEffect, useState, useCallback, useRef } from 'react'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import ZawaajLogo from '@/components/ZawaajLogo'
 
-// ─── Types ────────────────────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type ProfileStatus =
+  | 'pending' | 'approved' | 'paused' | 'rejected'
+  | 'withdrawn' | 'suspended' | 'introduced'
+
 interface Profile {
+  id: string
+  user_id: string | null
+  legacy_ref: string | null
+  imported_email: string | null
+  display_initials: string
+  gender: string | null
+  age_display: string | null
+  height: string | null
+  ethnicity: string | null
+  school_of_thought: string | null
+  education_level: string | null
+  education_detail: string | null
+  profession_sector: string | null
+  profession_detail: string | null
+  location: string | null
+  attributes: string[] | null
+  spouse_preferences: string[] | null
+  admin_comments: string | null
+  admin_notes: string | null
+  is_admin: boolean
+  status: ProfileStatus
+  withdrawal_reason: string | null
+  contact_number: string | null
+  guardian_name: string | null
+  consent_given: boolean
+  terms_agreed: boolean
+  submitted_date: string | null
+  approved_date: string | null
+  created_at: string | null
+  duplicate_flag: boolean
+  interests_this_month: number | null
+}
+
+interface MatchProfile {
   id: string
   display_initials: string
   gender: string | null
   age_display: string | null
   location: string | null
   school_of_thought: string | null
-  profession_sector: string | null
-  status: string
-  submitted_date: string | null
   contact_number: string | null
-  admin_comments: string | null
-  duplicate_flag: boolean
-  user_id: string | null
+  guardian_name: string | null
   imported_email: string | null
   legacy_ref: string | null
 }
@@ -34,345 +69,1343 @@ interface Match {
   introduced_date: string | null
   outcome: string | null
   admin_notes: string | null
-  profile_a?: { display_initials: string; gender: string | null; location: string | null }
-  profile_b?: { display_initials: string; gender: string | null; location: string | null }
+  admin_notified_date: string | null
+  created_at: string | null
+  profile_a: MatchProfile | null
+  profile_b: MatchProfile | null
 }
 
-type Tab = 'queue' | 'matches' | 'members' | 'unlinked'
+interface ZawaajEvent {
+  id: string
+  title: string
+  event_date: string | null
+  location_text: string | null
+  registration_url: string | null
+  status: 'upcoming' | 'ended' | 'archived'
+  attendance_note: string | null
+  show_in_history: boolean
+  created_at: string | null
+}
 
-// ─── Sub-components ───────────────────────────────────────
+type Tab = 'queue' | 'mutual' | 'introduced' | 'members' | 'withdrawn' | 'unlinked' | 'events' | 'import'
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function daysAgo(dateStr: string | null): string {
+  if (!dateStr) return '—'
+  const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000)
+  if (diff === 0) return 'Today'
+  if (diff === 1) return '1 day ago'
+  return `${diff} days ago`
+}
+
+function fmtDate(dateStr: string | null): string {
+  if (!dateStr) return '—'
+  return new Date(dateStr).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
+function phoneDigits(phone: string | null): string {
+  if (!phone) return ''
+  return phone.replace(/\D/g, '')
+}
+
+function avatarBg(gender: string | null): string {
+  return gender === 'female' ? '#8B5CF6' : '#2563EB'
+}
+
+// ─── Shared UI ────────────────────────────────────────────────────────────────
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { bg: string; text: string }> = {
-    pending:   { bg: '#FEF3C7', text: '#92400E' },
-    approved:  { bg: '#D1FAE5', text: '#065F46' },
-    rejected:  { bg: '#FEE2E2', text: '#991B1B' },
-    withdrawn: { bg: '#F3F4F6', text: '#374151' },
-    unlinked:  { bg: '#EDE9FE', text: '#5B21B6' },
-    active:    { bg: '#DBEAFE', text: '#1E40AF' },
-    introduced:{ bg: '#D1FAE5', text: '#065F46' },
-    closed:    { bg: '#F3F4F6', text: '#374151' },
+    pending:           { bg: '#FEF3C7', text: '#92400E' },
+    approved:          { bg: '#D1FAE5', text: '#065F46' },
+    rejected:          { bg: '#FEE2E2', text: '#991B1B' },
+    withdrawn:         { bg: '#F3F4F6', text: '#374151' },
+    suspended:         { bg: '#FEF3C7', text: '#92400E' },
+    introduced:        { bg: '#DBEAFE', text: '#1E40AF' },
+    paused:            { bg: '#FEF9C3', text: '#854D0E' },
+    awaiting_admin:    { bg: '#EDE9FE', text: '#5B21B6' },
+    admin_reviewing:   { bg: '#FEF3C7', text: '#92400E' },
+    nikah:             { bg: '#D1FAE5', text: '#065F46' },
+    no_longer_proceeding: { bg: '#FEE2E2', text: '#991B1B' },
+    dismissed:         { bg: '#F3F4F6', text: '#374151' },
+    in_discussion:     { bg: '#DBEAFE', text: '#1E40AF' },
+    upcoming:          { bg: '#D1FAE5', text: '#065F46' },
+    ended:             { bg: '#FEF3C7', text: '#92400E' },
+    archived:          { bg: '#F3F4F6', text: '#374151' },
   }
-  const style = map[status] ?? { bg: '#F3F4F6', text: '#374151' }
+  const s = map[status] ?? { bg: '#F3F4F6', text: '#374151' }
   return (
     <span
-      className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize"
-      style={{ backgroundColor: style.bg, color: style.text }}
+      className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize"
+      style={{ backgroundColor: s.bg, color: s.text }}
     >
-      {status}
+      {status.replace(/_/g, ' ')}
     </span>
   )
 }
 
-function Stat({ label, value }: { label: string; value: number | string }) {
+function Avatar({ initials, gender, size = 40 }: { initials: string; gender: string | null; size?: number }) {
   return (
-    <div className="rounded-xl p-5 bg-white border border-[#E8E4DC]">
-      <p className="text-2xl font-bold text-[#1A1A1A]">{value}</p>
-      <p className="text-sm text-[#1A1A1A]/60 mt-0.5">{label}</p>
+    <div
+      className="rounded-full flex items-center justify-center font-bold text-white flex-shrink-0 text-sm"
+      style={{ width: size, height: size, backgroundColor: avatarBg(gender) }}
+    >
+      {initials}
     </div>
   )
 }
 
-// ─── Queue Tab ────────────────────────────────────────────
-function QueueTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh: () => void }) {
-  const pending = profiles.filter((p) => p.status === 'pending')
+function Confirm({
+  message, onConfirm, onCancel,
+}: { message: string; onConfirm: () => void; onCancel: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl">
+        <p className="text-[#1A1A1A] mb-6">{message}</p>
+        <div className="flex gap-3 justify-end">
+          <button onClick={onCancel} className="px-4 py-2 rounded-lg text-sm border border-[#E8E4DC] text-[#1A1A1A] hover:bg-[#F8F6F1]">Cancel</button>
+          <button onClick={onConfirm} className="px-4 py-2 rounded-lg text-sm bg-[#1A1A1A] text-white hover:bg-[#333]">Confirm</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Profile Edit Modal ───────────────────────────────────────────────────────
+
+function ProfileEditModal({ profile, onClose, onSave }: {
+  profile: Profile
+  onClose: () => void
+  onSave: () => void
+}) {
   const supabase = createClient()
+  const [form, setForm] = useState<Partial<Profile>>({ ...profile })
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  async function approve(id: string) {
-    await supabase
+  const set = (key: keyof Profile, value: unknown) =>
+    setForm(prev => ({ ...prev, [key]: value }))
+
+  async function save() {
+    setSaving(true)
+    setError(null)
+    const { error: err } = await supabase
       .from('zawaaj_profiles')
-      .update({ status: 'approved', approved_date: new Date().toISOString() })
-      .eq('id', id)
-    onRefresh()
-  }
+      .update({
+        display_initials: form.display_initials,
+        gender: form.gender,
+        age_display: form.age_display,
+        height: form.height,
+        ethnicity: form.ethnicity,
+        school_of_thought: form.school_of_thought,
+        education_level: form.education_level,
+        education_detail: form.education_detail,
+        profession_sector: form.profession_sector,
+        profession_detail: form.profession_detail,
+        location: form.location,
+        attributes: form.attributes,
+        spouse_preferences: form.spouse_preferences,
+        admin_comments: form.admin_comments,
+        admin_notes: form.admin_notes,
+        contact_number: form.contact_number,
+        guardian_name: form.guardian_name,
+        legacy_ref: form.legacy_ref,
+        imported_email: form.imported_email,
+        status: form.status,
+      })
+      .eq('id', profile.id)
 
-  async function reject(id: string) {
-    await supabase.from('zawaaj_profiles').update({ status: 'rejected' }).eq('id', id)
-    onRefresh()
+    if (err) { setError(err.message); setSaving(false); return }
+    onSave()
+    onClose()
   }
-
-  if (pending.length === 0)
-    return <p className="text-[#1A1A1A]/50 py-12 text-center">No applications pending review.</p>
 
   return (
-    <div className="space-y-3">
-      {pending.map((p) => (
-        <div
-          key={p.id}
-          className="bg-white rounded-xl p-5 border border-[#E8E4DC] flex flex-col sm:flex-row sm:items-center gap-4"
-        >
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-semibold text-[#1A1A1A]">{p.display_initials}</span>
-              <span className="text-[#1A1A1A]/50 text-sm capitalize">{p.gender}</span>
-              {p.duplicate_flag && (
-                <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full font-medium">
-                  Possible duplicate
-                </span>
-              )}
-            </div>
-            <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm text-[#1A1A1A]/60">
-              {p.location && <span>📍 {p.location}</span>}
-              {p.profession_sector && <span>💼 {p.profession_sector}</span>}
-              {p.school_of_thought && <span>🕌 {p.school_of_thought}</span>}
-              {p.contact_number && <span>📞 {p.contact_number}</span>}
-            </div>
-            {p.submitted_date && (
-              <p className="text-xs text-[#1A1A1A]/40 mt-1">
-                Submitted {new Date(p.submitted_date).toLocaleDateString()}
-              </p>
-            )}
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 flex items-start justify-center py-8 px-4">
+      <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl">
+        <div className="flex items-center justify-between p-6 border-b border-[#E8E4DC]">
+          <h2 className="text-lg font-semibold text-[#1A1A1A]">Edit Profile — {profile.display_initials}</h2>
+          <button onClick={onClose} className="text-[#1A1A1A]/40 hover:text-[#1A1A1A] text-2xl leading-none">&times;</button>
+        </div>
+        <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+          {error && <p className="text-red-600 text-sm">{error}</p>}
+
+          <div className="grid grid-cols-2 gap-4">
+            <label className="block">
+              <span className="text-xs text-[#1A1A1A]/60 mb-1 block">Display Initials</span>
+              <input className="field" value={form.display_initials ?? ''} onChange={e => set('display_initials', e.target.value)} />
+            </label>
+            <label className="block">
+              <span className="text-xs text-[#1A1A1A]/60 mb-1 block">Gender</span>
+              <select className="field" value={form.gender ?? ''} onChange={e => set('gender', e.target.value)}>
+                <option value="">—</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+              </select>
+            </label>
+            <label className="block">
+              <span className="text-xs text-[#1A1A1A]/60 mb-1 block">Age Display</span>
+              <input className="field" value={form.age_display ?? ''} onChange={e => set('age_display', e.target.value)} />
+            </label>
+            <label className="block">
+              <span className="text-xs text-[#1A1A1A]/60 mb-1 block">Height</span>
+              <input className="field" value={form.height ?? ''} onChange={e => set('height', e.target.value)} />
+            </label>
+            <label className="block">
+              <span className="text-xs text-[#1A1A1A]/60 mb-1 block">Ethnicity</span>
+              <input className="field" value={form.ethnicity ?? ''} onChange={e => set('ethnicity', e.target.value)} />
+            </label>
+            <label className="block">
+              <span className="text-xs text-[#1A1A1A]/60 mb-1 block">School of Thought</span>
+              <input className="field" value={form.school_of_thought ?? ''} onChange={e => set('school_of_thought', e.target.value)} />
+            </label>
+            <label className="block">
+              <span className="text-xs text-[#1A1A1A]/60 mb-1 block">Education Level</span>
+              <input className="field" value={form.education_level ?? ''} onChange={e => set('education_level', e.target.value)} />
+            </label>
+            <label className="block">
+              <span className="text-xs text-[#1A1A1A]/60 mb-1 block">Education Detail</span>
+              <input className="field" value={form.education_detail ?? ''} onChange={e => set('education_detail', e.target.value)} />
+            </label>
+            <label className="block">
+              <span className="text-xs text-[#1A1A1A]/60 mb-1 block">Profession Sector</span>
+              <input className="field" value={form.profession_sector ?? ''} onChange={e => set('profession_sector', e.target.value)} />
+            </label>
+            <label className="block">
+              <span className="text-xs text-[#1A1A1A]/60 mb-1 block">Profession Detail</span>
+              <input className="field" value={form.profession_detail ?? ''} onChange={e => set('profession_detail', e.target.value)} />
+            </label>
+            <label className="block col-span-2">
+              <span className="text-xs text-[#1A1A1A]/60 mb-1 block">Location</span>
+              <input className="field" value={form.location ?? ''} onChange={e => set('location', e.target.value)} />
+            </label>
           </div>
-          <div className="flex gap-2 flex-shrink-0">
-            <button
-              onClick={() => approve(p.id)}
-              className="px-4 py-2 rounded-lg text-sm font-medium bg-green-600 text-white hover:bg-green-700 transition-colors"
-            >
-              Approve
-            </button>
-            <button
-              onClick={() => reject(p.id)}
-              className="px-4 py-2 rounded-lg text-sm font-medium bg-red-100 text-red-700 hover:bg-red-200 transition-colors"
-            >
-              Reject
-            </button>
+
+          <div className="border-t border-[#E8E4DC] pt-4">
+            <p className="text-xs font-semibold text-[#1A1A1A]/50 uppercase tracking-wider mb-3">Admin-only Fields</p>
+            <div className="grid grid-cols-2 gap-4">
+              <label className="block">
+                <span className="text-xs text-[#1A1A1A]/60 mb-1 block">Contact Number</span>
+                <input className="field" value={form.contact_number ?? ''} onChange={e => set('contact_number', e.target.value)} />
+              </label>
+              <label className="block">
+                <span className="text-xs text-[#1A1A1A]/60 mb-1 block">Guardian Name</span>
+                <input className="field" value={form.guardian_name ?? ''} onChange={e => set('guardian_name', e.target.value)} />
+              </label>
+              <label className="block">
+                <span className="text-xs text-[#1A1A1A]/60 mb-1 block">Legacy Ref</span>
+                <input className="field" value={form.legacy_ref ?? ''} onChange={e => set('legacy_ref', e.target.value)} />
+              </label>
+              <label className="block">
+                <span className="text-xs text-[#1A1A1A]/60 mb-1 block">Imported Email</span>
+                <input className="field" value={form.imported_email ?? ''} onChange={e => set('imported_email', e.target.value)} />
+              </label>
+              <label className="block">
+                <span className="text-xs text-[#1A1A1A]/60 mb-1 block">Status</span>
+                <select className="field" value={form.status ?? ''} onChange={e => set('status', e.target.value as ProfileStatus)}>
+                  {(['pending','approved','paused','rejected','withdrawn','suspended','introduced'] as ProfileStatus[]).map(s => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <label className="block mt-4">
+              <span className="text-xs text-[#1A1A1A]/60 mb-1 block">Admin Comments (visible notes)</span>
+              <textarea className="field resize-none" rows={3} value={form.admin_comments ?? ''} onChange={e => set('admin_comments', e.target.value)} />
+            </label>
+            <label className="block mt-4">
+              <span className="text-xs text-[#1A1A1A]/60 mb-1 block">Admin Notes (private)</span>
+              <textarea className="field resize-none" rows={3} value={form.admin_notes ?? ''} onChange={e => set('admin_notes', e.target.value)} />
+            </label>
           </div>
         </div>
-      ))}
+        <div className="flex justify-end gap-3 p-6 border-t border-[#E8E4DC]">
+          <button onClick={onClose} className="px-5 py-2.5 rounded-xl text-sm border border-[#E8E4DC] text-[#1A1A1A] hover:bg-[#F8F6F1]">Cancel</button>
+          <button onClick={save} disabled={saving} className="px-5 py-2.5 rounded-xl text-sm font-medium bg-[#1A1A1A] text-[#B8960C] hover:bg-[#333] disabled:opacity-50">
+            {saving ? 'Saving…' : 'Save Changes'}
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
 
-// ─── Matches Tab ─────────────────────────────────────────
-function MatchesTab({ matches }: { matches: Match[] }) {
-  if (matches.length === 0)
-    return <p className="text-[#1A1A1A]/50 py-12 text-center">No mutual matches yet.</p>
+// ─── Contact Popup ────────────────────────────────────────────────────────────
 
+function ContactPopup({ profile, onClose }: { profile: Profile; onClose: () => void }) {
+  const digits = phoneDigits(profile.contact_number)
   return (
-    <div className="space-y-3">
-      {matches.map((m) => (
-        <div
-          key={m.id}
-          className="bg-white rounded-xl p-5 border border-[#E8E4DC]"
-        >
-          <div className="flex items-center gap-3 flex-wrap">
-            <div className="flex items-center gap-2">
-              <span
-                className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white"
-                style={{ backgroundColor: '#2563EB' }}
-              >
-                {m.profile_a?.display_initials ?? '?'}
-              </span>
-              <span className="text-lg text-[#1A1A1A]/30">↔</span>
-              <span
-                className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white"
-                style={{ backgroundColor: '#8B5CF6' }}
-              >
-                {m.profile_b?.display_initials ?? '?'}
-              </span>
-            </div>
-            <StatusBadge status={m.status} />
-            {m.outcome && (
-              <span className="text-xs text-[#1A1A1A]/50 capitalize">
-                Outcome: {m.outcome.replace('_', ' ')}
-              </span>
-            )}
-          </div>
-          <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-sm text-[#1A1A1A]/60">
-            {m.mutual_date && (
-              <span>Matched {new Date(m.mutual_date).toLocaleDateString()}</span>
-            )}
-            <span>
-              Family consent: {m.family_a_consented ? 'A ✓' : 'A ✗'} &nbsp;
-              {m.family_b_consented ? 'B ✓' : 'B ✗'}
-            </span>
-            {m.introduced_date && (
-              <span>Introduced {new Date(m.introduced_date).toLocaleDateString()}</span>
-            )}
-          </div>
-          {m.admin_notes && (
-            <p className="mt-2 text-sm italic text-[#1A1A1A]/50">{m.admin_notes}</p>
-          )}
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl">
+        <div className="flex justify-between items-start mb-4">
+          <h3 className="font-semibold text-[#1A1A1A]">Contact — {profile.display_initials}</h3>
+          <button onClick={onClose} className="text-[#1A1A1A]/40 hover:text-[#1A1A1A] text-xl leading-none">&times;</button>
         </div>
-      ))}
-    </div>
-  )
-}
-
-// ─── All Members Tab ──────────────────────────────────────
-function MembersTab({ profiles }: { profiles: Profile[] }) {
-  const [search, setSearch] = useState('')
-
-  const filtered = profiles.filter((p) => {
-    if (!search) return true
-    const q = search.toLowerCase()
-    return (
-      p.display_initials.toLowerCase().includes(q) ||
-      (p.location ?? '').toLowerCase().includes(q) ||
-      (p.status ?? '').toLowerCase().includes(q)
-    )
-  })
-
-  return (
-    <div>
-      <input
-        type="search"
-        placeholder="Search members…"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="w-full mb-4 rounded-lg px-4 py-2.5 text-sm border focus:outline-none focus:border-[#B8960C] transition-colors bg-white border-[#E8E4DC] text-[#1A1A1A]"
-      />
-      <div className="overflow-x-auto rounded-xl border border-[#E8E4DC]">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="bg-[#F8F6F1] text-[#1A1A1A]/60 text-left">
-              <th className="px-4 py-3 font-medium">Initials</th>
-              <th className="px-4 py-3 font-medium">Gender</th>
-              <th className="px-4 py-3 font-medium">Age</th>
-              <th className="px-4 py-3 font-medium">Location</th>
-              <th className="px-4 py-3 font-medium">Sector</th>
-              <th className="px-4 py-3 font-medium">Status</th>
-              <th className="px-4 py-3 font-medium">Submitted</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-[#E8E4DC] bg-white">
-            {filtered.map((p) => (
-              <tr key={p.id} className="hover:bg-[#F8F6F1] transition-colors">
-                <td className="px-4 py-3 font-medium text-[#1A1A1A]">
-                  {p.display_initials}
-                  {p.duplicate_flag && (
-                    <span className="ml-2 text-xs text-yellow-600">⚠</span>
-                  )}
-                </td>
-                <td className="px-4 py-3 text-[#1A1A1A]/70 capitalize">{p.gender ?? '—'}</td>
-                <td className="px-4 py-3 text-[#1A1A1A]/70">{p.age_display ?? '—'}</td>
-                <td className="px-4 py-3 text-[#1A1A1A]/70">{p.location ?? '—'}</td>
-                <td className="px-4 py-3 text-[#1A1A1A]/70">{p.profession_sector ?? '—'}</td>
-                <td className="px-4 py-3"><StatusBadge status={p.status} /></td>
-                <td className="px-4 py-3 text-[#1A1A1A]/50">
-                  {p.submitted_date ? new Date(p.submitted_date).toLocaleDateString() : '—'}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {filtered.length === 0 && (
-          <p className="text-center text-[#1A1A1A]/40 py-8">No members found.</p>
+        <dl className="space-y-3 text-sm">
+          <div>
+            <dt className="text-[#1A1A1A]/50 text-xs">Phone</dt>
+            <dd className="font-medium text-[#1A1A1A]">{profile.contact_number ?? '—'}</dd>
+          </div>
+          <div>
+            <dt className="text-[#1A1A1A]/50 text-xs">Guardian</dt>
+            <dd className="font-medium text-[#1A1A1A]">{profile.guardian_name ?? '—'}</dd>
+          </div>
+          <div>
+            <dt className="text-[#1A1A1A]/50 text-xs">Email</dt>
+            <dd className="font-medium text-[#1A1A1A]">{profile.imported_email ?? '—'}</dd>
+          </div>
+        </dl>
+        {digits && (
+          <a
+            href={`https://wa.me/${digits}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-sm font-medium bg-green-600 text-white hover:bg-green-700"
+          >
+            <span>WhatsApp</span>
+          </a>
         )}
       </div>
     </div>
   )
 }
 
-// ─── Unlinked Profiles Tab ────────────────────────────────
-function UnlinkedTab({ profiles }: { profiles: Profile[] }) {
-  const unlinked = profiles.filter((p) => p.status === 'unlinked' || !p.user_id)
+// ─── Facilitate Introduction Modal ───────────────────────────────────────────
 
-  if (unlinked.length === 0)
-    return <p className="text-[#1A1A1A]/50 py-12 text-center">No unlinked profiles.</p>
+function FacilitateModal({ match, onClose, onDone }: {
+  match: Match
+  onClose: () => void
+  onDone: () => void
+}) {
+  const supabase = createClient()
+  const [consentA, setConsentA] = useState(match.family_a_consented)
+  const [consentB, setConsentB] = useState(match.family_b_consented)
+  const [saving, setSaving] = useState(false)
+
+  async function toggleConsent(side: 'a' | 'b', value: boolean) {
+    const field = side === 'a' ? 'family_a_consented' : 'family_b_consented'
+    await supabase.from('zawaaj_matches').update({ [field]: value }).eq('id', match.id)
+    if (side === 'a') setConsentA(value)
+    else setConsentB(value)
+  }
+
+  async function markIntroduced() {
+    setSaving(true)
+    await supabase
+      .from('zawaaj_matches')
+      .update({ status: 'introduced', introduced_date: new Date().toISOString() })
+      .eq('id', match.id)
+    onDone()
+    onClose()
+  }
+
+  const pA = match.profile_a
+  const pB = match.profile_b
+  const digitsA = phoneDigits(pA?.contact_number ?? null)
+  const digitsB = phoneDigits(pB?.contact_number ?? null)
 
   return (
-    <div className="space-y-3">
-      {unlinked.map((p) => (
-        <div
-          key={p.id}
-          className="bg-white rounded-xl p-5 border border-[#E8E4DC] flex items-center gap-4"
-        >
-          <div
-            className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
-            style={{ backgroundColor: p.gender === 'female' ? '#8B5CF6' : '#2563EB' }}
-          >
-            {p.display_initials}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="font-medium text-[#1A1A1A]">{p.display_initials}</p>
-            <p className="text-sm text-[#1A1A1A]/50">
-              {p.imported_email ?? 'No email on file'} · {p.location ?? 'Unknown location'}
-            </p>
-            {p.legacy_ref && (
-              <p className="text-xs text-[#1A1A1A]/30 mt-0.5">Legacy ref: {p.legacy_ref}</p>
-            )}
-          </div>
-          <StatusBadge status={p.status} />
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 flex items-start justify-center py-8 px-4">
+      <div className="bg-white rounded-2xl w-full max-w-xl shadow-2xl">
+        <div className="flex items-center justify-between p-6 border-b border-[#E8E4DC]">
+          <h2 className="text-lg font-semibold text-[#1A1A1A]">Facilitate Introduction</h2>
+          <button onClick={onClose} className="text-[#1A1A1A]/40 hover:text-[#1A1A1A] text-2xl leading-none">&times;</button>
         </div>
-      ))}
+
+        <div className="p-6 space-y-6">
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex gap-3">
+            <span className="text-amber-600 text-lg">⚠</span>
+            <p className="text-sm text-amber-800 font-medium">Never share contact details without explicit verbal consent from both families.</p>
+          </div>
+
+          {/* Family A */}
+          <div className="border border-[#E8E4DC] rounded-xl p-4 space-y-3">
+            <div className="flex items-center gap-3">
+              <Avatar initials={pA?.display_initials ?? '?'} gender={pA?.gender ?? null} size={40} />
+              <div>
+                <p className="font-semibold text-[#1A1A1A]">Family A — {pA?.display_initials}</p>
+                <p className="text-xs text-[#1A1A1A]/50">{pA?.legacy_ref}</p>
+              </div>
+            </div>
+            <dl className="space-y-1 text-sm">
+              <div className="flex gap-2"><dt className="text-[#1A1A1A]/50 w-20">Phone:</dt><dd>{pA?.contact_number ?? '—'}</dd></div>
+              <div className="flex gap-2"><dt className="text-[#1A1A1A]/50 w-20">Guardian:</dt><dd>{pA?.guardian_name ?? '—'}</dd></div>
+              <div className="flex gap-2"><dt className="text-[#1A1A1A]/50 w-20">Email:</dt><dd>{pA?.imported_email ?? '—'}</dd></div>
+            </dl>
+            <div className="flex items-center gap-3">
+              {digitsA && (
+                <a href={`https://wa.me/${digitsA}`} target="_blank" rel="noopener noreferrer"
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium bg-green-600 text-white hover:bg-green-700">
+                  WhatsApp Family A
+                </a>
+              )}
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={consentA} onChange={e => toggleConsent('a', e.target.checked)}
+                  className="w-4 h-4 accent-[#B8960C]" />
+                <span className="text-sm text-[#1A1A1A]">Family A verbally confirmed consent</span>
+              </label>
+            </div>
+          </div>
+
+          {/* Family B */}
+          <div className="border border-[#E8E4DC] rounded-xl p-4 space-y-3">
+            <div className="flex items-center gap-3">
+              <Avatar initials={pB?.display_initials ?? '?'} gender={pB?.gender ?? null} size={40} />
+              <div>
+                <p className="font-semibold text-[#1A1A1A]">Family B — {pB?.display_initials}</p>
+                <p className="text-xs text-[#1A1A1A]/50">{pB?.legacy_ref}</p>
+              </div>
+            </div>
+            <dl className="space-y-1 text-sm">
+              <div className="flex gap-2"><dt className="text-[#1A1A1A]/50 w-20">Phone:</dt><dd>{pB?.contact_number ?? '—'}</dd></div>
+              <div className="flex gap-2"><dt className="text-[#1A1A1A]/50 w-20">Guardian:</dt><dd>{pB?.guardian_name ?? '—'}</dd></div>
+              <div className="flex gap-2"><dt className="text-[#1A1A1A]/50 w-20">Email:</dt><dd>{pB?.imported_email ?? '—'}</dd></div>
+            </dl>
+            <div className="flex items-center gap-3">
+              {digitsB && (
+                <a href={`https://wa.me/${digitsB}`} target="_blank" rel="noopener noreferrer"
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium bg-green-600 text-white hover:bg-green-700">
+                  WhatsApp Family B
+                </a>
+              )}
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={consentB} onChange={e => toggleConsent('b', e.target.checked)}
+                  className="w-4 h-4 accent-[#B8960C]" />
+                <span className="text-sm text-[#1A1A1A]">Family B verbally confirmed consent</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-3 p-6 border-t border-[#E8E4DC]">
+          <button onClick={onClose} className="px-5 py-2.5 rounded-xl text-sm border border-[#E8E4DC] text-[#1A1A1A] hover:bg-[#F8F6F1]">Close</button>
+          <button
+            onClick={markIntroduced}
+            disabled={!consentA || !consentB || saving}
+            className="px-5 py-2.5 rounded-xl text-sm font-medium bg-[#B8960C] text-white hover:bg-[#9a7a0a] disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {saving ? 'Saving…' : 'Mark as Introduced'}
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
 
-// ─── Main admin page ──────────────────────────────────────
+// ─── TAB 1: Queue ─────────────────────────────────────────────────────────────
+
+function QueueTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh: () => void }) {
+  const supabase = createClient()
+  const [editProfile, setEditProfile] = useState<Profile | null>(null)
+  const [confirmAction, setConfirmAction] = useState<{ id: string; type: 'approve' | 'reject'; note?: string } | null>(null)
+  const [rejectNote, setRejectNote] = useState('')
+  const [showRejectInput, setShowRejectInput] = useState<string | null>(null)
+
+  const pending = profiles.filter(p => p.status === 'pending')
+
+  async function approve(id: string) {
+    await supabase.from('zawaaj_profiles').update({ status: 'approved', approved_date: new Date().toISOString() }).eq('id', id)
+    onRefresh()
+  }
+
+  async function reject(id: string, note: string) {
+    await supabase.from('zawaaj_profiles').update({ status: 'rejected', admin_comments: note || null }).eq('id', id)
+    onRefresh()
+  }
+
+  if (pending.length === 0)
+    return <p className="text-[#1A1A1A]/40 py-16 text-center text-sm">No applications pending review.</p>
+
+  return (
+    <>
+      {editProfile && (
+        <ProfileEditModal profile={editProfile} onClose={() => setEditProfile(null)} onSave={onRefresh} />
+      )}
+      {confirmAction?.type === 'approve' && (
+        <Confirm
+          message={`Approve this profile?`}
+          onConfirm={() => { approve(confirmAction.id); setConfirmAction(null) }}
+          onCancel={() => setConfirmAction(null)}
+        />
+      )}
+      <div className="space-y-3">
+        {pending.map(p => (
+          <div key={p.id} className="bg-white rounded-2xl p-5 border border-[#E8E4DC] flex flex-col sm:flex-row gap-4">
+            <div className="flex gap-4 flex-1 min-w-0">
+              <Avatar initials={p.display_initials} gender={p.gender} size={48} />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-semibold text-[#1A1A1A]">{p.display_initials}</span>
+                  {p.legacy_ref && (
+                    <span className="px-2 py-0.5 rounded-full bg-[#F8F6F1] text-xs text-[#1A1A1A]/60 border border-[#E8E4DC]">
+                      {p.legacy_ref}
+                    </span>
+                  )}
+                  {p.duplicate_flag && (
+                    <span className="px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 text-xs font-medium">
+                      Possible duplicate
+                    </span>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1.5 text-sm text-[#1A1A1A]/60">
+                  {p.gender && <span className="capitalize">{p.gender}</span>}
+                  {p.age_display && <span>{p.age_display}</span>}
+                  {p.location && <span>{p.location}</span>}
+                  {p.school_of_thought && <span>{p.school_of_thought}</span>}
+                </div>
+                <p className="text-xs text-[#1A1A1A]/40 mt-1">Submitted {daysAgo(p.submitted_date)}</p>
+                {p.admin_comments && (
+                  <div className="mt-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-xs text-amber-800">
+                    <span className="font-medium">Admin note:</span> {p.admin_comments}
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="flex flex-col gap-2 flex-shrink-0 sm:w-28">
+              <button onClick={() => setEditProfile(p)}
+                className="px-3 py-2 rounded-xl text-xs font-medium border border-[#E8E4DC] text-[#1A1A1A] hover:bg-[#F8F6F1]">
+                Edit
+              </button>
+              <button onClick={() => setConfirmAction({ id: p.id, type: 'approve' })}
+                className="px-3 py-2 rounded-xl text-xs font-medium bg-green-600 text-white hover:bg-green-700">
+                Approve
+              </button>
+              {showRejectInput === p.id ? (
+                <div className="space-y-1">
+                  <input
+                    className="field text-xs py-1"
+                    placeholder="Optional note…"
+                    value={rejectNote}
+                    onChange={e => setRejectNote(e.target.value)}
+                  />
+                  <button onClick={() => { reject(p.id, rejectNote); setShowRejectInput(null); setRejectNote('') }}
+                    className="w-full px-3 py-1.5 rounded-lg text-xs font-medium bg-red-600 text-white hover:bg-red-700">
+                    Confirm Reject
+                  </button>
+                  <button onClick={() => setShowRejectInput(null)}
+                    className="w-full px-3 py-1.5 rounded-lg text-xs border border-[#E8E4DC] text-[#1A1A1A]/60 hover:bg-[#F8F6F1]">
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <button onClick={() => setShowRejectInput(p.id)}
+                  className="px-3 py-2 rounded-xl text-xs font-medium bg-red-50 text-red-700 hover:bg-red-100">
+                  Reject
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </>
+  )
+}
+
+// ─── TAB 2: Mutual Matches ────────────────────────────────────────────────────
+
+function MutualTab({ matches, onRefresh }: { matches: Match[]; onRefresh: () => void }) {
+  const supabase = createClient()
+  const [facilitateMatch, setFacilitateMatch] = useState<Match | null>(null)
+  const [dismissId, setDismissId] = useState<string | null>(null)
+
+  const relevant = matches.filter(m => ['awaiting_admin', 'admin_reviewing'].includes(m.status))
+
+  async function dismiss(id: string) {
+    await supabase.from('zawaaj_matches').update({ status: 'dismissed' }).eq('id', id)
+    onRefresh()
+  }
+
+  if (relevant.length === 0)
+    return <p className="text-[#1A1A1A]/40 py-16 text-center text-sm">No mutual matches awaiting review.</p>
+
+  return (
+    <>
+      {facilitateMatch && (
+        <FacilitateModal match={facilitateMatch} onClose={() => setFacilitateMatch(null)} onDone={onRefresh} />
+      )}
+      {dismissId && (
+        <Confirm
+          message="Dismiss this match? This cannot be undone."
+          onConfirm={() => { dismiss(dismissId); setDismissId(null) }}
+          onCancel={() => setDismissId(null)}
+        />
+      )}
+      <div className="space-y-4">
+        {relevant.map(m => {
+          const pA = m.profile_a
+          const pB = m.profile_b
+          return (
+            <div key={m.id} className="bg-white rounded-2xl border border-[#E8E4DC] overflow-hidden">
+              <div className="grid sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-[#E8E4DC]">
+                {/* Profile A */}
+                <div className="p-5 flex gap-4">
+                  <Avatar initials={pA?.display_initials ?? '?'} gender={pA?.gender ?? null} size={44} />
+                  <div>
+                    <p className="font-semibold text-[#1A1A1A]">{pA?.display_initials ?? 'Unknown'}</p>
+                    {pA?.legacy_ref && <p className="text-xs text-[#1A1A1A]/40">{pA.legacy_ref}</p>}
+                    <div className="mt-1 text-sm text-[#1A1A1A]/60 space-y-0.5">
+                      {pA?.age_display && <p>{pA.age_display}</p>}
+                      {pA?.location && <p>{pA.location}</p>}
+                      {pA?.school_of_thought && <p>{pA.school_of_thought}</p>}
+                    </div>
+                  </div>
+                </div>
+                {/* Profile B */}
+                <div className="p-5 flex gap-4">
+                  <Avatar initials={pB?.display_initials ?? '?'} gender={pB?.gender ?? null} size={44} />
+                  <div>
+                    <p className="font-semibold text-[#1A1A1A]">{pB?.display_initials ?? 'Unknown'}</p>
+                    {pB?.legacy_ref && <p className="text-xs text-[#1A1A1A]/40">{pB.legacy_ref}</p>}
+                    <div className="mt-1 text-sm text-[#1A1A1A]/60 space-y-0.5">
+                      {pB?.age_display && <p>{pB.age_display}</p>}
+                      {pB?.location && <p>{pB.location}</p>}
+                      {pB?.school_of_thought && <p>{pB.school_of_thought}</p>}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="px-5 py-3 bg-[#F8F6F1] border-t border-[#E8E4DC] flex flex-wrap items-center gap-3">
+                <StatusBadge status={m.status} />
+                <span className="text-xs text-[#1A1A1A]/50">Mutual {daysAgo(m.mutual_date)}</span>
+                <div className="ml-auto flex flex-wrap gap-2">
+                  <button onClick={() => setFacilitateMatch(m)}
+                    className="px-3 py-1.5 rounded-lg text-xs font-medium bg-[#B8960C] text-white hover:bg-[#9a7a0a]">
+                    Facilitate Introduction
+                  </button>
+                  <Link href={`/admin/sidebyside/${m.id}`}
+                    className="px-3 py-1.5 rounded-lg text-xs font-medium border border-[#E8E4DC] text-[#1A1A1A] hover:bg-white">
+                    View Side by Side
+                  </Link>
+                  <button onClick={() => setDismissId(m.id)}
+                    className="px-3 py-1.5 rounded-lg text-xs font-medium bg-red-50 text-red-700 hover:bg-red-100">
+                    Dismiss
+                  </button>
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </>
+  )
+}
+
+// ─── TAB 3: Introduced ───────────────────────────────────────────────────────
+
+function IntroducedTab({ matches, onRefresh }: { matches: Match[]; onRefresh: () => void }) {
+  const supabase = createClient()
+
+  const relevant = matches.filter(m =>
+    ['introduced', 'nikah', 'no_longer_proceeding', 'dismissed'].includes(m.status)
+  )
+
+  async function updateOutcome(id: string, outcome: string) {
+    await supabase.from('zawaaj_matches').update({ outcome, outcome_date: new Date().toISOString() }).eq('id', id)
+    onRefresh()
+  }
+
+  if (relevant.length === 0)
+    return <p className="text-[#1A1A1A]/40 py-16 text-center text-sm">No introduced matches yet.</p>
+
+  return (
+    <div className="space-y-3">
+      {relevant.map(m => {
+        const pA = m.profile_a
+        const pB = m.profile_b
+        return (
+          <div key={m.id} className="bg-white rounded-2xl p-5 border border-[#E8E4DC] flex flex-col sm:flex-row sm:items-center gap-4">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div className="flex -space-x-2">
+                <Avatar initials={pA?.display_initials ?? '?'} gender={pA?.gender ?? null} size={36} />
+                <Avatar initials={pB?.display_initials ?? '?'} gender={pB?.gender ?? null} size={36} />
+              </div>
+              <div className="min-w-0">
+                <p className="font-medium text-[#1A1A1A] text-sm">
+                  {pA?.display_initials ?? '?'} &amp; {pB?.display_initials ?? '?'}
+                </p>
+                <div className="flex flex-wrap gap-2 mt-0.5">
+                  {pA?.legacy_ref && <span className="text-xs text-[#1A1A1A]/40">{pA.legacy_ref}</span>}
+                  {pB?.legacy_ref && <span className="text-xs text-[#1A1A1A]/40">{pB.legacy_ref}</span>}
+                </div>
+                <p className="text-xs text-[#1A1A1A]/40 mt-0.5">
+                  Introduced {fmtDate(m.introduced_date)}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 flex-shrink-0">
+              <StatusBadge status={m.status} />
+              <select
+                className="field text-xs py-1.5 px-2"
+                value={m.outcome ?? 'unknown'}
+                onChange={e => updateOutcome(m.id, e.target.value)}
+              >
+                <option value="unknown">Outcome: Unknown</option>
+                <option value="in_discussion">In Discussion</option>
+                <option value="nikah">Nikah</option>
+                <option value="no_longer_proceeding">No Longer Proceeding</option>
+              </select>
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+// ─── TAB 4: All Members ───────────────────────────────────────────────────────
+
+function MembersTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh: () => void }) {
+  const supabase = createClient()
+  const [search, setSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState('all')
+  const [contactProfile, setContactProfile] = useState<Profile | null>(null)
+  const [editProfile, setEditProfile] = useState<Profile | null>(null)
+
+  const filtered = profiles.filter(p => {
+    if (statusFilter !== 'all' && p.status !== statusFilter) return false
+    if (!search) return true
+    const q = search.toLowerCase()
+    return (
+      p.display_initials.toLowerCase().includes(q) ||
+      (p.legacy_ref ?? '').toLowerCase().includes(q) ||
+      (p.location ?? '').toLowerCase().includes(q)
+    )
+  })
+
+  async function changeStatus(id: string, status: ProfileStatus) {
+    const update: Partial<Profile> & { approved_date?: string } = { status }
+    if (status === 'approved') update.approved_date = new Date().toISOString()
+    await supabase.from('zawaaj_profiles').update(update).eq('id', id)
+    onRefresh()
+  }
+
+  const statusOptions: ProfileStatus[] = ['approved', 'suspended', 'rejected']
+
+  return (
+    <>
+      {contactProfile && <ContactPopup profile={contactProfile} onClose={() => setContactProfile(null)} />}
+      {editProfile && (
+        <ProfileEditModal profile={editProfile} onClose={() => setEditProfile(null)} onSave={() => { onRefresh(); setEditProfile(null) }} />
+      )}
+      <div className="flex flex-col sm:flex-row gap-3 mb-4">
+        <input
+          type="search"
+          placeholder="Search by initials, ref, or location…"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="field flex-1"
+        />
+        <select className="field sm:w-44" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+          <option value="all">All statuses</option>
+          {(['pending','approved','paused','rejected','withdrawn','suspended','introduced'] as ProfileStatus[]).map(s => (
+            <option key={s} value={s}>{s}</option>
+          ))}
+        </select>
+      </div>
+      <div className="overflow-x-auto rounded-2xl border border-[#E8E4DC]">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="bg-[#F8F6F1] text-[#1A1A1A]/50 text-left text-xs">
+              <th className="px-4 py-3 font-medium">Member</th>
+              <th className="px-4 py-3 font-medium">Gender</th>
+              <th className="px-4 py-3 font-medium">Age</th>
+              <th className="px-4 py-3 font-medium">Location</th>
+              <th className="px-4 py-3 font-medium">Sector</th>
+              <th className="px-4 py-3 font-medium">Status</th>
+              <th className="px-4 py-3 font-medium">Joined</th>
+              <th className="px-4 py-3 font-medium">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-[#E8E4DC] bg-white">
+            {filtered.map(p => (
+              <tr key={p.id} className="hover:bg-[#F8F6F1] transition-colors">
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <Avatar initials={p.display_initials} gender={p.gender} size={32} />
+                    <div>
+                      <p className="font-medium text-[#1A1A1A]">{p.display_initials}</p>
+                      {p.legacy_ref && <p className="text-xs text-[#1A1A1A]/40">{p.legacy_ref}</p>}
+                    </div>
+                  </div>
+                </td>
+                <td className="px-4 py-3 text-[#1A1A1A]/70 capitalize">{p.gender ?? '—'}</td>
+                <td className="px-4 py-3 text-[#1A1A1A]/70">{p.age_display ?? '—'}</td>
+                <td className="px-4 py-3 text-[#1A1A1A]/70">{p.location ?? '—'}</td>
+                <td className="px-4 py-3 text-[#1A1A1A]/70">{p.profession_sector ?? '—'}</td>
+                <td className="px-4 py-3"><StatusBadge status={p.status} /></td>
+                <td className="px-4 py-3 text-[#1A1A1A]/40 text-xs">{fmtDate(p.created_at)}</td>
+                <td className="px-4 py-3">
+                  <div className="flex flex-wrap gap-1">
+                    <button onClick={() => setContactProfile(p)}
+                      className="px-2 py-1 rounded text-xs border border-[#E8E4DC] text-[#1A1A1A] hover:bg-[#F8F6F1]">
+                      Contact
+                    </button>
+                    <button onClick={() => setEditProfile(p)}
+                      className="px-2 py-1 rounded text-xs border border-[#E8E4DC] text-[#1A1A1A] hover:bg-[#F8F6F1]">
+                      Edit
+                    </button>
+                    {p.status !== 'approved' && (
+                      <button onClick={() => changeStatus(p.id, 'approved')}
+                        className="px-2 py-1 rounded text-xs bg-green-50 text-green-700 hover:bg-green-100">
+                        Approve
+                      </button>
+                    )}
+                    {p.status === 'approved' && (
+                      <button onClick={() => changeStatus(p.id, 'suspended')}
+                        className="px-2 py-1 rounded text-xs bg-yellow-50 text-yellow-700 hover:bg-yellow-100">
+                        Suspend
+                      </button>
+                    )}
+                    {p.status === 'suspended' && (
+                      <button onClick={() => changeStatus(p.id, 'approved')}
+                        className="px-2 py-1 rounded text-xs bg-blue-50 text-blue-700 hover:bg-blue-100">
+                        Reinstate
+                      </button>
+                    )}
+                    {!['rejected'].includes(p.status) && (
+                      <button onClick={() => changeStatus(p.id, 'rejected')}
+                        className="px-2 py-1 rounded text-xs bg-red-50 text-red-700 hover:bg-red-100">
+                        Reject
+                      </button>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {filtered.length === 0 && (
+          <p className="text-center text-[#1A1A1A]/40 py-10 text-sm">No members found.</p>
+        )}
+      </div>
+    </>
+  )
+}
+
+// ─── TAB 5: Withdrawn ─────────────────────────────────────────────────────────
+
+function WithdrawnTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh: () => void }) {
+  const supabase = createClient()
+  const [deleteId, setDeleteId] = useState<string | null>(null)
+
+  const withdrawn = profiles.filter(p => p.status === 'withdrawn')
+
+  async function reinstate(id: string) {
+    await supabase.from('zawaaj_profiles').update({ status: 'approved' }).eq('id', id)
+    onRefresh()
+  }
+
+  async function hardDelete(id: string) {
+    await supabase.from('zawaaj_profiles').delete().eq('id', id)
+    onRefresh()
+  }
+
+  if (withdrawn.length === 0)
+    return <p className="text-[#1A1A1A]/40 py-16 text-center text-sm">No withdrawn profiles.</p>
+
+  return (
+    <>
+      {deleteId && (
+        <Confirm
+          message="Permanently delete this profile? This cannot be undone."
+          onConfirm={() => { hardDelete(deleteId); setDeleteId(null) }}
+          onCancel={() => setDeleteId(null)}
+        />
+      )}
+      <div className="space-y-3">
+        {withdrawn.map(p => (
+          <div key={p.id} className="bg-white rounded-2xl p-5 border border-[#E8E4DC] flex items-center gap-4">
+            <Avatar initials={p.display_initials} gender={p.gender} size={44} />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-semibold text-[#1A1A1A]">{p.display_initials}</span>
+                {p.legacy_ref && <span className="text-xs text-[#1A1A1A]/40">{p.legacy_ref}</span>}
+              </div>
+              {p.withdrawal_reason && (
+                <p className="text-sm text-[#1A1A1A]/60 mt-0.5">Reason: {p.withdrawal_reason}</p>
+              )}
+              <p className="text-xs text-[#1A1A1A]/40 mt-0.5">Withdrawn {daysAgo(p.submitted_date)}</p>
+            </div>
+            <div className="flex gap-2 flex-shrink-0">
+              <button onClick={() => reinstate(p.id)}
+                className="px-3 py-2 rounded-xl text-xs font-medium bg-[#B8960C] text-white hover:bg-[#9a7a0a]">
+                Reinstate
+              </button>
+              <button onClick={() => setDeleteId(p.id)}
+                className="px-3 py-2 rounded-xl text-xs font-medium bg-red-50 text-red-700 hover:bg-red-100">
+                Delete
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </>
+  )
+}
+
+// ─── TAB 6: Unlinked ─────────────────────────────────────────────────────────
+
+function UnlinkedTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh: () => void }) {
+  const supabase = createClient()
+  const [linkId, setLinkId] = useState<string | null>(null)
+  const [userId, setUserId] = useState('')
+  const [linking, setLinking] = useState(false)
+  const [linkError, setLinkError] = useState<string | null>(null)
+
+  const unlinked = profiles.filter(p => p.user_id === null && p.status === 'approved')
+
+  async function linkProfile() {
+    if (!linkId || !userId.trim()) return
+    setLinking(true)
+    setLinkError(null)
+    const { error } = await supabase
+      .from('zawaaj_profiles')
+      .update({ user_id: userId.trim() })
+      .eq('id', linkId)
+
+    if (error) { setLinkError(error.message); setLinking(false); return }
+
+    // Also upsert zawaaj_user_settings
+    await supabase.from('zawaaj_user_settings').upsert({
+      user_id: userId.trim(),
+      active_profile_id: linkId,
+    }, { onConflict: 'user_id' })
+
+    setLinkId(null)
+    setUserId('')
+    setLinking(false)
+    onRefresh()
+  }
+
+  if (unlinked.length === 0)
+    return (
+      <div className="py-16 text-center">
+        <p className="text-[#1A1A1A]/40 text-sm">All approved profiles are linked to user accounts.</p>
+      </div>
+    )
+
+  return (
+    <>
+      {linkId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl">
+            <h3 className="font-semibold text-[#1A1A1A] mb-2">Link Profile to User</h3>
+            <p className="text-xs text-[#1A1A1A]/50 mb-3">
+              Enter the user&apos;s Supabase Auth UUID. You can find this in the Supabase dashboard under Authentication &gt; Users.
+            </p>
+            <input
+              className="field mb-1"
+              placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+              value={userId}
+              onChange={e => setUserId(e.target.value)}
+            />
+            {linkError && <p className="text-red-600 text-xs mb-2">{linkError}</p>}
+            <div className="flex gap-3 mt-4">
+              <button onClick={() => { setLinkId(null); setUserId(''); setLinkError(null) }}
+                className="flex-1 px-4 py-2 rounded-xl text-sm border border-[#E8E4DC] text-[#1A1A1A] hover:bg-[#F8F6F1]">
+                Cancel
+              </button>
+              <button onClick={linkProfile} disabled={!userId.trim() || linking}
+                className="flex-1 px-4 py-2 rounded-xl text-sm font-medium bg-[#1A1A1A] text-[#B8960C] hover:bg-[#333] disabled:opacity-50">
+                {linking ? 'Linking…' : 'Link'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl px-5 py-4">
+        <p className="text-sm font-medium text-amber-800">
+          {unlinked.length} approved {unlinked.length === 1 ? 'profile has' : 'profiles have'} not yet been claimed by a user account.
+        </p>
+      </div>
+
+      <div className="space-y-3">
+        {unlinked.map(p => (
+          <div key={p.id} className="bg-white rounded-2xl p-5 border border-[#E8E4DC] flex items-center gap-4">
+            <Avatar initials={p.display_initials} gender={p.gender} size={44} />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-semibold text-[#1A1A1A]">{p.display_initials}</span>
+                {p.legacy_ref && (
+                  <span className="px-2 py-0.5 rounded-full bg-[#F8F6F1] text-xs text-[#1A1A1A]/60 border border-[#E8E4DC]">
+                    {p.legacy_ref}
+                  </span>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-sm text-[#1A1A1A]/60">
+                {p.imported_email && <span>{p.imported_email}</span>}
+                {p.contact_number && <span>{p.contact_number}</span>}
+                {p.age_display && <span>{p.age_display}</span>}
+                {p.location && <span>{p.location}</span>}
+              </div>
+            </div>
+            <button onClick={() => setLinkId(p.id)}
+              className="px-3 py-2 rounded-xl text-xs font-medium bg-[#1A1A1A] text-[#B8960C] hover:bg-[#333] flex-shrink-0">
+              Link to User
+            </button>
+          </div>
+        ))}
+      </div>
+    </>
+  )
+}
+
+// ─── TAB 7: Events ────────────────────────────────────────────────────────────
+
+function EventsTab({ events, onRefresh }: { events: ZawaajEvent[]; onRefresh: () => void }) {
+  const supabase = createClient()
+  const [editUrl, setEditUrl] = useState<Record<string, string>>({})
+  const [editNote, setEditNote] = useState<Record<string, string>>({})
+  const [deleteId, setDeleteId] = useState<string | null>(null)
+  const [newForm, setNewForm] = useState({
+    title: '', event_date: '', location_text: '', registration_url: '',
+  })
+  const [creating, setCreating] = useState(false)
+
+  async function updateHistory(id: string, show: boolean) {
+    await supabase.from('zawaaj_events').update({ show_in_history: show }).eq('id', id)
+    onRefresh()
+  }
+
+  async function updateUrl(id: string) {
+    await supabase.from('zawaaj_events').update({ registration_url: editUrl[id] ?? '' }).eq('id', id)
+    onRefresh()
+  }
+
+  async function updateNote(id: string) {
+    await supabase.from('zawaaj_events').update({ attendance_note: editNote[id] ?? '' }).eq('id', id)
+    onRefresh()
+  }
+
+  async function archive(id: string) {
+    await supabase.from('zawaaj_events').update({ status: 'archived' }).eq('id', id)
+    onRefresh()
+  }
+
+  async function hardDelete(id: string) {
+    await supabase.from('zawaaj_events').delete().eq('id', id)
+    onRefresh()
+  }
+
+  async function createEvent() {
+    if (!newForm.title) return
+    setCreating(true)
+    await supabase.from('zawaaj_events').insert({
+      title: newForm.title,
+      event_date: newForm.event_date || null,
+      location_text: newForm.location_text || null,
+      registration_url: newForm.registration_url || null,
+      status: 'upcoming',
+      show_in_history: false,
+    })
+    setNewForm({ title: '', event_date: '', location_text: '', registration_url: '' })
+    setCreating(false)
+    onRefresh()
+  }
+
+  return (
+    <>
+      {deleteId && (
+        <Confirm
+          message="Permanently delete this event?"
+          onConfirm={() => { hardDelete(deleteId); setDeleteId(null) }}
+          onCancel={() => setDeleteId(null)}
+        />
+      )}
+
+      {/* New Event Form */}
+      <div className="bg-white rounded-2xl p-5 border border-[#E8E4DC] mb-6">
+        <h3 className="text-sm font-semibold text-[#1A1A1A] mb-4">Add New Event</h3>
+        <div className="grid sm:grid-cols-2 gap-3">
+          <label className="block">
+            <span className="text-xs text-[#1A1A1A]/60 mb-1 block">Title *</span>
+            <input className="field" value={newForm.title} onChange={e => setNewForm(f => ({ ...f, title: e.target.value }))} />
+          </label>
+          <label className="block">
+            <span className="text-xs text-[#1A1A1A]/60 mb-1 block">Date &amp; Time</span>
+            <input type="datetime-local" className="field" value={newForm.event_date} onChange={e => setNewForm(f => ({ ...f, event_date: e.target.value }))} />
+          </label>
+          <label className="block">
+            <span className="text-xs text-[#1A1A1A]/60 mb-1 block">Location</span>
+            <input className="field" value={newForm.location_text} onChange={e => setNewForm(f => ({ ...f, location_text: e.target.value }))} />
+          </label>
+          <label className="block">
+            <span className="text-xs text-[#1A1A1A]/60 mb-1 block">Registration URL</span>
+            <input type="url" className="field" value={newForm.registration_url} onChange={e => setNewForm(f => ({ ...f, registration_url: e.target.value }))} />
+          </label>
+        </div>
+        <button onClick={createEvent} disabled={!newForm.title || creating}
+          className="mt-4 px-5 py-2.5 rounded-xl text-sm font-medium bg-[#1A1A1A] text-[#B8960C] hover:bg-[#333] disabled:opacity-50">
+          {creating ? 'Creating…' : 'Create Event'}
+        </button>
+      </div>
+
+      {/* Event List */}
+      {events.length === 0 && (
+        <p className="text-[#1A1A1A]/40 py-8 text-center text-sm">No events yet.</p>
+      )}
+      <div className="space-y-3">
+        {events.map(ev => (
+          <div key={ev.id} className="bg-white rounded-2xl border border-[#E8E4DC] overflow-hidden">
+            <div className="p-5 flex flex-col sm:flex-row sm:items-center gap-3">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-semibold text-[#1A1A1A]">{ev.title}</span>
+                  <StatusBadge status={ev.status} />
+                </div>
+                <div className="flex flex-wrap gap-x-3 mt-1 text-sm text-[#1A1A1A]/60">
+                  {ev.event_date && <span>{fmtDate(ev.event_date)}</span>}
+                  {ev.location_text && <span>{ev.location_text}</span>}
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2 flex-shrink-0">
+                <label className="flex items-center gap-1.5 text-xs text-[#1A1A1A]/70 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={ev.show_in_history}
+                    onChange={e => updateHistory(ev.id, e.target.checked)}
+                    className="w-3.5 h-3.5 accent-[#B8960C]"
+                  />
+                  Show in history
+                </label>
+                {ev.status !== 'archived' && (
+                  <button onClick={() => archive(ev.id)}
+                    className="px-2.5 py-1 rounded-lg text-xs border border-[#E8E4DC] text-[#1A1A1A] hover:bg-[#F8F6F1]">
+                    Archive
+                  </button>
+                )}
+                <button onClick={() => setDeleteId(ev.id)}
+                  className="px-2.5 py-1 rounded-lg text-xs bg-red-50 text-red-700 hover:bg-red-100">
+                  Delete
+                </button>
+              </div>
+            </div>
+            {/* URL edit */}
+            <div className="px-5 py-3 border-t border-[#E8E4DC] bg-[#F8F6F1] flex items-center gap-2">
+              <span className="text-xs text-[#1A1A1A]/50 flex-shrink-0">Registration URL:</span>
+              <input
+                className="field flex-1 text-xs py-1"
+                defaultValue={ev.registration_url ?? ''}
+                onBlur={e => setEditUrl(prev => ({ ...prev, [ev.id]: e.target.value }))}
+                onChange={e => setEditUrl(prev => ({ ...prev, [ev.id]: e.target.value }))}
+              />
+              <button onClick={() => updateUrl(ev.id)}
+                className="px-3 py-1 rounded-lg text-xs bg-[#1A1A1A] text-[#B8960C] hover:bg-[#333] flex-shrink-0">
+                Save
+              </button>
+            </div>
+            {/* Attendance note (only for ended/archived) */}
+            {(ev.status === 'ended' || ev.status === 'archived') && (
+              <div className="px-5 py-3 border-t border-[#E8E4DC] bg-[#F8F6F1] flex items-center gap-2">
+                <span className="text-xs text-[#1A1A1A]/50 flex-shrink-0">Attendance note:</span>
+                <input
+                  className="field flex-1 text-xs py-1"
+                  defaultValue={ev.attendance_note ?? ''}
+                  onChange={e => setEditNote(prev => ({ ...prev, [ev.id]: e.target.value }))}
+                />
+                <button onClick={() => updateNote(ev.id)}
+                  className="px-3 py-1 rounded-lg text-xs bg-[#1A1A1A] text-[#B8960C] hover:bg-[#333] flex-shrink-0">
+                  Save
+                </button>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </>
+  )
+}
+
+// ─── TAB 8: Import ────────────────────────────────────────────────────────────
+
+function ImportTab() {
+  return (
+    <div className="max-w-xl mx-auto py-16 text-center space-y-4">
+      <div className="w-16 h-16 rounded-2xl bg-[#F8F6F1] border border-[#E8E4DC] flex items-center justify-center mx-auto text-3xl">
+        📥
+      </div>
+      <h2 className="text-xl font-semibold text-[#1A1A1A]">CSV Import — Coming Soon</h2>
+      <p className="text-[#1A1A1A]/60 text-sm leading-relaxed">
+        Use the Supabase dashboard to bulk import profiles via SQL for now.
+        Import tool will be available in a future update.
+      </p>
+      <a
+        href="https://supabase.com/dashboard"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium bg-[#1A1A1A] text-[#B8960C] hover:bg-[#333]"
+      >
+        Open Supabase Dashboard
+      </a>
+    </div>
+  )
+}
+
+// ─── Main Admin Page ──────────────────────────────────────────────────────────
+
 export default function AdminPage() {
+  const supabase = createClient()
+  const [accessChecked, setAccessChecked] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
   const [tab, setTab] = useState<Tab>('queue')
+
+  // Data
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [matches, setMatches] = useState<Match[]>([])
+  const [events, setEvents] = useState<ZawaajEvent[]>([])
   const [loading, setLoading] = useState(true)
 
-  const loadData = useCallback(async () => {
-    const supabase = createClient()
+  // Check admin access
+  useEffect(() => {
+    async function checkAdmin() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { setAccessChecked(true); return }
+      const { data } = await supabase
+        .from('zawaaj_profiles')
+        .select('is_admin')
+        .eq('user_id', user.id)
+        .eq('is_admin', true)
+        .maybeSingle()
+      setIsAdmin(!!data)
+      setAccessChecked(true)
+    }
+    checkAdmin()
+  }, [supabase])
 
-    const [{ data: profileData }, { data: matchData }] = await Promise.all([
+  const loadData = useCallback(async () => {
+    setLoading(true)
+    const [
+      { data: profileData },
+      { data: matchData },
+      { data: eventData },
+    ] = await Promise.all([
       supabase
         .from('zawaaj_profiles')
-        .select('id,display_initials,gender,age_display,location,school_of_thought,profession_sector,status,submitted_date,contact_number,admin_comments,duplicate_flag,user_id,imported_email')
+        .select('*')
         .order('submitted_date', { ascending: false }),
       supabase
         .from('zawaaj_matches')
         .select(`
-          id,profile_a_id,profile_b_id,mutual_date,status,
-          family_a_consented,family_b_consented,introduced_date,outcome,admin_notes,
-          profile_a:zawaaj_profiles!zawaaj_matches_profile_a_id_fkey(display_initials,gender,location),
-          profile_b:zawaaj_profiles!zawaaj_matches_profile_b_id_fkey(display_initials,gender,location)
+          *,
+          profile_a:zawaaj_profiles!zawaaj_matches_profile_a_id_fkey(
+            id, display_initials, gender, age_display, location, school_of_thought,
+            contact_number, guardian_name, imported_email, legacy_ref
+          ),
+          profile_b:zawaaj_profiles!zawaaj_matches_profile_b_id_fkey(
+            id, display_initials, gender, age_display, location, school_of_thought,
+            contact_number, guardian_name, imported_email, legacy_ref
+          )
         `)
         .order('mutual_date', { ascending: false }),
+      supabase
+        .from('zawaaj_events')
+        .select('*')
+        .order('event_date', { ascending: false }),
     ])
 
     setProfiles((profileData as Profile[]) ?? [])
     setMatches((matchData as unknown as Match[]) ?? [])
+    setEvents((eventData as ZawaajEvent[]) ?? [])
     setLoading(false)
-  }, [])
+  }, [supabase])
 
-  useEffect(() => { loadData() }, [loadData])
+  useEffect(() => {
+    if (isAdmin) loadData()
+  }, [isAdmin, loadData])
 
-  const pendingCount = profiles.filter((p) => p.status === 'pending').length
-  const approvedCount = profiles.filter((p) => p.status === 'approved').length
-  const unlinkedCount = profiles.filter((p) => p.status === 'unlinked' || !p.user_id).length
+  // Counts for badges
+  const pendingCount = profiles.filter(p => p.status === 'pending').length
+  const mutualCount = matches.filter(m => ['awaiting_admin', 'admin_reviewing'].includes(m.status)).length
+  const introducedCount = matches.filter(m => ['introduced', 'nikah', 'no_longer_proceeding', 'dismissed'].includes(m.status)).length
+  const withdrawnCount = profiles.filter(p => p.status === 'withdrawn').length
+  const unlinkedCount = profiles.filter(p => p.user_id === null && p.status === 'approved').length
 
   const tabs: { key: Tab; label: string; badge?: number }[] = [
-    { key: 'queue',   label: 'Review Queue',     badge: pendingCount },
-    { key: 'matches', label: 'Mutual Matches',   badge: matches.length },
-    { key: 'members', label: 'All Members',       badge: profiles.length },
-    { key: 'unlinked',label: 'Unlinked Profiles', badge: unlinkedCount },
+    { key: 'queue',      label: 'Queue',      badge: pendingCount },
+    { key: 'mutual',     label: 'Mutual',     badge: mutualCount },
+    { key: 'introduced', label: 'Introduced', badge: introducedCount },
+    { key: 'members',    label: 'Members',    badge: profiles.length },
+    { key: 'withdrawn',  label: 'Withdrawn',  badge: withdrawnCount },
+    { key: 'unlinked',   label: 'Unlinked',   badge: unlinkedCount },
+    { key: 'events',     label: 'Events',     badge: events.length },
+    { key: 'import',     label: 'Import' },
   ]
+
+  if (!accessChecked) {
+    return (
+      <div className="min-h-screen bg-[#F8F6F1] flex items-center justify-center">
+        <p className="text-[#1A1A1A]/40 text-sm">Checking access…</p>
+      </div>
+    )
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen bg-[#F8F6F1] flex flex-col items-center justify-center gap-4">
+        <div className="bg-white rounded-2xl p-10 border border-[#E8E4DC] text-center max-w-sm mx-4">
+          <p className="text-2xl mb-2">🔒</p>
+          <h1 className="text-xl font-semibold text-[#1A1A1A] mb-2">Access Denied</h1>
+          <p className="text-[#1A1A1A]/60 text-sm mb-6">You do not have admin access to this page.</p>
+          <Link href="/directory" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium bg-[#1A1A1A] text-[#B8960C] hover:bg-[#333]">
+            Return to Directory
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  // Stats
+  const totalProfiles = profiles.length
+  const approvedCount = profiles.filter(p => p.status === 'approved').length
 
   return (
     <div className="min-h-screen bg-[#F8F6F1]">
       {/* Header */}
-      <header style={{ backgroundColor: '#1A1A1A' }} className="shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <Image src="/logo.png" alt="Zawaaj" width={38} height={38} className="object-contain" />
-          <span className="text-white/40 text-sm">Admin Dashboard</span>
+      <header className="bg-[#1A1A1A] sticky top-0 z-30 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <ZawaajLogo size={30} tagline={false} />
+            <span className="text-white/30 text-sm hidden sm:block">Admin Dashboard</span>
+          </div>
+          <Link href="/directory" className="text-white/40 hover:text-white/80 text-xs transition-colors">
+            Back to Directory
+          </Link>
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
-        <h1 className="text-3xl font-bold text-[#1A1A1A] mb-2">Dashboard</h1>
-        <p className="text-[#1A1A1A]/50 mb-8">Manage applications, matches and members.</p>
-
-        {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
-          <Stat label="Pending review" value={pendingCount} />
-          <Stat label="Approved members" value={approvedCount} />
-          <Stat label="Mutual matches" value={matches.length} />
-          <Stat label="Unlinked profiles" value={unlinkedCount} />
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        {/* Title */}
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-[#1A1A1A]">Admin Dashboard</h1>
+          <p className="text-[#1A1A1A]/50 text-sm mt-1">Manage applications, matches and members.</p>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-1 mb-6 bg-white rounded-xl p-1 border border-[#E8E4DC] w-fit flex-wrap">
+        {/* Stats Row */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
+          {[
+            { label: 'Total Profiles', value: totalProfiles, color: '#1A1A1A' },
+            { label: 'Pending', value: pendingCount, color: '#92400E' },
+            { label: 'Approved', value: approvedCount, color: '#065F46' },
+            { label: 'Awaiting Admin', value: mutualCount, color: '#5B21B6' },
+            { label: 'Introduced', value: introducedCount, color: '#1E40AF' },
+            { label: 'Unlinked', value: unlinkedCount, color: '#92400E' },
+          ].map(stat => (
+            <div key={stat.label} className="bg-white rounded-2xl p-4 border border-[#E8E4DC]">
+              <p className="text-2xl font-bold" style={{ color: stat.color }}>{stat.value}</p>
+              <p className="text-xs text-[#1A1A1A]/50 mt-0.5">{stat.label}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Tab Bar */}
+        <div className="flex flex-wrap gap-1 mb-6 bg-white rounded-2xl p-1.5 border border-[#E8E4DC] w-fit">
           {tabs.map(({ key, label, badge }) => (
             <button
               key={key}
               onClick={() => setTab(key)}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-colors"
               style={{
                 backgroundColor: tab === key ? '#1A1A1A' : 'transparent',
                 color: tab === key ? '#B8960C' : '#1A1A1A',
@@ -383,8 +1416,8 @@ export default function AdminPage() {
                 <span
                   className="w-5 h-5 rounded-full text-xs flex items-center justify-center font-bold"
                   style={{
-                    backgroundColor: tab === key ? '#B8960C' : '#1A1A1A',
-                    color: tab === key ? '#1A1A1A' : '#FFFFFF',
+                    backgroundColor: tab === key ? '#B8960C' : '#E8E4DC',
+                    color: tab === key ? '#1A1A1A' : '#1A1A1A',
                   }}
                 >
                   {badge > 99 ? '99+' : badge}
@@ -394,20 +1427,42 @@ export default function AdminPage() {
           ))}
         </div>
 
-        {/* Tab content */}
+        {/* Tab Content */}
         {loading ? (
-          <div className="flex items-center justify-center h-48 text-[#1A1A1A]/40">
+          <div className="flex items-center justify-center h-48 text-[#1A1A1A]/40 text-sm">
             Loading…
           </div>
         ) : (
           <>
-            {tab === 'queue'   && <QueueTab   profiles={profiles} onRefresh={loadData} />}
-            {tab === 'matches' && <MatchesTab  matches={matches} />}
-            {tab === 'members' && <MembersTab  profiles={profiles} />}
-            {tab === 'unlinked'&& <UnlinkedTab profiles={profiles} />}
+            {tab === 'queue'      && <QueueTab      profiles={profiles} onRefresh={loadData} />}
+            {tab === 'mutual'     && <MutualTab     matches={matches}   onRefresh={loadData} />}
+            {tab === 'introduced' && <IntroducedTab  matches={matches}   onRefresh={loadData} />}
+            {tab === 'members'    && <MembersTab     profiles={profiles} onRefresh={loadData} />}
+            {tab === 'withdrawn'  && <WithdrawnTab   profiles={profiles} onRefresh={loadData} />}
+            {tab === 'unlinked'   && <UnlinkedTab    profiles={profiles} onRefresh={loadData} />}
+            {tab === 'events'     && <EventsTab      events={events}     onRefresh={loadData} />}
+            {tab === 'import'     && <ImportTab />}
           </>
         )}
       </main>
+
+      {/* Global field styles — scoped via inline style tag */}
+      <style>{`
+        .field {
+          width: 100%;
+          border-radius: 0.625rem;
+          padding: 0.5rem 0.75rem;
+          font-size: 0.875rem;
+          border: 1px solid #E8E4DC;
+          background: white;
+          color: #1A1A1A;
+          outline: none;
+          transition: border-color 0.15s;
+        }
+        .field:focus {
+          border-color: #B8960C;
+        }
+      `}</style>
     </div>
   )
 }
