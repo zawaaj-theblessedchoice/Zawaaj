@@ -7,7 +7,7 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 // Require authentication AND an approved profile
-const PROTECTED_PATHS = ['/directory', '/profile', '/my-profile', '/events']
+const PROTECTED_PATHS = ['/directory', '/browse', '/profile', '/my-profile', '/events', '/introductions']
 // Require authentication AND admin role (checked server-side in page/layout)
 const ADMIN_PATHS     = ['/admin']
 // Pages that redirect already-authenticated users away
@@ -60,10 +60,10 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Authenticated user hitting login/signup → send to directory
+  // Authenticated user hitting login/signup → send to browse
   if (user && isAuthPage) {
     const url = request.nextUrl.clone()
-    url.pathname = '/directory'
+    url.pathname = '/browse'
     return NextResponse.redirect(url)
   }
 

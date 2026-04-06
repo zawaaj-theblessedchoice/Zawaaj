@@ -505,7 +505,7 @@ function QueueTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh: () 
   const pending = profiles.filter(p => p.status === 'pending')
 
   async function approve(id: string) {
-    await supabase.from('zawaaj_profiles').update({ status: 'approved', approved_date: new Date().toISOString() }).eq('id', id)
+    await supabase.from('zawaaj_profiles').update({ status: 'approved', approved_date: new Date().toISOString(), listed_at: new Date().toISOString() }).eq('id', id)
     onRefresh()
   }
 
@@ -775,7 +775,10 @@ function MembersTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh: (
 
   async function changeStatus(id: string, status: ProfileStatus) {
     const update: Partial<Profile> & { approved_date?: string } = { status }
-    if (status === 'approved') update.approved_date = new Date().toISOString()
+    if (status === 'approved') {
+      update.approved_date = new Date().toISOString()
+      ;(update as Record<string, unknown>).listed_at = new Date().toISOString()
+    }
     await supabase.from('zawaaj_profiles').update(update).eq('id', id)
     onRefresh()
   }
@@ -892,7 +895,7 @@ function WithdrawnTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh:
   const withdrawn = profiles.filter(p => p.status === 'withdrawn')
 
   async function reinstate(id: string) {
-    await supabase.from('zawaaj_profiles').update({ status: 'approved' }).eq('id', id)
+    await supabase.from('zawaaj_profiles').update({ status: 'approved', listed_at: new Date().toISOString() }).eq('id', id)
     onRefresh()
   }
 

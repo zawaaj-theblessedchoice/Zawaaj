@@ -1,17 +1,58 @@
 @import "tailwindcss";
 
+/* ─── Design tokens ──────────────────────────────────────────────────────── */
+:root {
+  /* Gold */
+  --gold:        #B8960C;
+  --gold-light:  #D4A92A;
+  --gold-muted:  rgba(184, 150, 12, 0.13);
+  --gold-border: rgba(184, 150, 12, 0.3);
+
+  /* Surfaces */
+  --surface:   #111110;
+  --surface-2: #1A1A18;
+  --surface-3: #222220;
+  --surface-4: #2A2A28;
+
+  /* Text */
+  --text-primary:   #F0EDE6;
+  --text-secondary: #9A9590;
+  --text-muted:     #5A5752;
+
+  /* Borders */
+  --border-default: rgba(255, 255, 255, 0.07);
+  --border-gold:    rgba(184, 150, 12, 0.3);
+}
+
+/* ─── Tailwind theme registration ────────────────────────────────────────── */
 @theme inline {
-  --color-gold: #B8960C;
-  --color-gold-light: #D4AF37;
-  --color-dark: #1A1A1A;
-  --color-zawaaj-bg: #F8F6F1;
-  --color-zawaaj-card: #FFFFFF;
+  --color-gold:       var(--gold);
+  --color-gold-light: var(--gold-light);
+
+  --color-surface:   var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-surface-4: var(--surface-4);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
+/* ─── Base ───────────────────────────────────────────────────────────────── */
 body {
-  background-color: #F8F6F1;
-  color: #1A1A1A;
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--surface);
+  color: var(--text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── Scrollbar (dark theme) ─────────────────────────────────────────────── */
+::-webkit-scrollbar       { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--surface-2); }
+::-webkit-scrollbar-thumb { background: var(--surface-4); border-radius: 3px; }
+
+/* ─── Selection ──────────────────────────────────────────────────────────── */
+::selection {
+  background: var(--gold-muted);
+  color: var(--text-primary);
 }

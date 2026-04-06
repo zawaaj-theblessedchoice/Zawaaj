@@ -32,7 +32,7 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-[#F8F6F1] px-4">
+    <main className="min-h-screen flex items-center justify-center bg-surface px-4">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="flex justify-center mb-8">

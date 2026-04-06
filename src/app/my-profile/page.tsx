@@ -1,51 +1,52 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import NavBar from '@/components/NavBar'
 import AvatarInitials from '@/components/AvatarInitials'
 
 interface Profile {
   id: string
   display_initials: string
+  first_name: string | null
+  last_name: string | null
   gender: string | null
+  date_of_birth: string | null
   age_display: string | null
   height: string | null
   ethnicity: string | null
+  nationality: string | null
   school_of_thought: string | null
   education_level: string | null
   education_detail: string | null
-  profession_sector: string | null
   profession_detail: string | null
   location: string | null
-  attributes: string[] | null
-  spouse_preferences: string[] | null
+  bio: string | null
+  religiosity: string | null
+  prayer_regularity: string | null
+  wears_hijab: boolean | null
+  keeps_beard: boolean | null
+  marital_status: string | null
+  has_children: boolean | null
+  languages_spoken: string | null
+  living_situation: string | null
+  open_to_relocation: string | null
+  pref_age_min: number | null
+  pref_age_max: number | null
+  pref_location: string | null
+  pref_ethnicity: string | null
+  pref_school_of_thought: string[] | null
+  pref_partner_children: string | null
   status: string
-  interests_this_month: number
   is_admin: boolean
+  interests_this_month: number
 }
 
-interface Interest {
+interface IntroRequest {
   id: string
-  sent_date: string
-  expires_date: string | null
+  target_profile_id: string
   status: string
-}
-
-interface Match {
-  id: string
-  status: string
-}
-
-const STATUS_BADGE: Record<string, string> = {
-  approved: 'bg-green-100 text-green-800',
-  pending: 'bg-yellow-100 text-yellow-800',
-  paused: 'bg-blue-100 text-blue-800',
-  rejected: 'bg-red-100 text-red-800',
-  withdrawn: 'bg-gray-200 text-gray-600',
-  suspended: 'bg-red-200 text-red-800',
-  introduced: 'bg-purple-100 text-purple-800',
+  created_at: string
+  expires_at: string
 }
 
 const WITHDRAWAL_REASONS = [
@@ -59,122 +60,120 @@ const WITHDRAWAL_REASONS = [
   'Other',
 ]
 
-function StatusBadge({ status }: { status: string }) {
-  const cls = STATUS_BADGE[status] ?? 'bg-gray-100 text-gray-600'
-  return (
-    <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${cls}`}>
-      {status.charAt(0).toUpperCase() + status.slice(1)}
-    </span>
-  )
+function calcAge(dob: string | null): number | null {
+  if (!dob) return null
+  const d = new Date(dob)
+  const today = new Date()
+  let age = today.getFullYear() - d.getFullYear()
+  const m = today.getMonth() - d.getMonth()
+  if (m < 0 || (m === 0 && today.getDate() < d.getDate())) age--
+  return age
 }
 
-function InfoRow({ icon, label, value }: { icon: string; label: string; value: string | null }) {
+function FieldRow({ label, value }: { label: string; value: string | null | undefined }) {
   if (!value) return null
   return (
-    <div>
-      <p className="text-[10px] uppercase tracking-wide text-white/40 font-medium mb-0.5">{label}</p>
-      <p className="text-sm text-white/80 flex items-center gap-1.5">
-        <span>{icon}</span> {value}
-      </p>
+    <div style={{ marginBottom: 12 }}>
+      <div style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: 3 }}>
+        {label}
+      </div>
+      <div style={{ fontSize: 12.5, color: 'var(--text-primary)' }}>{value}</div>
     </div>
   )
 }
 
-function InterestStatusBadge({ status }: { status: string }) {
-  if (status === 'active') return <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ backgroundColor: '#B8960C', color: '#fff' }}>Active</span>
-  if (status === 'matched') return <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-800">Matched</span>
-  return <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-200 text-gray-500">Expired</span>
+function SectionLabel({ children }: { children: string }) {
+  return (
+    <div style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)', marginBottom: 14, marginTop: 24 }}>
+      {children}
+    </div>
+  )
 }
 
-function daysUntil(dateStr: string | null): number | null {
-  if (!dateStr) return null
-  const diff = new Date(dateStr).getTime() - Date.now()
-  return Math.ceil(diff / (1000 * 60 * 60 * 24))
+function statusColour(s: string): { bg: string; text: string } {
+  const map: Record<string, { bg: string; text: string }> = {
+    approved:  { bg: 'rgba(74,222,128,0.12)', text: '#4ADE80' },
+    pending:   { bg: 'rgba(251,191,36,0.12)', text: '#FBBF24' },
+    paused:    { bg: 'rgba(96,165,250,0.12)', text: '#60A5FA' },
+    rejected:  { bg: 'rgba(248,113,113,0.12)', text: '#F87171' },
+    withdrawn: { bg: 'var(--surface-3)', text: 'var(--text-muted)' },
+    suspended: { bg: 'rgba(248,113,113,0.12)', text: '#F87171' },
+    introduced:{ bg: 'var(--gold-muted)', text: 'var(--gold-light)' },
+  }
+  return map[s] ?? { bg: 'var(--surface-3)', text: 'var(--text-secondary)' }
+}
+
+function daysUntil(dateStr: string): number {
+  return Math.ceil((new Date(dateStr).getTime() - Date.now()) / 86_400_000)
+}
+
+function formatDate(dateStr: string) {
+  return new Date(dateStr).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
+function displayValue(map: Record<string, string>, v: string | null): string | null {
+  if (!v) return null
+  return map[v] ?? v
 }
 
 export default function MyProfilePage() {
   const supabase = createClient()
-
   const [profile, setProfile] = useState<Profile | null>(null)
-  const [interests, setInterests] = useState<Interest[]>([])
-  const [match, setMatch] = useState<Match | null>(null)
+  const [introRequests, setIntroRequests] = useState<IntroRequest[]>([])
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
-
-  // Withdrawal modal
   const [showWithdrawModal, setShowWithdrawModal] = useState(false)
   const [withdrawReason, setWithdrawReason] = useState(WITHDRAWAL_REASONS[0])
   const [withdrawn, setWithdrawn] = useState(false)
+  const [bioExpanded, setBioExpanded] = useState(false)
 
   useEffect(() => {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { setLoading(false); return }
 
-      // Get active profile
       const { data: settings } = await supabase
         .from('zawaaj_user_settings')
         .select('active_profile_id')
         .eq('user_id', user.id)
         .maybeSingle()
 
-      const { data: userProfiles } = await supabase
+      const { data: profileRows } = await supabase
         .from('zawaaj_profiles')
-        .select('id, display_initials, gender, age_display, height, ethnicity, school_of_thought, education_level, education_detail, profession_sector, profession_detail, location, attributes, spouse_preferences, status, interests_this_month, is_admin')
+        .select('id, display_initials, first_name, last_name, gender, date_of_birth, age_display, height, ethnicity, nationality, school_of_thought, education_level, education_detail, profession_detail, location, bio, religiosity, prayer_regularity, wears_hijab, keeps_beard, marital_status, has_children, languages_spoken, living_situation, open_to_relocation, pref_age_min, pref_age_max, pref_location, pref_ethnicity, pref_school_of_thought, pref_partner_children, status, is_admin, interests_this_month')
         .eq('user_id', user.id)
 
-      if (!userProfiles || userProfiles.length === 0) { setLoading(false); return }
-
-      const activeId = settings?.active_profile_id ?? userProfiles[0].id
-      const active = userProfiles.find((p) => p.id === activeId) ?? userProfiles[0]
+      if (!profileRows?.length) { setLoading(false); return }
+      const activeId = settings?.active_profile_id ?? profileRows[0].id
+      const active = profileRows.find(p => p.id === activeId) ?? profileRows[0]
       setProfile(active)
 
-      // Sent interests
-      const { data: interestRows } = await supabase
-        .from('zawaaj_interests')
-        .select('id, sent_date, expires_date, status')
-        .eq('sender_profile_id', active.id)
-        .in('status', ['active', 'matched', 'expired'])
-        .order('sent_date', { ascending: false })
-        .limit(10)
+      const { data: irRows } = await supabase
+        .from('zawaaj_introduction_requests')
+        .select('id, target_profile_id, status, created_at, expires_at')
+        .eq('requesting_profile_id', active.id)
+        .order('created_at', { ascending: false })
+        .limit(15)
 
-      setInterests(interestRows ?? [])
-
-      // Active match
-      const { data: matchRows } = await supabase
-        .from('zawaaj_matches')
-        .select('id, status')
-        .or(`profile_a_id.eq.${active.id},profile_b_id.eq.${active.id}`)
-        .in('status', ['awaiting_admin', 'admin_reviewing', 'introduced'])
-        .maybeSingle()
-
-      setMatch(matchRows)
+      setIntroRequests(irRows ?? [])
       setLoading(false)
     }
     load()
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handlePauseResume() {
     if (!profile) return
     setActionLoading(true)
     const newStatus = profile.status === 'approved' ? 'paused' : 'approved'
-    const { error } = await supabase
-      .from('zawaaj_profiles')
-      .update({ status: newStatus })
-      .eq('id', profile.id)
-    if (!error) {
-      setProfile({ ...profile, status: newStatus })
-    }
+    const { error } = await supabase.from('zawaaj_profiles').update({ status: newStatus }).eq('id', profile.id)
+    if (!error) setProfile({ ...profile, status: newStatus })
     setActionLoading(false)
   }
 
   async function handleWithdraw() {
     if (!profile) return
     setActionLoading(true)
-    const { error } = await supabase
-      .from('zawaaj_profiles')
-      .update({ status: 'withdrawn' })
-      .eq('id', profile.id)
+    const { error } = await supabase.from('zawaaj_profiles').update({ status: 'withdrawn', withdrawal_reason: withdrawReason }).eq('id', profile.id)
     if (!error) {
       setProfile({ ...profile, status: 'withdrawn' })
       setWithdrawn(true)
@@ -185,257 +184,212 @@ export default function MyProfilePage() {
 
   if (loading) {
     return (
-      <>
-        <NavBar />
-        <div className="pt-14 flex items-center justify-center min-h-screen">
-          <p className="text-[#1A1A1A]/50 text-sm">Loading…</p>
-        </div>
-      </>
+      <div style={{ minHeight: '100vh', background: 'var(--surface)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>Loading…</span>
+      </div>
     )
   }
 
   if (!profile) {
     return (
-      <>
-        <NavBar />
-        <div className="pt-14 max-w-2xl mx-auto px-4 py-16 text-center">
-          <p className="text-lg font-semibold text-[#1A1A1A] mb-2">No profile found</p>
-          <p className="text-sm text-[#1A1A1A]/50">You don't have a profile yet. Please contact the admin.</p>
+      <div style={{ minHeight: '100vh', background: 'var(--surface)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ textAlign: 'center' }}>
+          <p style={{ color: 'var(--text-primary)', fontSize: 15, fontWeight: 500, marginBottom: 8 }}>No profile found</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Please contact the admin team.</p>
         </div>
-      </>
+      </div>
     )
   }
 
-  const used = profile.interests_this_month
-  const progressPct = Math.min((used / 5) * 100, 100)
+  const age = calcAge(profile.date_of_birth)
+  const { bg: statusBg, text: statusText } = statusColour(profile.status)
+  const monthlyUsed = introRequests.filter(r => {
+    const d = new Date(r.created_at)
+    const now = new Date()
+    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()
+  }).length
 
   return (
-    <>
-      <NavBar />
-      <main className="pt-14">
-        <div className="max-w-2xl mx-auto px-4 py-8">
-          <h1 className="text-2xl font-bold text-[#1A1A1A] mb-6">My Profile</h1>
+    <div style={{ minHeight: '100vh', background: 'var(--surface)', color: 'var(--text-primary)' }}>
+      <div style={{ maxWidth: 620, margin: '0 auto', padding: '48px 24px 80px' }}>
 
-          {/* Withdrawn state */}
-          {withdrawn && (
-            <div className="rounded-xl p-5 mb-6 bg-gray-100 border border-gray-200 text-center">
-              <p className="text-base font-semibold text-gray-700 mb-1">Profile withdrawn</p>
-              <p className="text-sm text-gray-500 mb-4">Your profile has been withdrawn from the platform.</p>
+        {/* Header */}
+        <div style={{ marginBottom: 32 }}>
+          <div style={{ fontSize: 16, fontWeight: 500, color: 'var(--text-primary)', marginBottom: 4 }}>My profile</div>
+          <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+            {profile.status === 'pending' ? 'Under review — not yet visible to other members.' : profile.status === 'approved' ? 'Your profile is live and visible to approved members.' : ''}
+          </div>
+        </div>
+
+        {/* Profile card */}
+        <div style={{ background: 'var(--surface-2)', border: '0.5px solid var(--border-default)', borderRadius: 13, padding: 24, marginBottom: 16 }}>
+          {/* Avatar + name + status */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
+            <AvatarInitials initials={profile.display_initials} gender={profile.gender} size="xl" goldBorder />
+            <div>
+              <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--text-primary)', marginBottom: 6 }}>
+                {profile.first_name ? `${profile.first_name} ${profile.last_name?.[0] ?? ''}.` : profile.display_initials}
+              </div>
+              <span style={{ display: 'inline-block', fontSize: 11, fontWeight: 500, padding: '3px 10px', borderRadius: 999, background: statusBg, color: statusText }}>
+                {profile.status.charAt(0).toUpperCase() + profile.status.slice(1)}
+              </span>
+            </div>
+          </div>
+
+          {/* About */}
+          <SectionLabel>About</SectionLabel>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 24px' }}>
+            <FieldRow label="Age" value={age ? `${age} years old` : profile.age_display} />
+            <FieldRow label="Location" value={profile.location} />
+            <FieldRow label="Nationality" value={profile.nationality} />
+            <FieldRow label="Ethnicity" value={profile.ethnicity} />
+            <FieldRow label="Marital status" value={displayValue({ never_married: 'Never married', divorced: 'Divorced', widowed: 'Widowed' }, profile.marital_status)} />
+            <FieldRow label="Has children" value={profile.has_children === true ? 'Yes' : profile.has_children === false ? 'No' : null} />
+            <FieldRow label="Height" value={profile.height} />
+            <FieldRow label="Living situation" value={displayValue({ independent: 'Independent', with_family: 'With family', shared: 'Shared accommodation' }, profile.living_situation)} />
+            <FieldRow label="Languages" value={profile.languages_spoken} />
+          </div>
+
+          {/* Education & profession */}
+          <SectionLabel>Education & profession</SectionLabel>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 24px' }}>
+            <FieldRow label="Education level" value={profile.education_level} />
+            <FieldRow label="Institution" value={profile.education_detail} />
+            <FieldRow label="Profession" value={profile.profession_detail} />
+          </div>
+
+          {/* Faith */}
+          <SectionLabel>Faith & practice</SectionLabel>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 24px' }}>
+            <FieldRow label="School of thought" value={profile.school_of_thought} />
+            <FieldRow label="Religiosity" value={profile.religiosity} />
+            <FieldRow label="Prayer regularity" value={displayValue({ yes_regularly: 'Yes, regularly', most_of_time: 'Most of the time', working_on_it: 'Working on it', not_currently: 'Not currently' }, profile.prayer_regularity)} />
+            {profile.gender === 'female' && <FieldRow label="Wears hijab" value={profile.wears_hijab === true ? 'Yes' : profile.wears_hijab === false ? 'No' : null} />}
+            {profile.gender === 'male' && <FieldRow label="Keeps beard" value={profile.keeps_beard === true ? 'Yes' : profile.keeps_beard === false ? 'No' : null} />}
+          </div>
+
+          {/* Bio */}
+          {profile.bio && (
+            <>
+              <SectionLabel>About me</SectionLabel>
+              {bioExpanded ? (
+                <>
+                  <p style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: 8 }}>{profile.bio}</p>
+                  <button onClick={() => setBioExpanded(false)} style={{ fontSize: 12, color: 'var(--gold-light)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>Read less</button>
+                </>
+              ) : (
+                <button onClick={() => setBioExpanded(true)} style={{ fontSize: 12, color: 'var(--gold-light)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>Read more</button>
+              )}
+            </>
+          )}
+
+          {/* Preferences */}
+          <SectionLabel>Looking for</SectionLabel>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 24px' }}>
+            <FieldRow label="Preferred age" value={(profile.pref_age_min || profile.pref_age_max) ? `${profile.pref_age_min ?? '?'} – ${profile.pref_age_max ?? '?'}` : null} />
+            <FieldRow label="Preferred location" value={profile.pref_location} />
+            <FieldRow label="Ethnicity preference" value={profile.pref_ethnicity} />
+            <FieldRow label="School of thought pref" value={profile.pref_school_of_thought?.join(', ') ?? null} />
+            <FieldRow label="Partner's children" value={profile.pref_partner_children} />
+          </div>
+
+          {/* Actions */}
+          {!withdrawn && (
+            <div style={{ display: 'flex', gap: 10, paddingTop: 20, marginTop: 20, borderTop: '0.5px solid var(--border-default)', flexWrap: 'wrap' }}>
+              {(profile.status === 'approved' || profile.status === 'paused') && (
+                <button
+                  onClick={handlePauseResume}
+                  disabled={actionLoading}
+                  style={{ padding: '8px 16px', borderRadius: 9, fontSize: 13, fontWeight: 600, cursor: 'pointer', background: 'var(--gold)', color: '#111', border: 'none', opacity: actionLoading ? 0.5 : 1 }}
+                >
+                  {profile.status === 'approved' ? 'Pause profile' : 'Resume profile'}
+                </button>
+              )}
               <button
-                onClick={() => supabase.auth.signOut().then(() => window.location.href = '/login')}
-                className="text-sm underline text-gray-600 hover:text-gray-900"
+                onClick={() => setShowWithdrawModal(true)}
+                disabled={actionLoading}
+                style={{ padding: '8px 16px', borderRadius: 9, fontSize: 13, fontWeight: 500, cursor: 'pointer', background: 'none', border: '0.5px solid rgba(248,113,113,0.4)', color: '#F87171', opacity: actionLoading ? 0.5 : 1 }}
               >
-                Sign out
+                Withdraw profile
               </button>
             </div>
           )}
-
-          {/* Match status banner */}
-          {match && (match.status === 'awaiting_admin' || match.status === 'admin_reviewing') && (
-            <div className="rounded-xl p-4 mb-6 flex items-start gap-3 bg-amber-50 border border-amber-200">
-              <span className="text-lg">⏳</span>
-              <p className="text-sm text-amber-800">
-                An introduction is being arranged — our admin team will be in touch.
-              </p>
-            </div>
-          )}
-          {match && match.status === 'introduced' && (
-            <div className="rounded-xl p-4 mb-6 flex items-start gap-3 bg-green-50 border border-green-200">
-              <span className="text-lg">✅</span>
-              <p className="text-sm text-green-800">
-                Introduction has been facilitated — the admin will share contact details.
-              </p>
-            </div>
-          )}
-
-          {/* Profile card */}
-          <div className="rounded-2xl p-6 mb-6" style={{ backgroundColor: '#1A1A1A' }}>
-            {/* Header */}
-            <div className="flex items-center gap-4 mb-6">
-              <AvatarInitials initials={profile.display_initials} gender={profile.gender} size="lg" />
-              <div>
-                <h2 className="text-xl font-bold text-white">{profile.display_initials}</h2>
-                <div className="flex items-center gap-2 mt-1">
-                  <StatusBadge status={profile.status} />
-                  {profile.gender && (
-                    <span
-                      className="text-xs font-semibold px-2 py-0.5 rounded-full"
-                      style={
-                        profile.gender === 'female'
-                          ? { backgroundColor: '#EEEDFE', color: '#534AB7' }
-                          : { backgroundColor: '#E6F1FB', color: '#185FA5' }
-                      }
-                    >
-                      {profile.gender.charAt(0).toUpperCase() + profile.gender.slice(1)}
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Details grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              <InfoRow icon="🌍" label="Ethnicity" value={profile.ethnicity} />
-              <InfoRow icon="🕌" label="School of thought" value={profile.school_of_thought} />
-              <InfoRow icon="🎓" label="Education level" value={profile.education_level} />
-              <InfoRow icon="🎓" label="Education detail" value={profile.education_detail} />
-              <InfoRow icon="💼" label="Profession sector" value={profile.profession_sector} />
-              <InfoRow icon="💼" label="Profession detail" value={profile.profession_detail} />
-              <InfoRow icon="📏" label="Height" value={profile.height} />
-              <InfoRow icon="📍" label="Location" value={profile.location} />
-              {profile.age_display && <InfoRow icon="🎂" label="Age" value={`${profile.age_display} years old`} />}
-            </div>
-
-            {/* Attributes */}
-            {profile.attributes && profile.attributes.length > 0 && (
-              <div className="mb-4">
-                <p className="text-[10px] uppercase tracking-wide text-white/40 font-medium mb-2">About me</p>
-                <div className="flex flex-wrap gap-2">
-                  {profile.attributes.map((attr, i) => (
-                    <span key={i} className="text-xs px-2.5 py-1 rounded-full bg-white/10 text-white/70">{attr}</span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Spouse preferences */}
-            {profile.spouse_preferences && profile.spouse_preferences.length > 0 && (
-              <div className="mb-6">
-                <p className="text-[10px] uppercase tracking-wide text-white/40 font-medium mb-2">Looking for</p>
-                <div className="flex flex-wrap gap-2">
-                  {profile.spouse_preferences.map((pref, i) => (
-                    <span key={i} className="text-xs px-2.5 py-1 rounded-full bg-white/10 text-white/70">{pref}</span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Action buttons */}
-            {!withdrawn && (
-              <div className="flex flex-wrap gap-3 pt-4 border-t border-white/10">
-                <Link
-                  href="/my-profile/edit"
-                  className="px-4 py-2 rounded-lg text-sm font-semibold text-white border border-white/30 hover:border-white/60 transition-colors"
-                >
-                  Edit profile
-                </Link>
-
-                {(profile.status === 'approved' || profile.status === 'paused') && (
-                  <button
-                    onClick={handlePauseResume}
-                    disabled={actionLoading}
-                    className="px-4 py-2 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50"
-                    style={
-                      profile.status === 'approved'
-                        ? { backgroundColor: '#B8960C', color: '#fff' }
-                        : { backgroundColor: '#185FA5', color: '#fff' }
-                    }
-                  >
-                    {profile.status === 'approved' ? 'Pause profile' : 'Resume profile'}
-                  </button>
-                )}
-
-                <button
-                  onClick={() => setShowWithdrawModal(true)}
-                  disabled={actionLoading}
-                  className="px-4 py-2 rounded-lg text-sm font-semibold border border-red-400 text-red-400 hover:bg-red-400/10 transition-colors disabled:opacity-50"
-                >
-                  Withdraw profile
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Monthly allowance */}
-          <section className="rounded-2xl p-6 mb-6" style={{ backgroundColor: '#FFFFFF', border: '1px solid #E8E4DC' }}>
-            <h2 className="text-base font-semibold text-[#1A1A1A] mb-3">Introduction requests this month</h2>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="flex-1 h-2.5 rounded-full bg-gray-200 overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all"
-                  style={{ width: `${progressPct}%`, backgroundColor: '#B8960C' }}
-                />
-              </div>
-              <span className="text-sm font-semibold text-[#1A1A1A]">{used}/5</span>
-            </div>
-            <p className="text-xs text-[#1A1A1A]/50">Resets on the 1st of each month</p>
-          </section>
-
-          {/* Sent introductions */}
-          <section className="rounded-2xl p-6 mb-6" style={{ backgroundColor: '#FFFFFF', border: '1px solid #E8E4DC' }}>
-            <h2 className="text-base font-semibold text-[#1A1A1A] mb-4">Introduction requests sent</h2>
-            {interests.length === 0 ? (
-              <p className="text-sm text-[#1A1A1A]/50">No introduction requests sent yet.</p>
-            ) : (
-              <ul className="flex flex-col gap-3">
-                {interests.map((interest) => {
-                  const days = interest.status === 'active' ? daysUntil(interest.expires_date) : null
-                  return (
-                    <li
-                      key={interest.id}
-                      className="flex items-center justify-between rounded-lg px-4 py-3"
-                      style={{ backgroundColor: '#F8F6F1', border: '1px solid #E8E4DC' }}
-                    >
-                      <div>
-                        <p className="text-sm font-medium text-[#1A1A1A]">
-                          Sent {new Date(interest.sent_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-                        </p>
-                        {days !== null && days > 0 && (
-                          <p className="text-xs text-[#1A1A1A]/50 mt-0.5">Expires in {days} day{days !== 1 ? 's' : ''}</p>
-                        )}
-                        {days !== null && days <= 0 && (
-                          <p className="text-xs text-[#1A1A1A]/50 mt-0.5">Expired</p>
-                        )}
-                      </div>
-                      <InterestStatusBadge status={interest.status} />
-                    </li>
-                  )
-                })}
-              </ul>
-            )}
-          </section>
         </div>
-      </main>
+
+        {/* Monthly introduction allowance */}
+        <div style={{ background: 'var(--surface-2)', border: '0.5px solid var(--border-default)', borderRadius: 13, padding: 24, marginBottom: 16 }}>
+          <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)', marginBottom: 12 }}>Introduction requests this month</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
+            <div style={{ flex: 1, height: 4, borderRadius: 2, background: 'var(--surface-4)', overflow: 'hidden' }}>
+              <div style={{ height: '100%', width: `${Math.min((monthlyUsed / 5) * 100, 100)}%`, background: 'var(--gold)', borderRadius: 2 }} />
+            </div>
+            <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text-primary)' }}>{monthlyUsed} / 5</span>
+          </div>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Resets on the 1st of each month</div>
+        </div>
+
+        {/* Sent introduction requests */}
+        <div style={{ background: 'var(--surface-2)', border: '0.5px solid var(--border-default)', borderRadius: 13, padding: 24 }}>
+          <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)', marginBottom: 16 }}>Introduction requests sent</div>
+          {introRequests.length === 0 ? (
+            <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>No introduction requests sent yet.</p>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {introRequests.map(r => {
+                const days = daysUntil(r.expires_at)
+                const badge = r.status === 'mutual'
+                  ? { bg: 'var(--gold-muted)', text: 'var(--gold-light)', label: 'Mutual' }
+                  : r.status === 'facilitated'
+                  ? { bg: 'rgba(74,222,128,0.12)', text: '#4ADE80', label: 'Facilitated' }
+                  : r.status === 'expired'
+                  ? { bg: 'var(--surface-3)', text: 'var(--text-muted)', label: 'Expired' }
+                  : { bg: 'var(--surface-3)', text: 'var(--text-secondary)', label: 'Pending' }
+                return (
+                  <div key={r.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--surface-3)', borderRadius: 9, border: '0.5px solid var(--border-default)' }}>
+                    <div>
+                      <div style={{ fontSize: 12.5, color: 'var(--text-primary)', marginBottom: 2 }}>Sent {formatDate(r.created_at)}</div>
+                      {r.status === 'pending' && days > 0 && (
+                        <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Expires in {days} day{days !== 1 ? 's' : ''}</div>
+                      )}
+                    </div>
+                    <span style={{ fontSize: 11, fontWeight: 500, padding: '3px 10px', borderRadius: 999, background: badge.bg, color: badge.text }}>
+                      {badge.label}
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Withdrawal modal */}
       {showWithdrawModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}>
-          <div className="rounded-2xl p-6 w-full max-w-md shadow-2xl" style={{ backgroundColor: '#FFFFFF' }}>
-            <h3 className="text-base font-bold text-[#1A1A1A] mb-1">Withdraw your profile</h3>
-            <p className="text-sm text-[#1A1A1A]/60 mb-5">
-              Please let us know why you are withdrawing. Your profile will no longer be visible on the platform.
+        <div style={{ position: 'fixed', inset: 0, zIndex: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.6)' }}>
+          <div style={{ background: 'var(--surface-2)', border: '0.5px solid var(--border-default)', borderRadius: 13, padding: 28, width: '100%', maxWidth: 420 }}>
+            <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--text-primary)', marginBottom: 8 }}>Withdraw your profile</div>
+            <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 20 }}>
+              Your profile will no longer be visible. Please let us know why.
             </p>
-            <label className="block text-xs font-semibold text-[#1A1A1A]/70 uppercase tracking-wide mb-1.5">
-              Reason
-            </label>
+            <div style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: 6 }}>Reason</div>
             <select
               value={withdrawReason}
-              onChange={(e) => setWithdrawReason(e.target.value)}
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-[#1A1A1A] mb-5 focus:outline-none focus:ring-2"
-              style={{ '--tw-ring-color': '#B8960C' } as React.CSSProperties}
+              onChange={e => setWithdrawReason(e.target.value)}
+              style={{ width: '100%', padding: '10px 12px', borderRadius: 9, border: '0.5px solid var(--border-default)', background: 'var(--surface-3)', color: 'var(--text-primary)', fontSize: 13, marginBottom: 20, outline: 'none' }}
             >
-              {WITHDRAWAL_REASONS.map((r) => (
-                <option key={r} value={r}>{r}</option>
-              ))}
+              {WITHDRAWAL_REASONS.map(r => <option key={r} value={r}>{r}</option>)}
             </select>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowWithdrawModal(false)}
-                className="flex-1 px-4 py-2.5 rounded-lg text-sm font-semibold border border-gray-200 text-[#1A1A1A] hover:bg-gray-50 transition-colors"
-              >
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button onClick={() => setShowWithdrawModal(false)} style={{ flex: 1, padding: '10px', borderRadius: 9, fontSize: 13, fontWeight: 500, background: 'var(--surface-3)', border: '0.5px solid var(--border-default)', color: 'var(--text-secondary)', cursor: 'pointer' }}>
                 Cancel
               </button>
-              <button
-                onClick={handleWithdraw}
-                disabled={actionLoading}
-                className="flex-1 px-4 py-2.5 rounded-lg text-sm font-semibold bg-red-500 text-white hover:bg-red-600 transition-colors disabled:opacity-50"
-              >
-                {actionLoading ? 'Withdrawing…' : 'Confirm withdrawal'}
+              <button onClick={handleWithdraw} disabled={actionLoading} style={{ flex: 1, padding: '10px', borderRadius: 9, fontSize: 13, fontWeight: 600, background: 'rgba(248,113,113,0.15)', border: '0.5px solid rgba(248,113,113,0.4)', color: '#F87171', cursor: 'pointer', opacity: actionLoading ? 0.5 : 1 }}>
+                {actionLoading ? 'Withdrawing…' : 'Confirm'}
               </button>
             </div>
           </div>
         </div>
       )}
-    </>
+    </div>
   )
 }

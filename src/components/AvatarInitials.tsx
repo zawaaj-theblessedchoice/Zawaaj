@@ -1,26 +1,36 @@
 interface AvatarInitialsProps {
   initials: string
   gender: string | null
-  size?: 'sm' | 'md' | 'lg'
+  size?: 'sm' | 'md' | 'lg' | 'xl'
+  goldBorder?: boolean
 }
 
-export default function AvatarInitials({ initials, gender, size = 'md' }: AvatarInitialsProps) {
+export default function AvatarInitials({
+  initials,
+  gender,
+  size = 'md',
+  goldBorder = false,
+}: AvatarInitialsProps) {
   const isFemale = gender === 'female'
 
-  const bg = isFemale ? '#EEEDFE' : '#E6F1FB'
-  const color = isFemale ? '#534AB7' : '#185FA5'
+  // Dark-theme avatar colours — gender-distinct, readable on dark surfaces
+  const bg    = isFemale ? '#2D2455' : '#0D2A3A'
+  const color = isFemale ? '#C4BCFF' : '#7BBFE8'
 
-  const sizeClasses =
-    size === 'sm'
-      ? 'w-8 h-8 text-xs'
-      : size === 'lg'
-      ? 'w-20 h-20 text-2xl'
-      : 'w-12 h-12 text-sm'
+  const sizeClass =
+    size === 'sm' ? 'w-8 h-8 text-xs' :
+    size === 'lg' ? 'w-16 h-16 text-xl' :
+    size === 'xl' ? 'w-20 h-20 text-2xl' :
+    'w-12 h-12 text-sm'
+
+  const borderStyle = goldBorder
+    ? { border: '1.5px solid rgba(184, 150, 12, 0.6)' }
+    : {}
 
   return (
     <div
-      className={`${sizeClasses} rounded-full flex items-center justify-center font-bold flex-shrink-0`}
-      style={{ backgroundColor: bg, color }}
+      className={`${sizeClass} rounded-full flex items-center justify-center font-semibold flex-shrink-0`}
+      style={{ backgroundColor: bg, color, ...borderStyle }}
     >
       {initials.trim().slice(0, 3)}
     </div>
