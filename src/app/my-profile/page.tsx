@@ -32,12 +32,15 @@ interface Profile {
   languages_spoken: string | null
   living_situation: string | null
   open_to_relocation: string | null
+  open_to_partners_children: string | null
+  polygamy_openness: string | null
   pref_age_min: number | null
   pref_age_max: number | null
   pref_location: string | null
   pref_ethnicity: string | null
   pref_school_of_thought: string[] | null
   pref_partner_children: string | null
+  pref_relocation: string | null
   status: string
   is_admin: boolean
   interests_this_month: number
@@ -118,6 +121,35 @@ function displayValue(map: Record<string, string>, v: string | null): string | n
   return map[v] ?? v
 }
 
+function EditField({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string }) {
+  return (
+    <div>
+      <div style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: 5 }}>{label}</div>
+      <input
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        placeholder={placeholder}
+        style={{ width: '100%', padding: '9px 12px', borderRadius: 9, border: '0.5px solid var(--border-default)', background: 'var(--surface-3)', color: 'var(--text-primary)', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
+      />
+    </div>
+  )
+}
+
+function EditSelect({ label, value, onChange, options }: { label: string; value: string; onChange: (v: string) => void; options: { value: string; label: string }[] }) {
+  return (
+    <div>
+      <div style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: 5 }}>{label}</div>
+      <select
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        style={{ width: '100%', padding: '9px 12px', borderRadius: 9, border: '0.5px solid var(--border-default)', background: 'var(--surface-3)', color: 'var(--text-primary)', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
+      >
+        {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+      </select>
+    </div>
+  )
+}
+
 export default function MyProfilePage() {
   const supabase = createClient()
   const pathname = usePathname()
@@ -134,17 +166,47 @@ export default function MyProfilePage() {
   const [withdrawn, setWithdrawn] = useState(false)
   const [bioExpanded, setBioExpanded] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
+  const [editSection, setEditSection] = useState<string>('about')
   const [editForm, setEditForm] = useState({
+    // Personal & lifestyle
+    location: '',
+    height: '',
+    languagesSpoken: '',
+    livingSituation: '',
+    openToRelocation: '',
+    openToPartnersChildren: '',
+    polygamyOpenness: '',
+    // Background
+    professionDetail: '',
+    educationLevel: '',
+    educationDetail: '',
+    nationality: '',
+    ethnicity: '',
+    // Faith
+    schoolOfThought: '',
+    religiosity: '',
+    prayerRegularity: '',
+    wearsHijab: '',
+    keepsBeard: '',
+    // Bio
     bio: '',
+    // Partner preferences
     prefAgeMin: '',
     prefAgeMax: '',
     prefLocation: '',
     prefEthnicity: '',
     prefSchoolOfThought: '',
     prefPartnerChildren: '',
+    prefRelocation: '',
   })
   const [editLoading, setEditLoading] = useState(false)
   const [editError, setEditError] = useState<string | null>(null)
+  // Change password
+  const [showPasswordModal, setShowPasswordModal] = useState(false)
+  const [pwForm, setPwForm] = useState({ newPassword: '', confirm: '' })
+  const [pwLoading, setPwLoading] = useState(false)
+  const [pwError, setPwError] = useState<string | null>(null)
+  const [pwSuccess, setPwSuccess] = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -159,7 +221,7 @@ export default function MyProfilePage() {
 
       const { data: profileRows } = await supabase
         .from('zawaaj_profiles')
-        .select('id, display_initials, first_name, last_name, gender, date_of_birth, age_display, height, ethnicity, nationality, school_of_thought, education_level, education_detail, profession_detail, location, bio, religiosity, prayer_regularity, wears_hijab, keeps_beard, marital_status, has_children, languages_spoken, living_situation, open_to_relocation, pref_age_min, pref_age_max, pref_location, pref_ethnicity, pref_school_of_thought, pref_partner_children, status, is_admin, interests_this_month')
+        .select('id, display_initials, first_name, last_name, gender, date_of_birth, age_display, height, ethnicity, nationality, school_of_thought, education_level, education_detail, profession_detail, location, bio, religiosity, prayer_regularity, wears_hijab, keeps_beard, marital_status, has_children, languages_spoken, living_situation, open_to_relocation, open_to_partners_children, polygamy_openness, pref_age_min, pref_age_max, pref_location, pref_ethnicity, pref_school_of_thought, pref_partner_children, pref_relocation, status, is_admin, interests_this_month')
         .eq('user_id', user.id)
 
       if (!profileRows?.length) { setLoading(false); return }
@@ -217,6 +279,23 @@ export default function MyProfilePage() {
   function openEdit() {
     if (!profile) return
     setEditForm({
+      location: profile.location ?? '',
+      height: profile.height ?? '',
+      languagesSpoken: profile.languages_spoken ?? '',
+      livingSituation: profile.living_situation ?? '',
+      openToRelocation: profile.open_to_relocation ?? '',
+      openToPartnersChildren: profile.open_to_partners_children ?? '',
+      polygamyOpenness: profile.polygamy_openness ?? '',
+      professionDetail: profile.profession_detail ?? '',
+      educationLevel: profile.education_level ?? '',
+      educationDetail: profile.education_detail ?? '',
+      nationality: profile.nationality ?? '',
+      ethnicity: profile.ethnicity ?? '',
+      schoolOfThought: profile.school_of_thought ?? '',
+      religiosity: profile.religiosity ?? '',
+      prayerRegularity: profile.prayer_regularity ?? '',
+      wearsHijab: profile.wears_hijab === true ? 'true' : profile.wears_hijab === false ? 'false' : '',
+      keepsBeard: profile.keeps_beard === true ? 'true' : profile.keeps_beard === false ? 'false' : '',
       bio: profile.bio ?? '',
       prefAgeMin: profile.pref_age_min?.toString() ?? '',
       prefAgeMax: profile.pref_age_max?.toString() ?? '',
@@ -224,8 +303,10 @@ export default function MyProfilePage() {
       prefEthnicity: profile.pref_ethnicity ?? '',
       prefSchoolOfThought: profile.pref_school_of_thought?.join(', ') ?? '',
       prefPartnerChildren: profile.pref_partner_children ?? '',
+      prefRelocation: profile.pref_relocation ?? '',
     })
     setEditError(null)
+    setEditSection('about')
     setShowEditModal(true)
   }
 
@@ -233,29 +314,81 @@ export default function MyProfilePage() {
     if (!profile) return
     setEditLoading(true)
     setEditError(null)
-    const sot = editForm.prefSchoolOfThought.split(',').map(s => s.trim()).filter(Boolean)
+    const sotPref = editForm.prefSchoolOfThought.split(',').map(s => s.trim()).filter(Boolean)
     const { error } = await supabase.from('zawaaj_profiles').update({
+      location: editForm.location || null,
+      height: editForm.height || null,
+      languages_spoken: editForm.languagesSpoken || null,
+      living_situation: editForm.livingSituation || null,
+      open_to_relocation: editForm.openToRelocation || null,
+      open_to_partners_children: editForm.openToPartnersChildren || null,
+      polygamy_openness: editForm.polygamyOpenness || null,
+      profession_detail: editForm.professionDetail || null,
+      education_level: editForm.educationLevel || null,
+      education_detail: editForm.educationDetail || null,
+      nationality: editForm.nationality || null,
+      ethnicity: editForm.ethnicity || null,
+      school_of_thought: editForm.schoolOfThought || null,
+      religiosity: editForm.religiosity || null,
+      prayer_regularity: editForm.prayerRegularity || null,
+      wears_hijab: profile.gender === 'female' && editForm.wearsHijab !== '' ? editForm.wearsHijab === 'true' : null,
+      keeps_beard: profile.gender === 'male' && editForm.keepsBeard !== '' ? editForm.keepsBeard === 'true' : null,
       bio: editForm.bio || null,
       pref_age_min: editForm.prefAgeMin ? parseInt(editForm.prefAgeMin, 10) : null,
       pref_age_max: editForm.prefAgeMax ? parseInt(editForm.prefAgeMax, 10) : null,
       pref_location: editForm.prefLocation || null,
       pref_ethnicity: editForm.prefEthnicity || null,
-      pref_school_of_thought: sot.length > 0 ? sot : null,
+      pref_school_of_thought: sotPref.length > 0 ? sotPref : null,
       pref_partner_children: editForm.prefPartnerChildren || null,
+      pref_relocation: editForm.prefRelocation || null,
     }).eq('id', profile.id)
     if (error) { setEditError(error.message); setEditLoading(false); return }
     setProfile({
       ...profile,
+      location: editForm.location || null,
+      height: editForm.height || null,
+      languages_spoken: editForm.languagesSpoken || null,
+      living_situation: editForm.livingSituation || null,
+      open_to_relocation: editForm.openToRelocation || null,
+      open_to_partners_children: editForm.openToPartnersChildren || null,
+      polygamy_openness: editForm.polygamyOpenness || null,
+      profession_detail: editForm.professionDetail || null,
+      education_level: editForm.educationLevel || null,
+      education_detail: editForm.educationDetail || null,
+      nationality: editForm.nationality || null,
+      ethnicity: editForm.ethnicity || null,
+      school_of_thought: editForm.schoolOfThought || null,
+      religiosity: editForm.religiosity || null,
+      prayer_regularity: editForm.prayerRegularity || null,
+      wears_hijab: profile.gender === 'female' && editForm.wearsHijab !== '' ? editForm.wearsHijab === 'true' : null,
+      keeps_beard: profile.gender === 'male' && editForm.keepsBeard !== '' ? editForm.keepsBeard === 'true' : null,
       bio: editForm.bio || null,
       pref_age_min: editForm.prefAgeMin ? parseInt(editForm.prefAgeMin, 10) : null,
       pref_age_max: editForm.prefAgeMax ? parseInt(editForm.prefAgeMax, 10) : null,
       pref_location: editForm.prefLocation || null,
       pref_ethnicity: editForm.prefEthnicity || null,
-      pref_school_of_thought: sot.length > 0 ? sot : null,
+      pref_school_of_thought: sotPref.length > 0 ? sotPref : null,
       pref_partner_children: editForm.prefPartnerChildren || null,
+      pref_relocation: editForm.prefRelocation || null,
     })
     setEditLoading(false)
     setShowEditModal(false)
+  }
+
+  async function savePassword() {
+    if (!pwForm.newPassword || pwForm.newPassword !== pwForm.confirm) {
+      setPwError(pwForm.newPassword !== pwForm.confirm ? 'Passwords do not match.' : 'Please enter a new password.')
+      return
+    }
+    if (pwForm.newPassword.length < 8) { setPwError('Password must be at least 8 characters.'); return }
+    setPwLoading(true)
+    setPwError(null)
+    const { error } = await supabase.auth.updateUser({ password: pwForm.newPassword })
+    setPwLoading(false)
+    if (error) { setPwError(error.message); return }
+    setPwSuccess(true)
+    setPwForm({ newPassword: '', confirm: '' })
+    setTimeout(() => { setPwSuccess(false); setShowPasswordModal(false) }, 2000)
   }
 
   async function handleWithdraw() {
@@ -407,7 +540,13 @@ export default function MyProfilePage() {
                 onClick={openEdit}
                 style={{ padding: '8px 16px', borderRadius: 9, fontSize: 13, fontWeight: 500, cursor: 'pointer', background: 'var(--surface-3)', border: '0.5px solid var(--border-default)', color: 'var(--text-secondary)' }}
               >
-                ✏️ Edit bio & preferences
+                ✏️ Edit profile
+              </button>
+              <button
+                onClick={() => { setPwError(null); setPwSuccess(false); setPwForm({ newPassword: '', confirm: '' }); setShowPasswordModal(true) }}
+                style={{ padding: '8px 16px', borderRadius: 9, fontSize: 13, fontWeight: 500, cursor: 'pointer', background: 'var(--surface-3)', border: '0.5px solid var(--border-default)', color: 'var(--text-secondary)' }}
+              >
+                🔑 Change password
               </button>
               {(profile.status === 'approved' || profile.status === 'paused') && (
                 <button
@@ -479,114 +618,167 @@ export default function MyProfilePage() {
 
       {/* Edit modal */}
       {showEditModal && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.6)' }}>
-          <div style={{ background: 'var(--surface-2)', border: '0.5px solid var(--border-default)', borderRadius: 13, padding: 28, width: '100%', maxWidth: 480, maxHeight: '90vh', overflowY: 'auto' }}>
-            <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--text-primary)', marginBottom: 4 }}>Edit profile</div>
-            <p style={{ fontSize: 12.5, color: 'var(--text-muted)', marginBottom: 20 }}>Update your bio and partner preferences.</p>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.7)' }}>
+          <div style={{ background: 'var(--surface-2)', border: '0.5px solid var(--border-default)', borderRadius: 16, width: '100%', maxWidth: 540, maxHeight: '92vh', display: 'flex', flexDirection: 'column', boxShadow: '0 24px 64px rgba(0,0,0,0.5)' }}>
 
-            {/* Bio */}
-            <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: 6 }}>About me (bio)</div>
-              <textarea
-                value={editForm.bio}
-                onChange={e => setEditForm(f => ({ ...f, bio: e.target.value }))}
-                rows={4}
-                placeholder="Tell potential matches a bit about yourself..."
-                style={{ width: '100%', padding: '10px 12px', borderRadius: 9, border: '0.5px solid var(--border-default)', background: 'var(--surface-3)', color: 'var(--text-primary)', fontSize: 13, resize: 'vertical', outline: 'none', boxSizing: 'border-box' }}
-              />
-            </div>
-
-            {/* Pref age */}
-            <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: 6 }}>Preferred age range</div>
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <input
-                  type="number"
-                  value={editForm.prefAgeMin}
-                  onChange={e => setEditForm(f => ({ ...f, prefAgeMin: e.target.value }))}
-                  placeholder="Min"
-                  min={18}
-                  max={99}
-                  style={{ width: '100%', padding: '9px 12px', borderRadius: 9, border: '0.5px solid var(--border-default)', background: 'var(--surface-3)', color: 'var(--text-primary)', fontSize: 13, outline: 'none' }}
-                />
-                <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>to</span>
-                <input
-                  type="number"
-                  value={editForm.prefAgeMax}
-                  onChange={e => setEditForm(f => ({ ...f, prefAgeMax: e.target.value }))}
-                  placeholder="Max"
-                  min={18}
-                  max={99}
-                  style={{ width: '100%', padding: '9px 12px', borderRadius: 9, border: '0.5px solid var(--border-default)', background: 'var(--surface-3)', color: 'var(--text-primary)', fontSize: 13, outline: 'none' }}
-                />
+            {/* Modal header */}
+            <div style={{ padding: '20px 24px 0', flexShrink: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>Edit profile</div>
+                <button onClick={() => setShowEditModal(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 18, lineHeight: 1, padding: '0 2px' }}>✕</button>
+              </div>
+              {/* Section tabs */}
+              <div style={{ display: 'flex', gap: 2, borderBottom: '0.5px solid var(--border-default)', marginBottom: 0 }}>
+                {(['about', 'background', 'faith', 'bio', 'preferences'] as const).map(s => (
+                  <button
+                    key={s}
+                    onClick={() => setEditSection(s)}
+                    style={{ padding: '7px 12px', fontSize: 12, fontWeight: 500, background: 'none', border: 'none', borderBottom: `2px solid ${editSection === s ? 'var(--gold)' : 'transparent'}`, color: editSection === s ? 'var(--gold)' : 'var(--text-muted)', cursor: 'pointer', textTransform: 'capitalize', transition: 'color 0.15s' }}
+                  >
+                    {s === 'background' ? 'Background' : s === 'preferences' ? 'Looking for' : s.charAt(0).toUpperCase() + s.slice(1)}
+                  </button>
+                ))}
               </div>
             </div>
 
-            {/* Pref location */}
-            <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: 6 }}>Preferred location</div>
-              <input
-                value={editForm.prefLocation}
-                onChange={e => setEditForm(f => ({ ...f, prefLocation: e.target.value }))}
-                placeholder="e.g. UK, London"
-                style={{ width: '100%', padding: '9px 12px', borderRadius: 9, border: '0.5px solid var(--border-default)', background: 'var(--surface-3)', color: 'var(--text-primary)', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
-              />
+            {/* Scrollable body */}
+            <div style={{ padding: '20px 24px', overflowY: 'auto', flex: 1 }}>
+
+              {/* ABOUT */}
+              {editSection === 'about' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  <EditField label="Location" placeholder="e.g. London, UK" value={editForm.location} onChange={v => setEditForm(f => ({ ...f, location: v }))} />
+                  <EditField label="Height" placeholder="e.g. 5'8&quot;" value={editForm.height} onChange={v => setEditForm(f => ({ ...f, height: v }))} />
+                  <EditField label="Languages spoken" placeholder="e.g. English, Urdu, Arabic" value={editForm.languagesSpoken} onChange={v => setEditForm(f => ({ ...f, languagesSpoken: v }))} />
+                  <EditSelect label="Living situation" value={editForm.livingSituation} onChange={v => setEditForm(f => ({ ...f, livingSituation: v }))} options={[
+                    { value: '', label: 'Not specified' },
+                    { value: 'independent', label: 'Living independently' },
+                    { value: 'with_family', label: 'With family' },
+                    { value: 'shared', label: 'Shared accommodation' },
+                  ]} />
+                  <EditField label="Open to relocation?" placeholder="e.g. Yes, No, Maybe" value={editForm.openToRelocation} onChange={v => setEditForm(f => ({ ...f, openToRelocation: v }))} />
+                  <EditField label="Open to partner&apos;s children?" placeholder="e.g. Yes, Open to discuss" value={editForm.openToPartnersChildren} onChange={v => setEditForm(f => ({ ...f, openToPartnersChildren: v }))} />
+                  <EditField label="Polygamy openness" placeholder="e.g. Not open, Open to discuss" value={editForm.polygamyOpenness} onChange={v => setEditForm(f => ({ ...f, polygamyOpenness: v }))} />
+                </div>
+              )}
+
+              {/* BACKGROUND */}
+              {editSection === 'background' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  <EditField label="Profession" placeholder="e.g. Software Engineer" value={editForm.professionDetail} onChange={v => setEditForm(f => ({ ...f, professionDetail: v }))} />
+                  <EditField label="Education level" placeholder="e.g. Bachelor's degree, Master's degree" value={editForm.educationLevel} onChange={v => setEditForm(f => ({ ...f, educationLevel: v }))} />
+                  <EditField label="Institution" placeholder="e.g. University of Manchester" value={editForm.educationDetail} onChange={v => setEditForm(f => ({ ...f, educationDetail: v }))} />
+                  <EditField label="Nationality" placeholder="e.g. British, Pakistani" value={editForm.nationality} onChange={v => setEditForm(f => ({ ...f, nationality: v }))} />
+                  <EditField label="Ethnicity" placeholder="e.g. South Asian, Arab, Mixed" value={editForm.ethnicity} onChange={v => setEditForm(f => ({ ...f, ethnicity: v }))} />
+                </div>
+              )}
+
+              {/* FAITH */}
+              {editSection === 'faith' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  <EditField label="School of thought" placeholder="e.g. Sunni, Deobandi, Barelwi" value={editForm.schoolOfThought} onChange={v => setEditForm(f => ({ ...f, schoolOfThought: v }))} />
+                  <EditField label="Religiosity" placeholder="e.g. Practising, Moderately practising" value={editForm.religiosity} onChange={v => setEditForm(f => ({ ...f, religiosity: v }))} />
+                  <EditSelect label="Prayer regularity" value={editForm.prayerRegularity} onChange={v => setEditForm(f => ({ ...f, prayerRegularity: v }))} options={[
+                    { value: '', label: 'Not specified' },
+                    { value: 'yes_regularly', label: 'Yes, regularly' },
+                    { value: 'most_of_time', label: 'Most of the time' },
+                    { value: 'working_on_it', label: 'Working on it' },
+                    { value: 'not_currently', label: 'Not currently' },
+                  ]} />
+                  {profile?.gender === 'female' && (
+                    <EditSelect label="Wears hijab" value={editForm.wearsHijab} onChange={v => setEditForm(f => ({ ...f, wearsHijab: v }))} options={[
+                      { value: '', label: 'Not specified' },
+                      { value: 'true', label: 'Yes' },
+                      { value: 'false', label: 'No' },
+                    ]} />
+                  )}
+                  {profile?.gender === 'male' && (
+                    <EditSelect label="Keeps beard" value={editForm.keepsBeard} onChange={v => setEditForm(f => ({ ...f, keepsBeard: v }))} options={[
+                      { value: '', label: 'Not specified' },
+                      { value: 'true', label: 'Yes' },
+                      { value: 'false', label: 'No' },
+                    ]} />
+                  )}
+                </div>
+              )}
+
+              {/* BIO */}
+              {editSection === 'bio' && (
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: 6 }}>About me</div>
+                  <textarea
+                    value={editForm.bio}
+                    onChange={e => setEditForm(f => ({ ...f, bio: e.target.value }))}
+                    rows={8}
+                    placeholder="Write a few sentences about yourself — your personality, what you're looking for, and what makes you who you are."
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: 9, border: '0.5px solid var(--border-default)', background: 'var(--surface-3)', color: 'var(--text-primary)', fontSize: 13, resize: 'vertical', outline: 'none', boxSizing: 'border-box', lineHeight: 1.6 }}
+                  />
+                  <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 6 }}>{editForm.bio.length} characters</div>
+                </div>
+              )}
+
+              {/* PREFERENCES */}
+              {editSection === 'preferences' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  <div>
+                    <div style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: 6 }}>Preferred age range</div>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <input type="number" value={editForm.prefAgeMin} onChange={e => setEditForm(f => ({ ...f, prefAgeMin: e.target.value }))} placeholder="Min" min={18} max={99} style={{ width: '100%', padding: '9px 12px', borderRadius: 9, border: '0.5px solid var(--border-default)', background: 'var(--surface-3)', color: 'var(--text-primary)', fontSize: 13, outline: 'none' }} />
+                      <span style={{ color: 'var(--text-muted)', fontSize: 12, flexShrink: 0 }}>–</span>
+                      <input type="number" value={editForm.prefAgeMax} onChange={e => setEditForm(f => ({ ...f, prefAgeMax: e.target.value }))} placeholder="Max" min={18} max={99} style={{ width: '100%', padding: '9px 12px', borderRadius: 9, border: '0.5px solid var(--border-default)', background: 'var(--surface-3)', color: 'var(--text-primary)', fontSize: 13, outline: 'none' }} />
+                    </div>
+                  </div>
+                  <EditField label="Preferred location" placeholder="e.g. UK, London" value={editForm.prefLocation} onChange={v => setEditForm(f => ({ ...f, prefLocation: v }))} />
+                  <EditField label="Ethnicity preference" placeholder="e.g. Any, South Asian, Arab" value={editForm.prefEthnicity} onChange={v => setEditForm(f => ({ ...f, prefEthnicity: v }))} />
+                  <div>
+                    <EditField label="School of thought preference" placeholder="e.g. Sunni, Deobandi (comma-separated)" value={editForm.prefSchoolOfThought} onChange={v => setEditForm(f => ({ ...f, prefSchoolOfThought: v }))} />
+                    <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 3 }}>Separate multiple with commas</div>
+                  </div>
+                  <EditField label="Open to partner relocating?" placeholder="e.g. Yes, Flexible" value={editForm.prefRelocation} onChange={v => setEditForm(f => ({ ...f, prefRelocation: v }))} />
+                  <EditField label="Partner&apos;s existing children" placeholder="e.g. Open to it, Prefer not" value={editForm.prefPartnerChildren} onChange={v => setEditForm(f => ({ ...f, prefPartnerChildren: v }))} />
+                </div>
+              )}
             </div>
 
-            {/* Pref ethnicity */}
-            <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: 6 }}>Ethnicity preference</div>
-              <input
-                value={editForm.prefEthnicity}
-                onChange={e => setEditForm(f => ({ ...f, prefEthnicity: e.target.value }))}
-                placeholder="e.g. Any, South Asian, Arab"
-                style={{ width: '100%', padding: '9px 12px', borderRadius: 9, border: '0.5px solid var(--border-default)', background: 'var(--surface-3)', color: 'var(--text-primary)', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
-              />
+            {/* Footer */}
+            <div style={{ padding: '16px 24px 20px', borderTop: '0.5px solid var(--border-default)', flexShrink: 0 }}>
+              {editError && (
+                <div style={{ padding: '8px 12px', borderRadius: 8, background: 'rgba(248,113,113,0.1)', border: '0.5px solid rgba(248,113,113,0.3)', fontSize: 12.5, color: '#F87171', marginBottom: 10 }}>
+                  {editError}
+                </div>
+              )}
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button onClick={() => setShowEditModal(false)} disabled={editLoading} style={{ flex: 1, padding: '10px', borderRadius: 9, fontSize: 13, fontWeight: 500, background: 'var(--surface-3)', border: '0.5px solid var(--border-default)', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+                  Cancel
+                </button>
+                <button onClick={saveEdit} disabled={editLoading} style={{ flex: 2, padding: '10px', borderRadius: 9, fontSize: 13, fontWeight: 600, background: 'linear-gradient(135deg, var(--gold), var(--gold-light))', border: 'none', color: '#111', cursor: editLoading ? 'not-allowed' : 'pointer', opacity: editLoading ? 0.6 : 1 }}>
+                  {editLoading ? 'Saving…' : 'Save changes'}
+                </button>
+              </div>
             </div>
+          </div>
+        </div>
+      )}
 
-            {/* Pref school of thought */}
-            <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: 6 }}>School of thought preference</div>
-              <input
-                value={editForm.prefSchoolOfThought}
-                onChange={e => setEditForm(f => ({ ...f, prefSchoolOfThought: e.target.value }))}
-                placeholder="e.g. Sunni, Deobandi (comma-separated)"
-                style={{ width: '100%', padding: '9px 12px', borderRadius: 9, border: '0.5px solid var(--border-default)', background: 'var(--surface-3)', color: 'var(--text-primary)', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
-              />
-              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>Separate multiple values with commas</div>
+      {/* Change password modal */}
+      {showPasswordModal && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.7)' }}>
+          <div style={{ background: 'var(--surface-2)', border: '0.5px solid var(--border-default)', borderRadius: 16, padding: 28, width: '100%', maxWidth: 400, boxShadow: '0 24px 64px rgba(0,0,0,0.5)' }}>
+            <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 20 }}>Change password</div>
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: 6 }}>New password</div>
+              <input type="password" value={pwForm.newPassword} onChange={e => setPwForm(f => ({ ...f, newPassword: e.target.value }))} placeholder="Minimum 8 characters" style={{ width: '100%', padding: '10px 12px', borderRadius: 9, border: '0.5px solid var(--border-default)', background: 'var(--surface-3)', color: 'var(--text-primary)', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
             </div>
-
-            {/* Pref partner children */}
             <div style={{ marginBottom: 20 }}>
-              <div style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: 6 }}>Partner&apos;s existing children</div>
-              <input
-                value={editForm.prefPartnerChildren}
-                onChange={e => setEditForm(f => ({ ...f, prefPartnerChildren: e.target.value }))}
-                placeholder="e.g. Open to it, Prefer not"
-                style={{ width: '100%', padding: '9px 12px', borderRadius: 9, border: '0.5px solid var(--border-default)', background: 'var(--surface-3)', color: 'var(--text-primary)', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
-              />
+              <div style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: 6 }}>Confirm password</div>
+              <input type="password" value={pwForm.confirm} onChange={e => setPwForm(f => ({ ...f, confirm: e.target.value }))} placeholder="Repeat new password" style={{ width: '100%', padding: '10px 12px', borderRadius: 9, border: '0.5px solid var(--border-default)', background: 'var(--surface-3)', color: 'var(--text-primary)', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
             </div>
-
-            {editError && (
-              <div style={{ padding: '8px 12px', borderRadius: 8, background: 'rgba(248,113,113,0.1)', border: '0.5px solid rgba(248,113,113,0.3)', fontSize: 12.5, color: '#F87171', marginBottom: 12 }}>
-                {editError}
-              </div>
-            )}
-
+            {pwError && <div style={{ padding: '8px 12px', borderRadius: 8, background: 'rgba(248,113,113,0.1)', border: '0.5px solid rgba(248,113,113,0.3)', fontSize: 12.5, color: '#F87171', marginBottom: 12 }}>{pwError}</div>}
+            {pwSuccess && <div style={{ padding: '8px 12px', borderRadius: 8, background: 'rgba(74,222,128,0.08)', border: '0.5px solid rgba(74,222,128,0.25)', fontSize: 12.5, color: '#4ADE80', marginBottom: 12 }}>Password updated ✓</div>}
             <div style={{ display: 'flex', gap: 10 }}>
-              <button
-                onClick={() => setShowEditModal(false)}
-                disabled={editLoading}
-                style={{ flex: 1, padding: '10px', borderRadius: 9, fontSize: 13, fontWeight: 500, background: 'var(--surface-3)', border: '0.5px solid var(--border-default)', color: 'var(--text-secondary)', cursor: 'pointer' }}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={saveEdit}
-                disabled={editLoading}
-                style={{ flex: 1, padding: '10px', borderRadius: 9, fontSize: 13, fontWeight: 600, background: 'var(--gold)', border: 'none', color: '#111', cursor: editLoading ? 'not-allowed' : 'pointer', opacity: editLoading ? 0.6 : 1 }}
-              >
-                {editLoading ? 'Saving…' : 'Save changes'}
+              <button onClick={() => setShowPasswordModal(false)} style={{ flex: 1, padding: '10px', borderRadius: 9, fontSize: 13, fontWeight: 500, background: 'var(--surface-3)', border: '0.5px solid var(--border-default)', color: 'var(--text-secondary)', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={savePassword} disabled={pwLoading} style={{ flex: 2, padding: '10px', borderRadius: 9, fontSize: 13, fontWeight: 600, background: 'linear-gradient(135deg, var(--gold), var(--gold-light))', border: 'none', color: '#111', cursor: pwLoading ? 'not-allowed' : 'pointer', opacity: pwLoading ? 0.6 : 1 }}>
+                {pwLoading ? 'Updating…' : 'Update password'}
               </button>
             </div>
           </div>

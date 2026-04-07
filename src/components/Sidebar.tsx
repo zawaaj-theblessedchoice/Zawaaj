@@ -240,7 +240,7 @@ export default function Sidebar({
       {/* Logo */}
       <div style={{ padding: '20px 20px 12px' }}>
         <Link href="/browse" style={{ display: 'inline-block' }}>
-          <ZawaajLogo size={40} tagline={false} />
+          <ZawaajLogo size={54} tagline={false} />
         </Link>
       </div>
 

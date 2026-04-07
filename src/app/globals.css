@@ -2,26 +2,26 @@
 
 /* ─── Design tokens ──────────────────────────────────────────────────────── */
 :root {
-  /* Gold */
-  --gold:        #B8960C;
-  --gold-light:  #D4A92A;
-  --gold-muted:  rgba(184, 150, 12, 0.13);
-  --gold-border: rgba(184, 150, 12, 0.3);
+  /* Gold — richer, warmer */
+  --gold:        #C49A10;
+  --gold-light:  #D9AF2E;
+  --gold-muted:  rgba(196, 154, 16, 0.12);
+  --gold-border: rgba(196, 154, 16, 0.30);
 
-  /* Surfaces */
+  /* Surfaces — warm dark */
   --surface:   #111110;
-  --surface-2: #1A1A18;
-  --surface-3: #222220;
-  --surface-4: #2A2A28;
+  --surface-2: #1B1B19;
+  --surface-3: #232321;
+  --surface-4: #2C2C2A;
 
-  /* Text */
-  --text-primary:   #F0EDE6;
-  --text-secondary: #9A9590;
-  --text-muted:     #5A5752;
+  /* Text — crisper contrast */
+  --text-primary:   #F6F3EC;
+  --text-secondary: #AAA49D;
+  --text-muted:     #666259;
 
-  /* Borders */
-  --border-default: rgba(255, 255, 255, 0.07);
-  --border-gold:    rgba(184, 150, 12, 0.3);
+  /* Borders — more defined */
+  --border-default: rgba(255, 255, 255, 0.09);
+  --border-gold:    rgba(196, 154, 16, 0.30);
 }
 
 /* ─── Tailwind theme registration ────────────────────────────────────────── */
@@ -44,6 +44,8 @@ body {
   color: var(--text-primary);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  letter-spacing: -0.01em;
 }
 
 /* ─── Scrollbar (dark theme) ─────────────────────────────────────────────── */
@@ -55,4 +57,23 @@ body {
 ::selection {
   background: var(--gold-muted);
   color: var(--text-primary);
+}
+
+/* ─── Focus ring ─────────────────────────────────────────────────────────── */
+:focus-visible {
+  outline: 1.5px solid var(--gold-border);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* ─── Smooth transitions on interactive elements ─────────────────────────── */
+a, button { transition: opacity 0.15s ease, color 0.15s ease, background 0.15s ease; }
+
+/* ─── Input base ─────────────────────────────────────────────────────────── */
+input, textarea, select {
+  color-scheme: dark;
+}
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  box-shadow: 0 0 0 1.5px var(--gold-border);
 }
