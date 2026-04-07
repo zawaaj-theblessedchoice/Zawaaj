@@ -25,8 +25,15 @@ export default function ZawaajLogo({
       />
       {tagline && (
         <p
-          className="text-xs tracking-[0.25em] uppercase font-medium"
-          style={{ color: '#B8960C' }}
+          style={{
+            color: 'var(--gold)',
+            fontSize: 9,
+            fontWeight: 500,
+            letterSpacing: '0.30em',
+            textTransform: 'uppercase',
+            marginTop: 2,
+            opacity: 0.85,
+          }}
         >
           The Blessed Choice
         </p>

@@ -237,29 +237,23 @@ export default function Sidebar({
         zIndex: 100,
       }}
     >
-      {/* Logo */}
-      <div style={{ padding: '20px 20px 12px' }}>
-        <Link href="/browse" style={{ display: 'inline-block' }}>
-          <ZawaajLogo size={54} tagline={false} />
-        </Link>
-      </div>
-
-      {/* Private members label */}
-      <div
+      {/* Logo header */}
+      <Link
+        href="/browse"
         style={{
-          fontSize: 10,
-          fontWeight: 500,
-          textTransform: 'uppercase',
-          letterSpacing: '0.12em',
-          color: 'var(--text-muted)',
-          padding: '0 20px 12px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '28px 20px 22px',
+          textDecoration: 'none',
+          borderBottom: '1px solid rgba(196,154,16,0.18)',
+          background: 'linear-gradient(180deg, rgba(196,154,16,0.06) 0%, transparent 100%)',
+          gap: 6,
         }}
       >
-        Private members
-      </div>
-
-      {/* Divider */}
-      <div style={{ height: '0.5px', background: 'var(--border-default)', margin: '0 0 4px' }} />
+        <ZawaajLogo size={72} tagline={true} />
+      </Link>
 
       {/* Nav sections */}
       <nav style={{ flex: 1 }}>
