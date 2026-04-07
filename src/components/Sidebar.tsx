@@ -415,11 +415,12 @@ export default function Sidebar({
             >
               {(managedProfiles ?? []).map(p => {
                 const isActive = p.id === activeProfileId
+                const isPending = p.status === 'pending'
                 return (
                   <button
                     key={p.id}
-                    onClick={() => handleSwitchProfile(p.id)}
-                    disabled={isActive || switching}
+                    onClick={() => !isPending && handleSwitchProfile(p.id)}
+                    disabled={isActive || switching || isPending}
                     style={{
                       display: 'flex',
                       alignItems: 'center',
@@ -429,10 +430,12 @@ export default function Sidebar({
                       background: isActive ? 'var(--gold-muted)' : 'transparent',
                       border: 'none',
                       borderBottom: '0.5px solid var(--border-default)',
-                      cursor: isActive ? 'default' : 'pointer',
+                      cursor: isActive || isPending ? 'default' : 'pointer',
                       color: isActive ? 'var(--gold)' : 'var(--text-secondary)',
                       fontSize: 12,
                       textAlign: 'left',
+                      opacity: isPending ? 0.5 : 1,
+                      pointerEvents: isPending ? 'none' : undefined,
                     }}
                   >
                     <AvatarInitials
@@ -446,7 +449,20 @@ export default function Sidebar({
                     {isActive && (
                       <span style={{ fontSize: 9, color: 'var(--gold)', flexShrink: 0 }}>✓</span>
                     )}
-                    {p.status !== 'approved' && (
+                    {isPending && (
+                      <span style={{
+                        fontSize: 9,
+                        color: 'var(--text-muted)',
+                        background: 'var(--surface-3)',
+                        border: '0.5px solid var(--border-default)',
+                        borderRadius: 4,
+                        padding: '1px 5px',
+                        flexShrink: 0,
+                      }}>
+                        Pending
+                      </span>
+                    )}
+                    {!isPending && p.status !== 'approved' && !isActive && (
                       <span style={{ fontSize: 9, color: 'var(--text-muted)', flexShrink: 0 }}>
                         {p.status}
                       </span>
