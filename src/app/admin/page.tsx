@@ -1155,7 +1155,7 @@ function EventsTab({ events, onRefresh }: { events: ZawaajEvent[]; onRefresh: ()
   const [editNote, setEditNote] = useState<Record<string, string>>({})
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [newForm, setNewForm] = useState({
-    title: '', event_date: '', location_text: '', registration_url: '',
+    title: '', event_date: '', location_text: '', registration_url: '', attendance_note: '',
   })
   const [creating, setCreating] = useState(false)
 
@@ -1205,15 +1205,20 @@ function EventsTab({ events, onRefresh }: { events: ZawaajEvent[]; onRefresh: ()
   async function createEvent() {
     if (!newForm.title) return
     setCreating(true)
+    // Auto-detect past events: if date is set and in the past, mark as ended + show in history
+    const isPast = newForm.event_date
+      ? new Date(newForm.event_date) < new Date()
+      : false
     await supabase.from('zawaaj_events').insert({
       title: newForm.title,
       event_date: newForm.event_date || null,
       location_text: newForm.location_text || null,
       registration_url: newForm.registration_url || null,
-      status: 'upcoming',
-      show_in_history: false,
+      attendance_note: newForm.attendance_note || null,
+      status: isPast ? 'ended' : 'upcoming',
+      show_in_history: isPast,
     })
-    setNewForm({ title: '', event_date: '', location_text: '', registration_url: '' })
+    setNewForm({ title: '', event_date: '', location_text: '', registration_url: '', attendance_note: '' })
     setCreating(false)
     onRefresh()
   }
@@ -1248,7 +1253,12 @@ function EventsTab({ events, onRefresh }: { events: ZawaajEvent[]; onRefresh: ()
             <span className="text-xs text-white/60 mb-1 block">Registration URL</span>
             <input type="url" className="field" value={newForm.registration_url} onChange={e => setNewForm(f => ({ ...f, registration_url: e.target.value }))} />
           </label>
+          <label className="block sm:col-span-2">
+            <span className="text-xs text-white/60 mb-1 block">Note (optional)</span>
+            <input className="field" placeholder="e.g. Hosted by Zawaaj – The Blessed Choice. 11am–1pm." value={newForm.attendance_note} onChange={e => setNewForm(f => ({ ...f, attendance_note: e.target.value }))} />
+          </label>
         </div>
+        <p className="text-xs text-white/30 mt-3">Past dates are automatically saved as ended events in history.</p>
         <button onClick={createEvent} disabled={!newForm.title || creating}
           className="mt-4 px-5 py-2.5 rounded-xl text-sm font-medium bg-[#1A1A1A] text-[#B8960C] hover:bg-[#333] disabled:opacity-50">
           {creating ? 'Creating…' : 'Create Event'}
@@ -1786,11 +1796,14 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen bg-[#111111]">
       {/* Header */}
-      <header className="bg-[#1A1A1A] sticky top-0 z-30 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+      <header className="bg-[#1A1A1A] sticky top-0 z-30" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <ZawaajLogo size={30} tagline={false} />
-            <span className="text-white/30 text-sm hidden sm:block">Admin Dashboard</span>
+            <ZawaajLogo size={40} tagline={false} />
+            <div>
+              <div className="text-white text-sm font-semibold leading-tight">Admin Dashboard</div>
+              <div className="text-white/30 text-xs leading-tight">Zawaaj – The Blessed Choice</div>
+            </div>
           </div>
           <div className="flex items-center gap-4">
             <Link href="/browse" className="text-white/40 hover:text-white/80 text-xs transition-colors">
