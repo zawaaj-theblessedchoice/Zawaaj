@@ -615,16 +615,37 @@ export default function BrowseClient({
             gap: 12,
           }}
         >
-          <h1
-            style={{
-              fontSize: 20,
-              fontWeight: 600,
-              color: 'var(--text-primary)',
-              margin: 0,
-            }}
-          >
-            Browse
-          </h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <h1
+              style={{
+                fontSize: 20,
+                fontWeight: 600,
+                color: 'var(--text-primary)',
+                margin: 0,
+              }}
+            >
+              Browse
+            </h1>
+            {/* Monthly request usage pill */}
+            <span
+              title="Introduction requests used this calendar month"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                padding: '3px 10px',
+                borderRadius: 999,
+                background: monthlyUsed >= 5 ? 'rgba(248,113,113,0.1)' : 'var(--surface-3)',
+                border: `0.5px solid ${monthlyUsed >= 5 ? 'rgba(248,113,113,0.3)' : 'var(--border-default)'}`,
+                fontSize: 11.5,
+                fontWeight: 500,
+                color: monthlyUsed >= 5 ? '#F87171' : 'var(--text-muted)',
+                cursor: 'default',
+              }}
+            >
+              {monthlyUsed}/5 requests
+            </span>
+          </div>
 
           {/* Search + Filter + Sort */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

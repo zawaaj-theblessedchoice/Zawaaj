@@ -133,6 +133,18 @@ export default function MyProfilePage() {
   const [withdrawReason, setWithdrawReason] = useState(WITHDRAWAL_REASONS[0])
   const [withdrawn, setWithdrawn] = useState(false)
   const [bioExpanded, setBioExpanded] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [editForm, setEditForm] = useState({
+    bio: '',
+    prefAgeMin: '',
+    prefAgeMax: '',
+    prefLocation: '',
+    prefEthnicity: '',
+    prefSchoolOfThought: '',
+    prefPartnerChildren: '',
+  })
+  const [editLoading, setEditLoading] = useState(false)
+  const [editError, setEditError] = useState<string | null>(null)
 
   useEffect(() => {
     async function load() {
@@ -200,6 +212,50 @@ export default function MyProfilePage() {
     const { error } = await supabase.from('zawaaj_profiles').update({ status: newStatus }).eq('id', profile.id)
     if (!error) setProfile({ ...profile, status: newStatus })
     setActionLoading(false)
+  }
+
+  function openEdit() {
+    if (!profile) return
+    setEditForm({
+      bio: profile.bio ?? '',
+      prefAgeMin: profile.pref_age_min?.toString() ?? '',
+      prefAgeMax: profile.pref_age_max?.toString() ?? '',
+      prefLocation: profile.pref_location ?? '',
+      prefEthnicity: profile.pref_ethnicity ?? '',
+      prefSchoolOfThought: profile.pref_school_of_thought?.join(', ') ?? '',
+      prefPartnerChildren: profile.pref_partner_children ?? '',
+    })
+    setEditError(null)
+    setShowEditModal(true)
+  }
+
+  async function saveEdit() {
+    if (!profile) return
+    setEditLoading(true)
+    setEditError(null)
+    const sot = editForm.prefSchoolOfThought.split(',').map(s => s.trim()).filter(Boolean)
+    const { error } = await supabase.from('zawaaj_profiles').update({
+      bio: editForm.bio || null,
+      pref_age_min: editForm.prefAgeMin ? parseInt(editForm.prefAgeMin, 10) : null,
+      pref_age_max: editForm.prefAgeMax ? parseInt(editForm.prefAgeMax, 10) : null,
+      pref_location: editForm.prefLocation || null,
+      pref_ethnicity: editForm.prefEthnicity || null,
+      pref_school_of_thought: sot.length > 0 ? sot : null,
+      pref_partner_children: editForm.prefPartnerChildren || null,
+    }).eq('id', profile.id)
+    if (error) { setEditError(error.message); setEditLoading(false); return }
+    setProfile({
+      ...profile,
+      bio: editForm.bio || null,
+      pref_age_min: editForm.prefAgeMin ? parseInt(editForm.prefAgeMin, 10) : null,
+      pref_age_max: editForm.prefAgeMax ? parseInt(editForm.prefAgeMax, 10) : null,
+      pref_location: editForm.prefLocation || null,
+      pref_ethnicity: editForm.prefEthnicity || null,
+      pref_school_of_thought: sot.length > 0 ? sot : null,
+      pref_partner_children: editForm.prefPartnerChildren || null,
+    })
+    setEditLoading(false)
+    setShowEditModal(false)
   }
 
   async function handleWithdraw() {
@@ -347,6 +403,12 @@ export default function MyProfilePage() {
           {/* Actions */}
           {!withdrawn && (
             <div style={{ display: 'flex', gap: 10, paddingTop: 20, marginTop: 20, borderTop: '0.5px solid var(--border-default)', flexWrap: 'wrap' }}>
+              <button
+                onClick={openEdit}
+                style={{ padding: '8px 16px', borderRadius: 9, fontSize: 13, fontWeight: 500, cursor: 'pointer', background: 'var(--surface-3)', border: '0.5px solid var(--border-default)', color: 'var(--text-secondary)' }}
+              >
+                ✏️ Edit bio & preferences
+              </button>
               {(profile.status === 'approved' || profile.status === 'paused') && (
                 <button
                   onClick={handlePauseResume}
@@ -414,6 +476,122 @@ export default function MyProfilePage() {
         </div>
       </div>
       </main>
+
+      {/* Edit modal */}
+      {showEditModal && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.6)' }}>
+          <div style={{ background: 'var(--surface-2)', border: '0.5px solid var(--border-default)', borderRadius: 13, padding: 28, width: '100%', maxWidth: 480, maxHeight: '90vh', overflowY: 'auto' }}>
+            <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--text-primary)', marginBottom: 4 }}>Edit profile</div>
+            <p style={{ fontSize: 12.5, color: 'var(--text-muted)', marginBottom: 20 }}>Update your bio and partner preferences.</p>
+
+            {/* Bio */}
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: 6 }}>About me (bio)</div>
+              <textarea
+                value={editForm.bio}
+                onChange={e => setEditForm(f => ({ ...f, bio: e.target.value }))}
+                rows={4}
+                placeholder="Tell potential matches a bit about yourself..."
+                style={{ width: '100%', padding: '10px 12px', borderRadius: 9, border: '0.5px solid var(--border-default)', background: 'var(--surface-3)', color: 'var(--text-primary)', fontSize: 13, resize: 'vertical', outline: 'none', boxSizing: 'border-box' }}
+              />
+            </div>
+
+            {/* Pref age */}
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: 6 }}>Preferred age range</div>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <input
+                  type="number"
+                  value={editForm.prefAgeMin}
+                  onChange={e => setEditForm(f => ({ ...f, prefAgeMin: e.target.value }))}
+                  placeholder="Min"
+                  min={18}
+                  max={99}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: 9, border: '0.5px solid var(--border-default)', background: 'var(--surface-3)', color: 'var(--text-primary)', fontSize: 13, outline: 'none' }}
+                />
+                <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>to</span>
+                <input
+                  type="number"
+                  value={editForm.prefAgeMax}
+                  onChange={e => setEditForm(f => ({ ...f, prefAgeMax: e.target.value }))}
+                  placeholder="Max"
+                  min={18}
+                  max={99}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: 9, border: '0.5px solid var(--border-default)', background: 'var(--surface-3)', color: 'var(--text-primary)', fontSize: 13, outline: 'none' }}
+                />
+              </div>
+            </div>
+
+            {/* Pref location */}
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: 6 }}>Preferred location</div>
+              <input
+                value={editForm.prefLocation}
+                onChange={e => setEditForm(f => ({ ...f, prefLocation: e.target.value }))}
+                placeholder="e.g. UK, London"
+                style={{ width: '100%', padding: '9px 12px', borderRadius: 9, border: '0.5px solid var(--border-default)', background: 'var(--surface-3)', color: 'var(--text-primary)', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
+              />
+            </div>
+
+            {/* Pref ethnicity */}
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: 6 }}>Ethnicity preference</div>
+              <input
+                value={editForm.prefEthnicity}
+                onChange={e => setEditForm(f => ({ ...f, prefEthnicity: e.target.value }))}
+                placeholder="e.g. Any, South Asian, Arab"
+                style={{ width: '100%', padding: '9px 12px', borderRadius: 9, border: '0.5px solid var(--border-default)', background: 'var(--surface-3)', color: 'var(--text-primary)', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
+              />
+            </div>
+
+            {/* Pref school of thought */}
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: 6 }}>School of thought preference</div>
+              <input
+                value={editForm.prefSchoolOfThought}
+                onChange={e => setEditForm(f => ({ ...f, prefSchoolOfThought: e.target.value }))}
+                placeholder="e.g. Sunni, Deobandi (comma-separated)"
+                style={{ width: '100%', padding: '9px 12px', borderRadius: 9, border: '0.5px solid var(--border-default)', background: 'var(--surface-3)', color: 'var(--text-primary)', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
+              />
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>Separate multiple values with commas</div>
+            </div>
+
+            {/* Pref partner children */}
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: 6 }}>Partner&apos;s existing children</div>
+              <input
+                value={editForm.prefPartnerChildren}
+                onChange={e => setEditForm(f => ({ ...f, prefPartnerChildren: e.target.value }))}
+                placeholder="e.g. Open to it, Prefer not"
+                style={{ width: '100%', padding: '9px 12px', borderRadius: 9, border: '0.5px solid var(--border-default)', background: 'var(--surface-3)', color: 'var(--text-primary)', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
+              />
+            </div>
+
+            {editError && (
+              <div style={{ padding: '8px 12px', borderRadius: 8, background: 'rgba(248,113,113,0.1)', border: '0.5px solid rgba(248,113,113,0.3)', fontSize: 12.5, color: '#F87171', marginBottom: 12 }}>
+                {editError}
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button
+                onClick={() => setShowEditModal(false)}
+                disabled={editLoading}
+                style={{ flex: 1, padding: '10px', borderRadius: 9, fontSize: 13, fontWeight: 500, background: 'var(--surface-3)', border: '0.5px solid var(--border-default)', color: 'var(--text-secondary)', cursor: 'pointer' }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveEdit}
+                disabled={editLoading}
+                style={{ flex: 1, padding: '10px', borderRadius: 9, fontSize: 13, fontWeight: 600, background: 'var(--gold)', border: 'none', color: '#111', cursor: editLoading ? 'not-allowed' : 'pointer', opacity: editLoading ? 0.6 : 1 }}
+              >
+                {editLoading ? 'Saving…' : 'Save changes'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Withdrawal modal */}
       {showWithdrawModal && (

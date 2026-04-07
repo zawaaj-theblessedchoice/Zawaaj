@@ -16,6 +16,15 @@ interface TargetProfile {
   date_of_birth: string | null
 }
 
+interface RequesterProfile {
+  id: string
+  display_initials: string
+  gender: string | null
+  age_display: string | null
+  location: string | null
+  profession_detail: string | null
+}
+
 interface IntroRequest {
   id: string
   target_profile_id: string
@@ -27,14 +36,35 @@ interface IntroRequest {
   target: TargetProfile | null
 }
 
+interface ReceivedRequest {
+  id: string
+  requesting_profile_id: string
+  status: string
+  created_at: string
+  expires_at: string | null
+  requester: RequesterProfile | null
+}
+
+interface ManagedProfile {
+  id: string
+  display_initials: string
+  first_name: string | null
+  gender: string | null
+  status: string
+}
+
 interface IntroductionsClientProps {
   requests: IntroRequest[]
+  receivedRequests: ReceivedRequest[]
+  shortlistCount: number
   viewerProfile: {
     id: string
     display_initials: string
     first_name: string | null
     gender: string | null
   }
+  managedProfiles?: ManagedProfile[]
+  activeProfileId?: string
 }
 
 function calcAge(dateOfBirth: string | null): number | null {
@@ -87,6 +117,11 @@ function StatusBadge({ status }: { status: string }) {
       bg: 'var(--surface-3)',
       text: 'var(--text-muted)',
       label: 'Expired',
+    },
+    withdrawn: {
+      bg: 'var(--surface-3)',
+      text: 'var(--text-muted)',
+      label: 'Withdrawn',
     },
   }
 
@@ -151,14 +186,12 @@ function RequestCard({ req }: { req: IntroRequest }) {
         gap: 14,
       }}
     >
-      {/* Avatar */}
       <AvatarInitials
         initials={target?.display_initials ?? '??'}
         gender={target?.gender ?? null}
         size="sm"
       />
 
-      {/* Info */}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div
           style={{
@@ -201,59 +234,83 @@ function RequestCard({ req }: { req: IntroRequest }) {
           </div>
         )}
 
-        {/* Mutual message */}
         {req.status === 'mutual' && (
-          <div
-            style={{
-              marginTop: 8,
-              fontSize: 12,
-              color: 'var(--gold)',
-              lineHeight: 1.5,
-            }}
-          >
+          <div style={{ marginTop: 8, fontSize: 12, color: 'var(--gold)', lineHeight: 1.5 }}>
             Interest is mutual — the admin team will be in touch to facilitate an introduction.
           </div>
         )}
 
-        {/* Admin notes (once facilitated) */}
         {req.status === 'facilitated' && req.admin_notes && (
-          <div
-            style={{
-              marginTop: 8,
-              fontSize: 12,
-              color: 'var(--text-secondary)',
-              lineHeight: 1.5,
-              fontStyle: 'italic',
-            }}
-          >
+          <div style={{ marginTop: 8, fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5, fontStyle: 'italic' }}>
             {req.admin_notes}
           </div>
         )}
 
-        {/* Expiry warning */}
         {isActive && isExpiringSoon && (
-          <div
-            style={{
-              marginTop: 6,
-              fontSize: 11,
-              color: '#FBBF24',
-            }}
-          >
+          <div style={{ marginTop: 6, fontSize: 11, color: '#FBBF24' }}>
             Expires in {days} {days === 1 ? 'day' : 'days'}
           </div>
         )}
       </div>
 
-      {/* Right side: status + date */}
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'flex-end',
-          gap: 6,
-          flexShrink: 0,
-        }}
-      >
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, flexShrink: 0 }}>
+        <StatusBadge status={req.status} />
+        <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+          {formatDate(req.created_at)}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ReceivedRequestCard({ req }: { req: ReceivedRequest }) {
+  const requester = req.requester
+  const subline = requester
+    ? [requester.age_display, requester.location].filter(Boolean).join(' · ')
+    : null
+  const isActive = req.status === 'pending'
+
+  return (
+    <div
+      style={{
+        background: 'var(--surface-2)',
+        border: '0.5px solid var(--border-default)',
+        borderRadius: 13,
+        padding: '16px 18px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 14,
+        opacity: isActive ? 1 : 0.65,
+      }}
+    >
+      <AvatarInitials
+        initials={requester?.display_initials ?? '??'}
+        gender={requester?.gender ?? null}
+        size="sm"
+      />
+
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 13.5, fontWeight: 500, color: 'var(--text-primary)', marginBottom: 2 }}>
+          {requester?.display_initials ?? '—'}
+        </div>
+        {subline && (
+          <div style={{ fontSize: 12, color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {subline}
+          </div>
+        )}
+        {requester?.profession_detail && (
+          <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 1 }}>
+            {requester.profession_detail}
+          </div>
+        )}
+        {isActive && (
+          <div style={{ marginTop: 6, fontSize: 11.5, color: 'var(--text-muted)', lineHeight: 1.5 }}>
+            This member has expressed interest in you. Our admin team will reach out if appropriate.
+          </div>
+        )}
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, flexShrink: 0 }}>
         <StatusBadge status={req.status} />
         <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
           {formatDate(req.created_at)}
@@ -265,22 +322,33 @@ function RequestCard({ req }: { req: IntroRequest }) {
 
 export default function IntroductionsClient({
   requests,
+  receivedRequests,
+  shortlistCount,
   viewerProfile,
+  managedProfiles,
+  activeProfileId,
 }: IntroductionsClientProps) {
-  const active = requests.filter(r =>
+  const activeSent = requests.filter(r =>
     ['pending', 'mutual', 'active', 'facilitated'].includes(r.status)
   )
-  const past = requests.filter(r => r.status === 'expired')
+  const pastSent = requests.filter(r => ['expired', 'withdrawn'].includes(r.status))
+
+  const activeReceived = receivedRequests.filter(r => r.status === 'pending')
+  const pastReceived = receivedRequests.filter(r => ['expired', 'withdrawn'].includes(r.status))
 
   const mutualCount = requests.filter(r => r.status === 'mutual').length
+
+  const hasAnything = requests.length > 0 || receivedRequests.length > 0
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
       <Sidebar
         activeRoute="/introductions"
-        shortlistCount={0}
+        shortlistCount={shortlistCount}
         introRequestsCount={mutualCount}
         profile={viewerProfile}
+        managedProfiles={managedProfiles}
+        activeProfileId={activeProfileId}
       />
 
       <main
@@ -304,12 +372,12 @@ export default function IntroductionsClient({
             Introductions
           </h1>
           <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0 }}>
-            Introduction requests you have sent. You can send up to 5 per calendar month.
+            Track your sent and received introduction requests. You can send up to 5 per calendar month.
           </p>
         </div>
 
         {/* Empty state */}
-        {requests.length === 0 && (
+        {!hasAnything && (
           <div
             style={{
               background: 'var(--surface-2)',
@@ -319,14 +387,8 @@ export default function IntroductionsClient({
               textAlign: 'center',
             }}
           >
-            <div
-              style={{
-                fontSize: 13.5,
-                color: 'var(--text-muted)',
-                marginBottom: 16,
-              }}
-            >
-              You haven&apos;t sent any introduction requests yet.
+            <div style={{ fontSize: 13.5, color: 'var(--text-muted)', marginBottom: 16 }}>
+              No introduction activity yet.
             </div>
             <Link
               href="/browse"
@@ -346,8 +408,8 @@ export default function IntroductionsClient({
           </div>
         )}
 
-        {/* Active / current requests */}
-        {active.length > 0 && (
+        {/* Received — active */}
+        {activeReceived.length > 0 && (
           <div style={{ marginBottom: 32 }}>
             <div
               style={{
@@ -359,18 +421,64 @@ export default function IntroductionsClient({
                 marginBottom: 12,
               }}
             >
-              Active requests
+              Received ({activeReceived.length})
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {active.map(r => (
+              {activeReceived.map(r => (
+                <ReceivedRequestCard key={r.id} req={r} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Sent — active */}
+        {activeSent.length > 0 && (
+          <div style={{ marginBottom: 32 }}>
+            <div
+              style={{
+                fontSize: 11,
+                fontWeight: 500,
+                textTransform: 'uppercase',
+                letterSpacing: '0.08em',
+                color: 'var(--text-muted)',
+                marginBottom: 12,
+              }}
+            >
+              Sent — active
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {activeSent.map(r => (
                 <RequestCard key={r.id} req={r} />
               ))}
             </div>
           </div>
         )}
 
-        {/* Past requests */}
-        {past.length > 0 && (
+        {/* Past sent */}
+        {pastSent.length > 0 && (
+          <div style={{ marginBottom: 32 }}>
+            <div
+              style={{
+                fontSize: 11,
+                fontWeight: 500,
+                textTransform: 'uppercase',
+                letterSpacing: '0.08em',
+                color: 'var(--text-muted)',
+                marginBottom: 12,
+              }}
+            >
+              Sent — past
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {pastSent.map(r => (
+                <RequestCard key={r.id} req={r} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Past received */}
+        {pastReceived.length > 0 && (
           <div>
             <div
               style={{
@@ -382,11 +490,11 @@ export default function IntroductionsClient({
                 marginBottom: 12,
               }}
             >
-              Past requests
+              Received — past
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {past.map(r => (
-                <RequestCard key={r.id} req={r} />
+              {pastReceived.map(r => (
+                <ReceivedRequestCard key={r.id} req={r} />
               ))}
             </div>
           </div>

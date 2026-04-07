@@ -89,7 +89,7 @@ interface ZawaajEvent {
   created_at: string | null
 }
 
-type Tab = 'queue' | 'mutual' | 'introduced' | 'members' | 'withdrawn' | 'unlinked' | 'events' | 'import'
+type Tab = 'queue' | 'mutual' | 'introduced' | 'members' | 'withdrawn' | 'unlinked' | 'events' | 'import' | 'orphaned'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -1291,27 +1291,298 @@ function EventsTab({ events, onRefresh }: { events: ZawaajEvent[]; onRefresh: ()
   )
 }
 
-// ─── TAB 8: Import ────────────────────────────────────────────────────────────
+// ─── TAB 8: Orphaned Accounts ─────────────────────────────────────────────────
+
+interface OrphanedUser {
+  id: string
+  email: string | null
+  created_at: string
+  last_sign_in_at: string | null
+}
+
+function OrphanedTab() {
+  const [orphaned, setOrphaned] = useState<OrphanedUser[]>([])
+  const [loading, setLoading] = useState(true)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [fetchError, setFetchError] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetch('/api/admin/orphaned-accounts')
+      .then(r => r.json() as Promise<{ orphaned?: OrphanedUser[]; error?: string }>)
+      .then(data => {
+        if (data.error) { setFetchError(data.error); setLoading(false); return }
+        setOrphaned(data.orphaned ?? [])
+        setLoading(false)
+      })
+      .catch(() => { setFetchError('Network error'); setLoading(false) })
+  }, [])
+
+  async function deleteOrphan(u: OrphanedUser) {
+    if (!window.confirm(
+      `Delete auth account for ${u.email ?? u.id}? This cannot be undone.`
+    )) return
+    setDeletingId(u.id)
+    const res = await fetch('/api/admin/delete-account', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: u.id }),
+    })
+    setDeletingId(null)
+    if (res.ok) {
+      setOrphaned(prev => prev.filter(o => o.id !== u.id))
+    } else {
+      const err = await res.json() as { error?: string }
+      alert(err.error ?? 'Delete failed')
+    }
+  }
+
+  if (loading) return <div className="py-16 text-center text-white/30 text-sm">Loading…</div>
+  if (fetchError) return <div className="py-16 text-center text-red-400 text-sm">{fetchError}</div>
+
+  if (orphaned.length === 0) {
+    return (
+      <div className="py-16 text-center">
+        <div className="text-2xl mb-3">✅</div>
+        <p className="text-white/30 text-sm">No orphaned accounts — every auth user has a linked profile.</p>
+      </div>
+    )
+  }
+
+  return (
+    <>
+      <div className="mb-6 bg-[#2A1A1A] border border-red-900/40 rounded-xl px-5 py-4">
+        <p className="text-sm font-medium text-red-400">
+          {orphaned.length} auth {orphaned.length === 1 ? 'account has' : 'accounts have'} no linked profile.
+          These may be from failed or abandoned sign-ups.
+        </p>
+      </div>
+
+      <div className="space-y-3">
+        {orphaned.map(u => (
+          <div key={u.id} className="bg-[#1E1E1E] rounded-2xl p-5 border border-white/10 flex items-center gap-4">
+            <div className="w-10 h-10 rounded-full bg-[#2A2A2A] border border-white/10 flex items-center justify-center text-white/30 text-sm flex-shrink-0">
+              ?
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-medium text-white truncate">{u.email ?? '(no email)'}</div>
+              <div className="flex flex-wrap gap-x-4 gap-y-0.5 mt-1 text-xs text-white/40">
+                <span>ID: {u.id.slice(0, 8)}…</span>
+                <span>Created: {new Date(u.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                {u.last_sign_in_at && (
+                  <span>Last sign-in: {new Date(u.last_sign_in_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                )}
+              </div>
+            </div>
+            <button
+              onClick={() => deleteOrphan(u)}
+              disabled={deletingId === u.id}
+              className="px-3 py-2 rounded-xl text-xs font-medium bg-red-900/20 text-red-400 hover:bg-red-900/40 border border-red-900/40 flex-shrink-0 disabled:opacity-40"
+            >
+              {deletingId === u.id ? 'Deleting…' : 'Delete'}
+            </button>
+          </div>
+        ))}
+      </div>
+    </>
+  )
+}
+
+// ─── TAB 9: Import ────────────────────────────────────────────────────────────
 
 function ImportTab() {
+  const [copied, setCopied] = useState<string | null>(null)
+
+  function copyToClipboard(text: string, key: string) {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(key)
+      setTimeout(() => setCopied(null), 1500)
+    })
+  }
+
+  const csvColumns = [
+    { col: 'legacy_ref', req: false, note: 'Reference ID, e.g. ZWJ-001' },
+    { col: 'imported_email', req: true, note: 'Used for auto-linking when member registers' },
+    { col: 'display_initials', req: true, note: 'e.g. AS — shown to other members' },
+    { col: 'first_name', req: false, note: '' },
+    { col: 'last_name', req: false, note: '' },
+    { col: 'gender', req: true, note: '"male" or "female"' },
+    { col: 'date_of_birth', req: false, note: 'YYYY-MM-DD format' },
+    { col: 'age_display', req: false, note: 'e.g. "28" — shown to members if no dob' },
+    { col: 'height', req: false, note: 'e.g. "5\'8\'"' },
+    { col: 'ethnicity', req: false, note: '' },
+    { col: 'nationality', req: false, note: '' },
+    { col: 'school_of_thought', req: false, note: '' },
+    { col: 'education_level', req: false, note: '' },
+    { col: 'education_detail', req: false, note: 'Institution name' },
+    { col: 'profession_detail', req: false, note: '' },
+    { col: 'location', req: false, note: 'e.g. "London, UK"' },
+    { col: 'languages_spoken', req: false, note: '' },
+    { col: 'bio', req: false, note: 'Free text' },
+    { col: 'religiosity', req: false, note: '' },
+    { col: 'prayer_regularity', req: false, note: 'e.g. "yes_regularly"' },
+    { col: 'wears_hijab', req: false, note: '"true" or "false" — female only' },
+    { col: 'keeps_beard', req: false, note: '"true" or "false" — male only' },
+    { col: 'marital_status', req: false, note: '"never_married" | "divorced" | "widowed"' },
+    { col: 'has_children', req: false, note: '"true" or "false"' },
+    { col: 'living_situation', req: false, note: '"independent" | "with_family" | "shared"' },
+    { col: 'open_to_relocation', req: false, note: '' },
+    { col: 'open_to_partners_children', req: false, note: '' },
+    { col: 'polygamy_openness', req: false, note: '' },
+    { col: 'pref_age_min', req: false, note: 'Integer' },
+    { col: 'pref_age_max', req: false, note: 'Integer' },
+    { col: 'pref_location', req: false, note: '' },
+    { col: 'pref_ethnicity', req: false, note: '' },
+    { col: 'pref_school_of_thought', req: false, note: 'Comma-separated, wrapped in "{}" for array, e.g. {Sunni,Shia}' },
+    { col: 'contact_number', req: false, note: 'Admin-only — never shown to members' },
+    { col: 'guardian_name', req: false, note: 'Admin-only' },
+    { col: 'status', req: true, note: '"pending" | "approved"' },
+    { col: 'consent_given', req: false, note: '"true" — default false if omitted' },
+    { col: 'terms_agreed', req: false, note: '"true" — default false if omitted' },
+  ]
+
+  const sqlTemplate = `INSERT INTO zawaaj_profiles (
+  legacy_ref, imported_email, display_initials, first_name, last_name,
+  gender, date_of_birth, age_display, height, ethnicity, nationality,
+  school_of_thought, education_level, education_detail, profession_detail,
+  location, languages_spoken, bio, religiosity, prayer_regularity,
+  wears_hijab, keeps_beard, marital_status, has_children, living_situation,
+  open_to_relocation, open_to_partners_children, polygamy_openness,
+  pref_age_min, pref_age_max, pref_location, pref_ethnicity,
+  pref_school_of_thought, contact_number, guardian_name,
+  status, consent_given, terms_agreed
+) VALUES (
+  'ZWJ-001', 'member@example.com', 'AS', 'Amina', 'Saleh',
+  'female', '1996-03-15', '28', '5''5"', 'Arab', 'British',
+  'Sunni', 'Bachelor''s degree', 'UCL', 'Teacher',
+  'London, UK', 'English, Arabic', 'Bio text here...', 'Practising', 'yes_regularly',
+  true, null, 'never_married', false, 'with_family',
+  'Yes', 'Yes', 'Not open',
+  24, 34, 'UK', 'Any',
+  '{Sunni}', '+44 7xxx xxxxxx', 'Father: Omar Saleh',
+  'approved', true, true
+);`
+
   return (
-    <div className="max-w-xl mx-auto py-16 text-center space-y-4">
-      <div className="w-16 h-16 rounded-2xl bg-[#252525] border border-white/10 flex items-center justify-center mx-auto text-3xl">
-        📥
+    <div className="max-w-3xl space-y-8">
+      <div>
+        <h2 className="text-lg font-semibold text-white mb-1">Bulk Profile Import</h2>
+        <p className="text-white/50 text-sm">
+          Import profiles via the Supabase SQL Editor. Profiles with a matching{' '}
+          <code className="bg-white/10 px-1 rounded text-xs">imported_email</code>{' '}
+          will be automatically linked when that member registers.
+        </p>
       </div>
-      <h2 className="text-xl font-semibold text-white">CSV Import — Coming Soon</h2>
-      <p className="text-white/50 text-sm leading-relaxed">
-        Use the Supabase dashboard to bulk import profiles via SQL for now.
-        Import tool will be available in a future update.
-      </p>
-      <a
-        href="https://supabase.com/dashboard"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium bg-[#1A1A1A] text-[#B8960C] hover:bg-[#333]"
-      >
-        Open Supabase Dashboard
-      </a>
+
+      {/* Steps */}
+      <div className="space-y-4">
+        {[
+          {
+            n: 1,
+            title: 'Open the SQL Editor',
+            body: (
+              <p className="text-sm text-white/50">
+                Go to{' '}
+                <a
+                  href="https://supabase.com/dashboard/project/nxytwfbzoxatyupqccba/sql/new"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#B8960C] hover:underline"
+                >
+                  Supabase → SQL Editor → New query
+                </a>
+              </p>
+            ),
+          },
+          {
+            n: 2,
+            title: 'Use INSERT statements',
+            body: (
+              <div>
+                <p className="text-sm text-white/50 mb-3">
+                  One INSERT per profile row. Copy this example as a starting template:
+                </p>
+                <div className="relative">
+                  <pre className="bg-[#111] border border-white/10 rounded-xl p-4 text-xs text-white/70 overflow-x-auto whitespace-pre-wrap">
+                    {sqlTemplate}
+                  </pre>
+                  <button
+                    onClick={() => copyToClipboard(sqlTemplate, 'sql')}
+                    className="absolute top-2 right-2 px-2.5 py-1 rounded-lg text-xs bg-white/10 text-white/60 hover:bg-white/20 transition-colors"
+                  >
+                    {copied === 'sql' ? '✓ Copied' : 'Copy'}
+                  </button>
+                </div>
+              </div>
+            ),
+          },
+          {
+            n: 3,
+            title: 'Review imported profiles',
+            body: (
+              <p className="text-sm text-white/50">
+                After importing, use the <strong className="text-white/70">Members</strong> tab to review
+                each imported profile. Profiles set to{' '}
+                <code className="bg-white/10 px-1 rounded text-xs">approved</code> will be visible
+                immediately when they register and log in.
+              </p>
+            ),
+          },
+          {
+            n: 4,
+            title: 'When members register',
+            body: (
+              <p className="text-sm text-white/50">
+                If a registering member&apos;s email matches an{' '}
+                <code className="bg-white/10 px-1 rounded text-xs">imported_email</code>,
+                their account is automatically linked to the imported profile. Their wizard data
+                enriches the imported record. Parent/guardian accounts with multiple children
+                sharing the same email are all linked at once.
+              </p>
+            ),
+          },
+        ].map(step => (
+          <div key={step.n} className="flex gap-4">
+            <div className="w-7 h-7 rounded-full bg-[#252525] border border-white/10 flex items-center justify-center text-xs font-semibold text-[#B8960C] flex-shrink-0 mt-0.5">
+              {step.n}
+            </div>
+            <div className="flex-1">
+              <div className="text-sm font-medium text-white mb-1.5">{step.title}</div>
+              {step.body}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Column reference */}
+      <div>
+        <div className="text-xs font-medium uppercase tracking-widest text-white/30 mb-3">Column reference</div>
+        <div className="bg-[#1A1A1A] border border-white/10 rounded-xl overflow-hidden">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="border-b border-white/10">
+                <th className="text-left px-4 py-2.5 text-white/40 font-medium">Column</th>
+                <th className="text-left px-4 py-2.5 text-white/40 font-medium">Required</th>
+                <th className="text-left px-4 py-2.5 text-white/40 font-medium">Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              {csvColumns.map((c, i) => (
+                <tr key={c.col} className={i % 2 === 0 ? 'bg-white/[0.02]' : ''}>
+                  <td className="px-4 py-2 font-mono text-white/70">{c.col}</td>
+                  <td className="px-4 py-2">
+                    {c.req ? (
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-900/40 text-amber-400">Required</span>
+                    ) : (
+                      <span className="text-white/20">—</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-2 text-white/40">{c.note}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   )
 }
@@ -1403,6 +1674,7 @@ export default function AdminPage() {
     { key: 'withdrawn',  label: 'Withdrawn',  badge: withdrawnCount },
     { key: 'unlinked',   label: 'Unlinked',   badge: unlinkedCount },
     { key: 'events',     label: 'Events',     badge: events.length },
+    { key: 'orphaned',   label: 'Orphaned' },
     { key: 'import',     label: 'Import' },
   ]
 
@@ -1526,6 +1798,7 @@ export default function AdminPage() {
             {tab === 'withdrawn'  && <WithdrawnTab   profiles={profiles} onRefresh={loadData} />}
             {tab === 'unlinked'   && <UnlinkedTab    profiles={profiles} onRefresh={loadData} />}
             {tab === 'events'     && <EventsTab      events={events}     onRefresh={loadData} />}
+            {tab === 'orphaned'   && <OrphanedTab />}
             {tab === 'import'     && <ImportTab />}
           </>
         )}

@@ -2,6 +2,14 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import IntroductionsClient from './IntroductionsClient'
 
+interface ManagedProfile {
+  id: string
+  display_initials: string
+  first_name: string | null
+  gender: string | null
+  status: string
+}
+
 export default async function IntroductionsPage() {
   const supabase = await createClient()
 
@@ -37,18 +45,43 @@ export default async function IntroductionsPage() {
 
   if (!profile || profile.status !== 'approved') redirect('/pending')
 
-  // Fetch all sent introduction requests with target profile info
-  const { data: sentRows } = await supabase
-    .from('zawaaj_introduction_requests')
-    .select(
-      'id, target_profile_id, status, created_at, expires_at, mutual_at, admin_notes'
-    )
-    .eq('requesting_profile_id', activeProfileId)
-    .order('created_at', { ascending: false })
+  // Fetch everything in parallel
+  const [
+    { data: profileRows },
+    { data: sentRows },
+    { data: receivedRows },
+    slResult,
+  ] = await Promise.all([
+    supabase
+      .from('zawaaj_profiles')
+      .select('id, display_initials, first_name, gender, status')
+      .eq('user_id', user.id),
+    supabase
+      .from('zawaaj_introduction_requests')
+      .select('id, target_profile_id, status, created_at, expires_at, mutual_at, admin_notes')
+      .eq('requesting_profile_id', activeProfileId)
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('zawaaj_introduction_requests')
+      .select('id, requesting_profile_id, status, created_at, expires_at')
+      .eq('target_profile_id', activeProfileId)
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('zawaaj_saved_profiles')
+      .select('id', { count: 'exact', head: true })
+      .eq('profile_id', activeProfileId),
+  ])
 
-  // Fetch target profile details for display (only safe public fields)
+  const managedProfiles: ManagedProfile[] = (profileRows ?? []).map(p => ({
+    id: p.id,
+    display_initials: p.display_initials,
+    first_name: p.first_name,
+    gender: p.gender,
+    status: p.status,
+  }))
+
+  // Fetch target profile details for sent requests
   const sentTargetIds = (sentRows ?? []).map(r => r.target_profile_id as string)
-
   const { data: targetProfiles } = sentTargetIds.length > 0
     ? await supabase
         .from('zawaaj_profiles')
@@ -58,6 +91,19 @@ export default async function IntroductionsPage() {
 
   const targetMap = new Map(
     (targetProfiles ?? []).map(p => [p.id, p])
+  )
+
+  // Fetch limited public info for received request senders
+  const receivedRequesterIds = (receivedRows ?? []).map(r => r.requesting_profile_id as string)
+  const { data: requesterProfiles } = receivedRequesterIds.length > 0
+    ? await supabase
+        .from('zawaaj_profiles')
+        .select('id, display_initials, gender, age_display, location, profession_detail')
+        .in('id', receivedRequesterIds)
+    : { data: [] }
+
+  const requesterMap = new Map(
+    (requesterProfiles ?? []).map(p => [p.id, p])
   )
 
   const requests = (sentRows ?? []).map(r => ({
@@ -71,15 +117,30 @@ export default async function IntroductionsPage() {
     target: targetMap.get(r.target_profile_id as string) ?? null,
   }))
 
+  const receivedRequests = (receivedRows ?? []).map(r => ({
+    id: r.id as string,
+    requesting_profile_id: r.requesting_profile_id as string,
+    status: r.status as string,
+    created_at: r.created_at as string,
+    expires_at: r.expires_at as string | null,
+    requester: requesterMap.get(r.requesting_profile_id as string) ?? null,
+  }))
+
+  const shortlistCount = slResult.count ?? 0
+
   return (
     <IntroductionsClient
       requests={requests}
+      receivedRequests={receivedRequests}
+      shortlistCount={shortlistCount}
       viewerProfile={{
         id: profile.id,
         display_initials: profile.display_initials,
         first_name: profile.first_name,
         gender: profile.gender,
       }}
+      managedProfiles={managedProfiles}
+      activeProfileId={activeProfileId}
     />
   )
 }

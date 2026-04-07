@@ -228,6 +228,8 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
 
   const [profile, setProfile] = useState<Profile | null>(null)
   const [activeProfile, setActiveProfile] = useState<ActiveProfile | null>(null)
+  const [managedProfiles, setManagedProfiles] = useState<Array<{ id: string; display_initials: string; first_name: string | null; gender: string | null; status: string }>>([])
+  const [activeProfileId, setActiveProfileId] = useState<string | undefined>(undefined)
   const [shortlistCount, setShortlistCount] = useState(0)
   const [introRequestsCount, setIntroRequestsCount] = useState(0)
   const [notFound, setNotFound] = useState(false)
@@ -270,6 +272,14 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
           const activeId = settings?.active_profile_id ?? userProfiles[0].id
           const active = userProfiles.find(p => p.id === activeId) ?? userProfiles[0]
           setActiveProfile(active)
+          setActiveProfileId(activeId)
+          setManagedProfiles(userProfiles.map(p => ({
+            id: p.id,
+            display_initials: p.display_initials,
+            first_name: p.first_name,
+            gender: p.gender,
+            status: p.status,
+          })))
 
           const [slResult, irCountResult] = await Promise.all([
             supabase
@@ -299,7 +309,7 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
   if (loading) {
     return (
       <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
-        <Sidebar activeRoute={pathname ?? ''} shortlistCount={0} introRequestsCount={0} profile={null} />
+        <Sidebar activeRoute={pathname ?? ''} shortlistCount={0} introRequestsCount={0} profile={null} managedProfiles={[]} />
         <main style={{ marginLeft: 200, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>Loading…</span>
         </main>
@@ -310,7 +320,7 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
   if (notFound || !profile) {
     return (
       <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
-        <Sidebar activeRoute={pathname ?? ''} shortlistCount={shortlistCount} introRequestsCount={introRequestsCount} profile={sidebarProfile} />
+        <Sidebar activeRoute={pathname ?? ''} shortlistCount={shortlistCount} introRequestsCount={introRequestsCount} profile={sidebarProfile} managedProfiles={managedProfiles} activeProfileId={activeProfileId} />
         <main style={{ marginLeft: 200, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ textAlign: 'center' }}>
             <p style={{ fontSize: 15, fontWeight: 500, color: 'var(--text-primary)', marginBottom: 8 }}>Profile not found</p>
@@ -336,6 +346,8 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
         shortlistCount={shortlistCount}
         introRequestsCount={introRequestsCount}
         profile={sidebarProfile}
+        managedProfiles={managedProfiles}
+        activeProfileId={activeProfileId}
       />
       <main style={{ marginLeft: 200, flex: 1 }}>
         <div style={{ maxWidth: 640, margin: '0 auto', padding: '40px 24px 80px' }}>
