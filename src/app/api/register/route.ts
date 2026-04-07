@@ -44,24 +44,30 @@ export async function POST(request: Request): Promise<Response> {
     const userId = authData.user.id
     const initials = ((fields.firstName?.[0] ?? '') + (fields.lastName?.[0] ?? '')).toUpperCase() || '??'
 
-    // ── 2. Check for an existing imported profile matching this email ──────────
+    // ── 2. Check for existing imported profiles matching this email ─────────────
     // Find unclaimed imported profiles (user_id IS NULL) matching this email.
-    // If multiple exist (data anomaly), skip auto-link and create new pending profile.
+    //
+    // One match  → single member signing up, enrich with wizard data.
+    // Many matches → parent/guardian account with multiple children imported under
+    //                the same family email. Link all profiles to this account without
+    //                overwriting their individual imported data.
+    // No match   → brand-new member, create a pending profile for admin review.
     const { data: importedProfiles } = await supabaseAdmin
       .from('zawaaj_profiles')
       .select('id, status')
       .eq('imported_email', email)
       .is('user_id', null)
+      .order('created_at', { ascending: true }) // oldest first = primary profile
 
-    const existingProfile =
-      importedProfiles && importedProfiles.length === 1 ? importedProfiles[0] : null
+    const matchCount = importedProfiles?.length ?? 0
 
     const sharedFields = buildSharedFields(userId, initials, fields)
     let profileId: string
     let linked = false
 
-    if (existingProfile) {
-      // 2a. Link existing imported profile — preserve status, enrich with wizard data
+    if (matchCount === 1) {
+      // 2a. Single match — link and enrich with wizard data
+      const existingProfile = importedProfiles![0]
       const { error: updateError } = await supabaseAdmin
         .from('zawaaj_profiles')
         .update(sharedFields)
@@ -70,8 +76,22 @@ export async function POST(request: Request): Promise<Response> {
       if (updateError) throw new Error(updateError.message)
       profileId = existingProfile.id
       linked = true
+    } else if (matchCount > 1) {
+      // 2b. Multiple matches — parent/guardian account.
+      // Link ALL profiles to this user without overwriting their individual data.
+      // Only update account-level fields (user_id, consent) so imported content is preserved.
+      const { error: linkError } = await supabaseAdmin
+        .from('zawaaj_profiles')
+        .update({ user_id: userId, consent_given: true, terms_agreed: true })
+        .in('id', importedProfiles!.map(p => p.id))
+
+      if (linkError) throw new Error(linkError.message)
+
+      // Set oldest profile as the initial active profile
+      profileId = importedProfiles![0].id
+      linked = true
     } else {
-      // 2b. Brand-new member — create a pending profile for admin review
+      // 2c. No match — brand-new member, create a pending profile for admin review
       const { data: newProfile, error: insertError } = await supabaseAdmin
         .from('zawaaj_profiles')
         .insert({
