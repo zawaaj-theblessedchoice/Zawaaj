@@ -43,10 +43,10 @@ export async function POST(request: Request): Promise<Response> {
       return NextResponse.json({ error: 'You cannot request an introduction with yourself' }, { status: 400 })
     }
 
-    // 4c. Verify requesting profile is approved
+    // 4c. Verify requesting profile is approved — also fetch user_id for sibling check
     const { data: requesterProfile, error: requesterError } = await supabase
       .from('zawaaj_profiles')
-      .select('status')
+      .select('status, user_id')
       .eq('id', activeProfileId)
       .single()
 
@@ -54,10 +54,10 @@ export async function POST(request: Request): Promise<Response> {
       return NextResponse.json({ error: 'Your profile must be approved to send introduction requests' }, { status: 403 })
     }
 
-    // 4d. Verify target profile is approved and still active
+    // 4d. Verify target profile is approved and still active — also fetch user_id for sibling check
     const { data: targetProfile, error: targetError } = await supabase
       .from('zawaaj_profiles')
-      .select('status')
+      .select('status, user_id')
       .eq('id', target_profile_id)
       .single()
 
@@ -69,7 +69,21 @@ export async function POST(request: Request): Promise<Response> {
       return NextResponse.json({ error: 'This profile is no longer available' }, { status: 422 })
     }
 
-    // 4e. Monthly limit — count requests this calendar month
+    // 4e-sibling. Block introduction requests between profiles on the same account.
+    // A parent/guardian account may manage multiple candidate profiles.
+    // Siblings must never be matched with each other.
+    if (
+      requesterProfile.user_id &&
+      targetProfile.user_id &&
+      requesterProfile.user_id === targetProfile.user_id
+    ) {
+      return NextResponse.json(
+        { error: 'Introduction requests cannot be sent between profiles on the same account' },
+        { status: 422 }
+      )
+    }
+
+    // 4f. Monthly limit — count requests this calendar month (per profile, not per account)
     const { count: monthlyCount, error: countError } = await supabase
       .from('zawaaj_introduction_requests')
       .select('id', { count: 'exact', head: true })
@@ -84,7 +98,7 @@ export async function POST(request: Request): Promise<Response> {
       return NextResponse.json({ error: 'Monthly limit reached' }, { status: 422 })
     }
 
-    // 4f. Not already requested (pending, active, mutual, or facilitated)
+    // 4g. Not already requested (pending, active, mutual, or facilitated)
     const { data: existingRequest, error: existingError } = await supabase
       .from('zawaaj_introduction_requests')
       .select('id')

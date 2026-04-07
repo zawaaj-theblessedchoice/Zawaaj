@@ -1,14 +1,27 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import ZawaajLogo from '@/components/ZawaajLogo'
 import AvatarInitials from '@/components/AvatarInitials'
+
+interface ManagedProfile {
+  id: string
+  display_initials: string
+  first_name: string | null
+  gender: string | null
+  status: string
+}
 
 interface SidebarProps {
   activeRoute: string
   shortlistCount: number
   introRequestsCount: number
   profile: { display_initials: string; gender: string | null; first_name: string | null } | null
+  /** All profiles linked to this account — shown when parent/guardian manages multiple candidates */
+  managedProfiles?: ManagedProfile[]
+  /** The currently active profile id — used to highlight the active profile in the switcher */
+  activeProfileId?: string
 }
 
 interface NavItem {
@@ -130,7 +143,29 @@ export default function Sidebar({
   shortlistCount,
   introRequestsCount,
   profile,
+  managedProfiles,
+  activeProfileId,
 }: SidebarProps) {
+  const [switcherOpen, setSwitcherOpen] = useState(false)
+  const [switching, setSwitching] = useState(false)
+
+  const hasMultipleProfiles = (managedProfiles?.length ?? 0) > 1
+
+  async function handleSwitchProfile(profileId: string) {
+    if (profileId === activeProfileId || switching) return
+    setSwitching(true)
+    try {
+      await fetch('/api/switch-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ profile_id: profileId }),
+      })
+      // Full reload so server components re-run with new active profile
+      window.location.href = '/browse'
+    } catch {
+      setSwitching(false)
+    }
+  }
   const isActive = (href: string) => {
     // For tab-qualified links, exact match including query string
     if (href.includes('?tab=')) {
@@ -271,8 +306,8 @@ export default function Sidebar({
       {/* Divider */}
       <div style={{ height: '0.5px', background: 'var(--border-default)', margin: '8px 0 0' }} />
 
-      {/* Profile footer */}
-      {profile && (
+      {/* Profile footer — single profile: simple link; multi-profile: switcher */}
+      {profile && !hasMultipleProfiles && (
         <Link
           href="/my-profile"
           style={{
@@ -301,6 +336,131 @@ export default function Sidebar({
             {profile.first_name ?? 'My profile'}
           </span>
         </Link>
+      )}
+
+      {/* Multi-profile switcher — shown for parent/guardian accounts */}
+      {profile && hasMultipleProfiles && (
+        <div style={{ padding: '10px 12px' }}>
+          {/* "Acting as" label */}
+          <div
+            style={{
+              fontSize: 9.5,
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em',
+              color: 'var(--text-muted)',
+              marginBottom: 6,
+              paddingLeft: 4,
+            }}
+          >
+            Acting as
+          </div>
+
+          {/* Current active profile — always visible */}
+          <button
+            onClick={() => setSwitcherOpen(o => !o)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              width: '100%',
+              background: 'var(--surface-3)',
+              border: '0.5px solid var(--border-gold)',
+              borderRadius: 9,
+              padding: '7px 10px',
+              cursor: 'pointer',
+              color: 'var(--text-primary)',
+              fontSize: 12.5,
+              textAlign: 'left',
+            }}
+          >
+            <AvatarInitials
+              initials={profile.display_initials}
+              gender={profile.gender}
+              size="sm"
+            />
+            <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {profile.first_name ?? profile.display_initials}
+            </span>
+            <span style={{ fontSize: 9, color: 'var(--text-muted)', flexShrink: 0 }}>
+              {switcherOpen ? '▲' : '▼'}
+            </span>
+          </button>
+
+          {/* Expandable profile list */}
+          {switcherOpen && (
+            <div
+              style={{
+                marginTop: 4,
+                background: 'var(--surface)',
+                border: '0.5px solid var(--border-default)',
+                borderRadius: 9,
+                overflow: 'hidden',
+              }}
+            >
+              {(managedProfiles ?? []).map(p => {
+                const isActive = p.id === activeProfileId
+                return (
+                  <button
+                    key={p.id}
+                    onClick={() => handleSwitchProfile(p.id)}
+                    disabled={isActive || switching}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      width: '100%',
+                      padding: '8px 10px',
+                      background: isActive ? 'var(--gold-muted)' : 'transparent',
+                      border: 'none',
+                      borderBottom: '0.5px solid var(--border-default)',
+                      cursor: isActive ? 'default' : 'pointer',
+                      color: isActive ? 'var(--gold)' : 'var(--text-secondary)',
+                      fontSize: 12,
+                      textAlign: 'left',
+                    }}
+                  >
+                    <AvatarInitials
+                      initials={p.display_initials}
+                      gender={p.gender}
+                      size="sm"
+                    />
+                    <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {p.first_name ?? p.display_initials}
+                    </span>
+                    {isActive && (
+                      <span style={{ fontSize: 9, color: 'var(--gold)', flexShrink: 0 }}>✓</span>
+                    )}
+                    {p.status !== 'approved' && (
+                      <span style={{ fontSize: 9, color: 'var(--text-muted)', flexShrink: 0 }}>
+                        {p.status}
+                      </span>
+                    )}
+                  </button>
+                )
+              })}
+              <Link
+                href="/my-profile"
+                style={{
+                  display: 'block',
+                  padding: '7px 10px',
+                  fontSize: 11,
+                  color: 'var(--text-muted)',
+                  textDecoration: 'none',
+                  textAlign: 'center',
+                }}
+              >
+                Manage profiles →
+              </Link>
+            </div>
+          )}
+
+          {switching && (
+            <p style={{ fontSize: 10, color: 'var(--text-muted)', textAlign: 'center', marginTop: 6 }}>
+              Switching…
+            </p>
+          )}
+        </div>
       )}
     </aside>
   )

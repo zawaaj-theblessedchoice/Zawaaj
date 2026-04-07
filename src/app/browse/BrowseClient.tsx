@@ -19,6 +19,14 @@ interface IntroRequest {
   created_at?: string
 }
 
+interface ManagedProfile {
+  id: string
+  display_initials: string
+  first_name: string | null
+  gender: string | null
+  status: string
+}
+
 export interface BrowseClientProps {
   profiles: ProfileRecord[]
   viewerProfile: ProfileRecord
@@ -27,6 +35,10 @@ export interface BrowseClientProps {
   newCount: number
   monthlyUsed: number
   newSince: string | null
+  /** All profiles on this account — enables profile switcher for parent/guardian accounts */
+  managedProfiles?: ManagedProfile[]
+  /** Currently active profile id */
+  activeProfileId?: string
 }
 
 interface FilterState {
@@ -312,6 +324,8 @@ export default function BrowseClient({
   newCount,
   monthlyUsed: initialMonthlyUsed,
   newSince,
+  managedProfiles,
+  activeProfileId,
 }: BrowseClientProps) {
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -576,6 +590,8 @@ export default function BrowseClient({
         shortlistCount={savedIds.size}
         introRequestsCount={pendingMutualCount}
         profile={viewerProfile}
+        managedProfiles={managedProfiles}
+        activeProfileId={activeProfileId}
       />
 
       {/* Main content */}

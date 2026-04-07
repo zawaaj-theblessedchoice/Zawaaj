@@ -98,6 +98,22 @@ export default async function BrowsePage() {
     open_to_partners_children: p.open_to_partners_children ?? null,
   }))
 
+  // 4b. Get all profiles linked to this account (for profile switcher)
+  // Minimal fields only — used for the Sidebar switcher UI
+  const { data: managedProfilesRaw } = await supabase
+    .from('zawaaj_profiles')
+    .select('id, display_initials, first_name, gender, status')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: true })
+
+  const managedProfiles = (managedProfilesRaw ?? []).map(p => ({
+    id: p.id as string,
+    display_initials: p.display_initials as string,
+    first_name: p.first_name as string | null,
+    gender: p.gender as string | null,
+    status: p.status as string,
+  }))
+
   // 5. Get saved profile IDs
   const { data: savedRows } = await supabase
     .from('zawaaj_saved_profiles')
@@ -170,6 +186,8 @@ export default async function BrowsePage() {
       newCount={newCount}
       monthlyUsed={monthlyUsed}
       newSince={lastBrowsedAt}
+      managedProfiles={managedProfiles}
+      activeProfileId={activeProfileId}
     />
   )
 }

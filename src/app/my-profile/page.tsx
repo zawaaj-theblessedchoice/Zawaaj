@@ -122,6 +122,8 @@ export default function MyProfilePage() {
   const supabase = createClient()
   const pathname = usePathname()
   const [profile, setProfile] = useState<Profile | null>(null)
+  const [managedProfiles, setManagedProfiles] = useState<Array<{ id: string; display_initials: string; first_name: string | null; gender: string | null; status: string }>>([])
+  const [activeProfileId, setActiveProfileId] = useState<string | undefined>(undefined)
   const [shortlistCount, setShortlistCount] = useState(0)
   const [introRequestsCount, setIntroRequestsCount] = useState(0)
   const [introRequests, setIntroRequests] = useState<IntroRequest[]>([])
@@ -152,6 +154,15 @@ export default function MyProfilePage() {
       const activeId = settings?.active_profile_id ?? profileRows[0].id
       const active = profileRows.find(p => p.id === activeId) ?? profileRows[0]
       setProfile(active)
+      setActiveProfileId(activeId)
+      // Populate managed profiles for the Sidebar switcher
+      setManagedProfiles(profileRows.map(p => ({
+        id: p.id,
+        display_initials: p.display_initials,
+        first_name: p.first_name,
+        gender: p.gender,
+        status: p.status,
+      })))
 
       const { data: irRows } = await supabase
         .from('zawaaj_introduction_requests')
@@ -210,7 +221,7 @@ export default function MyProfilePage() {
   if (loading) {
     return (
       <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
-        <Sidebar activeRoute={pathname ?? ''} shortlistCount={0} introRequestsCount={0} profile={null} />
+        <Sidebar activeRoute={pathname ?? ''} shortlistCount={0} introRequestsCount={0} profile={null} managedProfiles={[]} />
         <main style={{ marginLeft: 200, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>Loading…</span>
         </main>
@@ -247,6 +258,8 @@ export default function MyProfilePage() {
         shortlistCount={shortlistCount}
         introRequestsCount={introRequestsCount}
         profile={sidebarProfile}
+        managedProfiles={managedProfiles}
+        activeProfileId={activeProfileId}
       />
       <main style={{ marginLeft: 200, flex: 1 }}>
       <div style={{ maxWidth: 620, margin: '0 auto', padding: '48px 24px 80px' }}>

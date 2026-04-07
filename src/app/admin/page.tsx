@@ -17,6 +17,8 @@ interface Profile {
   legacy_ref: string | null
   imported_email: string | null
   display_initials: string
+  first_name: string | null
+  last_name: string | null
   gender: string | null
   age_display: string | null
   height: string | null
@@ -761,6 +763,13 @@ function MembersTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh: (
   const [statusFilter, setStatusFilter] = useState('all')
   const [contactProfile, setContactProfile] = useState<Profile | null>(null)
   const [editProfile, setEditProfile] = useState<Profile | null>(null)
+  const [deletingUserId, setDeletingUserId] = useState<string | null>(null)
+
+  // Map user_id → profile count to identify parent/guardian accounts
+  const userProfileCount = profiles.reduce<Record<string, number>>((acc, p) => {
+    if (p.user_id) acc[p.user_id] = (acc[p.user_id] ?? 0) + 1
+    return acc
+  }, {})
 
   const filtered = profiles.filter(p => {
     if (statusFilter !== 'all' && p.status !== statusFilter) return false
@@ -768,10 +777,37 @@ function MembersTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh: (
     const q = search.toLowerCase()
     return (
       p.display_initials.toLowerCase().includes(q) ||
+      (p.first_name ?? '').toLowerCase().includes(q) ||
+      (p.last_name ?? '').toLowerCase().includes(q) ||
       (p.legacy_ref ?? '').toLowerCase().includes(q) ||
-      (p.location ?? '').toLowerCase().includes(q)
+      (p.location ?? '').toLowerCase().includes(q) ||
+      (p.imported_email ?? '').toLowerCase().includes(q) ||
+      (p.contact_number ?? '').toLowerCase().includes(q) ||
+      (p.guardian_name ?? '').toLowerCase().includes(q)
     )
   })
+
+  async function deleteAccount(p: Profile) {
+    if (!window.confirm(
+      p.user_id
+        ? `Delete the login account for ${p.first_name ?? p.display_initials}? Their profile will be unlinked and preserved. This cannot be undone.`
+        : `Delete profile ${p.display_initials}? This cannot be undone.`
+    )) return
+
+    setDeletingUserId(p.user_id ?? p.id)
+    const body = p.user_id ? { user_id: p.user_id } : { profile_id: p.id }
+    const res = await fetch('/api/admin/delete-account', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+    setDeletingUserId(null)
+    if (res.ok) onRefresh()
+    else {
+      const err = await res.json() as { error?: string }
+      alert(err.error ?? 'Delete failed')
+    }
+  }
 
   async function changeStatus(id: string, status: ProfileStatus) {
     const update: Partial<Profile> & { approved_date?: string } = { status }
@@ -821,14 +857,28 @@ function MembersTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh: (
             </tr>
           </thead>
           <tbody className="divide-y divide-[#E8E4DC] bg-[#1E1E1E]">
-            {filtered.map(p => (
+            {filtered.map(p => {
+              const isParentAccount = p.user_id ? (userProfileCount[p.user_id] ?? 0) > 1 : false
+              const isDeleting = deletingUserId === (p.user_id ?? p.id)
+              const fullName = [p.first_name, p.last_name].filter(Boolean).join(' ')
+              return (
               <tr key={p.id} className="hover:bg-white/5 transition-colors">
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
                     <Avatar initials={p.display_initials} gender={p.gender} size={32} />
-                    <div>
-                      <p className="font-medium text-white">{p.display_initials}</p>
-                      {p.legacy_ref && <p className="text-xs text-white/40">{p.legacy_ref}</p>}
+                    <div className="min-w-0">
+                      {fullName && <p className="font-medium text-white text-sm truncate">{fullName}</p>}
+                      <p className="text-xs text-white/50">{p.display_initials}{p.legacy_ref ? ` · ${p.legacy_ref}` : ''}</p>
+                      {p.imported_email && <p className="text-xs text-white/30 truncate">{p.imported_email}</p>}
+                      {p.contact_number && (
+                        <a href={`tel:${p.contact_number}`} className="text-xs text-[#B8960C]/70 hover:text-[#B8960C]">{p.contact_number}</a>
+                      )}
+                      {p.guardian_name && <p className="text-xs text-white/40">Guardian: {p.guardian_name}</p>}
+                      {isParentAccount && (
+                        <span className="inline-flex items-center gap-1 mt-0.5 px-1.5 py-0.5 rounded text-xs bg-purple-950/60 text-purple-300 border border-purple-700/30">
+                          👨‍👩‍👧 {userProfileCount[p.user_id!]} profiles
+                        </span>
+                      )}
                     </div>
                   </div>
                 </td>
@@ -872,10 +922,19 @@ function MembersTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh: (
                         Reject
                       </button>
                     )}
+                    <button
+                      onClick={() => deleteAccount(p)}
+                      disabled={isDeleting}
+                      className="px-2 py-1 rounded text-xs bg-red-950/40 text-red-500 hover:bg-red-900/60 disabled:opacity-40"
+                      title={p.user_id ? 'Delete login account (profile preserved)' : 'Delete profile'}
+                    >
+                      {isDeleting ? '…' : 'Del acct'}
+                    </button>
                   </div>
                 </td>
               </tr>
-            ))}
+              )
+            })}
           </tbody>
         </table>
         {filtered.length === 0 && (
@@ -969,11 +1028,22 @@ function UnlinkedTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh: 
 
     if (error) { setLinkError(error.message); setLinking(false); return }
 
-    // Also upsert zawaaj_user_settings
-    await supabase.from('zawaaj_user_settings').upsert({
-      user_id: userId.trim(),
-      active_profile_id: linkId,
-    }, { onConflict: 'user_id' })
+    // Only create user_settings if none exists yet — never overwrite active_profile_id
+    // (parent may already have another profile as active)
+    const { data: existingSettings } = await supabase
+      .from('zawaaj_user_settings')
+      .select('id')
+      .eq('user_id', userId.trim())
+      .maybeSingle()
+
+    if (!existingSettings) {
+      await supabase.from('zawaaj_user_settings').insert({
+        user_id: userId.trim(),
+        active_profile_id: linkId,
+      })
+    }
+    // If settings already exist, the profile is now linked to the account
+    // but the active profile is unchanged — the user can switch via the Sidebar
 
     setLinkId(null)
     setUserId('')
