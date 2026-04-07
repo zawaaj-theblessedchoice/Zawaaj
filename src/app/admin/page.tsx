@@ -89,7 +89,7 @@ interface ZawaajEvent {
   created_at: string | null
 }
 
-type Tab = 'queue' | 'mutual' | 'introduced' | 'members' | 'withdrawn' | 'unlinked' | 'events' | 'import' | 'orphaned'
+type Tab = 'queue' | 'mutual' | 'introduced' | 'members' | 'withdrawn' | 'events' | 'import'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -853,12 +853,28 @@ function MembersTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh: (
           onChange={e => setSearch(e.target.value)}
           className="field flex-1"
         />
-        <select className="field sm:w-44" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
-          <option value="all">All statuses</option>
-          {(['pending','approved','paused','rejected','withdrawn','suspended','introduced'] as ProfileStatus[]).map(s => (
-            <option key={s} value={s}>{s}</option>
-          ))}
-        </select>
+      </div>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+        {(['all', 'approved', 'paused', 'suspended', 'rejected'] as const).map(s => (
+          <button
+            key={s}
+            onClick={() => setStatusFilter(s)}
+            style={{
+              padding: '4px 12px',
+              borderRadius: 20,
+              fontSize: 12,
+              cursor: 'pointer',
+              border: '1px solid',
+              transition: 'all 0.15s',
+              background: statusFilter === s ? 'var(--gold, #B8960C)' : 'transparent',
+              color: statusFilter === s ? '#111' : 'rgba(255,255,255,0.5)',
+              borderColor: statusFilter === s ? 'var(--gold, #B8960C)' : 'rgba(255,255,255,0.15)',
+              fontWeight: statusFilter === s ? 600 : 400,
+            }}
+          >
+            {s === 'all' ? 'All' : s.charAt(0).toUpperCase() + s.slice(1)}
+          </button>
+        ))}
       </div>
       <div className="overflow-x-auto rounded-2xl border border-white/10">
         <table className="w-full text-sm">
@@ -1755,14 +1771,12 @@ export default function AdminPage() {
   const unlinkedCount = profiles.filter(p => p.user_id === null && p.status === 'approved').length
 
   const tabs: { key: Tab; label: string; badge?: number }[] = [
-    { key: 'queue',      label: 'Queue',      badge: pendingCount },
-    { key: 'mutual',     label: 'Mutual',     badge: mutualCount },
-    { key: 'introduced', label: 'Introduced', badge: introducedCount },
-    { key: 'members',    label: 'Members',    badge: profiles.length },
-    { key: 'withdrawn',  label: 'Withdrawn',  badge: withdrawnCount },
-    { key: 'unlinked',   label: 'Unlinked',   badge: unlinkedCount },
-    { key: 'events',     label: 'Events',     badge: events.length },
-    { key: 'orphaned',   label: 'Orphaned' },
+    { key: 'queue',      label: 'Queue',          badge: pendingCount },
+    { key: 'members',    label: 'Members',         badge: profiles.length },
+    { key: 'mutual',     label: 'Introductions',   badge: mutualCount },
+    { key: 'introduced', label: 'Matches',         badge: introducedCount },
+    { key: 'withdrawn',  label: 'Withdrawn',       badge: withdrawnCount },
+    { key: 'events',     label: 'Events',          badge: events.length },
     { key: 'import',     label: 'Import' },
   ]
 
@@ -1892,9 +1906,7 @@ export default function AdminPage() {
             {tab === 'introduced' && <IntroducedTab  matches={matches}   onRefresh={loadData} />}
             {tab === 'members'    && <MembersTab     profiles={profiles} onRefresh={loadData} />}
             {tab === 'withdrawn'  && <WithdrawnTab   profiles={profiles} onRefresh={loadData} />}
-            {tab === 'unlinked'   && <UnlinkedTab    profiles={profiles} onRefresh={loadData} />}
             {tab === 'events'     && <EventsTab      events={events}     onRefresh={loadData} />}
-            {tab === 'orphaned'   && <OrphanedTab />}
             {tab === 'import'     && <ImportTab />}
           </>
         )}
