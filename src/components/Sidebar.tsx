@@ -122,6 +122,16 @@ function ProfileIcon() {
   )
 }
 
+function AddFamilyIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" style={{ flexShrink: 0 }}>
+      <circle cx="5.5" cy="5" r="2.5" stroke="currentColor" strokeWidth="1.2" />
+      <path d="M1 13c0-2.76 2.015-5 4.5-5s4.5 2.24 4.5 5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+      <path d="M11.5 5v4M13.5 7h-4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+    </svg>
+  )
+}
+
 function SectionDivider({ label }: { label: string }) {
   return (
     <div
@@ -215,7 +225,10 @@ export default function Sidebar({
     },
     {
       section: 'Account',
-      items: [{ label: 'My profile', href: '/my-profile', icon: <ProfileIcon /> }],
+      items: [
+        { label: 'My profile', href: '/my-profile', icon: <ProfileIcon /> },
+        { label: 'Add family member', href: '/add-profile', icon: <AddFamilyIcon /> },
+      ],
     },
   ]
 
