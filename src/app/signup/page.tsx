@@ -75,10 +75,19 @@ const SCHOOL_OPTIONS = [
 ]
 
 const ETHNICITY_OPTIONS = [
-  'Arab',
+  // British-raised (grew up in the UK)
+  'British Pakistani',
+  'British Bangladeshi',
+  'British Indian',
+  'British Arab',
+  'British Somali',
+  'British Turkish / Kurdish',
+  'British African',
+  // Internationally raised
+  'Pakistani',
   'Bangladeshi',
   'Indian',
-  'Pakistani',
+  'Arab',
   'Somali',
   'Turkish / Kurdish',
   'Afghan',
@@ -86,7 +95,8 @@ const ETHNICITY_OPTIONS = [
   'Malaysian / Indonesian',
   'West African',
   'East African',
-  'White European',
+  // Other
+  'White British / European',
   'Mixed heritage',
   'Other',
 ]
@@ -623,13 +633,22 @@ function Step2({
 }) {
   return (
     <>
-      <Field label="Ethnicity" required>
+      <Field label="Ethnicity" required hint="'British Pakistani' = Pakistani heritage, raised in the UK. Choose whichever best reflects your background.">
         <StyledSelect
           value={formData.ethnicity}
           onChange={(e) => update({ ethnicity: e.target.value })}
         >
           <option value="">Select…</option>
-          {ETHNICITY_OPTIONS.map((opt) => (
+          <optgroup label="── British-raised ──" disabled />
+          {ETHNICITY_OPTIONS.filter(o => o.startsWith('British')).map((opt) => (
+            <option key={opt} value={opt}>{opt}</option>
+          ))}
+          <optgroup label="── Internationally raised ──" disabled />
+          {ETHNICITY_OPTIONS.filter(o => !o.startsWith('British') && !['White British / European','Mixed heritage','Other'].includes(o)).map((opt) => (
+            <option key={opt} value={opt}>{opt}</option>
+          ))}
+          <optgroup label="── Other ──" disabled />
+          {['White British / European','Mixed heritage','Other'].map((opt) => (
             <option key={opt} value={opt}>{opt}</option>
           ))}
         </StyledSelect>

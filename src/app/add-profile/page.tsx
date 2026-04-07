@@ -72,10 +72,19 @@ const SCHOOL_OPTIONS = [
 ]
 
 const ETHNICITY_OPTIONS = [
-  'Arab',
+  // British-raised (grew up in the UK)
+  'British Pakistani',
+  'British Bangladeshi',
+  'British Indian',
+  'British Arab',
+  'British Somali',
+  'British Turkish / Kurdish',
+  'British African',
+  // Internationally raised
+  'Pakistani',
   'Bangladeshi',
   'Indian',
-  'Pakistani',
+  'Arab',
   'Somali',
   'Turkish / Kurdish',
   'Afghan',
@@ -83,7 +92,8 @@ const ETHNICITY_OPTIONS = [
   'Malaysian / Indonesian',
   'West African',
   'East African',
-  'White European',
+  // Other
+  'White British / European',
   'Mixed heritage',
   'Other',
 ]
@@ -553,12 +563,31 @@ function Step2({
 }) {
   return (
     <>
-      <Field label="Ethnicity">
-        <ChipGroup
-          options={ETHNICITY_OPTIONS}
-          value={form.ethnicity}
-          onChange={(val) => update({ ethnicity: val as string })}
-        />
+      <Field label="Ethnicity" hint="'British Pakistani' = Pakistani heritage, raised in the UK. Choose whichever best reflects your background.">
+        <div style={{ marginBottom: 6 }}>
+          <p style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: 6 }}>British-raised</p>
+          <ChipGroup
+            options={ETHNICITY_OPTIONS.filter(o => o.startsWith('British'))}
+            value={form.ethnicity}
+            onChange={(val) => update({ ethnicity: val as string })}
+          />
+        </div>
+        <div style={{ marginBottom: 6 }}>
+          <p style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: 6 }}>Internationally raised</p>
+          <ChipGroup
+            options={ETHNICITY_OPTIONS.filter(o => !o.startsWith('British') && !['White British / European','Mixed heritage','Other'].includes(o))}
+            value={form.ethnicity}
+            onChange={(val) => update({ ethnicity: val as string })}
+          />
+        </div>
+        <div>
+          <p style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: 6 }}>Other</p>
+          <ChipGroup
+            options={['White British / European','Mixed heritage','Other']}
+            value={form.ethnicity}
+            onChange={(val) => update({ ethnicity: val as string })}
+          />
+        </div>
       </Field>
       <Field label="Languages spoken">
         <StyledInput
