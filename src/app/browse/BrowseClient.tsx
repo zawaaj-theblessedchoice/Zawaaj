@@ -986,26 +986,55 @@ export default function BrowseClient({
               )}
             </div>
 
-            {/* Sort dropdown */}
-            <select
-              value={effectiveSortKey}
-              onChange={e => setSortKey(e.target.value as SortKey)}
+            {/* Sort */}
+            <div
               style={{
-                padding: '7px 10px',
-                borderRadius: 8,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0,
                 border: '0.5px solid var(--border-default)',
+                borderRadius: 8,
                 background: 'var(--surface-2)',
-                color: 'var(--text-secondary)',
-                fontSize: 12.5,
-                cursor: 'pointer',
-                outline: 'none',
+                overflow: 'hidden',
               }}
             >
-              <option value="relevant">Most relevant</option>
-              <option value="newest">Newest listed</option>
-              <option value="age_asc">Age: youngest first</option>
-              <option value="age_desc">Age: oldest first</option>
-            </select>
+              <span
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 5,
+                  padding: '7px 10px 7px 12px',
+                  fontSize: 12.5,
+                  color: 'var(--text-secondary)',
+                  borderRight: '0.5px solid var(--border-default)',
+                  whiteSpace: 'nowrap',
+                  userSelect: 'none',
+                }}
+              >
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path d="M2 3h8M3.5 6h5M5 9h2" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+                </svg>
+                Sort
+              </span>
+              <select
+                value={effectiveSortKey}
+                onChange={e => setSortKey(e.target.value as SortKey)}
+                style={{
+                  padding: '7px 10px',
+                  border: 'none',
+                  background: 'transparent',
+                  color: 'var(--text-secondary)',
+                  fontSize: 12.5,
+                  cursor: 'pointer',
+                  outline: 'none',
+                }}
+              >
+                <option value="relevant">Most relevant</option>
+                <option value="newest">Newest listed</option>
+                <option value="age_asc">Age: youngest first</option>
+                <option value="age_desc">Age: oldest first</option>
+              </select>
+            </div>
           </div>
         </div>
 
