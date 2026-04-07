@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase/client'
 import ZawaajLogo from '@/components/ZawaajLogo'
 import AvatarInitials from '@/components/AvatarInitials'
 
@@ -148,6 +149,12 @@ export default function Sidebar({
 }: SidebarProps) {
   const [switcherOpen, setSwitcherOpen] = useState(false)
   const [switching, setSwitching] = useState(false)
+
+  async function handleSignOut() {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    window.location.href = '/login'
+  }
 
   const hasMultipleProfiles = (managedProfiles?.length ?? 0) > 1
 
@@ -462,6 +469,32 @@ export default function Sidebar({
           )}
         </div>
       )}
+      {/* Sign out */}
+      <button
+        onClick={handleSignOut}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          width: '100%',
+          padding: '10px 20px',
+          background: 'none',
+          border: 'none',
+          borderTop: '0.5px solid var(--border-default)',
+          color: 'var(--text-muted)',
+          fontSize: 12,
+          cursor: 'pointer',
+          textAlign: 'left',
+          transition: 'color 0.15s',
+        }}
+        onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.color = 'var(--text-secondary)')}
+        onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.color = 'var(--text-muted)')}
+      >
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ flexShrink: 0 }}>
+          <path d="M5 2H2a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h3M9 9.5l3-3-3-3M12 6.5H5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        Sign out
+      </button>
     </aside>
   )
 }
