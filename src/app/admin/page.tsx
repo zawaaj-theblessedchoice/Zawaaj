@@ -45,6 +45,27 @@ interface Profile {
   created_at: string | null
   duplicate_flag: boolean
   interests_this_month: number | null
+  date_of_birth: string | null
+  nationality: string | null
+  marital_status: string | null
+  has_children: boolean | null
+  living_situation: string | null
+  languages_spoken: string | null
+  religiosity: string | null
+  prayer_regularity: string | null
+  wears_hijab: boolean | null
+  keeps_beard: boolean | null
+  open_to_relocation: string | null
+  open_to_partners_children: string | null
+  polygamy_openness: string | null
+  bio: string | null
+  pref_age_min: number | null
+  pref_age_max: number | null
+  pref_location: string | null
+  pref_ethnicity: string | null
+  pref_school_of_thought: string[] | null
+  pref_relocation: string | null
+  pref_partner_children: string | null
 }
 
 interface MatchProfile {
@@ -113,6 +134,19 @@ function phoneDigits(phone: string | null): string {
 
 function avatarBg(gender: string | null): string {
   return gender === 'female' ? '#8B5CF6' : '#2563EB'
+}
+
+// ─── DetailRow (used in QueueTab expanded panel) ──────────────────────────────
+
+function DetailRow({ label, value }: { label: string; value: string | boolean | number | null | undefined }) {
+  if (value === null || value === undefined || value === '') return null
+  const display = typeof value === 'boolean' ? (value ? 'Yes' : 'No') : String(value)
+  return (
+    <div style={{ display: 'flex', gap: 8, padding: '5px 0', borderBottom: '0.5px solid rgba(255,255,255,0.06)' }}>
+      <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', width: 130, flexShrink: 0, textTransform: 'uppercase', letterSpacing: '0.06em', paddingTop: 1 }}>{label}</span>
+      <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)', flex: 1 }}>{display}</span>
+    </div>
+  )
 }
 
 // ─── Shared UI ────────────────────────────────────────────────────────────────
@@ -503,6 +537,7 @@ function QueueTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh: () 
   const [confirmAction, setConfirmAction] = useState<{ id: string; type: 'approve' | 'reject'; note?: string } | null>(null)
   const [rejectNote, setRejectNote] = useState('')
   const [showRejectInput, setShowRejectInput] = useState<string | null>(null)
+  const [expandedId, setExpandedId] = useState<string | null>(null)
 
   const pending = profiles.filter(p => p.status === 'pending')
 
@@ -542,70 +577,207 @@ function QueueTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh: () 
       )}
       <div className="space-y-3">
         {pending.map(p => (
-          <div key={p.id} className="bg-[#1E1E1E] rounded-2xl p-5 border border-white/10 flex flex-col sm:flex-row gap-4">
-            <div className="flex gap-4 flex-1 min-w-0">
-              <Avatar initials={p.display_initials} gender={p.gender} size={48} />
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-semibold text-white">{p.display_initials}</span>
-                  {p.legacy_ref && (
-                    <span className="px-2 py-0.5 rounded-full bg-white/10 text-xs text-white/60 border border-white/10">
-                      {p.legacy_ref}
-                    </span>
-                  )}
-                  {p.duplicate_flag && (
-                    <span className="px-2 py-0.5 rounded-full bg-yellow-900/40 text-yellow-400 text-xs font-medium">
-                      Possible duplicate
-                    </span>
-                  )}
-                </div>
-                <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1.5 text-sm text-white/60">
-                  {p.gender && <span className="capitalize">{p.gender}</span>}
-                  {p.age_display && <span>{p.age_display}</span>}
-                  {p.location && <span>{p.location}</span>}
-                  {p.school_of_thought && <span>{p.school_of_thought}</span>}
-                </div>
-                <p className="text-xs text-white/40 mt-1">Submitted {daysAgo(p.submitted_date)}</p>
-                {p.admin_comments && (
-                  <div className="mt-2 bg-[#2A2200] border border-yellow-700/40 rounded-lg px-3 py-2 text-xs text-yellow-400">
-                    <span className="font-medium">Admin note:</span> {p.admin_comments}
+          <div key={p.id} className="bg-[#1E1E1E] rounded-2xl p-5 border border-white/10">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex gap-4 flex-1 min-w-0">
+                <Avatar initials={p.display_initials} gender={p.gender} size={48} />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-semibold text-white">{p.display_initials}</span>
+                    {(p.first_name || p.last_name) && (
+                      <span className="text-white/60 text-sm">
+                        {[p.first_name, p.last_name].filter(Boolean).join(' ')}
+                      </span>
+                    )}
+                    {p.legacy_ref && (
+                      <span className="px-2 py-0.5 rounded-full bg-white/10 text-xs text-white/60 border border-white/10">
+                        {p.legacy_ref}
+                      </span>
+                    )}
+                    {p.duplicate_flag && (
+                      <span className="px-2 py-0.5 rounded-full bg-yellow-900/40 text-yellow-400 text-xs font-medium">
+                        Possible duplicate
+                      </span>
+                    )}
                   </div>
+                  <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1.5 text-sm text-white/60">
+                    {p.gender && <span className="capitalize">{p.gender}</span>}
+                    {p.age_display && <span>{p.age_display}</span>}
+                    {p.location && <span>{p.location}</span>}
+                    {p.ethnicity && <span>{p.ethnicity}</span>}
+                    {p.profession_detail && <span>{p.profession_detail}</span>}
+                    {p.education_level && <span>{p.education_level}</span>}
+                    {p.school_of_thought && <span>{p.school_of_thought}</span>}
+                    {p.religiosity && <span>{p.religiosity}</span>}
+                  </div>
+                  {p.contact_number && (
+                    <p className="text-xs mt-1" style={{ color: 'var(--gold, #B8960C)' }}>
+                      {p.contact_number}{p.guardian_name ? ` · ${p.guardian_name}` : ''}
+                    </p>
+                  )}
+                  <p className="text-xs text-white/40 mt-1">Submitted {daysAgo(p.submitted_date)}</p>
+                  {p.admin_comments && (
+                    <div className="mt-2 bg-[#2A2200] border border-yellow-700/40 rounded-lg px-3 py-2 text-xs text-yellow-400">
+                      <span className="font-medium">Admin note:</span> {p.admin_comments}
+                    </div>
+                  )}
+                  <button
+                    onClick={() => setExpandedId(expandedId === p.id ? null : p.id)}
+                    style={{ fontSize: 11, color: 'var(--gold, #B8960C)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0' }}
+                  >
+                    {expandedId === p.id ? '▲ Hide details' : '▼ Full profile'}
+                  </button>
+                </div>
+              </div>
+              <div className="flex flex-col gap-2 flex-shrink-0 sm:w-28">
+                <button onClick={() => setEditProfile(p)}
+                  className="px-3 py-2 rounded-xl text-xs font-medium border border-white/10 text-white hover:bg-white/5">
+                  Edit
+                </button>
+                <button onClick={() => setConfirmAction({ id: p.id, type: 'approve' })}
+                  className="px-3 py-2 rounded-xl text-xs font-medium bg-green-600 text-white hover:bg-green-700">
+                  Approve
+                </button>
+                {showRejectInput === p.id ? (
+                  <div className="space-y-1">
+                    <input
+                      className="field text-xs py-1"
+                      placeholder="Optional note…"
+                      value={rejectNote}
+                      onChange={e => setRejectNote(e.target.value)}
+                    />
+                    <button onClick={() => { reject(p.id, rejectNote); setShowRejectInput(null); setRejectNote('') }}
+                      className="w-full px-3 py-1.5 rounded-lg text-xs font-medium bg-red-600 text-white hover:bg-red-700">
+                      Confirm Reject
+                    </button>
+                    <button onClick={() => setShowRejectInput(null)}
+                      className="w-full px-3 py-1.5 rounded-lg text-xs border border-white/10 text-white/60 hover:bg-white/5">
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <button onClick={() => setShowRejectInput(p.id)}
+                    className="px-3 py-2 rounded-xl text-xs font-medium bg-red-950/60 text-red-400 hover:bg-red-900/60">
+                    Reject
+                  </button>
                 )}
               </div>
             </div>
-            <div className="flex flex-col gap-2 flex-shrink-0 sm:w-28">
-              <button onClick={() => setEditProfile(p)}
-                className="px-3 py-2 rounded-xl text-xs font-medium border border-white/10 text-white hover:bg-white/5">
-                Edit
-              </button>
-              <button onClick={() => setConfirmAction({ id: p.id, type: 'approve' })}
-                className="px-3 py-2 rounded-xl text-xs font-medium bg-green-600 text-white hover:bg-green-700">
-                Approve
-              </button>
-              {showRejectInput === p.id ? (
-                <div className="space-y-1">
-                  <input
-                    className="field text-xs py-1"
-                    placeholder="Optional note…"
-                    value={rejectNote}
-                    onChange={e => setRejectNote(e.target.value)}
-                  />
-                  <button onClick={() => { reject(p.id, rejectNote); setShowRejectInput(null); setRejectNote('') }}
-                    className="w-full px-3 py-1.5 rounded-lg text-xs font-medium bg-red-600 text-white hover:bg-red-700">
-                    Confirm Reject
-                  </button>
-                  <button onClick={() => setShowRejectInput(null)}
-                    className="w-full px-3 py-1.5 rounded-lg text-xs border border-white/10 text-white/60 hover:bg-white/5">
-                    Cancel
-                  </button>
+
+            {/* Expanded full profile panel */}
+            {expandedId === p.id && (
+              <div style={{
+                marginTop: 12,
+                paddingTop: 16,
+                borderTop: '0.5px solid rgba(255,255,255,0.1)',
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                gap: '0 32px',
+              }}>
+                {/* Left column: Personal, Contact, About */}
+                <div>
+                  {/* Personal */}
+                  <div style={{ marginBottom: 16 }}>
+                    <p style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', marginBottom: 4 }}>
+                      Personal
+                    </p>
+                    <DetailRow label="First Name" value={p.first_name} />
+                    <DetailRow label="Last Name" value={p.last_name} />
+                    <DetailRow label="Date of Birth" value={p.date_of_birth} />
+                    <DetailRow label="Age Display" value={p.age_display} />
+                    <DetailRow label="Gender" value={p.gender} />
+                    <DetailRow label="Location" value={p.location} />
+                    <DetailRow label="Nationality" value={p.nationality} />
+                    <DetailRow label="Height" value={p.height} />
+                    <DetailRow label="Marital Status" value={p.marital_status} />
+                    <DetailRow label="Has Children" value={p.has_children} />
+                    <DetailRow label="Living Situation" value={p.living_situation} />
+                  </div>
+
+                  {/* Contact (admin-only) */}
+                  <div style={{ marginBottom: 16 }}>
+                    <p style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--gold, #B8960C)', marginBottom: 4 }}>
+                      Contact (Admin Only)
+                    </p>
+                    <DetailRow label="Contact Number" value={p.contact_number} />
+                    <DetailRow label="Guardian Name" value={p.guardian_name} />
+                    <DetailRow label="Imported Email" value={p.imported_email} />
+                  </div>
+
+                  {/* About */}
+                  {p.bio && (
+                    <div style={{ marginBottom: 16 }}>
+                      <p style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', marginBottom: 4 }}>
+                        About
+                      </p>
+                      <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', lineHeight: 1.6 }}>{p.bio}</p>
+                    </div>
+                  )}
                 </div>
-              ) : (
-                <button onClick={() => setShowRejectInput(p.id)}
-                  className="px-3 py-2 rounded-xl text-xs font-medium bg-red-950/60 text-red-400 hover:bg-red-900/60">
-                  Reject
-                </button>
-              )}
-            </div>
+
+                {/* Right column: Background, Faith, Lifestyle, Preferences, Admin Notes */}
+                <div>
+                  {/* Background */}
+                  <div style={{ marginBottom: 16 }}>
+                    <p style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', marginBottom: 4 }}>
+                      Background
+                    </p>
+                    <DetailRow label="Ethnicity" value={p.ethnicity} />
+                    <DetailRow label="Languages" value={p.languages_spoken} />
+                    <DetailRow label="Profession" value={p.profession_detail ?? p.profession_sector} />
+                    <DetailRow label="Education Level" value={p.education_level} />
+                    <DetailRow label="Institution" value={p.education_detail} />
+                  </div>
+
+                  {/* Faith & Practice */}
+                  <div style={{ marginBottom: 16 }}>
+                    <p style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', marginBottom: 4 }}>
+                      Faith &amp; Practice
+                    </p>
+                    <DetailRow label="School of Thought" value={p.school_of_thought} />
+                    <DetailRow label="Religiosity" value={p.religiosity} />
+                    <DetailRow label="Prayer Regularity" value={p.prayer_regularity} />
+                    {p.gender === 'female' && <DetailRow label="Wears Hijab" value={p.wears_hijab} />}
+                    {p.gender === 'male' && <DetailRow label="Keeps Beard" value={p.keeps_beard} />}
+                  </div>
+
+                  {/* Lifestyle */}
+                  <div style={{ marginBottom: 16 }}>
+                    <p style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', marginBottom: 4 }}>
+                      Lifestyle
+                    </p>
+                    <DetailRow label="Open to Relocation" value={p.open_to_relocation} />
+                    <DetailRow label="Partner's Children" value={p.open_to_partners_children} />
+                    <DetailRow label="Polygamy Openness" value={p.polygamy_openness} />
+                  </div>
+
+                  {/* Preferences */}
+                  <div style={{ marginBottom: 16 }}>
+                    <p style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', marginBottom: 4 }}>
+                      Preferences
+                    </p>
+                    <DetailRow label="Pref Age Min" value={p.pref_age_min} />
+                    <DetailRow label="Pref Age Max" value={p.pref_age_max} />
+                    <DetailRow label="Pref Location" value={p.pref_location} />
+                    <DetailRow label="Pref Ethnicity" value={p.pref_ethnicity} />
+                    <DetailRow label="Pref School" value={p.pref_school_of_thought?.join(', ')} />
+                    <DetailRow label="Pref Relocation" value={p.pref_relocation} />
+                    <DetailRow label="Pref Partner Kids" value={p.pref_partner_children} />
+                  </div>
+
+                  {/* Admin Notes */}
+                  {(p.admin_comments || p.admin_notes) && (
+                    <div style={{ marginBottom: 16 }}>
+                      <p style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', marginBottom: 4 }}>
+                        Admin Notes
+                      </p>
+                      <DetailRow label="Admin Comments" value={p.admin_comments} />
+                      <DetailRow label="Admin Notes" value={p.admin_notes} />
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         ))}
       </div>
