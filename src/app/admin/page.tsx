@@ -766,7 +766,7 @@ function IntroducedTab({ matches, onRefresh }: { matches: Match[]; onRefresh: ()
 
 // ─── TAB 4: All Members ───────────────────────────────────────────────────────
 
-function MembersTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh: () => void }) {
+function MembersTab({ profiles, onRefresh, currentUserId }: { profiles: Profile[]; onRefresh: () => void; currentUserId: string | null }) {
   const supabase = createClient()
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
@@ -797,6 +797,10 @@ function MembersTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh: (
   })
 
   async function deleteAccount(p: Profile) {
+    if (p.user_id && p.user_id === currentUserId) {
+      alert('You cannot delete your own account.')
+      return
+    }
     if (!window.confirm(
       p.user_id
         ? `Delete the login account for ${p.first_name ?? p.display_initials}? Their profile will be unlinked and preserved. This cannot be undone.`
@@ -1697,6 +1701,7 @@ export default function AdminPage() {
   const supabase = createClient()
   const [accessChecked, setAccessChecked] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [tab, setTab] = useState<Tab>('queue')
 
   // Data
@@ -1710,6 +1715,7 @@ export default function AdminPage() {
     async function checkAdmin() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { setAccessChecked(true); return }
+      setCurrentUserId(user.id)
       const { data } = await supabase
         .from('zawaaj_profiles')
         .select('is_admin')
@@ -1904,7 +1910,7 @@ export default function AdminPage() {
             {tab === 'queue'      && <QueueTab      profiles={profiles} onRefresh={loadData} />}
             {tab === 'mutual'     && <MutualTab     matches={matches}   onRefresh={loadData} />}
             {tab === 'introduced' && <IntroducedTab  matches={matches}   onRefresh={loadData} />}
-            {tab === 'members'    && <MembersTab     profiles={profiles} onRefresh={loadData} />}
+            {tab === 'members'    && <MembersTab     profiles={profiles} onRefresh={loadData} currentUserId={currentUserId} />}
             {tab === 'withdrawn'  && <WithdrawnTab   profiles={profiles} onRefresh={loadData} />}
             {tab === 'events'     && <EventsTab      events={events}     onRefresh={loadData} />}
             {tab === 'import'     && <ImportTab />}
