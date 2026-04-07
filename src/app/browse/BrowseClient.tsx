@@ -991,7 +991,6 @@ export default function BrowseClient({
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: 0,
                 border: '0.5px solid var(--border-default)',
                 borderRadius: 8,
                 background: 'var(--surface-2)',
@@ -1002,25 +1001,22 @@ export default function BrowseClient({
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 5,
-                  padding: '7px 10px 7px 12px',
-                  fontSize: 12.5,
-                  color: 'var(--text-secondary)',
-                  borderRight: '0.5px solid var(--border-default)',
-                  whiteSpace: 'nowrap',
-                  userSelect: 'none',
+                  padding: '7px 6px 7px 10px',
+                  color: 'var(--text-muted)',
+                  pointerEvents: 'none',
                 }}
               >
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                  <path d="M2 3h8M3.5 6h5M5 9h2" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                  <path d="M4.5 4.5L6.5 2.5L8.5 4.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M4.5 8.5L6.5 10.5L8.5 8.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M6.5 2.5V10.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
                 </svg>
-                Sort
               </span>
               <select
                 value={effectiveSortKey}
                 onChange={e => setSortKey(e.target.value as SortKey)}
                 style={{
-                  padding: '7px 10px',
+                  padding: '7px 10px 7px 4px',
                   border: 'none',
                   background: 'transparent',
                   color: 'var(--text-secondary)',

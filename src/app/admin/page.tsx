@@ -1162,6 +1162,24 @@ function EventsTab({ events, onRefresh }: { events: ZawaajEvent[]; onRefresh: ()
     onRefresh()
   }
 
+  const [editDetails, setEditDetails] = useState<Record<string, { title: string; event_date: string; location_text: string }>>({})
+
+  async function markEnded(id: string) {
+    await supabase.from('zawaaj_events').update({ status: 'ended', show_in_history: true }).eq('id', id)
+    onRefresh()
+  }
+
+  async function updateDetails(id: string) {
+    const d = editDetails[id]
+    if (!d) return
+    await supabase.from('zawaaj_events').update({
+      title: d.title || undefined,
+      event_date: d.event_date || null,
+      location_text: d.location_text || null,
+    }).eq('id', id)
+    onRefresh()
+  }
+
   async function createEvent() {
     if (!newForm.title) return
     setCreating(true)
@@ -1243,6 +1261,12 @@ function EventsTab({ events, onRefresh }: { events: ZawaajEvent[]; onRefresh: ()
                   />
                   Show in history
                 </label>
+                {ev.status === 'upcoming' && (
+                  <button onClick={() => markEnded(ev.id)}
+                    className="px-2.5 py-1 rounded-lg text-xs border border-white/10 text-white/70 hover:bg-white/5">
+                    Mark ended
+                  </button>
+                )}
                 {ev.status !== 'archived' && (
                   <button onClick={() => archive(ev.id)}
                     className="px-2.5 py-1 rounded-lg text-xs border border-white/10 text-white hover:bg-white/5">
@@ -1252,6 +1276,38 @@ function EventsTab({ events, onRefresh }: { events: ZawaajEvent[]; onRefresh: ()
                 <button onClick={() => setDeleteId(ev.id)}
                   className="px-2.5 py-1 rounded-lg text-xs bg-red-950/60 text-red-400 hover:bg-red-900/60">
                   Delete
+                </button>
+              </div>
+            </div>
+            {/* Core details edit */}
+            <div className="px-5 py-3 border-t border-white/10 bg-[#171717] grid sm:grid-cols-3 gap-3">
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs text-white/40 flex-shrink-0 w-12">Title:</span>
+                <input
+                  className="field text-xs py-1 flex-1"
+                  defaultValue={ev.title}
+                  onChange={e => setEditDetails(prev => ({ ...prev, [ev.id]: { ...prev[ev.id], title: e.target.value, event_date: prev[ev.id]?.event_date ?? ev.event_date ?? '', location_text: prev[ev.id]?.location_text ?? ev.location_text ?? '' } }))}
+                />
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs text-white/40 flex-shrink-0 w-12">Date:</span>
+                <input
+                  type="datetime-local"
+                  className="field text-xs py-1 flex-1"
+                  defaultValue={ev.event_date ? ev.event_date.slice(0, 16) : ''}
+                  onChange={e => setEditDetails(prev => ({ ...prev, [ev.id]: { ...prev[ev.id], title: prev[ev.id]?.title ?? ev.title, event_date: e.target.value, location_text: prev[ev.id]?.location_text ?? ev.location_text ?? '' } }))}
+                />
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs text-white/40 flex-shrink-0 w-14">Location:</span>
+                <input
+                  className="field text-xs py-1 flex-1"
+                  defaultValue={ev.location_text ?? ''}
+                  onChange={e => setEditDetails(prev => ({ ...prev, [ev.id]: { ...prev[ev.id], title: prev[ev.id]?.title ?? ev.title, event_date: prev[ev.id]?.event_date ?? ev.event_date ?? '', location_text: e.target.value } }))}
+                />
+                <button onClick={() => updateDetails(ev.id)}
+                  className="px-3 py-1 rounded-lg text-xs bg-[#1A1A1A] text-[#B8960C] hover:bg-[#333] flex-shrink-0">
+                  Save
                 </button>
               </div>
             </div>
@@ -1739,20 +1795,25 @@ export default function AdminPage() {
           <p className="text-white/40 text-sm mt-1">Manage applications, matches and members.</p>
         </div>
 
-        {/* Stats Row */}
+        {/* Stats Row — each card navigates to the relevant tab */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
-          {[
-            { label: 'Total Profiles', value: totalProfiles, color: '#1A1A1A' },
-            { label: 'Pending', value: pendingCount, color: '#92400E' },
-            { label: 'Approved', value: approvedCount, color: '#065F46' },
-            { label: 'Awaiting Admin', value: mutualCount, color: '#5B21B6' },
-            { label: 'Introduced', value: introducedCount, color: '#1E40AF' },
-            { label: 'Unlinked', value: unlinkedCount, color: '#92400E' },
-          ].map(stat => (
-            <div key={stat.label} className="bg-[#1E1E1E] rounded-2xl p-4 border border-white/10">
-              <p className="text-2xl font-bold" style={{ color: stat.color }}>{stat.value}</p>
+          {([
+            { label: 'Pending review',  value: pendingCount,    tab: 'queue'      as Tab, accent: '#F59E0B' },
+            { label: 'Approved',        value: approvedCount,   tab: 'members'    as Tab, accent: '#4ADE80' },
+            { label: 'Awaiting admin',  value: mutualCount,     tab: 'mutual'     as Tab, accent: '#A78BFA' },
+            { label: 'Introduced',      value: introducedCount, tab: 'introduced' as Tab, accent: '#60A5FA' },
+            { label: 'Withdrawn',       value: withdrawnCount,  tab: 'withdrawn'  as Tab, accent: '#6B7280' },
+            { label: 'Total members',   value: totalProfiles,   tab: 'members'    as Tab, accent: '#B8960C' },
+          ] as const).map(stat => (
+            <button
+              key={stat.label}
+              onClick={() => setTab(stat.tab)}
+              className="bg-[#1E1E1E] rounded-2xl p-4 text-left hover:bg-[#252525] transition-colors w-full"
+              style={{ border: `1px solid rgba(255,255,255,0.08)`, borderLeft: `3px solid ${stat.accent}` }}
+            >
+              <p className="text-2xl font-bold text-white">{stat.value}</p>
               <p className="text-xs text-white/50 mt-0.5">{stat.label}</p>
-            </div>
+            </button>
           ))}
         </div>
 
@@ -1765,7 +1826,7 @@ export default function AdminPage() {
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-colors"
               style={{
                 backgroundColor: tab === key ? '#1A1A1A' : 'transparent',
-                color: tab === key ? '#B8960C' : '#1A1A1A',
+                color: tab === key ? '#B8960C' : 'rgba(255,255,255,0.5)',
               }}
             >
               {label}
