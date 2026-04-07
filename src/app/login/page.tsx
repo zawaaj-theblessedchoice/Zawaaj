@@ -41,8 +41,14 @@ export default function LoginPage() {
 
         {/* Card */}
         <div
-          className="rounded-2xl shadow-xl px-8 py-10"
-          style={{ backgroundColor: '#1A1A1A' }}
+          className="rounded-xl px-8 py-10"
+          style={{
+            backgroundColor: '#1A1A1A',
+            borderRadius: 12,
+            border: '0.5px solid rgba(255,255,255,0.07)',
+            borderTop: '1px solid rgba(196,154,16,0.2)',
+            boxShadow: '0 16px 48px rgba(0,0,0,0.4)',
+          }}
         >
           <h1 className="text-2xl font-semibold text-white mb-1">
             Welcome back
@@ -67,7 +73,8 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className="w-full rounded-lg px-4 py-3 bg-white/10 text-white placeholder-white/30 border border-white/10 focus:outline-none focus:border-[#B8960C] transition-colors text-sm"
+                className="w-full px-4 py-3 text-white placeholder-white/30 border border-white/10 focus:outline-none focus:border-[#B8960C] transition-colors text-sm"
+                style={{ background: 'var(--surface-3)', borderRadius: 10 }}
               />
             </div>
 
@@ -95,7 +102,8 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full rounded-lg px-4 py-3 bg-white/10 text-white placeholder-white/30 border border-white/10 focus:outline-none focus:border-[#B8960C] transition-colors text-sm"
+                className="w-full px-4 py-3 text-white placeholder-white/30 border border-white/10 focus:outline-none focus:border-[#B8960C] transition-colors text-sm"
+                style={{ background: 'var(--surface-3)', borderRadius: 10 }}
               />
             </div>
 
@@ -108,8 +116,14 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 rounded-lg font-semibold text-sm transition-opacity disabled:opacity-50"
-              style={{ backgroundColor: '#B8960C', color: '#1A1A1A' }}
+              className="w-full py-3 font-semibold text-sm transition-opacity disabled:opacity-50"
+              style={{
+                background: 'linear-gradient(135deg, #C49A10, #D9AF2E)',
+                color: '#1A1A1A',
+                borderRadius: 10,
+                border: 'none',
+                boxShadow: '0 2px 8px rgba(196,154,16,0.25)',
+              }}
             >
               {loading ? 'Signing in…' : 'Sign in'}
             </button>

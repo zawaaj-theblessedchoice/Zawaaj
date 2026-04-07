@@ -30,12 +30,14 @@ export default function PendingPage() {
           maxWidth: 420,
           background: 'var(--surface-2)',
           border: '0.5px solid var(--border-default)',
-          borderRadius: 16,
+          borderTop: '1px solid rgba(196,154,16,0.25)',
+          borderRadius: 12,
           padding: '40px 36px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           gap: 24,
+          boxShadow: '0 16px 48px rgba(0,0,0,0.4)',
         }}
       >
         {/* Logo */}

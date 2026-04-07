@@ -13,6 +13,8 @@ import { scoreCompatibility } from '@/lib/compatibility'
 type Tab = 'recommended' | 'new' | 'all' | 'shortlist'
 type SortKey = 'relevant' | 'newest' | 'age_asc' | 'age_desc'
 
+const PROFILES_PER_PAGE = 24
+
 interface IntroRequest {
   target_profile_id: string
   status: string
@@ -352,6 +354,7 @@ export default function BrowseClient({
   const [filterOpen, setFilterOpen] = useState(false)
   const [pendingFilters, setPendingFilters] = useState<FilterState>(EMPTY_FILTERS)
   const [appliedFilters, setAppliedFilters] = useState<FilterState>(EMPTY_FILTERS)
+  const [visibleCount, setVisibleCount] = useState(PROFILES_PER_PAGE)
 
   const filterRef = useRef<HTMLDivElement>(null)
 
@@ -473,11 +476,18 @@ export default function BrowseClient({
   // Effective sort: "new" tab always defaults to newest
   const effectiveSortKey: SortKey = activeTab === 'new' && sortKey === 'relevant' ? 'newest' : sortKey
 
-  const displayedProfiles = useMemo(() => {
+  const sortedAndFiltered = useMemo(() => {
     const filtered = applyFilters(applySearch(tabProfiles))
     return applySort(filtered, effectiveSortKey)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tabProfiles, appliedFilters, searchQuery, effectiveSortKey])
+
+  // Reset pagination when filters/tab/search/sort change
+  useEffect(() => {
+    setVisibleCount(PROFILES_PER_PAGE)
+  }, [activeTab, appliedFilters, searchQuery, effectiveSortKey])
+
+  const displayedProfiles = sortedAndFiltered.slice(0, visibleCount)
 
   const showCompatBar = activeTab === 'recommended' || activeTab === 'all'
 
@@ -620,8 +630,8 @@ export default function BrowseClient({
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <h1
               style={{
-                fontSize: 20,
-                fontWeight: 600,
+                fontSize: 22,
+                fontWeight: 700,
                 color: 'var(--text-primary)',
                 margin: 0,
               }}
@@ -1123,18 +1133,26 @@ export default function BrowseClient({
         )}
 
         {/* No results */}
-        {displayedProfiles.length === 0 && (
+        {sortedAndFiltered.length === 0 && (
           <div
             style={{
-              textAlign: 'center',
-              padding: '60px 20px',
-              color: 'var(--text-muted)',
-              fontSize: 13.5,
+              padding: '20px 20px 20px 17px',
+              borderRadius: 10,
+              background: 'var(--surface-2)',
+              border: '0.5px solid var(--border-default)',
+              borderLeft: '3px solid var(--border-gold)',
+              maxWidth: 480,
+              margin: '40px auto',
             }}
           >
-            {activeTab === 'shortlist'
-              ? 'No saved profiles yet. Browse and save profiles to see them here.'
-              : 'No profiles match your current filters.'}
+            <div style={{ fontSize: 13.5, color: 'var(--text-primary)', fontWeight: 500, marginBottom: 4 }}>
+              {activeTab === 'shortlist' ? 'No saved profiles yet' : 'No profiles match'}
+            </div>
+            <div style={{ fontSize: 12.5, color: 'var(--text-muted)', lineHeight: 1.5 }}>
+              {activeTab === 'shortlist'
+                ? 'Browse profiles and tap the heart icon to save them to your shortlist.'
+                : 'Try adjusting your filters or search to see more profiles.'}
+            </div>
           </div>
         )}
 
@@ -1166,6 +1184,33 @@ export default function BrowseClient({
             )
           })}
         </div>
+
+        {/* Show more */}
+        {sortedAndFiltered.length > visibleCount && (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, paddingTop: 16 }}>
+            <button
+              onClick={() => setVisibleCount(v => v + PROFILES_PER_PAGE)}
+              style={{
+                padding: '10px 28px',
+                borderRadius: 10,
+                border: '0.5px solid var(--border-gold)',
+                background: 'var(--gold-muted)',
+                color: 'var(--gold)',
+                fontSize: 13,
+                fontWeight: 500,
+                cursor: 'pointer',
+                transition: 'background 0.15s',
+              }}
+              onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.background = 'rgba(196,154,16,0.2)')}
+              onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.background = 'var(--gold-muted)')}
+            >
+              Show more
+            </button>
+            <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+              Showing {Math.min(visibleCount, sortedAndFiltered.length)} of {sortedAndFiltered.length} profiles
+            </span>
+          </div>
+        )}
       </main>
 
       {/* Profile modal */}

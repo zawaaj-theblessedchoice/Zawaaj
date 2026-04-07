@@ -62,8 +62,10 @@ export default function ForgotPasswordPage() {
           style={{
             background: 'var(--surface-2)',
             border: '0.5px solid var(--border-default)',
-            borderRadius: 16,
+            borderTop: '1px solid rgba(196,154,16,0.2)',
+            borderRadius: 12,
             padding: '36px 32px',
+            boxShadow: '0 16px 48px rgba(0,0,0,0.4)',
           }}
         >
           {sent ? (
@@ -174,7 +176,7 @@ export default function ForgotPasswordPage() {
                     style={{
                       width: '100%',
                       padding: '10px 14px',
-                      borderRadius: 8,
+                      borderRadius: 10,
                       border: '0.5px solid var(--border-default)',
                       background: 'var(--surface-3)',
                       color: 'var(--text-primary)',
@@ -209,8 +211,8 @@ export default function ForgotPasswordPage() {
                   style={{
                     width: '100%',
                     padding: '11px 0',
-                    borderRadius: 8,
-                    background: 'var(--gold)',
+                    borderRadius: 10,
+                    background: 'linear-gradient(135deg, #C49A10, #D9AF2E)',
                     border: 'none',
                     color: '#1A1A18',
                     fontSize: 13.5,
@@ -218,6 +220,7 @@ export default function ForgotPasswordPage() {
                     cursor: loading || !email.trim() ? 'not-allowed' : 'pointer',
                     opacity: loading || !email.trim() ? 0.6 : 1,
                     transition: 'opacity 0.15s',
+                    boxShadow: '0 2px 8px rgba(196,154,16,0.25)',
                   }}
                 >
                   {loading ? 'Sending…' : 'Send reset link'}

@@ -507,7 +507,16 @@ function QueueTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh: () 
   const pending = profiles.filter(p => p.status === 'pending')
 
   async function approve(id: string) {
-    await supabase.from('zawaaj_profiles').update({ status: 'approved', approved_date: new Date().toISOString(), listed_at: new Date().toISOString() }).eq('id', id)
+    const res = await fetch('/api/admin/approve-profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ profile_id: id }),
+    })
+    if (!res.ok) {
+      const err = await res.json() as { error?: string }
+      alert(err.error ?? 'Approval failed')
+      return
+    }
     onRefresh()
   }
 
@@ -810,12 +819,21 @@ function MembersTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh: (
   }
 
   async function changeStatus(id: string, status: ProfileStatus) {
-    const update: Partial<Profile> & { approved_date?: string } = { status }
     if (status === 'approved') {
-      update.approved_date = new Date().toISOString()
-      ;(update as Record<string, unknown>).listed_at = new Date().toISOString()
+      const res = await fetch('/api/admin/approve-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ profile_id: id }),
+      })
+      if (!res.ok) {
+        const err = await res.json() as { error?: string }
+        alert(err.error ?? 'Approval failed')
+        onRefresh()
+        return
+      }
+    } else {
+      await supabase.from('zawaaj_profiles').update({ status }).eq('id', id)
     }
-    await supabase.from('zawaaj_profiles').update(update).eq('id', id)
     onRefresh()
   }
 
@@ -954,7 +972,11 @@ function WithdrawnTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh:
   const withdrawn = profiles.filter(p => p.status === 'withdrawn')
 
   async function reinstate(id: string) {
-    await supabase.from('zawaaj_profiles').update({ status: 'approved', listed_at: new Date().toISOString() }).eq('id', id)
+    await fetch('/api/admin/approve-profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ profile_id: id }),
+    })
     onRefresh()
   }
 

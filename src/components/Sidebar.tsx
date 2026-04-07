@@ -278,13 +278,14 @@ export default function Sidebar({
                     gap: 8,
                     padding: '8px 20px',
                     fontSize: 13,
-                    fontWeight: 400,
+                    fontWeight: active ? 500 : 400,
                     color: active ? 'var(--gold)' : 'var(--text-secondary)',
                     textDecoration: 'none',
                     borderLeft: active
-                      ? '3px solid var(--gold-border)'
-                      : '3px solid transparent',
+                      ? '2px solid var(--gold)'
+                      : '2px solid transparent',
                     background: active ? 'var(--gold-muted)' : 'transparent',
+                    boxShadow: active ? 'inset 0 0 20px rgba(196,154,16,0.07)' : 'none',
                     transition: 'color 0.15s, background 0.15s',
                   }}
                   onMouseEnter={e => {
@@ -458,6 +459,24 @@ export default function Sidebar({
                 }}
               >
                 Manage profiles →
+              </Link>
+              <Link
+                href="/add-profile"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  padding: '8px 16px',
+                  fontSize: 12.5,
+                  color: 'var(--gold)',
+                  textDecoration: 'none',
+                  borderTop: '0.5px solid var(--border-default)',
+                  marginTop: 4,
+                  paddingTop: 12,
+                }}
+              >
+                <span style={{ fontSize: 14, lineHeight: 1 }}>+</span>
+                Add family member
               </Link>
             </div>
           )}

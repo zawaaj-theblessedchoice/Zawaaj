@@ -172,7 +172,7 @@ const inputStyle: React.CSSProperties = {
   width: '100%',
   background: 'var(--surface-3)',
   border: '0.5px solid var(--border-default)',
-  borderRadius: '9px',
+  borderRadius: '10px',
   color: 'var(--text-primary)',
   padding: '10px 14px',
   fontSize: '14px',
@@ -1444,15 +1444,16 @@ export default function SignupPage() {
                 style={{
                   flex: 1,
                   padding: '11px 0',
-                  background: 'var(--gold)',
+                  background: 'linear-gradient(135deg, #C49A10, #D9AF2E)',
                   border: 'none',
-                  borderRadius: '9px',
+                  borderRadius: '10px',
                   color: '#111',
                   fontSize: '14px',
                   fontWeight: 600,
                   cursor: loading ? 'not-allowed' : 'pointer',
                   opacity: loading ? 0.5 : 1,
                   transition: 'opacity 0.15s',
+                  boxShadow: '0 2px 8px rgba(196,154,16,0.25)',
                 }}
               >
                 {loading && step === 0 ? 'Checking…' : 'Continue'}
@@ -1465,14 +1466,15 @@ export default function SignupPage() {
                 style={{
                   flex: 1,
                   padding: '11px 0',
-                  background: 'var(--gold)',
+                  background: 'linear-gradient(135deg, #C49A10, #D9AF2E)',
                   border: 'none',
-                  borderRadius: '9px',
+                  borderRadius: '10px',
                   color: '#111',
                   fontSize: '14px',
                   fontWeight: 600,
                   cursor: loading ? 'not-allowed' : 'pointer',
                   opacity: loading ? 0.4 : 1,
+                  boxShadow: '0 2px 8px rgba(196,154,16,0.25)',
                 }}
               >
                 {loading ? 'Submitting…' : 'Submit application'}

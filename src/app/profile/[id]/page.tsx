@@ -370,7 +370,7 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
               <AvatarInitials initials={profile.display_initials} gender={profile.gender} size="xl" goldBorder />
               <div>
-                <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--text-primary)', marginBottom: 6 }}>
+                <div style={{ fontSize: 18, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 6 }}>
                   {profile.display_initials}
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>

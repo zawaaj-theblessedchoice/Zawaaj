@@ -363,8 +363,8 @@ export default function IntroductionsClient({
         <div style={{ marginBottom: 28 }}>
           <h1
             style={{
-              fontSize: 20,
-              fontWeight: 600,
+              fontSize: 22,
+              fontWeight: 700,
               color: 'var(--text-primary)',
               margin: '0 0 6px',
             }}
@@ -382,6 +382,7 @@ export default function IntroductionsClient({
             style={{
               background: 'var(--surface-2)',
               border: '0.5px solid var(--border-default)',
+              borderLeft: '3px solid var(--border-gold)',
               borderRadius: 13,
               padding: '48px 24px',
               textAlign: 'center',

@@ -18,7 +18,7 @@ export default function AvatarInitials({
   const color = isFemale ? '#C4BCFF' : '#7BBFE8'
 
   const sizeClass =
-    size === 'sm' ? 'w-8 h-8 text-xs' :
+    size === 'sm' ? 'w-[42px] h-[42px] text-xs' :
     size === 'lg' ? 'w-16 h-16 text-xl' :
     size === 'xl' ? 'w-20 h-20 text-2xl' :
     'w-12 h-12 text-sm'
