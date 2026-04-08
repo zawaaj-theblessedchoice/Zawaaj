@@ -60,7 +60,18 @@
       "Bash(mkdir -p \"/c/Users/mrkha/AppData/Local/Temp/xlsx-analysis\")",
       "Bash(node -e \"require\\(''fs''\\); console.log\\(''node works''\\)\")",
       "Bash(npm install:*)",
-      "Bash(node analyze.js)"
+      "Bash(node analyze.js)",
+      "Bash(ls \"C:\\\\Users\\\\mrkha\\\\OneDrive\\\\Desktop\\\\Zawaaj-MVP\\\\src\\\\app\\\\my-profile\"\" && ls \"C:UsersmrkhaOneDriveDesktopZawaaj-MVPsrcappprofile\"\")",
+      "Bash(node -e \"const { GoTrueAdminApi } = require\\(''C:/Users/mrkha/OneDrive/Desktop/Zawaaj-MVP/node_modules/@supabase/gotrue-js/dist/main/GoTrueAdminApi.js''\\); console.log\\(Object.getOwnPropertyNames\\(GoTrueAdminApi.prototype\\).join\\(''\\\\n''\\)\\)\")",
+      "Bash(find C:/Users/mrkha/OneDrive/Desktop/Zawaaj-MVP/node_modules/@supabase/gotrue-js -name *.d.ts)",
+      "Bash(find C:/Users/mrkha/OneDrive/Desktop/Zawaaj-MVP/node_modules/@supabase -name *.d.ts)",
+      "Bash(node -e \":*)",
+      "Bash(findstr /i \"SUPABASE SERVICE\")",
+      "WebFetch(domain:www.eventbrite.co.uk)",
+      "WebFetch(domain:www.eventbrite.com)",
+      "Bash(grep -n \"type Tab\\\\|key: ''unlinked\\\\|key: ''orphaned\\\\|tab === ''unlinked\\\\|tab === ''orphaned\\\\|label: ''Mutual''\\\\|label: ''Introduced''\\\\|label: ''Introductions''\\\\|label: ''Matches''\" src/app/admin/page.tsx)",
+      "Bash(curl -s -X POST https://zawaaj.uk/api/admin/seed-events -w \"\\\\nHTTP %{http_code}\")",
+      "Bash(curl -sL -X POST https://zawaaj.uk/api/admin/seed-events -w \"\\\\nHTTP %{http_code}\")"
     ]
   }
 }

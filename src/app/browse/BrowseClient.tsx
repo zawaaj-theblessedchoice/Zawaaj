@@ -552,12 +552,15 @@ export default function BrowseClient({
     const json = await res.json().catch(() => ({}))
 
     if (!res.ok) {
-      const msg =
-        json.error === 'Monthly limit reached'
-          ? 'Monthly limit reached — 5 requests per calendar month'
-          : json.error === 'This profile is no longer available'
-          ? 'This profile is no longer available'
-          : 'Unable to send request — please try again'
+      let msg: string
+      if (json.error === 'Already requested') {
+        msg = 'You have already sent an introduction request to this profile.'
+      } else if (json.error === 'Monthly limit reached') {
+        msg = 'Monthly introduction limit reached (5/5). This resets on the 1st of next month.'
+      } else {
+        // Pass through known server messages; generic fallback for unexpected errors
+        msg = json.error ?? 'Unable to send request — please try again'
+      }
       setToast(msg)
       return
     }
@@ -636,7 +639,7 @@ export default function BrowseClient({
                 margin: 0,
               }}
             >
-              Browse
+              Find a Match
             </h1>
             {/* Monthly request usage pill */}
             <span

@@ -34,6 +34,14 @@ export default async function BrowsePage() {
 
   const activeProfileId = settings.active_profile_id
 
+  // 3b. Get all profile IDs linked to this account (siblings) so we can exclude them all from browse
+  const { data: siblingRows } = await supabase
+    .from('zawaaj_profiles')
+    .select('id')
+    .eq('user_id', user.id)
+
+  const siblingIds: string[] = (siblingRows ?? []).map(r => r.id as string)
+
   // 4. Get viewer's own profile
   const { data: viewerProfile, error: viewerError } = await supabase
     .from('zawaaj_profiles')
@@ -75,7 +83,7 @@ export default async function BrowsePage() {
        pref_school_of_thought, pref_relocation, pref_partner_children, status, listed_at`
     )
     .eq('status', 'approved')
-    .neq('id', activeProfileId)
+    .not('id', 'in', `(${siblingIds.join(',')})`)
     .order('listed_at', { ascending: false })
 
   if (oppositeGender) {

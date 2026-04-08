@@ -488,6 +488,9 @@ export default function MyProfilePage() {
             <FieldRow label="Height" value={profile.height} />
             <FieldRow label="Living situation" value={displayValue({ independent: 'Independent', with_family: 'With family', shared: 'Shared accommodation' }, profile.living_situation)} />
             <FieldRow label="Languages" value={profile.languages_spoken} />
+            <FieldRow label="Open to relocation" value={profile.open_to_relocation} />
+            <FieldRow label="Open to partner's children" value={profile.open_to_partners_children} />
+            <FieldRow label="Polygamy openness" value={profile.polygamy_openness} />
           </div>
 
           {/* Education & profession */}

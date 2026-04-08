@@ -98,7 +98,7 @@ export default async function IntroductionsPage() {
   const { data: requesterProfiles } = receivedRequesterIds.length > 0
     ? await supabase
         .from('zawaaj_profiles')
-        .select('id, display_initials, gender, age_display, location, profession_detail')
+        .select('id, display_initials, first_name, last_name, gender, age_display, location, profession_detail')
         .in('id', receivedRequesterIds)
     : { data: [] }
 
@@ -123,7 +123,10 @@ export default async function IntroductionsPage() {
     status: r.status as string,
     created_at: r.created_at as string,
     expires_at: r.expires_at as string | null,
-    requester: requesterMap.get(r.requesting_profile_id as string) ?? null,
+    requester: (requesterMap.get(r.requesting_profile_id as string) ?? null) as {
+      id: string; display_initials: string; first_name: string | null; last_name: string | null
+      gender: string | null; age_display: string | null; location: string | null; profession_detail: string | null
+    } | null,
   }))
 
   const shortlistCount = slResult.count ?? 0

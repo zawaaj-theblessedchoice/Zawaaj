@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { supabaseAdmin } from '@/lib/supabase/admin'
 import { NextResponse } from 'next/server'
 
 // ─── POST — Create introduction request ──────────────────────────────────────
@@ -152,6 +153,21 @@ export async function POST(request: Request): Promise<Response> {
         .from('zawaaj_introduction_requests')
         .update({ status: 'mutual', mutual_at: new Date().toISOString() })
         .in('id', [newRequest.id, mutualRow.id])
+
+      // Create a match row so admin sees it in the Mutual/Introductions tab
+      await supabaseAdmin
+        .from('zawaaj_matches')
+        .insert({
+          profile_a_id: activeProfileId,
+          profile_b_id: target_profile_id,
+          mutual_date: new Date().toISOString(),
+          status: 'awaiting_admin',
+          admin_notified_date: null,
+          family_a_consented: false,
+          family_b_consented: false,
+        })
+        // Non-fatal — if insert fails, mutual is still detected for members
+        .maybeSingle()
 
       return NextResponse.json({ success: true, mutual: true })
     }

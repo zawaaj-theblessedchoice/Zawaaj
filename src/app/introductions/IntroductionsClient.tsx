@@ -19,6 +19,8 @@ interface TargetProfile {
 interface RequesterProfile {
   id: string
   display_initials: string
+  first_name: string | null
+  last_name: string | null
   gender: string | null
   age_display: string | null
   location: string | null
@@ -204,7 +206,12 @@ function RequestCard({ req }: { req: IntroRequest }) {
             whiteSpace: 'nowrap',
           }}
         >
-          {displayName}
+          <Link
+            href={`/profile/${req.target_profile_id}`}
+            style={{ color: 'var(--gold)', textDecoration: 'none', fontWeight: 500 }}
+          >
+            {displayName}
+          </Link>
         </div>
         {subline && (
           <div
@@ -254,7 +261,10 @@ function RequestCard({ req }: { req: IntroRequest }) {
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, flexShrink: 0 }}>
-        <StatusBadge status={req.status} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ fontSize: 9, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)', padding: '2px 6px', border: '0.5px solid var(--border-default)', borderRadius: 4 }}>Sent</span>
+          <StatusBadge status={req.status} />
+        </div>
         <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
           {formatDate(req.created_at)}
         </div>
@@ -265,6 +275,10 @@ function RequestCard({ req }: { req: IntroRequest }) {
 
 function ReceivedRequestCard({ req }: { req: ReceivedRequest }) {
   const requester = req.requester
+  const displayName = requester
+    ? `${requester.first_name ?? ''} ${requester.last_name ? requester.last_name[0] + '.' : ''}`.trim() ||
+      requester.display_initials
+    : '—'
   const subline = requester
     ? [requester.age_display, requester.location].filter(Boolean).join(' · ')
     : null
@@ -291,7 +305,12 @@ function ReceivedRequestCard({ req }: { req: ReceivedRequest }) {
 
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 13.5, fontWeight: 500, color: 'var(--text-primary)', marginBottom: 2 }}>
-          {requester?.display_initials ?? '—'}
+          <Link
+            href={`/profile/${req.requesting_profile_id}`}
+            style={{ color: 'var(--gold)', textDecoration: 'none', fontWeight: 500 }}
+          >
+            {displayName}
+          </Link>
         </div>
         {subline && (
           <div style={{ fontSize: 12, color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -311,7 +330,10 @@ function ReceivedRequestCard({ req }: { req: ReceivedRequest }) {
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, flexShrink: 0 }}>
-        <StatusBadge status={req.status} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ fontSize: 9, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--gold)', padding: '2px 6px', border: '0.5px solid var(--border-gold)', borderRadius: 4 }}>Received</span>
+          <StatusBadge status={req.status} />
+        </div>
         <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
           {formatDate(req.created_at)}
         </div>
@@ -445,7 +467,7 @@ export default function IntroductionsClient({
                 marginBottom: 12,
               }}
             >
-              Sent — active
+              Sent ({activeSent.length})
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {activeSent.map(r => (

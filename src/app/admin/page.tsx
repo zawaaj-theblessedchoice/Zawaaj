@@ -968,6 +968,24 @@ function MembersTab({ profiles, onRefresh, currentUserId }: { profiles: Profile[
     )
   })
 
+  async function deleteProfileOnly(p: Profile) {
+    if (!window.confirm(
+      `Permanently delete the profile for ${p.first_name ?? p.display_initials}? This cannot be undone. Their login account will be preserved.`
+    )) return
+    setDeletingUserId(p.id)
+    const res = await fetch('/api/admin/delete-account', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ profile_id: p.id }),
+    })
+    setDeletingUserId(null)
+    if (res.ok) onRefresh()
+    else {
+      const err = await res.json() as { error?: string }
+      alert(err.error ?? 'Delete failed')
+    }
+  }
+
   async function deleteAccount(p: Profile) {
     if (p.user_id && p.user_id === currentUserId) {
       alert('You cannot delete your own account.')
@@ -975,7 +993,7 @@ function MembersTab({ profiles, onRefresh, currentUserId }: { profiles: Profile[
     }
     if (!window.confirm(
       p.user_id
-        ? `Delete the login account for ${p.first_name ?? p.display_initials}? Their profile will be unlinked and preserved. This cannot be undone.`
+        ? `Delete the LOGIN ACCOUNT for ${p.first_name ?? p.display_initials}? This will permanently remove their ability to sign in. Their profiles will be preserved but unlinked. This cannot be undone.`
         : `Delete profile ${p.display_initials}? This cannot be undone.`
     )) return
 
@@ -1132,14 +1150,35 @@ function MembersTab({ profiles, onRefresh, currentUserId }: { profiles: Profile[
                         Reject
                       </button>
                     )}
-                    <button
-                      onClick={() => deleteAccount(p)}
-                      disabled={isDeleting}
-                      className="px-2 py-1 rounded text-xs bg-red-950/40 text-red-500 hover:bg-red-900/60 disabled:opacity-40"
-                      title={p.user_id ? 'Delete login account (profile preserved)' : 'Delete profile'}
-                    >
-                      {isDeleting ? '…' : 'Del acct'}
-                    </button>
+                    {p.user_id ? (
+                      <>
+                        <button
+                          onClick={() => deleteProfileOnly(p)}
+                          disabled={isDeleting}
+                          className="px-2 py-1 rounded text-xs bg-red-950/40 text-red-500 hover:bg-red-900/60 disabled:opacity-40"
+                          title="Delete profile row only (login account preserved)"
+                        >
+                          {isDeleting ? '…' : 'Del profile'}
+                        </button>
+                        <button
+                          onClick={() => deleteAccount(p)}
+                          disabled={isDeleting || p.user_id === currentUserId}
+                          className="px-2 py-1 rounded text-xs bg-red-950/60 text-red-400 hover:bg-red-900/60 disabled:opacity-40"
+                          title="Delete login account (profiles preserved but unlinked)"
+                        >
+                          {isDeleting ? '…' : 'Del acct'}
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        onClick={() => deleteAccount(p)}
+                        disabled={isDeleting}
+                        className="px-2 py-1 rounded text-xs bg-red-950/40 text-red-500 hover:bg-red-900/60 disabled:opacity-40"
+                        title="Delete profile"
+                      >
+                        {isDeleting ? '…' : 'Del profile'}
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>

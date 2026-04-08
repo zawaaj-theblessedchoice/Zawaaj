@@ -201,7 +201,7 @@ export default function Sidebar({
     {
       section: 'Discover',
       items: [
-        { label: 'Browse all', href: '/browse?tab=all', icon: <BrowseIcon /> },
+        { label: 'Discover Profiles', href: '/browse?tab=all', icon: <BrowseIcon /> },
         { label: 'Recommended', href: '/browse', icon: <RecommendedIcon /> },
         {
           label: 'Shortlist',
