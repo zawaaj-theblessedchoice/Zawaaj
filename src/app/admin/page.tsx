@@ -867,12 +867,199 @@ function QueueTab({ profiles, onRefresh, currentUserId }: { profiles: Profile[];
   )
 }
 
+// ─── Manual Match Modal ───────────────────────────────────────────────────────
+
+function ManualMatchModal({ profiles, onClose, onDone }: {
+  profiles: Profile[]
+  onClose: () => void
+  onDone: () => void
+}) {
+  const supabase = createClient()
+  const [searchA, setSearchA] = useState('')
+  const [searchB, setSearchB] = useState('')
+  const [profileA, setProfileA] = useState<Profile | null>(null)
+  const [profileB, setProfileB] = useState<Profile | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [err, setErr] = useState<string | null>(null)
+
+  const approved = profiles.filter(p => p.status === 'approved')
+
+  const listA = approved.filter(p => {
+    if (!searchA) return true
+    const q = searchA.toLowerCase()
+    return (
+      p.display_initials.toLowerCase().includes(q) ||
+      (p.first_name ?? '').toLowerCase().includes(q) ||
+      (p.last_name ?? '').toLowerCase().includes(q) ||
+      (p.legacy_ref ?? '').toLowerCase().includes(q)
+    )
+  }).slice(0, 12)
+
+  const listB = approved.filter(p => {
+    if (profileA && p.gender === profileA.gender) return false // opposite gender only
+    if (profileA && p.id === profileA.id) return false
+    if (!searchB) return true
+    const q = searchB.toLowerCase()
+    return (
+      p.display_initials.toLowerCase().includes(q) ||
+      (p.first_name ?? '').toLowerCase().includes(q) ||
+      (p.last_name ?? '').toLowerCase().includes(q) ||
+      (p.legacy_ref ?? '').toLowerCase().includes(q)
+    )
+  }).slice(0, 12)
+
+  async function createMatch() {
+    if (!profileA || !profileB) return
+    if (profileA.gender === profileB.gender) {
+      setErr('Profiles must be opposite gender.')
+      return
+    }
+    setSaving(true)
+    setErr(null)
+    // Determine male/female for profile_a/profile_b convention
+    const male = profileA.gender === 'male' ? profileA : profileB
+    const female = profileA.gender === 'female' ? profileA : profileB
+    const { error } = await supabase.from('zawaaj_matches').insert({
+      profile_a_id: male.id,
+      profile_b_id: female.id,
+      status: 'awaiting_admin',
+      family_a_consented: false,
+      family_b_consented: false,
+    })
+    setSaving(false)
+    if (error) {
+      setErr(error.message)
+      return
+    }
+    onDone()
+    onClose()
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70">
+      <div className="bg-[#1A1A1A] rounded-2xl border border-white/10 w-full max-w-2xl overflow-hidden">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+          <h2 className="text-base font-semibold text-white">Create Manual Match</h2>
+          <button onClick={onClose} className="text-white/40 hover:text-white text-xl leading-none">✕</button>
+        </div>
+        <div className="p-6 grid sm:grid-cols-2 gap-6">
+          {/* Profile A */}
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-white/50 uppercase tracking-wide">Profile A</p>
+            {profileA ? (
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
+                <Avatar initials={profileA.display_initials} gender={profileA.gender} size={36} />
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-white text-sm">{profileA.display_initials}</p>
+                  <p className="text-xs text-white/40">{[profileA.first_name, profileA.last_name].filter(Boolean).join(' ')}</p>
+                </div>
+                <button onClick={() => { setProfileA(null); setSearchA('') }} className="text-white/30 hover:text-white text-xs">✕</button>
+              </div>
+            ) : (
+              <>
+                <input
+                  placeholder="Search by name or ref…"
+                  value={searchA}
+                  onChange={e => setSearchA(e.target.value)}
+                  className="field w-full text-sm"
+                />
+                {searchA && (
+                  <div className="rounded-xl border border-white/10 overflow-hidden max-h-48 overflow-y-auto">
+                    {listA.length === 0 ? (
+                      <p className="text-white/30 text-xs p-3">No results</p>
+                    ) : listA.map(p => (
+                      <button key={p.id} onClick={() => { setProfileA(p); setSearchA('') }}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-white/5 text-left border-b border-white/5 last:border-0">
+                        <Avatar initials={p.display_initials} gender={p.gender} size={28} />
+                        <div>
+                          <p className="text-sm text-white">{p.display_initials} {p.first_name && <span className="text-white/50">{p.first_name} {p.last_name}</span>}</p>
+                          <p className="text-xs text-white/30">{p.legacy_ref} · {p.gender} · {p.age_display}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+
+          {/* Profile B */}
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-white/50 uppercase tracking-wide">
+              Profile B {profileA && <span className="normal-case text-white/30">({profileA.gender === 'male' ? 'female' : profileA.gender === 'female' ? 'male' : 'opposite gender'})</span>}
+            </p>
+            {profileB ? (
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
+                <Avatar initials={profileB.display_initials} gender={profileB.gender} size={36} />
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-white text-sm">{profileB.display_initials}</p>
+                  <p className="text-xs text-white/40">{[profileB.first_name, profileB.last_name].filter(Boolean).join(' ')}</p>
+                </div>
+                <button onClick={() => { setProfileB(null); setSearchB('') }} className="text-white/30 hover:text-white text-xs">✕</button>
+              </div>
+            ) : (
+              <>
+                <input
+                  placeholder={profileA ? 'Search opposite gender…' : 'Select Profile A first'}
+                  value={searchB}
+                  onChange={e => setSearchB(e.target.value)}
+                  disabled={!profileA}
+                  className="field w-full text-sm disabled:opacity-40"
+                />
+                {searchB && profileA && (
+                  <div className="rounded-xl border border-white/10 overflow-hidden max-h-48 overflow-y-auto">
+                    {listB.length === 0 ? (
+                      <p className="text-white/30 text-xs p-3">No results</p>
+                    ) : listB.map(p => (
+                      <button key={p.id} onClick={() => { setProfileB(p); setSearchB('') }}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-white/5 text-left border-b border-white/5 last:border-0">
+                        <Avatar initials={p.display_initials} gender={p.gender} size={28} />
+                        <div>
+                          <p className="text-sm text-white">{p.display_initials} {p.first_name && <span className="text-white/50">{p.first_name} {p.last_name}</span>}</p>
+                          <p className="text-xs text-white/30">{p.legacy_ref} · {p.gender} · {p.age_display}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+
+        {err && <p className="px-6 pb-2 text-sm text-red-400">{err}</p>}
+
+        {profileA && profileB && (
+          <div className="px-6 pb-4">
+            <div className="rounded-xl bg-[#B8960C]/10 border border-[#B8960C]/30 p-3 text-sm text-amber-300 flex items-center gap-2">
+              <span>💛</span>
+              <span>Creating a manual match for <strong>{profileA.display_initials}</strong> &amp; <strong>{profileB.display_initials}</strong> — this will appear in the Introductions queue for facilitation.</span>
+            </div>
+          </div>
+        )}
+
+        <div className="flex justify-end gap-3 px-6 pb-6">
+          <button onClick={onClose} className="px-5 py-2.5 rounded-xl text-sm border border-white/10 text-white hover:bg-white/5">Cancel</button>
+          <button
+            onClick={createMatch}
+            disabled={!profileA || !profileB || saving}
+            className="px-5 py-2.5 rounded-xl text-sm font-medium bg-[#B8960C] text-white hover:bg-[#9a7a0a] disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {saving ? 'Creating…' : 'Create Match'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── TAB 2: Mutual Matches ────────────────────────────────────────────────────
 
-function MutualTab({ matches, onRefresh }: { matches: Match[]; onRefresh: () => void }) {
+function MutualTab({ matches, onRefresh, profiles }: { matches: Match[]; onRefresh: () => void; profiles: Profile[] }) {
   const supabase = createClient()
   const [facilitateMatch, setFacilitateMatch] = useState<Match | null>(null)
   const [dismissId, setDismissId] = useState<string | null>(null)
+  const [showManualMatch, setShowManualMatch] = useState(false)
 
   const relevant = matches.filter(m => ['awaiting_admin', 'admin_reviewing'].includes(m.status))
 
@@ -881,11 +1068,11 @@ function MutualTab({ matches, onRefresh }: { matches: Match[]; onRefresh: () => 
     onRefresh()
   }
 
-  if (relevant.length === 0)
-    return <p className="text-white/30 py-16 text-center text-sm">No mutual matches awaiting review.</p>
-
   return (
     <>
+      {showManualMatch && (
+        <ManualMatchModal profiles={profiles} onClose={() => setShowManualMatch(false)} onDone={onRefresh} />
+      )}
       {facilitateMatch && (
         <FacilitateModal match={facilitateMatch} onClose={() => setFacilitateMatch(null)} onDone={onRefresh} />
       )}
@@ -896,6 +1083,20 @@ function MutualTab({ matches, onRefresh }: { matches: Match[]; onRefresh: () => 
           onCancel={() => setDismissId(null)}
         />
       )}
+
+      {/* Header row */}
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-sm text-white/50">
+          {relevant.length === 0 ? 'No mutual matches awaiting review.' : `${relevant.length} awaiting review`}
+        </p>
+        <button
+          onClick={() => setShowManualMatch(true)}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border border-[#B8960C]/50 text-[#B8960C] hover:bg-[#B8960C]/10"
+        >
+          <span>＋</span> Manual Match
+        </button>
+      </div>
+
       <div className="space-y-4">
         {relevant.map(m => {
           const pA = m.profile_a
@@ -1023,7 +1224,7 @@ function IntroducedTab({ matches, onRefresh }: { matches: Match[]; onRefresh: ()
 function MembersTab({ profiles, onRefresh, currentUserId }: { profiles: Profile[]; onRefresh: () => void; currentUserId: string | null }) {
   const supabase = createClient()
   const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState('all')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'approved' | 'introduced' | 'paused' | 'suspended' | 'rejected'>('all')
   const [contactProfile, setContactProfile] = useState<Profile | null>(null)
   const [editProfile, setEditProfile] = useState<Profile | null>(null)
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null)
@@ -1138,7 +1339,7 @@ function MembersTab({ profiles, onRefresh, currentUserId }: { profiles: Profile[
         />
       </div>
       <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-        {(['all', 'approved', 'paused', 'suspended', 'rejected'] as const).map(s => (
+        {(['all', 'approved', 'introduced', 'paused', 'suspended', 'rejected'] as const).map(s => (
           <button
             key={s}
             onClick={() => setStatusFilter(s)}
@@ -2180,7 +2381,7 @@ export default function AdminPage() {
         ) : (
           <>
             {tab === 'queue'      && <QueueTab      profiles={profiles} onRefresh={loadData} currentUserId={currentUserId} />}
-            {tab === 'mutual'     && <MutualTab     matches={matches}   onRefresh={loadData} />}
+            {tab === 'mutual'     && <MutualTab     matches={matches}   onRefresh={loadData} profiles={profiles} />}
             {tab === 'introduced' && <IntroducedTab  matches={matches}   onRefresh={loadData} />}
             {tab === 'members'    && <MembersTab     profiles={profiles} onRefresh={loadData} currentUserId={currentUserId} />}
             {tab === 'withdrawn'  && <WithdrawnTab   profiles={profiles} onRefresh={loadData} />}
