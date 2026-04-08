@@ -132,6 +132,45 @@ function AddFamilyIcon() {
   )
 }
 
+function SettingsIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" style={{ flexShrink: 0 }}>
+      <circle cx="7.5" cy="7.5" r="2" stroke="currentColor" strokeWidth="1.2" />
+      <path d="M7.5 1v1.5M7.5 12.5V14M14 7.5h-1.5M2.5 7.5H1M12.2 2.8l-1.06 1.06M3.86 11.14L2.8 12.2M12.2 12.2l-1.06-1.06M3.86 3.86L2.8 2.8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function TrophyIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" style={{ flexShrink: 0 }}>
+      <path d="M5 13h5M7.5 10v3M3 1h9M3 1C3 5.5 5 8 7.5 10 10 8 12 5.5 12 1" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M3 3H1.5C1.5 3 1.5 6.5 4 7M12 3h1.5C13.5 3 13.5 6.5 11 7" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+/** Icon tile — 26×26 rounded square wrapping an SVG icon */
+function IconTile({ children, active }: { children: React.ReactNode; active: boolean }) {
+  return (
+    <span
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: 26,
+        height: 26,
+        borderRadius: 7,
+        flexShrink: 0,
+        background: active ? 'var(--gold-muted)' : 'var(--surface-3)',
+        transition: 'background 0.15s',
+      }}
+    >
+      {children}
+    </span>
+  )
+}
+
 function SectionDivider({ label }: { label: string }) {
   return (
     <div
@@ -228,6 +267,7 @@ export default function Sidebar({
       items: [
         { label: 'My profile', href: '/my-profile', icon: <ProfileIcon /> },
         { label: 'Add family member', href: '/add-profile', icon: <AddFamilyIcon /> },
+        { label: 'Settings', href: '/settings', icon: <SettingsIcon /> },
       ],
     },
   ]
@@ -282,8 +322,8 @@ export default function Sidebar({
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 8,
-                    padding: '8px 20px',
+                    gap: 9,
+                    padding: '6px 16px',
                     fontSize: 13,
                     fontWeight: active ? 500 : 400,
                     color: active ? 'var(--gold)' : 'var(--text-secondary)',
@@ -292,7 +332,6 @@ export default function Sidebar({
                       ? '2px solid var(--gold)'
                       : '2px solid transparent',
                     background: active ? 'var(--gold-muted)' : 'transparent',
-                    boxShadow: active ? 'inset 0 0 20px rgba(196,154,16,0.07)' : 'none',
                     transition: 'color 0.15s, background 0.15s',
                   }}
                   onMouseEnter={e => {
@@ -306,9 +345,11 @@ export default function Sidebar({
                     }
                   }}
                 >
-                  <span style={{ color: active ? 'var(--gold)' : 'var(--text-muted)', display: 'flex' }}>
-                    {item.icon}
-                  </span>
+                  <IconTile active={active}>
+                    <span style={{ color: active ? 'var(--gold)' : 'var(--text-muted)', display: 'flex' }}>
+                      {item.icon}
+                    </span>
+                  </IconTile>
                   <span style={{ flex: 1 }}>{item.label}</span>
                   {item.badge !== undefined && <Badge count={item.badge} />}
                 </Link>
@@ -318,8 +359,40 @@ export default function Sidebar({
         ))}
       </nav>
 
+      {/* Upgrade — Premium CTA */}
+      <div style={{ padding: '6px 12px 10px' }}>
+        <Link
+          href="/pricing"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 9,
+            padding: '9px 12px',
+            borderRadius: 10,
+            background: '#2A1F0A',
+            border: '0.5px solid rgba(201,168,76,0.25)',
+            textDecoration: 'none',
+            transition: 'background 0.15s',
+          }}
+          onMouseEnter={e => ((e.currentTarget as HTMLAnchorElement).style.background = '#332609')}
+          onMouseLeave={e => ((e.currentTarget as HTMLAnchorElement).style.background = '#2A1F0A')}
+        >
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            width: 26, height: 26, borderRadius: 7, background: 'rgba(201,168,76,0.15)', flexShrink: 0,
+          }}>
+            <span style={{ color: '#C9A84C', display: 'flex' }}><TrophyIcon /></span>
+          </span>
+          <span style={{ flex: 1, fontSize: 12.5, fontWeight: 500, color: '#C9A84C' }}>Zawaaj Premium</span>
+          <span style={{
+            fontSize: 9, fontWeight: 600, color: '#111', background: '#C9A84C',
+            borderRadius: 4, padding: '1px 5px', flexShrink: 0,
+          }}>New</span>
+        </Link>
+      </div>
+
       {/* Divider */}
-      <div style={{ height: '0.5px', background: 'var(--border-default)', margin: '8px 0 0' }} />
+      <div style={{ height: '0.5px', background: 'var(--border-default)', margin: '0' }} />
 
       {/* Profile footer — single profile: simple link; multi-profile: switcher */}
       {profile && !hasMultipleProfiles && (

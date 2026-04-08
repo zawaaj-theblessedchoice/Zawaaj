@@ -38,16 +38,15 @@ CREATE TABLE IF NOT EXISTS zawaaj_member_bans (
   expires_at      timestamptz,
   lifted_at       timestamptz,
   lifted_by       uuid REFERENCES auth.users(id),
-  lift_reason     text,
-  -- computed: active if not lifted AND (no expiry OR not yet expired)
-  is_active       boolean GENERATED ALWAYS AS (
-    lifted_at IS NULL AND (expires_at IS NULL OR expires_at > now())
-  ) STORED
+  lift_reason     text
+  -- is_active is NOT a stored generated column (now() is volatile/non-immutable)
+  -- compute at query time: lifted_at IS NULL AND (expires_at IS NULL OR expires_at > now())
 );
 
 CREATE INDEX IF NOT EXISTS zawaaj_member_bans_user_idx    ON zawaaj_member_bans(user_id);
 CREATE INDEX IF NOT EXISTS zawaaj_member_bans_profile_idx ON zawaaj_member_bans(profile_id);
-CREATE INDEX IF NOT EXISTS zawaaj_member_bans_active_idx  ON zawaaj_member_bans(is_active) WHERE is_active = true;
+-- Active-ban index: filter lifted bans and expired bans efficiently
+CREATE INDEX IF NOT EXISTS zawaaj_member_bans_active_idx  ON zawaaj_member_bans(lifted_at, expires_at) WHERE lifted_at IS NULL;
 
 -- ─── Add ban columns to zawaaj_profiles ───────────────────────────────────────
 ALTER TABLE zawaaj_profiles

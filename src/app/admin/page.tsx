@@ -2211,6 +2211,7 @@ function OrphanedTab() {
 // ─── TAB 9: Import ────────────────────────────────────────────────────────────
 
 function ImportTab() {
+  // Legacy column reference kept for SQL-based imports
   const [copied, setCopied] = useState<string | null>(null)
 
   function copyToClipboard(text: string, key: string) {
@@ -2285,10 +2286,23 @@ function ImportTab() {
 
   return (
     <div className="max-w-3xl space-y-8">
+      {/* New CSV import tool */}
+      <div className="bg-[#1A1500] border border-[#B8960C]/30 rounded-2xl p-5 flex items-center gap-5">
+        <div className="text-3xl">📥</div>
+        <div className="flex-1">
+          <p className="font-semibold text-white mb-1">New: CSV Import Tool</p>
+          <p className="text-sm text-white/50">Upload a CSV, preview validation errors, then run the real import to create member accounts automatically.</p>
+        </div>
+        <Link href="/admin/import"
+          className="flex-shrink-0 px-4 py-2.5 rounded-xl text-sm font-semibold bg-[#B8960C] text-black hover:bg-[#9a7a0a] transition-colors">
+          Open import tool →
+        </Link>
+      </div>
+
       <div>
-        <h2 className="text-lg font-semibold text-white mb-1">Bulk Profile Import</h2>
+        <h2 className="text-lg font-semibold text-white mb-1">SQL Import Reference</h2>
         <p className="text-white/50 text-sm">
-          Import profiles via the Supabase SQL Editor. Profiles with a matching{' '}
+          Manual SQL import via the Supabase SQL Editor. Profiles with a matching{' '}
           <code className="bg-white/10 px-1 rounded text-xs">imported_email</code>{' '}
           will be automatically linked when that member registers.
         </p>

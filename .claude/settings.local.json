@@ -71,7 +71,8 @@
       "WebFetch(domain:www.eventbrite.com)",
       "Bash(grep -n \"type Tab\\\\|key: ''unlinked\\\\|key: ''orphaned\\\\|tab === ''unlinked\\\\|tab === ''orphaned\\\\|label: ''Mutual''\\\\|label: ''Introduced''\\\\|label: ''Introductions''\\\\|label: ''Matches''\" src/app/admin/page.tsx)",
       "Bash(curl -s -X POST https://zawaaj.uk/api/admin/seed-events -w \"\\\\nHTTP %{http_code}\")",
-      "Bash(curl -sL -X POST https://zawaaj.uk/api/admin/seed-events -w \"\\\\nHTTP %{http_code}\")"
+      "Bash(curl -sL -X POST https://zawaaj.uk/api/admin/seed-events -w \"\\\\nHTTP %{http_code}\")",
+      "Bash(echo \"EXIT:$?\")"
     ]
   }
 }
