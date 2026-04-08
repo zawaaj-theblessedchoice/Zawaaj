@@ -210,10 +210,13 @@ function Confirm({
 
 // ─── Profile Edit Modal ───────────────────────────────────────────────────────
 
-function ProfileEditModal({ profile, onClose, onSave }: {
+function ProfileEditModal({ profile, onClose, onSave, onDeleteProfile, onDeleteAccount, canDeleteAccount }: {
   profile: Profile
   onClose: () => void
   onSave: () => void
+  onDeleteProfile?: () => void
+  onDeleteAccount?: () => void
+  canDeleteAccount?: boolean
 }) {
   const supabase = createClient()
   const [form, setForm] = useState<Partial<Profile>>({ ...profile })
@@ -356,11 +359,37 @@ function ProfileEditModal({ profile, onClose, onSave }: {
             </label>
           </div>
         </div>
-        <div className="flex justify-end gap-3 p-6 border-t border-white/10">
-          <button onClick={onClose} className="px-5 py-2.5 rounded-xl text-sm border border-white/10 text-white hover:bg-white/5">Cancel</button>
-          <button onClick={save} disabled={saving} className="px-5 py-2.5 rounded-xl text-sm font-medium bg-[#1A1A1A] text-[#B8960C] hover:bg-[#333] disabled:opacity-50">
-            {saving ? 'Saving…' : 'Save Changes'}
-          </button>
+        {/* Footer: destructive left, save/cancel right */}
+        <div className="flex items-center justify-between gap-3 p-6 border-t border-white/10">
+          {/* Destructive actions */}
+          <div className="flex gap-2">
+            {onDeleteProfile && (
+              <button
+                onClick={onDeleteProfile}
+                className="px-4 py-2 rounded-xl text-xs font-medium bg-red-950/50 text-red-400 border border-red-900/40 hover:bg-red-900/60"
+                title="Delete this profile row only — login account is preserved"
+              >
+                🗑 Delete profile
+              </button>
+            )}
+            {onDeleteAccount && (
+              <button
+                onClick={onDeleteAccount}
+                disabled={!canDeleteAccount}
+                className="px-4 py-2 rounded-xl text-xs font-medium bg-red-950/80 text-red-300 border border-red-800/60 hover:bg-red-900/80 disabled:opacity-30 disabled:cursor-not-allowed"
+                title={canDeleteAccount ? 'Delete login account — profile data preserved but unlinked' : 'Cannot delete your own account'}
+              >
+                ⛔ Delete account
+              </button>
+            )}
+          </div>
+          {/* Save / cancel */}
+          <div className="flex gap-3">
+            <button onClick={onClose} className="px-5 py-2.5 rounded-xl text-sm border border-white/10 text-white hover:bg-white/5">Cancel</button>
+            <button onClick={save} disabled={saving} className="px-5 py-2.5 rounded-xl text-sm font-medium bg-[#1A1A1A] text-[#B8960C] hover:bg-[#333] disabled:opacity-50">
+              {saving ? 'Saving…' : 'Save Changes'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -531,15 +560,61 @@ function FacilitateModal({ match, onClose, onDone }: {
 
 // ─── TAB 1: Queue ─────────────────────────────────────────────────────────────
 
-function QueueTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh: () => void }) {
+function QueueTab({ profiles, onRefresh, currentUserId }: { profiles: Profile[]; onRefresh: () => void; currentUserId: string | null }) {
   const supabase = createClient()
   const [editProfile, setEditProfile] = useState<Profile | null>(null)
   const [confirmAction, setConfirmAction] = useState<{ id: string; type: 'approve' | 'reject'; note?: string } | null>(null)
   const [rejectNote, setRejectNote] = useState('')
   const [showRejectInput, setShowRejectInput] = useState<string | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   const pending = profiles.filter(p => p.status === 'pending')
+
+  async function deleteProfileOnly(p: Profile) {
+    if (!window.confirm(
+      `Permanently delete the profile for ${p.first_name ?? p.display_initials}? This cannot be undone. Their login account will be preserved.`
+    )) return
+    setDeletingId(p.id)
+    const res = await fetch('/api/admin/delete-account', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ profile_id: p.id }),
+    })
+    setDeletingId(null)
+    if (res.ok) onRefresh()
+    else {
+      const err = await res.json() as { error?: string }
+      alert(err.error ?? 'Delete failed')
+    }
+  }
+
+  async function deleteAccount(p: Profile) {
+    if (p.user_id && p.user_id === currentUserId) {
+      alert('You cannot delete your own account.')
+      return
+    }
+    if (!window.confirm(
+      p.user_id
+        ? `Delete the LOGIN ACCOUNT for ${p.first_name ?? p.display_initials}? This will permanently remove their ability to sign in. Their profiles will be preserved but unlinked. This cannot be undone.`
+        : `Delete profile ${p.display_initials}? This cannot be undone.`
+    )) return
+    setDeletingId(p.user_id ?? p.id)
+    const body = p.user_id ? { user_id: p.user_id } : { profile_id: p.id }
+    const res = await fetch('/api/admin/delete-account', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+    setDeletingId(null)
+    if (res.ok) onRefresh()
+    else {
+      const err = await res.json() as { error?: string }
+      alert(err.error ?? 'Delete failed')
+    }
+  }
+
+  void deletingId // suppress unused-var (used in future loading state)
 
   async function approve(id: string) {
     const res = await fetch('/api/admin/approve-profile', {
@@ -566,7 +641,14 @@ function QueueTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh: () 
   return (
     <>
       {editProfile && (
-        <ProfileEditModal profile={editProfile} onClose={() => setEditProfile(null)} onSave={onRefresh} />
+        <ProfileEditModal
+          profile={editProfile}
+          onClose={() => setEditProfile(null)}
+          onSave={onRefresh}
+          onDeleteProfile={() => { setEditProfile(null); deleteProfileOnly(editProfile) }}
+          onDeleteAccount={editProfile.user_id ? () => { setEditProfile(null); deleteAccount(editProfile) } : undefined}
+          canDeleteAccount={!!editProfile.user_id && editProfile.user_id !== currentUserId}
+        />
       )}
       {confirmAction?.type === 'approve' && (
         <Confirm
@@ -1037,7 +1119,14 @@ function MembersTab({ profiles, onRefresh, currentUserId }: { profiles: Profile[
     <>
       {contactProfile && <ContactPopup profile={contactProfile} onClose={() => setContactProfile(null)} />}
       {editProfile && (
-        <ProfileEditModal profile={editProfile} onClose={() => setEditProfile(null)} onSave={() => { onRefresh(); setEditProfile(null) }} />
+        <ProfileEditModal
+          profile={editProfile}
+          onClose={() => setEditProfile(null)}
+          onSave={() => { onRefresh(); setEditProfile(null) }}
+          onDeleteProfile={() => { setEditProfile(null); deleteProfileOnly(editProfile) }}
+          onDeleteAccount={editProfile.user_id ? () => { setEditProfile(null); deleteAccount(editProfile) } : undefined}
+          canDeleteAccount={!!editProfile.user_id && editProfile.user_id !== currentUserId}
+        />
       )}
       <div className="flex flex-col sm:flex-row gap-3 mb-4">
         <input
@@ -1150,35 +1239,7 @@ function MembersTab({ profiles, onRefresh, currentUserId }: { profiles: Profile[
                         Reject
                       </button>
                     )}
-                    {p.user_id ? (
-                      <>
-                        <button
-                          onClick={() => deleteProfileOnly(p)}
-                          disabled={isDeleting}
-                          className="px-2 py-1 rounded text-xs bg-red-950/40 text-red-500 hover:bg-red-900/60 disabled:opacity-40"
-                          title="Delete profile row only (login account preserved)"
-                        >
-                          {isDeleting ? '…' : 'Del profile'}
-                        </button>
-                        <button
-                          onClick={() => deleteAccount(p)}
-                          disabled={isDeleting || p.user_id === currentUserId}
-                          className="px-2 py-1 rounded text-xs bg-red-950/60 text-red-400 hover:bg-red-900/60 disabled:opacity-40"
-                          title="Delete login account (profiles preserved but unlinked)"
-                        >
-                          {isDeleting ? '…' : 'Del acct'}
-                        </button>
-                      </>
-                    ) : (
-                      <button
-                        onClick={() => deleteAccount(p)}
-                        disabled={isDeleting}
-                        className="px-2 py-1 rounded text-xs bg-red-950/40 text-red-500 hover:bg-red-900/60 disabled:opacity-40"
-                        title="Delete profile"
-                      >
-                        {isDeleting ? '…' : 'Del profile'}
-                      </button>
-                    )}
+                    {/* Delete actions are in the Edit modal footer */}
                   </div>
                 </td>
               </tr>
@@ -2118,7 +2179,7 @@ export default function AdminPage() {
           </div>
         ) : (
           <>
-            {tab === 'queue'      && <QueueTab      profiles={profiles} onRefresh={loadData} />}
+            {tab === 'queue'      && <QueueTab      profiles={profiles} onRefresh={loadData} currentUserId={currentUserId} />}
             {tab === 'mutual'     && <MutualTab     matches={matches}   onRefresh={loadData} />}
             {tab === 'introduced' && <IntroducedTab  matches={matches}   onRefresh={loadData} />}
             {tab === 'members'    && <MembersTab     profiles={profiles} onRefresh={loadData} currentUserId={currentUserId} />}
