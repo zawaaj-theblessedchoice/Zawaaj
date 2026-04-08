@@ -74,8 +74,13 @@ export default function SettingsPage() {
   const [tab, setTab] = useState<Tab>((searchParams.get('tab') as Tab) ?? 'membership')
   const [sub, setSub] = useState<Subscription | null>(null)
   const [loading, setLoading] = useState(true)
+  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)
+  const [checkoutError, setCheckoutError] = useState<string | null>(null)
   const [profile, setProfile] = useState<{ display_initials: string; gender: string | null; first_name: string | null } | null>(null)
   const [annual, setAnnual] = useState(false)
+
+  // Show success flash if returning from Stripe checkout
+  const checkoutSuccess = searchParams.get('checkout') === 'success'
 
   useEffect(() => {
     const supabase = createClient()
@@ -115,6 +120,32 @@ export default function SettingsPage() {
 
   const currentPlan: Plan = (sub?.plan as Plan) ?? 'voluntary'
   const isPaid = currentPlan !== 'voluntary'
+
+  async function startCheckout(plan: 'plus' | 'premium') {
+    const billing = annual ? 'annual' : 'monthly'
+    const key = `${plan}_${billing}`
+    setCheckoutLoading(key)
+    setCheckoutError(null)
+    try {
+      const res = await fetch('/api/stripe/create-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan, billing }),
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setCheckoutError(json.error ?? 'Failed to start checkout')
+        setCheckoutLoading(null)
+        return
+      }
+      if (json.url) {
+        window.location.href = json.url
+      }
+    } catch {
+      setCheckoutError('Unexpected error — please try again')
+      setCheckoutLoading(null)
+    }
+  }
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
@@ -156,6 +187,17 @@ export default function SettingsPage() {
         {/* ── Membership tab ─────────────────────────────────────────────── */}
         {tab === 'membership' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+            {checkoutSuccess && (
+              <div style={{ padding: '12px 16px', borderRadius: 10, background: 'rgba(74,222,128,0.1)', border: '0.5px solid rgba(74,222,128,0.3)', fontSize: 13, color: '#4ADE80' }}>
+                ✓ Subscription activated — welcome to {PLAN_LABELS[currentPlan]}!
+              </div>
+            )}
+            {checkoutError && (
+              <div style={{ padding: '12px 16px', borderRadius: 10, background: 'rgba(248,113,113,0.1)', border: '0.5px solid rgba(248,113,113,0.3)', fontSize: 13, color: '#F87171' }}>
+                {checkoutError}
+              </div>
+            )}
+
             {loading ? (
               <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Loading…</p>
             ) : (
@@ -282,16 +324,19 @@ export default function SettingsPage() {
                             <p style={{ fontSize: 10, color: 'var(--gold)', marginBottom: 10 }}>£{PLAN_PRICES[p].annual * 12}/yr · save 20%</p>
                           )}
                           {!isCurrent && p !== 'voluntary' && (
-                            <Link
-                              href="/pricing"
+                            <button
+                              onClick={() => startCheckout(p)}
+                              disabled={checkoutLoading !== null}
                               style={{
-                                display: 'block', textAlign: 'center', marginTop: 12,
+                                display: 'block', textAlign: 'center', marginTop: 12, width: '100%',
                                 padding: '8px 0', borderRadius: 8, fontSize: 12, fontWeight: 600,
-                                background: 'var(--gold)', color: '#111', textDecoration: 'none',
+                                background: 'var(--gold)', color: '#111', border: 'none',
+                                cursor: checkoutLoading !== null ? 'not-allowed' : 'pointer',
+                                opacity: checkoutLoading === `${p}_${annual ? 'annual' : 'monthly'}` ? 0.6 : 1,
                               }}
                             >
-                              Upgrade →
-                            </Link>
+                              {checkoutLoading === `${p}_${annual ? 'annual' : 'monthly'}` ? 'Redirecting…' : 'Upgrade →'}
+                            </button>
                           )}
                         </div>
                       )
