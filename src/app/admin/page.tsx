@@ -66,6 +66,8 @@ interface Profile {
   pref_school_of_thought: string[] | null
   pref_relocation: string | null
   pref_partner_children: string | null
+  is_banned: boolean
+  ban_id: string | null
 }
 
 interface MatchProfile {
@@ -169,6 +171,7 @@ function StatusBadge({ status }: { status: string }) {
     upcoming:             { bg: 'rgba(74,222,128,0.12)',  text: '#4ADE80' },
     ended:                { bg: 'rgba(251,191,36,0.12)',  text: '#FBBF24' },
     archived:             { bg: 'rgba(255,255,255,0.08)', text: 'rgba(255,255,255,0.45)' },
+    banned:               { bg: 'rgba(220,38,38,0.18)',   text: '#FCA5A5' },
   }
   const s = map[status] ?? { bg: 'rgba(255,255,255,0.08)', text: 'rgba(255,255,255,0.45)' }
   return (
@@ -209,6 +212,209 @@ function Confirm({
 }
 
 // ─── Profile Edit Modal ───────────────────────────────────────────────────────
+
+// ─── Ban Modal ────────────────────────────────────────────────────────────────
+
+const BAN_REASONS = [
+  { value: 'misconduct',   label: 'Misconduct / inappropriate behaviour' },
+  { value: 'harassment',   label: 'Harassment of another member' },
+  { value: 'spam',         label: 'Spam / unsolicited contact attempts' },
+  { value: 'immorality',   label: 'Immorality / content violations' },
+  { value: 'fake_profile', label: 'Fake or misleading profile' },
+  { value: 'other',        label: 'Other' },
+] as const
+
+type BanReason = typeof BAN_REASONS[number]['value']
+
+function BanModal({ profile, onClose, onDone }: {
+  profile: Profile
+  onClose: () => void
+  onDone: () => void
+}) {
+  const [reason, setReason] = useState<BanReason | ''>('')
+  const [notes, setNotes] = useState('')
+  const [severity, setSeverity] = useState<'permanent' | 'temporary'>('permanent')
+  const [expiresAt, setExpiresAt] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [err, setErr] = useState<string | null>(null)
+
+  async function confirmBan() {
+    if (!reason) { setErr('Please select a reason.'); return }
+    if (severity === 'temporary' && !expiresAt) { setErr('Please set an expiry date.'); return }
+    setSaving(true); setErr(null)
+    const res = await fetch('/api/admin/ban-member', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        profile_id: profile.id,
+        user_id: profile.user_id,
+        reason,
+        reason_detail: notes || null,
+        severity,
+        expires_at: severity === 'temporary' ? new Date(expiresAt).toISOString() : null,
+      }),
+    })
+    setSaving(false)
+    if (!res.ok) {
+      const d = await res.json() as { error?: string }
+      setErr(d.error ?? 'Ban failed')
+      return
+    }
+    onDone()
+    onClose()
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70">
+      <div className="bg-[#1A1A1A] rounded-2xl border border-white/10 w-full max-w-lg overflow-hidden">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+          <h2 className="text-base font-semibold text-red-400">Ban Member — {profile.display_initials}</h2>
+          <button onClick={onClose} className="text-white/40 hover:text-white text-xl leading-none">✕</button>
+        </div>
+        <div className="p-6 space-y-5">
+          {err && <p className="text-sm text-red-400 bg-red-950/30 rounded-lg px-3 py-2">{err}</p>}
+
+          <div>
+            <p className="text-xs font-medium text-white/50 mb-2 uppercase tracking-wide">Reason (required)</p>
+            <div className="space-y-2">
+              {BAN_REASONS.map(r => (
+                <label key={r.value} className="flex items-center gap-3 cursor-pointer group">
+                  <input type="radio" name="ban_reason" value={r.value}
+                    checked={reason === r.value}
+                    onChange={() => setReason(r.value)}
+                    className="accent-red-500" />
+                  <span className="text-sm text-white/70 group-hover:text-white">{r.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="text-xs font-medium text-white/50 mb-2 uppercase tracking-wide">Admin notes (private — never shown to member)</p>
+            <textarea
+              value={notes}
+              onChange={e => setNotes(e.target.value)}
+              rows={3}
+              placeholder="Optional context or evidence…"
+              className="field w-full text-sm resize-none"
+            />
+          </div>
+
+          <div>
+            <p className="text-xs font-medium text-white/50 mb-2 uppercase tracking-wide">Duration</p>
+            <div className="flex gap-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="severity" value="permanent"
+                  checked={severity === 'permanent'}
+                  onChange={() => setSeverity('permanent')}
+                  className="accent-red-500" />
+                <span className="text-sm text-white">Permanent</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="severity" value="temporary"
+                  checked={severity === 'temporary'}
+                  onChange={() => setSeverity('temporary')}
+                  className="accent-red-500" />
+                <span className="text-sm text-white">Temporary</span>
+              </label>
+            </div>
+            {severity === 'temporary' && (
+              <input
+                type="date"
+                value={expiresAt}
+                min={new Date().toISOString().split('T')[0]}
+                onChange={e => setExpiresAt(e.target.value)}
+                className="field mt-3 text-sm"
+              />
+            )}
+          </div>
+
+          <div className="rounded-xl bg-red-950/20 border border-red-900/40 p-3 text-xs text-red-300">
+            ⚠ This will immediately block their login and hide their profile from all members. Their introduction requests will be expired.
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-3 px-6 pb-6">
+          <button onClick={onClose} className="px-5 py-2.5 rounded-xl text-sm border border-white/10 text-white hover:bg-white/5">Cancel</button>
+          <button
+            onClick={confirmBan}
+            disabled={saving || !reason}
+            className="px-5 py-2.5 rounded-xl text-sm font-medium bg-red-700 text-white hover:bg-red-600 disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {saving ? 'Banning…' : 'Confirm ban'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Lift Ban Modal ───────────────────────────────────────────────────────────
+
+function LiftBanModal({ profile, onClose, onDone }: {
+  profile: Profile
+  onClose: () => void
+  onDone: () => void
+}) {
+  const [liftReason, setLiftReason] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [err, setErr] = useState<string | null>(null)
+
+  async function confirmLift() {
+    if (!liftReason.trim()) { setErr('Please provide a reason for lifting the ban.'); return }
+    setSaving(true); setErr(null)
+    const res = await fetch('/api/admin/lift-ban', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ profile_id: profile.id, lift_reason: liftReason }),
+    })
+    setSaving(false)
+    if (!res.ok) {
+      const d = await res.json() as { error?: string }
+      setErr(d.error ?? 'Failed to lift ban')
+      return
+    }
+    onDone()
+    onClose()
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70">
+      <div className="bg-[#1A1A1A] rounded-2xl border border-white/10 w-full max-w-md overflow-hidden">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+          <h2 className="text-base font-semibold text-white">Lift Ban — {profile.display_initials}</h2>
+          <button onClick={onClose} className="text-white/40 hover:text-white text-xl leading-none">✕</button>
+        </div>
+        <div className="p-6 space-y-4">
+          {err && <p className="text-sm text-red-400">{err}</p>}
+          <div>
+            <p className="text-xs font-medium text-white/50 mb-2 uppercase tracking-wide">Reason for lifting ban (required)</p>
+            <textarea
+              value={liftReason}
+              onChange={e => setLiftReason(e.target.value)}
+              rows={3}
+              placeholder="e.g. Member provided satisfactory explanation…"
+              className="field w-full text-sm resize-none"
+            />
+          </div>
+          <p className="text-xs text-white/40">Their profile will be relisted if it was previously approved. Login will be re-enabled.</p>
+        </div>
+        <div className="flex justify-end gap-3 px-6 pb-6">
+          <button onClick={onClose} className="px-5 py-2.5 rounded-xl text-sm border border-white/10 text-white hover:bg-white/5">Cancel</button>
+          <button
+            onClick={confirmLift}
+            disabled={saving || !liftReason.trim()}
+            className="px-5 py-2.5 rounded-xl text-sm font-medium bg-[#B8960C] text-white hover:bg-[#9a7a0a] disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {saving ? 'Lifting…' : 'Lift ban'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Edit Profile Modal ───────────────────────────────────────────────────────
 
 function ProfileEditModal({ profile, onClose, onSave, onDeleteProfile, onDeleteAccount, canDeleteAccount }: {
   profile: Profile
@@ -1224,9 +1430,11 @@ function IntroducedTab({ matches, onRefresh }: { matches: Match[]; onRefresh: ()
 function MembersTab({ profiles, onRefresh, currentUserId }: { profiles: Profile[]; onRefresh: () => void; currentUserId: string | null }) {
   const supabase = createClient()
   const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState<'all' | 'approved' | 'introduced' | 'paused' | 'suspended' | 'rejected'>('all')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'approved' | 'introduced' | 'paused' | 'suspended' | 'rejected' | 'banned'>('all')
   const [contactProfile, setContactProfile] = useState<Profile | null>(null)
   const [editProfile, setEditProfile] = useState<Profile | null>(null)
+  const [banProfile, setBanProfile] = useState<Profile | null>(null)
+  const [liftBanProfile, setLiftBanProfile] = useState<Profile | null>(null)
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null)
 
   // Map user_id → profile count to identify parent/guardian accounts
@@ -1236,7 +1444,8 @@ function MembersTab({ profiles, onRefresh, currentUserId }: { profiles: Profile[
   }, {})
 
   const filtered = profiles.filter(p => {
-    if (statusFilter !== 'all' && p.status !== statusFilter) return false
+    if (statusFilter === 'banned') { if (!p.is_banned) return false }
+    else if (statusFilter !== 'all' && p.status !== statusFilter) return false
     if (!search) return true
     const q = search.toLowerCase()
     return (
@@ -1329,6 +1538,20 @@ function MembersTab({ profiles, onRefresh, currentUserId }: { profiles: Profile[
           canDeleteAccount={!!editProfile.user_id && editProfile.user_id !== currentUserId}
         />
       )}
+      {banProfile && (
+        <BanModal
+          profile={banProfile}
+          onClose={() => setBanProfile(null)}
+          onDone={() => { onRefresh(); setBanProfile(null) }}
+        />
+      )}
+      {liftBanProfile && (
+        <LiftBanModal
+          profile={liftBanProfile}
+          onClose={() => setLiftBanProfile(null)}
+          onDone={() => { onRefresh(); setLiftBanProfile(null) }}
+        />
+      )}
       <div className="flex flex-col sm:flex-row gap-3 mb-4">
         <input
           type="search"
@@ -1339,7 +1562,7 @@ function MembersTab({ profiles, onRefresh, currentUserId }: { profiles: Profile[
         />
       </div>
       <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-        {(['all', 'approved', 'introduced', 'paused', 'suspended', 'rejected'] as const).map(s => (
+        {(['all', 'approved', 'introduced', 'paused', 'suspended', 'rejected', 'banned'] as const).map(s => (
           <button
             key={s}
             onClick={() => setStatusFilter(s)}
@@ -1404,7 +1627,12 @@ function MembersTab({ profiles, onRefresh, currentUserId }: { profiles: Profile[
                 <td className="px-4 py-3 text-white/70">{p.age_display ?? '—'}</td>
                 <td className="px-4 py-3 text-white/70">{p.location ?? '—'}</td>
                 <td className="px-4 py-3 text-white/70">{p.profession_sector ?? '—'}</td>
-                <td className="px-4 py-3"><StatusBadge status={p.status} /></td>
+                <td className="px-4 py-3">
+                  <div className="flex flex-wrap gap-1">
+                    <StatusBadge status={p.status} />
+                    {p.is_banned && <StatusBadge status="banned" />}
+                  </div>
+                </td>
                 <td className="px-4 py-3 text-white/40 text-xs">{fmtDate(p.created_at)}</td>
                 <td className="px-4 py-3">
                   <div className="flex flex-wrap gap-1">
@@ -1441,6 +1669,18 @@ function MembersTab({ profiles, onRefresh, currentUserId }: { profiles: Profile[
                       </button>
                     )}
                     {/* Delete actions are in the Edit modal footer */}
+                    {/* Ban / Lift ban */}
+                    {p.is_banned ? (
+                      <button onClick={() => setLiftBanProfile(p)}
+                        className="px-2 py-1 rounded text-xs bg-amber-950/60 text-amber-400 hover:bg-amber-900/60">
+                        Lift ban
+                      </button>
+                    ) : (
+                      <button onClick={() => setBanProfile(p)}
+                        className="px-2 py-1 rounded text-xs bg-red-950/40 text-red-400/80 hover:bg-red-950/70 hover:text-red-300">
+                        Ban
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>

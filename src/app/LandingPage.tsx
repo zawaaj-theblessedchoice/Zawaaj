@@ -1,0 +1,430 @@
+'use client'
+
+import { useState } from 'react'
+import Link from 'next/link'
+import ZawaajLogo from '@/components/ZawaajLogo'
+
+// ─── Plan data ────────────────────────────────────────────────────────────────
+
+const PLANS = [
+  {
+    key: 'voluntary',
+    name: 'Voluntary',
+    monthly: 0,
+    annual: 0,
+    description: 'Everything you need to find your match, with full admin support.',
+    cta: 'Create profile',
+    ctaHref: '/signup',
+    highlight: false,
+    features: [
+      'Browse all approved profiles',
+      'Shortlist profiles privately',
+      '5 introduction requests / month',
+      'Admin-facilitated introductions',
+      'Mutual match notifications',
+      'Community events (selected)',
+    ],
+  },
+  {
+    key: 'plus',
+    name: 'Zawaaj Plus',
+    monthly: 9,
+    annual: 7,
+    description: 'More requests, priority support, and greater visibility.',
+    cta: 'Get Plus',
+    ctaHref: '/signup',
+    highlight: true,
+    features: [
+      'Everything in Voluntary',
+      '15 introduction requests / month',
+      '1 profile boost / month',
+      'Full profile details unlocked',
+      'New profile alerts',
+      'Priority email support',
+      'Full events access',
+    ],
+  },
+  {
+    key: 'premium',
+    name: 'Zawaaj Premium',
+    monthly: 19,
+    annual: 15,
+    description: 'Unlimited introductions, concierge matching, and full visibility.',
+    cta: 'Get Premium',
+    ctaHref: '/signup',
+    highlight: false,
+    features: [
+      'Everything in Plus',
+      'Unlimited introduction requests',
+      'Weekly profile boosts',
+      '1 spotlight listing / month',
+      'Concierge matching by admin',
+      'See who viewed your profile',
+      'Full activity history',
+    ],
+  },
+]
+
+const COMPACT_COMPARISON = [
+  { feature: 'Introduction requests / month', voluntary: '5', plus: '15', premium: 'Unlimited' },
+  { feature: 'Profile boost', voluntary: '—', plus: '1× / month', premium: 'Weekly' },
+  { feature: 'Concierge matching', voluntary: '—', plus: '—', premium: '✓' },
+  { feature: 'See who viewed you', voluntary: '—', plus: '—', premium: '✓' },
+  { feature: 'Full profile details', voluntary: 'Summary', plus: '✓', premium: '✓' },
+]
+
+const HOW_IT_WORKS = [
+  { n: '01', title: 'Create your profile', body: 'Answer a short questionnaire about yourself, your faith, and what you\'re looking for.' },
+  { n: '02', title: 'Admin review', body: 'Our team reviews every profile personally before it goes live — keeping the community trusted.' },
+  { n: '03', title: 'Discover profiles', body: 'Browse approved profiles of the opposite gender. Filter by location, background, and values.' },
+  { n: '04', title: 'Send an introduction request', body: 'Express interest in a profile. They won\'t know unless interest is mutual.' },
+  { n: '05', title: 'Mutual match', body: 'When both parties express interest, the admin is notified and facilitates the introduction.' },
+  { n: '06', title: 'Admin introduces families', body: 'Contact details are shared only with explicit consent from both families — never directly between members.' },
+]
+
+const VALUES = [
+  { icon: '🤝', title: 'Halal by design', body: 'No direct messaging. No photos. No swiping. Every introduction goes through our admin team.' },
+  { icon: '🔒', title: 'Privacy first', body: 'Contact details are never shared without explicit verbal consent from both families.' },
+  { icon: '🌙', title: 'Faith-centred', body: 'Built for practising Muslims seeking a serious commitment. We respect your values and your wali.' },
+  { icon: '👥', title: 'Community trust', body: 'Every profile is manually reviewed. We keep the platform small, safe, and high quality.' },
+]
+
+const FAQS = [
+  {
+    q: 'How is Zawaaj different from other matrimonial apps?',
+    a: 'Zawaaj has no direct messaging and no photo sharing between members. Every introduction is mediated by our admin team, with explicit consent from both families before any contact details are exchanged.',
+  },
+  {
+    q: 'Who reviews the profiles?',
+    a: 'Our admin team personally reviews every application before it goes live. This keeps the community trusted and the matches meaningful.',
+  },
+  {
+    q: 'Can I see who expressed interest in me?',
+    a: 'One-sided interest is completely private. You\'ll only be notified if there\'s a mutual match — both parties expressed interest within 30 days.',
+  },
+  {
+    q: 'How does the introduction work?',
+    a: 'When there\'s a mutual match, our admin contacts both families separately, confirms verbal consent, and then shares contact details. No contact is ever made without consent.',
+  },
+  {
+    q: 'What if I want to pause or withdraw?',
+    a: 'You can pause or withdraw your profile at any time from your profile settings. Your data is preserved in case you return.',
+  },
+  {
+    q: 'Is there a free option?',
+    a: 'Yes. The Voluntary tier gives you full access to browse profiles and send 5 introduction requests per month — completely free. Paid plans add more requests and visibility features.',
+  },
+]
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
+function FaqItem({ q, a }: { q: string; a: string }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="border-b border-white/10">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between gap-4 py-5 text-left"
+      >
+        <span className="text-base font-medium text-white">{q}</span>
+        <span className="text-gold text-xl flex-shrink-0">{open ? '−' : '+'}</span>
+      </button>
+      {open && <p className="pb-5 text-sm text-white/60 leading-relaxed">{a}</p>}
+    </div>
+  )
+}
+
+function PlanCard({ plan, annual }: { plan: typeof PLANS[number]; annual: boolean }) {
+  const price = annual ? plan.annual : plan.monthly
+  const saving = annual && plan.monthly > 0
+
+  return (
+    <div className={`relative rounded-2xl p-6 flex flex-col gap-5 border ${
+      plan.highlight
+        ? 'bg-[#1E1800] border-[#B8960C]/60 shadow-[0_0_40px_rgba(184,150,12,0.12)]'
+        : 'bg-[#1A1A1A] border-white/10'
+    }`}>
+      {plan.highlight && (
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+          <span className="px-3 py-1 rounded-full text-xs font-semibold bg-[#B8960C] text-black">Most popular</span>
+        </div>
+      )}
+      <div>
+        <p className="text-sm font-medium text-white/60">{plan.name}</p>
+        <div className="mt-1 flex items-end gap-1">
+          {price === 0 ? (
+            <span className="text-3xl font-bold text-white">Free</span>
+          ) : (
+            <>
+              <span className="text-3xl font-bold text-white">£{price}</span>
+              <span className="text-white/40 mb-1 text-sm">/mo</span>
+            </>
+          )}
+        </div>
+        {saving && (
+          <span className="mt-1 inline-block text-xs text-[#B8960C] font-medium">Save 20% · £{plan.annual * 12}/yr</span>
+        )}
+        <p className="mt-2 text-sm text-white/50">{plan.description}</p>
+      </div>
+
+      <ul className="space-y-2 flex-1">
+        {plan.features.map(f => (
+          <li key={f} className="flex items-start gap-2 text-sm text-white/70">
+            <span className="text-[#B8960C] mt-0.5 flex-shrink-0">✓</span>
+            {f}
+          </li>
+        ))}
+      </ul>
+
+      <Link
+        href={plan.ctaHref}
+        className={`block text-center py-3 rounded-xl text-sm font-semibold transition-colors ${
+          plan.highlight
+            ? 'bg-[#B8960C] text-black hover:bg-[#9a7a0a]'
+            : 'border border-white/20 text-white hover:bg-white/5'
+        }`}
+      >
+        {plan.cta}
+      </Link>
+    </div>
+  )
+}
+
+// ─── Main landing page ────────────────────────────────────────────────────────
+
+export default function LandingPage() {
+  const [annual, setAnnual] = useState(false)
+
+  return (
+    <div className="min-h-screen" style={{ background: 'var(--surface)', color: 'var(--text-primary)' }}>
+
+      {/* ── Nav ── */}
+      <nav className="sticky top-0 z-50 border-b border-white/8 bg-[#111110]/90 backdrop-blur-md">
+        <div className="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between gap-6">
+          <ZawaajLogo size={32} tagline={false} />
+          <div className="hidden md:flex items-center gap-8 text-sm text-white/60">
+            <a href="#how-it-works" className="hover:text-white transition-colors">How it works</a>
+            <a href="#values" className="hover:text-white transition-colors">Our values</a>
+            <a href="#membership" className="hover:text-white transition-colors">Membership</a>
+            <a href="#faq" className="hover:text-white transition-colors">FAQ</a>
+          </div>
+          <div className="flex items-center gap-3">
+            <Link href="/login" className="text-sm text-white/60 hover:text-white px-4 py-2 rounded-xl border border-white/10 hover:bg-white/5 transition-colors">
+              Sign in
+            </Link>
+            <Link href="/signup" className="text-sm font-semibold px-4 py-2 rounded-xl bg-[#B8960C] text-black hover:bg-[#9a7a0a] transition-colors">
+              Create profile
+            </Link>
+          </div>
+        </div>
+      </nav>
+
+      {/* ── Hero ── */}
+      <section className="max-w-4xl mx-auto px-5 pt-24 pb-20 text-center">
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#B8960C]/30 bg-[#B8960C]/8 text-[#B8960C] text-xs font-medium mb-8">
+          🌙 Invite-only · Admin-mediated · Halal by design
+        </div>
+        <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white leading-tight tracking-tight mb-6">
+          A blessed path to<br />
+          <span style={{ color: 'var(--gold)' }}>your spouse</span>
+        </h1>
+        <p className="text-lg text-white/60 max-w-2xl mx-auto leading-relaxed mb-10">
+          Zawaaj is a private Muslim matrimonial platform built on trust, privacy, and proper process.
+          Every introduction is admin-mediated. No direct messaging. No photos. Just sincere, halal searching.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <Link href="/signup" className="px-8 py-3.5 rounded-xl text-sm font-semibold bg-[#B8960C] text-black hover:bg-[#9a7a0a] transition-colors">
+            Create your profile →
+          </Link>
+          <Link href="/login" className="px-8 py-3.5 rounded-xl text-sm font-medium border border-white/15 text-white hover:bg-white/5 transition-colors">
+            Sign in
+          </Link>
+        </div>
+        <p className="mt-5 text-xs text-white/30">Invite-only platform · All profiles manually reviewed · UK-based</p>
+      </section>
+
+      {/* ── Trust bar ── */}
+      <section className="border-y border-white/8 bg-[#161614]">
+        <div className="max-w-5xl mx-auto px-5 py-10 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+          {[
+            { icon: '🔐', label: 'No direct messaging', sub: 'Every intro goes through admin' },
+            { icon: '👁‍🗨', label: 'No photos shared', sub: 'Focused on character & values' },
+            { icon: '✅', label: 'Every profile verified', sub: 'Manual review before going live' },
+            { icon: '🤲', label: 'Wali-respecting', sub: 'Both families consulted before contact' },
+          ].map(t => (
+            <div key={t.label} className="flex flex-col items-center gap-2">
+              <span className="text-2xl">{t.icon}</span>
+              <p className="text-sm font-medium text-white">{t.label}</p>
+              <p className="text-xs text-white/40">{t.sub}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── How it works ── */}
+      <section id="how-it-works" className="max-w-5xl mx-auto px-5 py-24">
+        <div className="text-center mb-14">
+          <p className="text-xs font-semibold text-[#B8960C] uppercase tracking-widest mb-3">The process</p>
+          <h2 className="text-3xl font-bold text-white">How Zawaaj works</h2>
+        </div>
+        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
+          {HOW_IT_WORKS.map(s => (
+            <div key={s.n} className="bg-[#1A1A1A] rounded-2xl p-6 border border-white/8">
+              <p className="text-[#B8960C] text-xs font-bold mb-3">{s.n}</p>
+              <p className="font-semibold text-white mb-2">{s.title}</p>
+              <p className="text-sm text-white/50 leading-relaxed">{s.body}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Values ── */}
+      <section id="values" className="bg-[#161614] border-y border-white/8">
+        <div className="max-w-5xl mx-auto px-5 py-24">
+          <div className="text-center mb-14">
+            <p className="text-xs font-semibold text-[#B8960C] uppercase tracking-widest mb-3">What we stand for</p>
+            <h2 className="text-3xl font-bold text-white">Our values</h2>
+          </div>
+          <div className="grid sm:grid-cols-2 gap-6">
+            {VALUES.map(v => (
+              <div key={v.title} className="bg-[#1E1E1C] rounded-2xl p-6 border border-white/8 flex gap-5">
+                <span className="text-2xl flex-shrink-0 mt-0.5">{v.icon}</span>
+                <div>
+                  <p className="font-semibold text-white mb-1">{v.title}</p>
+                  <p className="text-sm text-white/50 leading-relaxed">{v.body}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Pricing ── */}
+      <section id="membership" className="max-w-5xl mx-auto px-5 py-24">
+        <div className="text-center mb-12">
+          <p className="text-xs font-semibold text-[#B8960C] uppercase tracking-widest mb-3">Membership</p>
+          <h2 className="text-3xl font-bold text-white mb-4">Simple, transparent pricing</h2>
+          <p className="text-white/50 text-sm">All tiers include full admin support and mediated introductions.</p>
+
+          {/* Billing toggle */}
+          <div className="inline-flex items-center gap-3 mt-6 bg-[#1A1A1A] border border-white/10 rounded-xl p-1">
+            <button
+              onClick={() => setAnnual(false)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${!annual ? 'bg-[#B8960C] text-black' : 'text-white/50 hover:text-white'}`}
+            >
+              Monthly
+            </button>
+            <button
+              onClick={() => setAnnual(true)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${annual ? 'bg-[#B8960C] text-black' : 'text-white/50 hover:text-white'}`}
+            >
+              Annual <span className="text-xs ml-1 font-normal opacity-70">Save 20%</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Plan cards */}
+        <div className="grid md:grid-cols-3 gap-5 mb-12">
+          {PLANS.map(p => <PlanCard key={p.key} plan={p} annual={annual} />)}
+        </div>
+
+        {/* Compact comparison */}
+        <div className="bg-[#1A1A1A] rounded-2xl border border-white/10 overflow-hidden">
+          <div className="grid grid-cols-4 text-xs font-semibold text-white/40 uppercase tracking-wide px-6 py-3 bg-[#171717] border-b border-white/8">
+            <span className="col-span-1">Feature</span>
+            <span className="text-center">Voluntary</span>
+            <span className="text-center">Plus</span>
+            <span className="text-center">Premium</span>
+          </div>
+          {COMPACT_COMPARISON.map((row, i) => (
+            <div key={row.feature} className={`grid grid-cols-4 px-6 py-3 text-sm ${i % 2 === 0 ? '' : 'bg-white/2'}`}>
+              <span className="text-white/60 col-span-1">{row.feature}</span>
+              <span className="text-center text-white/50">{row.voluntary}</span>
+              <span className="text-center text-white/80">{row.plus}</span>
+              <span className="text-center text-[#B8960C] font-medium">{row.premium}</span>
+            </div>
+          ))}
+          <div className="px-6 py-3 border-t border-white/8 text-center">
+            <Link href="/pricing" className="text-sm text-[#B8960C] hover:underline">
+              View full comparison →
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Testimonials ── */}
+      <section className="bg-[#161614] border-y border-white/8">
+        <div className="max-w-4xl mx-auto px-5 py-24">
+          <div className="text-center mb-14">
+            <p className="text-xs font-semibold text-[#B8960C] uppercase tracking-widest mb-3">Stories</p>
+            <h2 className="text-3xl font-bold text-white">From our community</h2>
+          </div>
+          <div className="grid md:grid-cols-3 gap-5">
+            {[
+              { initials: 'S.A.', quote: 'The admin-mediated process made me feel completely comfortable. My parents were involved from the very beginning.', location: 'London' },
+              { initials: 'M.R.', quote: 'I appreciated that there was no pressure and no direct contact. Everything was handled with respect and care.', location: 'Birmingham' },
+              { initials: 'F.K.', quote: 'Finally a platform that actually respects Islamic values. The team were helpful and quick to respond throughout.', location: 'Manchester' },
+            ].map(t => (
+              <div key={t.initials} className="bg-[#1E1E1C] rounded-2xl p-6 border border-white/8 flex flex-col gap-4">
+                <p className="text-sm text-white/60 leading-relaxed italic">&ldquo;{t.quote}&rdquo;</p>
+                <div className="flex items-center gap-3 mt-auto">
+                  <div className="w-8 h-8 rounded-full bg-[#B8960C]/20 flex items-center justify-center text-xs font-bold text-[#B8960C]">
+                    {t.initials[0]}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-white">{t.initials}</p>
+                    <p className="text-xs text-white/40">{t.location}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── FAQ ── */}
+      <section id="faq" className="max-w-3xl mx-auto px-5 py-24">
+        <div className="text-center mb-14">
+          <p className="text-xs font-semibold text-[#B8960C] uppercase tracking-widest mb-3">Questions</p>
+          <h2 className="text-3xl font-bold text-white">Frequently asked</h2>
+        </div>
+        <div>
+          {FAQS.map(f => <FaqItem key={f.q} q={f.q} a={f.a} />)}
+        </div>
+      </section>
+
+      {/* ── CTA ── */}
+      <section className="bg-[#1A1500] border-y border-[#B8960C]/20">
+        <div className="max-w-2xl mx-auto px-5 py-20 text-center">
+          <h2 className="text-3xl font-bold text-white mb-4">
+            Begin your search with <span style={{ color: 'var(--gold)' }}>barakah</span>
+          </h2>
+          <p className="text-white/50 text-sm mb-8">
+            Join a platform built with Islamic values at its core. Private, trusted, and admin-supported.
+          </p>
+          <Link href="/signup" className="inline-block px-10 py-4 rounded-xl text-sm font-semibold bg-[#B8960C] text-black hover:bg-[#9a7a0a] transition-colors">
+            Create your profile →
+          </Link>
+        </div>
+      </section>
+
+      {/* ── Footer ── */}
+      <footer className="bg-[#0D0D0C] border-t border-white/8">
+        <div className="max-w-5xl mx-auto px-5 py-12 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex flex-col items-center md:items-start gap-2">
+            <ZawaajLogo size={28} tagline={false} />
+            <p className="text-xs text-white/30">© {new Date().getFullYear()} Zawaaj. All rights reserved.</p>
+          </div>
+          <div className="flex flex-wrap justify-center gap-x-8 gap-y-2 text-sm text-white/40">
+            <a href="#how-it-works" className="hover:text-white transition-colors">How it works</a>
+            <Link href="/pricing" className="hover:text-white transition-colors">Pricing</Link>
+            <a href="#faq" className="hover:text-white transition-colors">FAQ</a>
+            <Link href="/terms" className="hover:text-white transition-colors">Terms</Link>
+            <Link href="/help" className="hover:text-white transition-colors">Help</Link>
+            <Link href="/login" className="hover:text-white transition-colors">Sign in</Link>
+          </div>
+        </div>
+      </footer>
+    </div>
+  )
+}
