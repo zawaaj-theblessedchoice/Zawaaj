@@ -5,6 +5,7 @@ import SlidePanel from '@/components/SlidePanel'
 import AvatarInitials from '@/components/AvatarInitials'
 import CompatibilityBar from '@/components/CompatibilityBar'
 import Toast from '@/components/Toast'
+import UpgradeModal from '@/components/UpgradeModal'
 import { scoreCompatibility } from '@/lib/compatibility'
 
 export interface ProfileRecord {
@@ -53,6 +54,8 @@ interface ProfileModalProps {
   introStatus: 'none' | 'requested' | 'mutual' | 'limit_reached'
   onRequestIntro: (profileId: string) => void
   monthlyUsed: number
+  /** Member's current plan — controls locked sections */
+  plan?: 'voluntary' | 'plus' | 'premium'
 }
 
 function calcAge(dateOfBirth: string | null): number | null {
@@ -157,10 +160,14 @@ export default function ProfileModal({
   introStatus,
   onRequestIntro,
   monthlyUsed,
+  plan = 'voluntary',
 }: ProfileModalProps) {
   const [toastMsg, setToastMsg] = useState<string | null>(null)
   const [confirmingIntro, setConfirmingIntro] = useState(false)
   const [bioExpanded, setBioExpanded] = useState(false)
+  const [showUpgrade, setShowUpgrade] = useState(false)
+
+  const isVoluntary = plan === 'voluntary'
 
   const isOpen = profile !== null
 
@@ -296,21 +303,35 @@ export default function ProfileModal({
                         </button>
                       )}
                       {introStatus === 'limit_reached' && (
-                        <button
-                          disabled
-                          title="You have used all 5 monthly introduction requests"
-                          style={{
-                            padding: '7px 14px',
-                            borderRadius: 8,
-                            fontSize: 12,
-                            background: 'var(--surface-3)',
-                            border: '0.5px solid var(--border-default)',
-                            color: 'var(--text-muted)',
-                            cursor: 'not-allowed',
-                          }}
-                        >
-                          Monthly limit reached
-                        </button>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-start' }}>
+                          <button
+                            disabled
+                            title="You have used all your monthly introduction requests"
+                            style={{
+                              padding: '7px 14px',
+                              borderRadius: 8,
+                              fontSize: 12,
+                              background: 'var(--surface-3)',
+                              border: '0.5px solid var(--border-default)',
+                              color: 'var(--text-muted)',
+                              cursor: 'not-allowed',
+                            }}
+                          >
+                            Monthly limit reached
+                          </button>
+                          {isVoluntary && (
+                            <button
+                              onClick={() => setShowUpgrade(true)}
+                              style={{
+                                background: 'none', border: 'none', padding: 0,
+                                fontSize: 11, color: 'var(--gold)', cursor: 'pointer',
+                                textDecoration: 'underline', textUnderlineOffset: 2,
+                              }}
+                            >
+                              Upgrade for more introductions →
+                            </button>
+                          )}
+                        </div>
                       )}
                       {introStatus === 'none' && (
                         <button
@@ -627,6 +648,52 @@ export default function ProfileModal({
                 </>
               )}
 
+              {/* ── Upgrade nudge — Voluntary only, shown once between sections ── */}
+              {isVoluntary && !isOwnProfile && (
+                <>
+                  <SectionDivider />
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 12,
+                      padding: '12px 14px',
+                      borderRadius: 10,
+                      background: 'rgba(184,150,12,0.06)',
+                      border: '0.5px solid rgba(184,150,12,0.25)',
+                      margin: '4px 0',
+                    }}
+                  >
+                    <span style={{ fontSize: 18, flexShrink: 0 }}>🔒</span>
+                    <div style={{ flex: 1 }}>
+                      <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-primary)', marginBottom: 2 }}>
+                        Unlock full profile details
+                      </p>
+                      <p style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.4 }}>
+                        See the complete bio, faith depth, and lifestyle notes.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setShowUpgrade(true)}
+                      style={{
+                        flexShrink: 0,
+                        padding: '6px 12px',
+                        borderRadius: 7,
+                        fontSize: 11,
+                        fontWeight: 600,
+                        background: 'var(--gold)',
+                        border: 'none',
+                        color: '#111',
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      Upgrade to Plus
+                    </button>
+                  </div>
+                </>
+              )}
+
               {/* ── Looking for ──────────────────────────────────────────── */}
               <SectionDivider />
               <SectionLabel>Looking for</SectionLabel>
@@ -664,6 +731,9 @@ export default function ProfileModal({
       </SlidePanel>
 
       {toastMsg && <Toast message={toastMsg} onDone={() => setToastMsg(null)} />}
+      {showUpgrade && (
+        <UpgradeModal trigger="locked_profile" onClose={() => setShowUpgrade(false)} />
+      )}
     </>
   )
 }
