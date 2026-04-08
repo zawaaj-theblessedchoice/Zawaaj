@@ -2599,6 +2599,29 @@ export default function AdminPage() {
           ))}
         </div>
 
+        {/* Quick links — separate admin tool pages */}
+        <div className="flex flex-wrap gap-3 mb-6">
+          {[
+            { href: '/admin/introductions', icon: '✉️', label: 'All Introductions', sub: 'View & facilitate requests' },
+            { href: '/admin/subscriptions', icon: '💳', label: 'Subscriptions', sub: 'MRR, plans & overrides' },
+            { href: '/admin/concierge', icon: '✦', label: 'Concierge Queue', sub: 'Suggest matches to Premium members' },
+          ].map(link => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[#252525] transition-colors"
+              style={{ background: '#1A1A1A', border: '0.5px solid rgba(255,255,255,0.1)', textDecoration: 'none', minWidth: 200 }}
+            >
+              <span style={{ fontSize: 18 }}>{link.icon}</span>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 500, color: 'white' }}>{link.label}</div>
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>{link.sub}</div>
+              </div>
+              <span style={{ marginLeft: 'auto', color: 'rgba(255,255,255,0.25)', fontSize: 12 }}>→</span>
+            </Link>
+          ))}
+        </div>
+
         {/* Tab Bar */}
         <div className="flex flex-wrap gap-1 mb-6 bg-[#1E1E1E] rounded-2xl p-1.5 border border-white/10 w-fit">
           {tabs.map(({ key, label, badge }) => (

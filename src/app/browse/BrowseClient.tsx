@@ -8,6 +8,7 @@ import ProfileModal, { ProfileRecord } from '@/components/ProfileModal'
 import AvatarInitials from '@/components/AvatarInitials'
 import CompatibilityBar from '@/components/CompatibilityBar'
 import Toast from '@/components/Toast'
+import UpgradeModal from '@/components/UpgradeModal'
 import { scoreCompatibility } from '@/lib/compatibility'
 
 type Tab = 'recommended' | 'new' | 'all' | 'shortlist'
@@ -41,6 +42,8 @@ export interface BrowseClientProps {
   managedProfiles?: ManagedProfile[]
   /** Currently active profile id */
   activeProfileId?: string
+  /** Member's current subscription plan */
+  plan?: 'voluntary' | 'plus' | 'premium'
 }
 
 interface FilterState {
@@ -330,6 +333,7 @@ export default function BrowseClient({
   newSince,
   managedProfiles,
   activeProfileId,
+  plan = 'voluntary',
 }: BrowseClientProps) {
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -349,6 +353,7 @@ export default function BrowseClient({
   const [monthlyUsed, setMonthlyUsed] = useState(initialMonthlyUsed)
   const [openProfileId, setOpenProfileId] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
+  const [showUpgrade, setShowUpgrade] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [sortKey, setSortKey] = useState<SortKey>('relevant')
   const [filterOpen, setFilterOpen] = useState(false)
@@ -660,6 +665,28 @@ export default function BrowseClient({
             >
               {monthlyUsed}/5 requests
             </span>
+
+            {/* Upgrade nudge — shown to Voluntary members who have used 3+ requests */}
+            {plan === 'voluntary' && monthlyUsed >= 3 && (
+              <button
+                onClick={() => setShowUpgrade(true)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  padding: '3px 10px',
+                  borderRadius: 999,
+                  background: 'rgba(184,150,12,0.12)',
+                  border: '0.5px solid rgba(184,150,12,0.35)',
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: 'var(--gold)',
+                  cursor: 'pointer',
+                }}
+              >
+                Get more →
+              </button>
+            )}
           </div>
 
           {/* Search + Filter + Sort */}
@@ -1230,6 +1257,11 @@ export default function BrowseClient({
       />
 
       {toast && <Toast message={toast} onDone={() => setToast(null)} />}
+
+      {/* Upgrade modal — triggered by topbar nudge */}
+      {showUpgrade && (
+        <UpgradeModal trigger="intro_limit" onClose={() => setShowUpgrade(false)} />
+      )}
     </div>
   )
 }

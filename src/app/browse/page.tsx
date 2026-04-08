@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import BrowseClient from './BrowseClient'
 import type { ProfileRecord } from '@/components/ProfileModal'
+import type { Plan } from '@/lib/plans'
 
 export default async function BrowsePage() {
   const supabase = await createClient()
@@ -176,6 +177,15 @@ export default async function BrowsePage() {
     r => r.created_at && r.created_at >= monthStart
   ).length
 
+  // Member's subscription plan (falls back to 'voluntary' if no active subscription)
+  const { data: subData } = await supabase
+    .from('zawaaj_subscriptions')
+    .select('plan')
+    .eq('user_id', user.id)
+    .eq('status', 'active')
+    .maybeSingle()
+  const plan: Plan = (subData?.plan ?? 'voluntary') as Plan
+
   const typedViewerProfile: ProfileRecord = {
     ...viewerProfile,
     wears_hijab: viewerProfile.wears_hijab ?? null,
@@ -196,6 +206,7 @@ export default async function BrowsePage() {
       newSince={lastBrowsedAt}
       managedProfiles={managedProfiles}
       activeProfileId={activeProfileId}
+      plan={plan}
     />
   )
 }

@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Sidebar from '@/components/Sidebar'
 import AvatarInitials from '@/components/AvatarInitials'
+import UpgradeModal from '@/components/UpgradeModal'
 
 interface Profile {
   id: string
@@ -165,6 +166,8 @@ export default function MyProfilePage() {
   const [withdrawReason, setWithdrawReason] = useState(WITHDRAWAL_REASONS[0])
   const [withdrawn, setWithdrawn] = useState(false)
   const [bioExpanded, setBioExpanded] = useState(false)
+  const [plan, setPlan] = useState<'voluntary' | 'plus' | 'premium'>('voluntary')
+  const [showViewsUpgrade, setShowViewsUpgrade] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [editSection, setEditSection] = useState<string>('about')
   const [editForm, setEditForm] = useState({
@@ -246,6 +249,15 @@ export default function MyProfilePage() {
         .limit(15)
 
       setIntroRequests(irRows ?? [])
+
+      // Subscription plan
+      const { data: subData } = await supabase
+        .from('zawaaj_subscriptions')
+        .select('plan')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .maybeSingle()
+      setPlan((subData?.plan ?? 'voluntary') as 'voluntary' | 'plus' | 'premium')
 
       // Sidebar counts
       const [slResult, irCountResult] = await Promise.all([
@@ -583,6 +595,65 @@ export default function MyProfilePage() {
           <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Resets on the 1st of each month</div>
         </div>
 
+        {/* Who viewed your profile — teaser for voluntary/plus, data for premium */}
+        <div style={{ background: 'var(--surface-2)', border: '0.5px solid var(--border-default)', borderRadius: 13, padding: 24, marginBottom: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+            <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)' }}>Who viewed your profile</div>
+            {plan === 'premium' && (
+              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Last 30 days</span>
+            )}
+          </div>
+
+          {plan !== 'premium' ? (
+            /* Locked teaser */
+            <div>
+              {/* Blurred ghost rows */}
+              <div style={{ position: 'relative', marginBottom: 16 }}>
+                {[0, 1, 2].map(i => (
+                  <div
+                    key={i}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 12,
+                      padding: '10px 0',
+                      borderBottom: i < 2 ? '0.5px solid var(--border-default)' : undefined,
+                      filter: 'blur(5px)',
+                      userSelect: 'none',
+                      pointerEvents: 'none',
+                    }}
+                  >
+                    <div style={{ width: 32, height: 32, borderRadius: 8, background: i % 2 === 0 ? '#EEEDFE' : '#E6F1FB', flexShrink: 0 }} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ width: 80 + i * 20, height: 11, borderRadius: 4, background: 'var(--surface-3)', marginBottom: 5 }} />
+                      <div style={{ width: 50 + i * 10, height: 9, borderRadius: 4, background: 'var(--surface-3)' }} />
+                    </div>
+                    <div style={{ width: 48, height: 9, borderRadius: 4, background: 'var(--surface-3)' }} />
+                  </div>
+                ))}
+              </div>
+              {/* Upgrade CTA */}
+              <div style={{ textAlign: 'center', paddingTop: 4 }}>
+                <p style={{ fontSize: 12.5, color: 'var(--text-secondary)', marginBottom: 12 }}>
+                  Upgrade to Premium to see who viewed your profile — with timestamps.
+                </p>
+                <button
+                  onClick={() => setShowViewsUpgrade(true)}
+                  style={{
+                    padding: '8px 20px', borderRadius: 9, fontSize: 12.5, fontWeight: 600,
+                    background: 'var(--gold)', color: '#111', border: 'none', cursor: 'pointer',
+                  }}
+                >
+                  👁 See who viewed you →
+                </button>
+              </div>
+            </div>
+          ) : (
+            /* Premium — actual view data placeholder */
+            <p style={{ fontSize: 12.5, color: 'var(--text-muted)' }}>
+              View tracking active. Data will appear as members visit your profile.
+            </p>
+          )}
+        </div>
+
         {/* Sent introduction requests */}
         <div style={{ background: 'var(--surface-2)', border: '0.5px solid var(--border-default)', borderRadius: 13, padding: 24 }}>
           <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)', marginBottom: 16 }}>Introduction requests sent</div>
@@ -814,6 +885,11 @@ export default function MyProfilePage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Upgrade modal — "who viewed you" surface */}
+      {showViewsUpgrade && (
+        <UpgradeModal trigger="who_viewed" onClose={() => setShowViewsUpgrade(false)} />
       )}
     </div>
   )
