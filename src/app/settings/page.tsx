@@ -175,7 +175,7 @@ function SettingsContent() {
   }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
+    <div data-theme="dark" style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
       <Sidebar
         activeRoute={pathname}
         shortlistCount={0}
@@ -504,7 +504,7 @@ function SettingsContent() {
 export default function SettingsPage() {
   return (
     <Suspense fallback={
-      <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)', alignItems: 'center', justifyContent: 'center' }}>
+      <div data-theme="dark" style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)', alignItems: 'center', justifyContent: 'center' }}>
         <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>Loading…</span>
       </div>
     }>

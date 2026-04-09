@@ -68,7 +68,7 @@ export default function PricingPage() {
   ]
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--surface)', color: 'var(--text-primary)' }}>
+    <div className="min-h-screen" data-theme="dark" style={{ background: 'var(--surface)', color: 'var(--text-primary)' }}>
 
       {/* Nav */}
       <nav className="sticky top-0 z-50 border-b border-white/8 bg-surface/90 backdrop-blur-md">

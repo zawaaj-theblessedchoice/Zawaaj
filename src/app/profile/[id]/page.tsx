@@ -308,7 +308,7 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
+      <div data-theme="dark" style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
         <Sidebar activeRoute={pathname ?? ''} shortlistCount={0} introRequestsCount={0} profile={null} managedProfiles={[]} />
         <main style={{ marginLeft: 200, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>Loading…</span>
@@ -319,7 +319,7 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
 
   if (notFound || !profile) {
     return (
-      <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
+      <div data-theme="dark" style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
         <Sidebar activeRoute={pathname ?? ''} shortlistCount={shortlistCount} introRequestsCount={introRequestsCount} profile={sidebarProfile} managedProfiles={managedProfiles} activeProfileId={activeProfileId} />
         <main style={{ marginLeft: 200, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ textAlign: 'center' }}>
@@ -340,7 +340,7 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
     profile.pref_ethnicity || (profile.pref_school_of_thought?.length ?? 0) > 0 || profile.pref_partner_children
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
+    <div data-theme="dark" style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
       <Sidebar
         activeRoute={pathname ?? ''}
         shortlistCount={shortlistCount}

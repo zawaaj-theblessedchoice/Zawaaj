@@ -2515,7 +2515,7 @@ export default function AdminPage() {
 
   if (!accessChecked) {
     return (
-      <div className="min-h-screen bg-surface flex items-center justify-center">
+      <div className="min-h-screen bg-surface flex items-center justify-center" data-theme="dark">
         <p className="text-white/30 text-sm">Checking access…</p>
       </div>
     )
@@ -2523,7 +2523,7 @@ export default function AdminPage() {
 
   if (!isAdmin) {
     return (
-      <div className="min-h-screen bg-surface flex flex-col items-center justify-center gap-4">
+      <div className="min-h-screen bg-surface flex flex-col items-center justify-center gap-4" data-theme="dark">
         <div className="bg-[#1E1E1E] rounded-2xl p-10 border border-white/10 text-center max-w-sm mx-4">
           <p className="text-2xl mb-2">🔒</p>
           <h1 className="text-xl font-semibold text-white mb-2">Access Denied</h1>
@@ -2541,7 +2541,7 @@ export default function AdminPage() {
   const approvedCount = profiles.filter(p => p.status === 'approved').length
 
   return (
-    <div className="min-h-screen bg-surface">
+    <div className="min-h-screen bg-surface" data-theme="dark">
       {/* Header */}
       <header className="bg-surface-2 sticky top-0 z-30" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">

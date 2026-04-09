@@ -603,7 +603,7 @@ export default function BrowseClient({
   ]
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
+    <div data-theme="dark" style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
       {/* Sidebar */}
       <Sidebar
         activeRoute={activeTab !== 'recommended' ? `/browse?tab=${activeTab}` : '/browse'}

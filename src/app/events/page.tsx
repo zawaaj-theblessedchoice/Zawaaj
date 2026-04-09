@@ -259,7 +259,7 @@ export default function EventsPage() {
   const pastEvents = events.filter(e => e.status === 'ended' && e.show_in_history)
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
+    <div data-theme="dark" style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
       <Sidebar
         activeRoute={pathname ?? '/events'}
         shortlistCount={shortlistCount}

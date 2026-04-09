@@ -363,7 +363,7 @@ export default function IntroductionsClient({
   const hasAnything = requests.length > 0 || receivedRequests.length > 0
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
+    <div data-theme="dark" style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
       <Sidebar
         activeRoute="/introductions"
         shortlistCount={shortlistCount}
