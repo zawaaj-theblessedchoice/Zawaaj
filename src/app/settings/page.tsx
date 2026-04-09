@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -68,7 +68,7 @@ function PlanBadge({ plan }: { plan: Plan }) {
   )
 }
 
-export default function SettingsPage() {
+function SettingsContent() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const [tab, setTab] = useState<Tab>((searchParams.get('tab') as Tab) ?? 'membership')
@@ -422,5 +422,17 @@ export default function SettingsPage() {
         )}
       </main>
     </div>
+  )
+}
+
+export default function SettingsPage() {
+  return (
+    <Suspense fallback={
+      <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)', alignItems: 'center', justifyContent: 'center' }}>
+        <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>Loading…</span>
+      </div>
+    }>
+      <SettingsContent />
+    </Suspense>
   )
 }
