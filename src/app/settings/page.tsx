@@ -84,7 +84,7 @@ function SettingsContent() {
   // Show success flash if returning from Stripe checkout
   const checkoutSuccess = searchParams.get('checkout') === 'success'
 
-  // Read saved theme on mount
+  // Read saved theme on mount (default is dark — same as CSS :root)
   useEffect(() => {
     try {
       const saved = localStorage.getItem('zawaaj-theme') as ThemeMode | null
@@ -92,19 +92,21 @@ function SettingsContent() {
     } catch { /* localStorage unavailable */ }
   }, [])
 
+
   function applyTheme(mode: ThemeMode) {
-    if (mode === 'dark') {
-      document.documentElement.setAttribute('data-theme', 'dark')
-    } else if (mode === 'light') {
-      document.documentElement.removeAttribute('data-theme')
-    } else {
-      // system
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-      if (prefersDark) {
-        document.documentElement.setAttribute('data-theme', 'dark')
+    // CSS :root is already dark — only set data-theme="light" to opt in to light
+    if (mode === 'light') {
+      document.documentElement.setAttribute('data-theme', 'light')
+    } else if (mode === 'system') {
+      const prefersLight = !window.matchMedia('(prefers-color-scheme: dark)').matches
+      if (prefersLight) {
+        document.documentElement.setAttribute('data-theme', 'light')
       } else {
         document.documentElement.removeAttribute('data-theme')
       }
+    } else {
+      // 'dark' — remove any light override
+      document.documentElement.removeAttribute('data-theme')
     }
   }
 

@@ -18,18 +18,16 @@ export const metadata: Metadata = {
 };
 
 // Inline script runs synchronously before first paint to avoid theme flash.
-// Default is 'dark' — consistent with existing app behaviour.
+// CSS :root defaults to dark — only override to light when explicitly chosen.
 const themeInitScript = `
   try {
-    var mode = localStorage.getItem('zawaaj-theme') || 'dark';
-    if (mode === 'dark') {
-      document.documentElement.setAttribute('data-theme', 'dark');
-    } else if (mode === 'system') {
-      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        document.documentElement.setAttribute('data-theme', 'dark');
-      }
+    var mode = localStorage.getItem('zawaaj-theme');
+    if (mode === 'light') {
+      document.documentElement.setAttribute('data-theme', 'light');
+    } else if (mode === 'system' && !window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      document.documentElement.setAttribute('data-theme', 'light');
     }
-    // 'light' — no attribute needed; CSS :root defaults are already light
+    // 'dark' or no preference — no attribute needed; CSS :root is already dark
   } catch(e) {}
 `;
 
