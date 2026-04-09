@@ -141,12 +141,12 @@ function PlanCard({ plan, annual }: { plan: typeof PLANS[number]; annual: boolea
   return (
     <div className={`relative rounded-2xl p-6 flex flex-col gap-5 border ${
       plan.highlight
-        ? 'bg-[#1E1800] border-[#B8960C]/60 shadow-[0_0_40px_rgba(184,150,12,0.12)]'
-        : 'bg-[#1A1A1A] border-white/10'
+        ? 'bg-[#1E1800] border-gold/60 shadow-[0_0_40px_rgba(184,150,12,0.12)]'
+        : 'bg-surface-2 border-white/10'
     }`}>
       {plan.highlight && (
         <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-          <span className="px-3 py-1 rounded-full text-xs font-semibold bg-[#B8960C] text-black">Most popular</span>
+          <span className="px-3 py-1 rounded-full text-xs font-semibold bg-gold text-black">Most popular</span>
         </div>
       )}
       <div>
@@ -162,7 +162,7 @@ function PlanCard({ plan, annual }: { plan: typeof PLANS[number]; annual: boolea
           )}
         </div>
         {saving && (
-          <span className="mt-1 inline-block text-xs text-[#B8960C] font-medium">Save 20% · £{plan.annual * 12}/yr</span>
+          <span className="mt-1 inline-block text-xs text-gold font-medium">Save 20% · £{plan.annual * 12}/yr</span>
         )}
         <p className="mt-2 text-sm text-white/50">{plan.description}</p>
       </div>
@@ -170,7 +170,7 @@ function PlanCard({ plan, annual }: { plan: typeof PLANS[number]; annual: boolea
       <ul className="space-y-2 flex-1">
         {plan.features.map(f => (
           <li key={f} className="flex items-start gap-2 text-sm text-white/70">
-            <span className="text-[#B8960C] mt-0.5 flex-shrink-0">✓</span>
+            <span className="text-gold mt-0.5 flex-shrink-0">✓</span>
             {f}
           </li>
         ))}
@@ -180,7 +180,7 @@ function PlanCard({ plan, annual }: { plan: typeof PLANS[number]; annual: boolea
         href={plan.ctaHref}
         className={`block text-center py-3 rounded-xl text-sm font-semibold transition-colors ${
           plan.highlight
-            ? 'bg-[#B8960C] text-black hover:bg-[#9a7a0a]'
+            ? 'bg-gold text-black hover:bg-[#9a7a0a]'
             : 'border border-white/20 text-white hover:bg-white/5'
         }`}
       >
@@ -199,7 +199,7 @@ export default function LandingPage() {
     <div className="min-h-screen" style={{ background: 'var(--surface)', color: 'var(--text-primary)' }}>
 
       {/* ── Nav ── */}
-      <nav className="sticky top-0 z-50 border-b border-white/8 bg-[#111110]/90 backdrop-blur-md">
+      <nav className="sticky top-0 z-50 border-b border-white/8 bg-surface/90 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between gap-6">
           <ZawaajLogo size={52} tagline={false} />
           <div className="hidden md:flex items-center gap-8 text-sm text-white/60">
@@ -212,7 +212,7 @@ export default function LandingPage() {
             <Link href="/login" className="text-sm text-white/60 hover:text-white px-4 py-2 rounded-xl border border-white/10 hover:bg-white/5 transition-colors">
               Sign in
             </Link>
-            <Link href="/signup" className="text-sm font-semibold px-4 py-2 rounded-xl bg-[#B8960C] text-black hover:bg-[#9a7a0a] transition-colors">
+            <Link href="/signup" className="text-sm font-semibold px-4 py-2 rounded-xl bg-gold text-black hover:bg-[#9a7a0a] transition-colors">
               Create profile
             </Link>
           </div>
@@ -221,7 +221,7 @@ export default function LandingPage() {
 
       {/* ── Hero ── */}
       <section className="max-w-4xl mx-auto px-5 pt-24 pb-20 text-center">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#B8960C]/30 bg-[#B8960C]/8 text-[#B8960C] text-xs font-medium mb-8">
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-gold/30 bg-gold/8 text-gold text-xs font-medium mb-8">
           🌙 Invite-only · Admin-mediated · Halal by design
         </div>
         <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white leading-tight tracking-tight mb-6">
@@ -233,7 +233,7 @@ export default function LandingPage() {
           Every introduction is admin-mediated. No direct messaging. No photos. Just sincere, halal searching.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Link href="/signup" className="px-8 py-3.5 rounded-xl text-sm font-semibold bg-[#B8960C] text-black hover:bg-[#9a7a0a] transition-colors">
+          <Link href="/signup" className="px-8 py-3.5 rounded-xl text-sm font-semibold bg-gold text-black hover:bg-[#9a7a0a] transition-colors">
             Create your profile →
           </Link>
           <Link href="/login" className="px-8 py-3.5 rounded-xl text-sm font-medium border border-white/15 text-white hover:bg-white/5 transition-colors">
@@ -264,13 +264,13 @@ export default function LandingPage() {
       {/* ── How it works ── */}
       <section id="how-it-works" className="max-w-5xl mx-auto px-5 py-24">
         <div className="text-center mb-14">
-          <p className="text-xs font-semibold text-[#B8960C] uppercase tracking-widest mb-3">The process</p>
+          <p className="text-xs font-semibold text-gold uppercase tracking-widest mb-3">The process</p>
           <h2 className="text-3xl font-bold text-white">How Zawaaj works</h2>
         </div>
         <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
           {HOW_IT_WORKS.map(s => (
-            <div key={s.n} className="bg-[#1A1A1A] rounded-2xl p-6 border border-white/8">
-              <p className="text-[#B8960C] text-xs font-bold mb-3">{s.n}</p>
+            <div key={s.n} className="bg-surface-2 rounded-2xl p-6 border border-white/8">
+              <p className="text-gold text-xs font-bold mb-3">{s.n}</p>
               <p className="font-semibold text-white mb-2">{s.title}</p>
               <p className="text-sm text-white/50 leading-relaxed">{s.body}</p>
             </div>
@@ -282,7 +282,7 @@ export default function LandingPage() {
       <section id="values" className="bg-[#161614] border-y border-white/8">
         <div className="max-w-5xl mx-auto px-5 py-24">
           <div className="text-center mb-14">
-            <p className="text-xs font-semibold text-[#B8960C] uppercase tracking-widest mb-3">What we stand for</p>
+            <p className="text-xs font-semibold text-gold uppercase tracking-widest mb-3">What we stand for</p>
             <h2 className="text-3xl font-bold text-white">Our values</h2>
           </div>
           <div className="grid sm:grid-cols-2 gap-6">
@@ -302,21 +302,21 @@ export default function LandingPage() {
       {/* ── Pricing ── */}
       <section id="membership" className="max-w-5xl mx-auto px-5 py-24">
         <div className="text-center mb-12">
-          <p className="text-xs font-semibold text-[#B8960C] uppercase tracking-widest mb-3">Membership</p>
+          <p className="text-xs font-semibold text-gold uppercase tracking-widest mb-3">Membership</p>
           <h2 className="text-3xl font-bold text-white mb-4">Simple, transparent pricing</h2>
           <p className="text-white/50 text-sm">All tiers include full admin support and mediated introductions.</p>
 
           {/* Billing toggle */}
-          <div className="inline-flex items-center gap-3 mt-6 bg-[#1A1A1A] border border-white/10 rounded-xl p-1">
+          <div className="inline-flex items-center gap-3 mt-6 bg-surface-2 border border-white/10 rounded-xl p-1">
             <button
               onClick={() => setAnnual(false)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${!annual ? 'bg-[#B8960C] text-black' : 'text-white/50 hover:text-white'}`}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${!annual ? 'bg-gold text-black' : 'text-white/50 hover:text-white'}`}
             >
               Monthly
             </button>
             <button
               onClick={() => setAnnual(true)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${annual ? 'bg-[#B8960C] text-black' : 'text-white/50 hover:text-white'}`}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${annual ? 'bg-gold text-black' : 'text-white/50 hover:text-white'}`}
             >
               Annual <span className="text-xs ml-1 font-normal opacity-70">Save 20%</span>
             </button>
@@ -329,7 +329,7 @@ export default function LandingPage() {
         </div>
 
         {/* Compact comparison */}
-        <div className="bg-[#1A1A1A] rounded-2xl border border-white/10 overflow-hidden">
+        <div className="bg-surface-2 rounded-2xl border border-white/10 overflow-hidden">
           <div className="grid grid-cols-4 text-xs font-semibold text-white/40 uppercase tracking-wide px-6 py-3 bg-[#171717] border-b border-white/8">
             <span className="col-span-1">Feature</span>
             <span className="text-center">Voluntary</span>
@@ -341,11 +341,11 @@ export default function LandingPage() {
               <span className="text-white/60 col-span-1">{row.feature}</span>
               <span className="text-center text-white/50">{row.voluntary}</span>
               <span className="text-center text-white/80">{row.plus}</span>
-              <span className="text-center text-[#B8960C] font-medium">{row.premium}</span>
+              <span className="text-center text-gold font-medium">{row.premium}</span>
             </div>
           ))}
           <div className="px-6 py-3 border-t border-white/8 text-center">
-            <Link href="/pricing" className="text-sm text-[#B8960C] hover:underline">
+            <Link href="/pricing" className="text-sm text-gold hover:underline">
               View full comparison →
             </Link>
           </div>
@@ -356,7 +356,7 @@ export default function LandingPage() {
       <section className="bg-[#161614] border-y border-white/8">
         <div className="max-w-4xl mx-auto px-5 py-24">
           <div className="text-center mb-14">
-            <p className="text-xs font-semibold text-[#B8960C] uppercase tracking-widest mb-3">Stories</p>
+            <p className="text-xs font-semibold text-gold uppercase tracking-widest mb-3">Stories</p>
             <h2 className="text-3xl font-bold text-white">From our community</h2>
           </div>
           <div className="grid md:grid-cols-3 gap-5">
@@ -368,7 +368,7 @@ export default function LandingPage() {
               <div key={t.initials} className="bg-[#1E1E1C] rounded-2xl p-6 border border-white/8 flex flex-col gap-4">
                 <p className="text-sm text-white/60 leading-relaxed italic">&ldquo;{t.quote}&rdquo;</p>
                 <div className="flex items-center gap-3 mt-auto">
-                  <div className="w-8 h-8 rounded-full bg-[#B8960C]/20 flex items-center justify-center text-xs font-bold text-[#B8960C]">
+                  <div className="w-8 h-8 rounded-full bg-gold/20 flex items-center justify-center text-xs font-bold text-gold">
                     {t.initials[0]}
                   </div>
                   <div>
@@ -385,7 +385,7 @@ export default function LandingPage() {
       {/* ── FAQ ── */}
       <section id="faq" className="max-w-3xl mx-auto px-5 py-24">
         <div className="text-center mb-14">
-          <p className="text-xs font-semibold text-[#B8960C] uppercase tracking-widest mb-3">Questions</p>
+          <p className="text-xs font-semibold text-gold uppercase tracking-widest mb-3">Questions</p>
           <h2 className="text-3xl font-bold text-white">Frequently asked</h2>
         </div>
         <div>
@@ -394,7 +394,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── CTA ── */}
-      <section className="bg-[#1A1500] border-y border-[#B8960C]/20">
+      <section className="bg-[#1A1500] border-y border-gold/20">
         <div className="max-w-2xl mx-auto px-5 py-20 text-center">
           <h2 className="text-3xl font-bold text-white mb-4">
             Begin your search with <span style={{ color: 'var(--gold)' }}>barakah</span>
@@ -402,14 +402,14 @@ export default function LandingPage() {
           <p className="text-white/50 text-sm mb-8">
             Join a platform built with Islamic values at its core. Private, trusted, and admin-supported.
           </p>
-          <Link href="/signup" className="inline-block px-10 py-4 rounded-xl text-sm font-semibold bg-[#B8960C] text-black hover:bg-[#9a7a0a] transition-colors">
+          <Link href="/signup" className="inline-block px-10 py-4 rounded-xl text-sm font-semibold bg-gold text-black hover:bg-[#9a7a0a] transition-colors">
             Create your profile →
           </Link>
         </div>
       </section>
 
       {/* ── Footer ── */}
-      <footer className="bg-[#0D0D0C] border-t border-white/8">
+      <footer className="bg-surface border-t border-white/8">
         <div className="max-w-5xl mx-auto px-5 py-12 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex flex-col items-center md:items-start gap-2">
             <ZawaajLogo size={44} tagline={true} />

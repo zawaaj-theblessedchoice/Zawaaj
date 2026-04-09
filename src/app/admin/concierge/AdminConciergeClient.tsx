@@ -150,7 +150,7 @@ function SuggestPicker({
                   disabled={loadingId === c.id}
                   style={{
                     padding: '5px 12px', borderRadius: 7, fontSize: 11, fontWeight: 500,
-                    background: '#B8960C', color: '#111', border: 'none',
+                    background: 'var(--gold)', color: 'var(--surface)', border: 'none',
                     cursor: loadingId === c.id ? 'not-allowed' : 'pointer',
                     opacity: loadingId === c.id ? 0.5 : 1, flexShrink: 0,
                   }}
@@ -187,7 +187,7 @@ export default function AdminConciergeClient({
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#111111', color: 'white', padding: '36px 40px' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--surface)', color: 'white', padding: '36px 40px' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 8 }}>
         <Link href="/admin" style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, textDecoration: 'none' }}>
@@ -216,7 +216,7 @@ export default function AdminConciergeClient({
               <div
                 key={member.id}
                 style={{
-                  background: '#1A1A1A', border: `0.5px solid ${isExpanded ? 'rgba(184,150,12,0.3)' : 'rgba(255,255,255,0.08)'}`,
+                  background: 'var(--surface-2)', border: `0.5px solid ${isExpanded ? 'var(--gold-border)' : 'rgba(255,255,255,0.08)'}`,
                   borderRadius: 14, overflow: 'hidden',
                 }}
               >
@@ -234,7 +234,7 @@ export default function AdminConciergeClient({
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 13.5, fontWeight: 500, color: 'white', marginBottom: 3 }}>
                       {profileName(member)}
-                      <span style={{ marginLeft: 8, fontSize: 10, padding: '2px 7px', borderRadius: 5, background: 'rgba(184,150,12,0.15)', color: '#B8960C', fontWeight: 600 }}>Premium</span>
+                      <span style={{ marginLeft: 8, fontSize: 10, padding: '2px 7px', borderRadius: 5, background: 'var(--gold-muted)', color: 'var(--gold)', fontWeight: 600 }}>Premium</span>
                     </div>
                     <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>
                       {[age && `${age}y`, member.location, member.ethnicity].filter(Boolean).join(' · ')}

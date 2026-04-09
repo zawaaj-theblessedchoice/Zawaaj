@@ -71,14 +71,14 @@ export default function PricingPage() {
     <div className="min-h-screen" style={{ background: 'var(--surface)', color: 'var(--text-primary)' }}>
 
       {/* Nav */}
-      <nav className="sticky top-0 z-50 border-b border-white/8 bg-[#111110]/90 backdrop-blur-md">
+      <nav className="sticky top-0 z-50 border-b border-white/8 bg-surface/90 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
           <Link href="/"><ZawaajLogo size={32} tagline={false} /></Link>
           <div className="flex items-center gap-3">
             <Link href="/login" className="text-sm text-white/60 hover:text-white px-4 py-2 rounded-xl border border-white/10 hover:bg-white/5 transition-colors">
               Sign in
             </Link>
-            <Link href="/signup" className="text-sm font-semibold px-4 py-2 rounded-xl bg-[#B8960C] text-black hover:bg-[#9a7a0a] transition-colors">
+            <Link href="/signup" className="text-sm font-semibold px-4 py-2 rounded-xl bg-gold text-black hover:bg-[#9a7a0a] transition-colors">
               Create profile
             </Link>
           </div>
@@ -89,7 +89,7 @@ export default function PricingPage() {
 
         {/* Header */}
         <div className="text-center mb-12">
-          <p className="text-xs font-semibold text-[#B8960C] uppercase tracking-widest mb-3">Membership</p>
+          <p className="text-xs font-semibold text-gold uppercase tracking-widest mb-3">Membership</p>
           <h1 className="text-4xl font-bold text-white mb-4">Simple, transparent pricing</h1>
           <p className="text-white/50 max-w-xl mx-auto text-sm leading-relaxed">
             All tiers include admin-mediated introductions — contact details are never shared directly between members.
@@ -97,16 +97,16 @@ export default function PricingPage() {
           </p>
 
           {/* Billing toggle */}
-          <div className="inline-flex items-center gap-3 mt-8 bg-[#1A1A1A] border border-white/10 rounded-xl p-1">
+          <div className="inline-flex items-center gap-3 mt-8 bg-surface-2 border border-white/10 rounded-xl p-1">
             <button
               onClick={() => setAnnual(false)}
-              className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors ${!annual ? 'bg-[#B8960C] text-black' : 'text-white/50 hover:text-white'}`}
+              className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors ${!annual ? 'bg-gold text-black' : 'text-white/50 hover:text-white'}`}
             >
               Monthly
             </button>
             <button
               onClick={() => setAnnual(true)}
-              className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors ${annual ? 'bg-[#B8960C] text-black' : 'text-white/50 hover:text-white'}`}
+              className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors ${annual ? 'bg-gold text-black' : 'text-white/50 hover:text-white'}`}
             >
               Annual <span className="ml-1 text-xs font-normal opacity-70">· Save 20%</span>
             </button>
@@ -121,12 +121,12 @@ export default function PricingPage() {
             return (
               <div key={p.name} className={`rounded-2xl p-5 text-center border ${
                 p.highlight
-                  ? 'bg-[#1E1800] border-[#B8960C]/50'
-                  : 'bg-[#1A1A1A] border-white/10'
+                  ? 'bg-[#1E1800] border-gold/50'
+                  : 'bg-surface-2 border-white/10'
               }`}>
                 {p.highlight && (
                   <div className="mb-2">
-                    <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-[#B8960C] text-black">Popular</span>
+                    <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-gold text-black">Popular</span>
                   </div>
                 )}
                 <p className="text-xs text-white/50 font-medium mb-1">{p.name}</p>
@@ -141,12 +141,12 @@ export default function PricingPage() {
                   )}
                 </div>
                 {annual && p.monthly > 0 && (
-                  <p className="text-xs text-[#B8960C] mt-1">£{p.annual * 12}/yr · save 20%</p>
+                  <p className="text-xs text-gold mt-1">£{p.annual * 12}/yr · save 20%</p>
                 )}
                 <Link href={p.cta}
                   className={`mt-3 block py-2 rounded-xl text-xs font-semibold transition-colors ${
                     p.highlight
-                      ? 'bg-[#B8960C] text-black hover:bg-[#9a7a0a]'
+                      ? 'bg-gold text-black hover:bg-[#9a7a0a]'
                       : 'border border-white/15 text-white hover:bg-white/5'
                   }`}>
                   {p.ctaLabel}
@@ -170,7 +170,7 @@ export default function PricingPage() {
                 <div
                   key={row.feature}
                   className={`grid grid-cols-4 gap-4 px-5 py-3.5 items-center ${
-                    si % 2 === 0 && ri % 2 === 0 ? 'bg-[#161614]' : 'bg-[#111110]'
+                    si % 2 === 0 && ri % 2 === 0 ? 'bg-[#161614]' : 'bg-surface'
                   } border-t border-white/5`}
                 >
                   <div className="col-span-1">
@@ -194,7 +194,7 @@ export default function PricingPage() {
 
         {/* Back to home */}
         <div className="text-center mt-10">
-          <Link href="/" className="text-sm text-[#B8960C] hover:underline">← Back to home</Link>
+          <Link href="/" className="text-sm text-gold hover:underline">← Back to home</Link>
         </div>
       </div>
     </div>

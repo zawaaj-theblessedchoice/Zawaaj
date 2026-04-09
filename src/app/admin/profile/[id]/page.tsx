@@ -87,7 +87,7 @@ function Field({
 }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="text-xs text-[#1A1A1A]/50 font-medium uppercase tracking-wide mb-1 block">{label}</span>
+      <span className="text-xs text-[var(--surface-2)]/50 font-medium uppercase tracking-wide mb-1 block">{label}</span>
       {children}
     </label>
   )
@@ -96,7 +96,7 @@ function Field({
 function SectionHeading({ children }: { children: React.ReactNode }) {
   return (
     <div className="col-span-full border-t border-[#E8E4DC] pt-6 mt-2">
-      <h2 className="text-xs font-semibold text-[#1A1A1A]/40 uppercase tracking-wider">{children}</h2>
+      <h2 className="text-xs font-semibold text-[var(--surface-2)]/40 uppercase tracking-wider">{children}</h2>
     </div>
   )
 }
@@ -216,8 +216,8 @@ export default function ProfileEditPage({
       <div className="min-h-screen bg-[#F8F6F1] flex items-center justify-center">
         <div className="bg-white rounded-2xl p-10 border border-[#E8E4DC] text-center max-w-sm mx-4">
           <p className="text-2xl mb-2">🔒</p>
-          <h1 className="text-xl font-semibold text-[#1A1A1A] mb-2">Access Denied</h1>
-          <Link href="/admin" className="text-[#B8960C] text-sm hover:underline">Back to Admin</Link>
+          <h1 className="text-xl font-semibold text-[var(--surface-2)] mb-2">Access Denied</h1>
+          <Link href="/admin" className="text-gold text-sm hover:underline">Back to Admin</Link>
         </div>
       </div>
     )
@@ -226,7 +226,7 @@ export default function ProfileEditPage({
   if (loading) {
     return (
       <div className="min-h-screen bg-[#F8F6F1] flex items-center justify-center">
-        <p className="text-[#1A1A1A]/40 text-sm">Loading profile…</p>
+        <p className="text-[var(--surface-2)]/40 text-sm">Loading profile…</p>
       </div>
     )
   }
@@ -235,8 +235,8 @@ export default function ProfileEditPage({
     return (
       <div className="min-h-screen bg-[#F8F6F1] flex items-center justify-center">
         <div className="text-center">
-          <p className="text-[#1A1A1A]/60 mb-4">Profile not found.</p>
-          <Link href="/admin" className="text-[#B8960C] text-sm hover:underline">Back to Admin</Link>
+          <p className="text-[var(--surface-2)]/60 mb-4">Profile not found.</p>
+          <Link href="/admin" className="text-gold text-sm hover:underline">Back to Admin</Link>
         </div>
       </div>
     )
@@ -247,7 +247,7 @@ export default function ProfileEditPage({
   return (
     <div className="min-h-screen bg-[#F8F6F1]">
       {/* Header */}
-      <header className="bg-[#1A1A1A] sticky top-0 z-30 shadow-sm">
+      <header className="bg-surface-2 sticky top-0 z-30 shadow-sm">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <ZawaajLogo size={30} tagline={false} />
@@ -270,9 +270,9 @@ export default function ProfileEditPage({
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 flex-wrap">
-              <h1 className="text-xl font-bold text-[#1A1A1A]">{profile.display_initials}</h1>
+              <h1 className="text-xl font-bold text-[var(--surface-2)]">{profile.display_initials}</h1>
               {profile.legacy_ref && (
-                <span className="px-2 py-0.5 rounded-full bg-[#F8F6F1] text-xs text-[#1A1A1A]/60 border border-[#E8E4DC]">
+                <span className="px-2 py-0.5 rounded-full bg-[#F8F6F1] text-xs text-[var(--surface-2)]/60 border border-[#E8E4DC]">
                   {profile.legacy_ref}
                 </span>
               )}
@@ -283,7 +283,7 @@ export default function ProfileEditPage({
                 </span>
               )}
             </div>
-            <p className="text-sm text-[#1A1A1A]/50 mt-0.5 capitalize">
+            <p className="text-sm text-[var(--surface-2)]/50 mt-0.5 capitalize">
               {profile.gender} · {profile.age_display} · {profile.location}
             </p>
           </div>
@@ -316,7 +316,7 @@ export default function ProfileEditPage({
             )}
             {profile.status !== 'withdrawn' && (
               <button onClick={() => setStatus('withdrawn')} disabled={saving}
-                className="px-3 py-1.5 rounded-lg text-xs font-medium border border-[#E8E4DC] text-[#1A1A1A]/60 hover:bg-[#F8F6F1] disabled:opacity-50">
+                className="px-3 py-1.5 rounded-lg text-xs font-medium border border-[#E8E4DC] text-[var(--surface-2)]/60 hover:bg-[#F8F6F1] disabled:opacity-50">
                 Withdraw
               </button>
             )}
@@ -393,7 +393,7 @@ export default function ProfileEditPage({
 
             {/* ── Attributes ── */}
             <div className="col-span-full border-t border-[#E8E4DC] pt-6 mt-2">
-              <h2 className="text-xs font-semibold text-[#1A1A1A]/40 uppercase tracking-wider mb-3">Attributes</h2>
+              <h2 className="text-xs font-semibold text-[var(--surface-2)]/40 uppercase tracking-wider mb-3">Attributes</h2>
               <div className="flex flex-wrap gap-2">
                 {ATTRIBUTE_OPTIONS.map(opt => {
                   const selected = ((form.attributes as string[] | null) ?? []).includes(opt)
@@ -404,9 +404,9 @@ export default function ProfileEditPage({
                       onClick={() => toggleArrayItem('attributes', opt)}
                       className="px-3 py-1.5 rounded-full text-xs font-medium border transition-colors"
                       style={{
-                        backgroundColor: selected ? '#1A1A1A' : 'white',
-                        color: selected ? '#B8960C' : '#1A1A1A',
-                        borderColor: selected ? '#1A1A1A' : '#E8E4DC',
+                        backgroundColor: selected ? 'var(--surface-2)' : 'white',
+                        color: selected ? 'var(--gold)' : 'var(--surface-2)',
+                        borderColor: selected ? 'var(--surface-2)' : '#E8E4DC',
                       }}
                     >
                       {opt}
@@ -415,7 +415,7 @@ export default function ProfileEditPage({
                 })}
               </div>
               <div className="mt-2">
-                <span className="text-xs text-[#1A1A1A]/40">Other (comma-separated): </span>
+                <span className="text-xs text-[var(--surface-2)]/40">Other (comma-separated): </span>
                 <input
                   className="field mt-1"
                   placeholder="Any additional attributes…"
@@ -435,7 +435,7 @@ export default function ProfileEditPage({
 
             {/* ── Spouse Preferences ── */}
             <div className="col-span-full border-t border-[#E8E4DC] pt-6 mt-2">
-              <h2 className="text-xs font-semibold text-[#1A1A1A]/40 uppercase tracking-wider mb-3">Spouse Preferences</h2>
+              <h2 className="text-xs font-semibold text-[var(--surface-2)]/40 uppercase tracking-wider mb-3">Spouse Preferences</h2>
               <div className="flex flex-wrap gap-2">
                 {PREF_OPTIONS.map(opt => {
                   const selected = ((form.spouse_preferences as string[] | null) ?? []).includes(opt)
@@ -446,9 +446,9 @@ export default function ProfileEditPage({
                       onClick={() => toggleArrayItem('spouse_preferences', opt)}
                       className="px-3 py-1.5 rounded-full text-xs font-medium border transition-colors"
                       style={{
-                        backgroundColor: selected ? '#1A1A1A' : 'white',
-                        color: selected ? '#B8960C' : '#1A1A1A',
-                        borderColor: selected ? '#1A1A1A' : '#E8E4DC',
+                        backgroundColor: selected ? 'var(--surface-2)' : 'white',
+                        color: selected ? 'var(--gold)' : 'var(--surface-2)',
+                        borderColor: selected ? 'var(--surface-2)' : '#E8E4DC',
                       }}
                     >
                       {opt}
@@ -500,9 +500,9 @@ export default function ProfileEditPage({
                   type="checkbox"
                   checked={form.duplicate_flag ?? false}
                   onChange={e => set('duplicate_flag', e.target.checked)}
-                  className="w-4 h-4 accent-[#B8960C]"
+                  className="w-4 h-4 accent-gold"
                 />
-                <span className="text-sm text-[#1A1A1A]">Flag as possible duplicate</span>
+                <span className="text-sm text-[var(--surface-2)]">Flag as possible duplicate</span>
               </label>
             </div>
 
@@ -528,13 +528,13 @@ export default function ProfileEditPage({
 
           {/* Save */}
           <div className="flex justify-between items-center mt-8 pt-6 border-t border-[#E8E4DC]">
-            <Link href="/admin" className="text-sm text-[#1A1A1A]/50 hover:text-[#1A1A1A] transition-colors">
+            <Link href="/admin" className="text-sm text-[var(--surface-2)]/50 hover:text-[var(--surface-2)] transition-colors">
               Cancel — back to dashboard
             </Link>
             <button
               onClick={save}
               disabled={saving}
-              className="px-6 py-3 rounded-2xl text-sm font-semibold bg-[#1A1A1A] text-[#B8960C] hover:bg-[#333] disabled:opacity-50 transition-colors"
+              className="px-6 py-3 rounded-2xl text-sm font-semibold bg-surface-2 text-gold hover:bg-[#333] disabled:opacity-50 transition-colors"
             >
               {saving ? 'Saving…' : 'Save Profile'}
             </button>
@@ -550,12 +550,12 @@ export default function ProfileEditPage({
           font-size: 0.875rem;
           border: 1px solid #E8E4DC;
           background: white;
-          color: #1A1A1A;
+          color: var(--surface-2);
           outline: none;
           transition: border-color 0.15s;
         }
         .field:focus {
-          border-color: #B8960C;
+          border-color: var(--gold);
         }
       `}</style>
     </div>

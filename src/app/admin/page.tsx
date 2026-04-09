@@ -204,7 +204,7 @@ function Confirm({
         <p className="text-white mb-6">{message}</p>
         <div className="flex gap-3 justify-end">
           <button onClick={onCancel} className="px-4 py-2 rounded-lg text-sm border border-white/10 text-white hover:bg-white/5">Cancel</button>
-          <button onClick={onConfirm} className="px-4 py-2 rounded-lg text-sm bg-[#1A1A1A] text-white hover:bg-[#333]">Confirm</button>
+          <button onClick={onConfirm} className="px-4 py-2 rounded-lg text-sm bg-surface-2 text-white hover:bg-[#333]">Confirm</button>
         </div>
       </div>
     </div>
@@ -266,7 +266,7 @@ function BanModal({ profile, onClose, onDone }: {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70">
-      <div className="bg-[#1A1A1A] rounded-2xl border border-white/10 w-full max-w-lg overflow-hidden">
+      <div className="bg-surface-2 rounded-2xl border border-white/10 w-full max-w-lg overflow-hidden">
         <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
           <h2 className="text-base font-semibold text-red-400">Ban Member — {profile.display_initials}</h2>
           <button onClick={onClose} className="text-white/40 hover:text-white text-xl leading-none">✕</button>
@@ -380,7 +380,7 @@ function LiftBanModal({ profile, onClose, onDone }: {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70">
-      <div className="bg-[#1A1A1A] rounded-2xl border border-white/10 w-full max-w-md overflow-hidden">
+      <div className="bg-surface-2 rounded-2xl border border-white/10 w-full max-w-md overflow-hidden">
         <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
           <h2 className="text-base font-semibold text-white">Lift Ban — {profile.display_initials}</h2>
           <button onClick={onClose} className="text-white/40 hover:text-white text-xl leading-none">✕</button>
@@ -404,7 +404,7 @@ function LiftBanModal({ profile, onClose, onDone }: {
           <button
             onClick={confirmLift}
             disabled={saving || !liftReason.trim()}
-            className="px-5 py-2.5 rounded-xl text-sm font-medium bg-[#B8960C] text-white hover:bg-[#9a7a0a] disabled:opacity-40 disabled:cursor-not-allowed"
+            className="px-5 py-2.5 rounded-xl text-sm font-medium bg-gold text-white hover:bg-[#9a7a0a] disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {saving ? 'Lifting…' : 'Lift ban'}
           </button>
@@ -592,7 +592,7 @@ function ProfileEditModal({ profile, onClose, onSave, onDeleteProfile, onDeleteA
           {/* Save / cancel */}
           <div className="flex gap-3">
             <button onClick={onClose} className="px-5 py-2.5 rounded-xl text-sm border border-white/10 text-white hover:bg-white/5">Cancel</button>
-            <button onClick={save} disabled={saving} className="px-5 py-2.5 rounded-xl text-sm font-medium bg-[#1A1A1A] text-[#B8960C] hover:bg-[#333] disabled:opacity-50">
+            <button onClick={save} disabled={saving} className="px-5 py-2.5 rounded-xl text-sm font-medium bg-surface-2 text-gold hover:bg-[#333] disabled:opacity-50">
               {saving ? 'Saving…' : 'Save Changes'}
             </button>
           </div>
@@ -713,7 +713,7 @@ function FacilitateModal({ match, onClose, onDone }: {
               )}
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={consentA} onChange={e => toggleConsent('a', e.target.checked)}
-                  className="w-4 h-4 accent-[#B8960C]" />
+                  className="w-4 h-4 accent-gold" />
                 <span className="text-sm text-white">Family A verbally confirmed consent</span>
               </label>
             </div>
@@ -742,7 +742,7 @@ function FacilitateModal({ match, onClose, onDone }: {
               )}
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={consentB} onChange={e => toggleConsent('b', e.target.checked)}
-                  className="w-4 h-4 accent-[#B8960C]" />
+                  className="w-4 h-4 accent-gold" />
                 <span className="text-sm text-white">Family B verbally confirmed consent</span>
               </label>
             </div>
@@ -754,7 +754,7 @@ function FacilitateModal({ match, onClose, onDone }: {
           <button
             onClick={markIntroduced}
             disabled={!consentA || !consentB || saving}
-            className="px-5 py-2.5 rounded-xl text-sm font-medium bg-[#B8960C] text-white hover:bg-[#9a7a0a] disabled:opacity-40 disabled:cursor-not-allowed"
+            className="px-5 py-2.5 rounded-xl text-sm font-medium bg-gold text-white hover:bg-[#9a7a0a] disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {saving ? 'Saving…' : 'Mark as Introduced'}
           </button>
@@ -899,7 +899,7 @@ function QueueTab({ profiles, onRefresh, currentUserId }: { profiles: Profile[];
                     {p.religiosity && <span>{p.religiosity}</span>}
                   </div>
                   {p.contact_number && (
-                    <p className="text-xs mt-1" style={{ color: 'var(--gold, #B8960C)' }}>
+                    <p className="text-xs mt-1" style={{ color: 'var(--gold)' }}>
                       {p.contact_number}{p.guardian_name ? ` · ${p.guardian_name}` : ''}
                     </p>
                   )}
@@ -911,7 +911,7 @@ function QueueTab({ profiles, onRefresh, currentUserId }: { profiles: Profile[];
                   )}
                   <button
                     onClick={() => setExpandedId(expandedId === p.id ? null : p.id)}
-                    style={{ fontSize: 11, color: 'var(--gold, #B8960C)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0' }}
+                    style={{ fontSize: 11, color: 'var(--gold)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0' }}
                   >
                     {expandedId === p.id ? '▲ Hide details' : '▼ Full profile'}
                   </button>
@@ -984,7 +984,7 @@ function QueueTab({ profiles, onRefresh, currentUserId }: { profiles: Profile[];
 
                   {/* Contact (admin-only) */}
                   <div style={{ marginBottom: 16 }}>
-                    <p style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--gold, #B8960C)', marginBottom: 4 }}>
+                    <p style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--gold)', marginBottom: 4 }}>
                       Contact (Admin Only)
                     </p>
                     <DetailRow label="Contact Number" value={p.contact_number} />
@@ -1143,7 +1143,7 @@ function ManualMatchModal({ profiles, onClose, onDone }: {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70">
-      <div className="bg-[#1A1A1A] rounded-2xl border border-white/10 w-full max-w-2xl overflow-hidden">
+      <div className="bg-surface-2 rounded-2xl border border-white/10 w-full max-w-2xl overflow-hidden">
         <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
           <h2 className="text-base font-semibold text-white">Create Manual Match</h2>
           <button onClick={onClose} className="text-white/40 hover:text-white text-xl leading-none">✕</button>
@@ -1237,7 +1237,7 @@ function ManualMatchModal({ profiles, onClose, onDone }: {
 
         {profileA && profileB && (
           <div className="px-6 pb-4">
-            <div className="rounded-xl bg-[#B8960C]/10 border border-[#B8960C]/30 p-3 text-sm text-amber-300 flex items-center gap-2">
+            <div className="rounded-xl bg-gold/10 border border-gold/30 p-3 text-sm text-amber-300 flex items-center gap-2">
               <span>💛</span>
               <span>Creating a manual match for <strong>{profileA.display_initials}</strong> &amp; <strong>{profileB.display_initials}</strong> — this will appear in the Introductions queue for facilitation.</span>
             </div>
@@ -1249,7 +1249,7 @@ function ManualMatchModal({ profiles, onClose, onDone }: {
           <button
             onClick={createMatch}
             disabled={!profileA || !profileB || saving}
-            className="px-5 py-2.5 rounded-xl text-sm font-medium bg-[#B8960C] text-white hover:bg-[#9a7a0a] disabled:opacity-40 disabled:cursor-not-allowed"
+            className="px-5 py-2.5 rounded-xl text-sm font-medium bg-gold text-white hover:bg-[#9a7a0a] disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {saving ? 'Creating…' : 'Create Match'}
           </button>
@@ -1297,7 +1297,7 @@ function MutualTab({ matches, onRefresh, profiles }: { matches: Match[]; onRefre
         </p>
         <button
           onClick={() => setShowManualMatch(true)}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border border-[#B8960C]/50 text-[#B8960C] hover:bg-[#B8960C]/10"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border border-gold/50 text-gold hover:bg-gold/10"
         >
           <span>＋</span> Manual Match
         </button>
@@ -1342,7 +1342,7 @@ function MutualTab({ matches, onRefresh, profiles }: { matches: Match[]; onRefre
                 <span className="text-xs text-white/50">Mutual {daysAgo(m.mutual_date)}</span>
                 <div className="ml-auto flex flex-wrap gap-2">
                   <button onClick={() => setFacilitateMatch(m)}
-                    className="px-3 py-1.5 rounded-lg text-xs font-medium bg-[#B8960C] text-white hover:bg-[#9a7a0a]">
+                    className="px-3 py-1.5 rounded-lg text-xs font-medium bg-gold text-white hover:bg-[#9a7a0a]">
                     Facilitate Introduction
                   </button>
                   <Link href={`/admin/sidebyside/${m.id}`}
@@ -1573,9 +1573,9 @@ function MembersTab({ profiles, onRefresh, currentUserId }: { profiles: Profile[
               cursor: 'pointer',
               border: '1px solid',
               transition: 'all 0.15s',
-              background: statusFilter === s ? 'var(--gold, #B8960C)' : 'transparent',
+              background: statusFilter === s ? 'var(--gold)' : 'transparent',
               color: statusFilter === s ? '#111' : 'rgba(255,255,255,0.5)',
-              borderColor: statusFilter === s ? 'var(--gold, #B8960C)' : 'rgba(255,255,255,0.15)',
+              borderColor: statusFilter === s ? 'var(--gold)' : 'rgba(255,255,255,0.15)',
               fontWeight: statusFilter === s ? 600 : 400,
             }}
           >
@@ -1612,7 +1612,7 @@ function MembersTab({ profiles, onRefresh, currentUserId }: { profiles: Profile[
                       <p className="text-xs text-white/50">{p.display_initials}{p.legacy_ref ? ` · ${p.legacy_ref}` : ''}</p>
                       {p.imported_email && <p className="text-xs text-white/30 truncate">{p.imported_email}</p>}
                       {p.contact_number && (
-                        <a href={`tel:${p.contact_number}`} className="text-xs text-[#B8960C]/70 hover:text-[#B8960C]">{p.contact_number}</a>
+                        <a href={`tel:${p.contact_number}`} className="text-xs text-gold/70 hover:text-gold">{p.contact_number}</a>
                       )}
                       {p.guardian_name && <p className="text-xs text-white/40">Guardian: {p.guardian_name}</p>}
                       {isParentAccount && (
@@ -1746,7 +1746,7 @@ function WithdrawnTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh:
             </div>
             <div className="flex gap-2 flex-shrink-0">
               <button onClick={() => reinstate(p.id)}
-                className="px-3 py-2 rounded-xl text-xs font-medium bg-[#B8960C] text-white hover:bg-[#9a7a0a]">
+                className="px-3 py-2 rounded-xl text-xs font-medium bg-gold text-white hover:bg-[#9a7a0a]">
                 Reinstate
               </button>
               <button onClick={() => setDeleteId(p.id)}
@@ -1835,7 +1835,7 @@ function UnlinkedTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh: 
                 Cancel
               </button>
               <button onClick={linkProfile} disabled={!userId.trim() || linking}
-                className="flex-1 px-4 py-2 rounded-xl text-sm font-medium bg-[#1A1A1A] text-[#B8960C] hover:bg-[#333] disabled:opacity-50">
+                className="flex-1 px-4 py-2 rounded-xl text-sm font-medium bg-surface-2 text-gold hover:bg-[#333] disabled:opacity-50">
                 {linking ? 'Linking…' : 'Link'}
               </button>
             </div>
@@ -1870,7 +1870,7 @@ function UnlinkedTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh: 
               </div>
             </div>
             <button onClick={() => setLinkId(p.id)}
-              className="px-3 py-2 rounded-xl text-xs font-medium bg-[#1A1A1A] text-[#B8960C] hover:bg-[#333] flex-shrink-0">
+              className="px-3 py-2 rounded-xl text-xs font-medium bg-surface-2 text-gold hover:bg-[#333] flex-shrink-0">
               Link to User
             </button>
           </div>
@@ -1993,7 +1993,7 @@ function EventsTab({ events, onRefresh }: { events: ZawaajEvent[]; onRefresh: ()
         </div>
         <p className="text-xs text-white/30 mt-3">Past dates are automatically saved as ended events in history.</p>
         <button onClick={createEvent} disabled={!newForm.title || creating}
-          className="mt-4 px-5 py-2.5 rounded-xl text-sm font-medium bg-[#1A1A1A] text-[#B8960C] hover:bg-[#333] disabled:opacity-50">
+          className="mt-4 px-5 py-2.5 rounded-xl text-sm font-medium bg-surface-2 text-gold hover:bg-[#333] disabled:opacity-50">
           {creating ? 'Creating…' : 'Create Event'}
         </button>
       </div>
@@ -2022,7 +2022,7 @@ function EventsTab({ events, onRefresh }: { events: ZawaajEvent[]; onRefresh: ()
                     type="checkbox"
                     checked={ev.show_in_history}
                     onChange={e => updateHistory(ev.id, e.target.checked)}
-                    className="w-3.5 h-3.5 accent-[#B8960C]"
+                    className="w-3.5 h-3.5 accent-gold"
                   />
                   Show in history
                 </label>
@@ -2071,7 +2071,7 @@ function EventsTab({ events, onRefresh }: { events: ZawaajEvent[]; onRefresh: ()
                   onChange={e => setEditDetails(prev => ({ ...prev, [ev.id]: { ...prev[ev.id], title: prev[ev.id]?.title ?? ev.title, event_date: prev[ev.id]?.event_date ?? ev.event_date ?? '', location_text: e.target.value } }))}
                 />
                 <button onClick={() => updateDetails(ev.id)}
-                  className="px-3 py-1 rounded-lg text-xs bg-[#1A1A1A] text-[#B8960C] hover:bg-[#333] flex-shrink-0">
+                  className="px-3 py-1 rounded-lg text-xs bg-surface-2 text-gold hover:bg-[#333] flex-shrink-0">
                   Save
                 </button>
               </div>
@@ -2086,7 +2086,7 @@ function EventsTab({ events, onRefresh }: { events: ZawaajEvent[]; onRefresh: ()
                 onChange={e => setEditUrl(prev => ({ ...prev, [ev.id]: e.target.value }))}
               />
               <button onClick={() => updateUrl(ev.id)}
-                className="px-3 py-1 rounded-lg text-xs bg-[#1A1A1A] text-[#B8960C] hover:bg-[#333] flex-shrink-0">
+                className="px-3 py-1 rounded-lg text-xs bg-surface-2 text-gold hover:bg-[#333] flex-shrink-0">
                 Save
               </button>
             </div>
@@ -2100,7 +2100,7 @@ function EventsTab({ events, onRefresh }: { events: ZawaajEvent[]; onRefresh: ()
                   onChange={e => setEditNote(prev => ({ ...prev, [ev.id]: e.target.value }))}
                 />
                 <button onClick={() => updateNote(ev.id)}
-                  className="px-3 py-1 rounded-lg text-xs bg-[#1A1A1A] text-[#B8960C] hover:bg-[#333] flex-shrink-0">
+                  className="px-3 py-1 rounded-lg text-xs bg-surface-2 text-gold hover:bg-[#333] flex-shrink-0">
                   Save
                 </button>
               </div>
@@ -2287,14 +2287,14 @@ function ImportTab() {
   return (
     <div className="max-w-3xl space-y-8">
       {/* New CSV import tool */}
-      <div className="bg-[#1A1500] border border-[#B8960C]/30 rounded-2xl p-5 flex items-center gap-5">
+      <div className="bg-[#1A1500] border border-gold/30 rounded-2xl p-5 flex items-center gap-5">
         <div className="text-3xl">📥</div>
         <div className="flex-1">
           <p className="font-semibold text-white mb-1">New: CSV Import Tool</p>
           <p className="text-sm text-white/50">Upload a CSV, preview validation errors, then run the real import to create member accounts automatically.</p>
         </div>
         <Link href="/admin/import"
-          className="flex-shrink-0 px-4 py-2.5 rounded-xl text-sm font-semibold bg-[#B8960C] text-black hover:bg-[#9a7a0a] transition-colors">
+          className="flex-shrink-0 px-4 py-2.5 rounded-xl text-sm font-semibold bg-gold text-black hover:bg-[#9a7a0a] transition-colors">
           Open import tool →
         </Link>
       </div>
@@ -2321,7 +2321,7 @@ function ImportTab() {
                   href="https://supabase.com/dashboard/project/nxytwfbzoxatyupqccba/sql/new"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[#B8960C] hover:underline"
+                  className="text-gold hover:underline"
                 >
                   Supabase → SQL Editor → New query
                 </a>
@@ -2377,7 +2377,7 @@ function ImportTab() {
           },
         ].map(step => (
           <div key={step.n} className="flex gap-4">
-            <div className="w-7 h-7 rounded-full bg-[#252525] border border-white/10 flex items-center justify-center text-xs font-semibold text-[#B8960C] flex-shrink-0 mt-0.5">
+            <div className="w-7 h-7 rounded-full bg-[#252525] border border-white/10 flex items-center justify-center text-xs font-semibold text-gold flex-shrink-0 mt-0.5">
               {step.n}
             </div>
             <div className="flex-1">
@@ -2391,7 +2391,7 @@ function ImportTab() {
       {/* Column reference */}
       <div>
         <div className="text-xs font-medium uppercase tracking-widest text-white/30 mb-3">Column reference</div>
-        <div className="bg-[#1A1A1A] border border-white/10 rounded-xl overflow-hidden">
+        <div className="bg-surface-2 border border-white/10 rounded-xl overflow-hidden">
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-white/10">
@@ -2515,7 +2515,7 @@ export default function AdminPage() {
 
   if (!accessChecked) {
     return (
-      <div className="min-h-screen bg-[#111111] flex items-center justify-center">
+      <div className="min-h-screen bg-surface flex items-center justify-center">
         <p className="text-white/30 text-sm">Checking access…</p>
       </div>
     )
@@ -2523,12 +2523,12 @@ export default function AdminPage() {
 
   if (!isAdmin) {
     return (
-      <div className="min-h-screen bg-[#111111] flex flex-col items-center justify-center gap-4">
+      <div className="min-h-screen bg-surface flex flex-col items-center justify-center gap-4">
         <div className="bg-[#1E1E1E] rounded-2xl p-10 border border-white/10 text-center max-w-sm mx-4">
           <p className="text-2xl mb-2">🔒</p>
           <h1 className="text-xl font-semibold text-white mb-2">Access Denied</h1>
           <p className="text-white/50 text-sm mb-6">You do not have admin access to this page.</p>
-          <Link href="/browse" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium bg-[#1A1A1A] text-[#B8960C] hover:bg-[#333]">
+          <Link href="/browse" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium bg-surface-2 text-gold hover:bg-[#333]">
             Return to Browse
           </Link>
         </div>
@@ -2541,9 +2541,9 @@ export default function AdminPage() {
   const approvedCount = profiles.filter(p => p.status === 'approved').length
 
   return (
-    <div className="min-h-screen bg-[#111111]">
+    <div className="min-h-screen bg-surface">
       {/* Header */}
-      <header className="bg-[#1A1A1A] sticky top-0 z-30" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+      <header className="bg-surface-2 sticky top-0 z-30" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <ZawaajLogo size={40} tagline={false} />
@@ -2585,7 +2585,7 @@ export default function AdminPage() {
             { label: 'Awaiting admin',  value: mutualCount,     tab: 'mutual'     as Tab, accent: '#A78BFA' },
             { label: 'Introduced',      value: introducedCount, tab: 'introduced' as Tab, accent: '#60A5FA' },
             { label: 'Withdrawn',       value: withdrawnCount,  tab: 'withdrawn'  as Tab, accent: '#6B7280' },
-            { label: 'Total members',   value: totalProfiles,   tab: 'members'    as Tab, accent: '#B8960C' },
+            { label: 'Total members',   value: totalProfiles,   tab: 'members'    as Tab, accent: 'var(--gold)' },
           ] as const).map(stat => (
             <button
               key={stat.label}
@@ -2610,7 +2610,7 @@ export default function AdminPage() {
               key={link.href}
               href={link.href}
               className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[#252525] transition-colors"
-              style={{ background: '#1A1A1A', border: '0.5px solid rgba(255,255,255,0.1)', textDecoration: 'none', minWidth: 200 }}
+              style={{ background: 'var(--surface-2)', border: '0.5px solid rgba(255,255,255,0.1)', textDecoration: 'none', minWidth: 200 }}
             >
               <span style={{ fontSize: 18 }}>{link.icon}</span>
               <div>
@@ -2630,8 +2630,8 @@ export default function AdminPage() {
               onClick={() => setTab(key)}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-colors"
               style={{
-                backgroundColor: tab === key ? '#1A1A1A' : 'transparent',
-                color: tab === key ? '#B8960C' : 'rgba(255,255,255,0.5)',
+                backgroundColor: tab === key ? 'var(--surface-2)' : 'transparent',
+                color: tab === key ? 'var(--gold)' : 'rgba(255,255,255,0.5)',
               }}
             >
               {label}
@@ -2639,8 +2639,8 @@ export default function AdminPage() {
                 <span
                   className="w-5 h-5 rounded-full text-xs flex items-center justify-center font-bold"
                   style={{
-                    backgroundColor: tab === key ? '#B8960C' : '#E8E4DC',
-                    color: tab === key ? '#1A1A1A' : '#1A1A1A',
+                    backgroundColor: tab === key ? 'var(--gold)' : '#E8E4DC',
+                    color: 'var(--surface-2)',
                   }}
                 >
                   {badge > 99 ? '99+' : badge}
@@ -2682,7 +2682,7 @@ export default function AdminPage() {
           transition: border-color 0.15s;
         }
         .field:focus {
-          border-color: #B8960C;
+          border-color: var(--gold);
         }
         .field option {
           background: #1E1E1E;

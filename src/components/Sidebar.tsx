@@ -391,11 +391,11 @@ export default function Sidebar({
             display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
             width: 26, height: 26, borderRadius: 7, background: 'rgba(201,168,76,0.15)', flexShrink: 0,
           }}>
-            <span style={{ color: '#C9A84C', display: 'flex' }}><TrophyIcon /></span>
+            <span style={{ color: 'var(--gold-light)', display: 'flex' }}><TrophyIcon /></span>
           </span>
-          <span style={{ flex: 1, fontSize: 12.5, fontWeight: 500, color: '#C9A84C' }}>Zawaaj Premium</span>
+          <span style={{ flex: 1, fontSize: 12.5, fontWeight: 500, color: 'var(--gold-light)' }}>Zawaaj Premium</span>
           <span style={{
-            fontSize: 9, fontWeight: 600, color: '#111', background: '#C9A84C',
+            fontSize: 9, fontWeight: 600, color: 'var(--surface)', background: 'var(--gold-light)',
             borderRadius: 4, padding: '1px 5px', flexShrink: 0,
           }}>New</span>
         </Link>

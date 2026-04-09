@@ -269,7 +269,7 @@ function FacilitateModal({ req, onClose, onFacilitated }: FacilitateModalProps) 
             className="px-4 py-2 rounded-lg text-sm font-medium"
             style={{
               backgroundColor: 'var(--gold)',
-              color: '#1A1A1A',
+              color: 'var(--surface-2)',
               opacity: loading ? 0.6 : 1,
             }}
           >
@@ -465,7 +465,7 @@ export default function AdminIntroductionsClient({ requests: initialRequests }: 
                             <button
                               onClick={() => setFacilitatingReq(req)}
                               className="px-3 py-1.5 rounded-lg text-xs font-medium"
-                              style={{ backgroundColor: 'var(--gold)', color: '#1A1A1A' }}
+                              style={{ backgroundColor: 'var(--gold)', color: 'var(--surface-2)' }}
                             >
                               Facilitate introduction
                             </button>

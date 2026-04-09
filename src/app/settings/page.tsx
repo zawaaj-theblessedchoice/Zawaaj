@@ -38,7 +38,7 @@ const PLAN_COLORS: Record<Plan, string> = {
 const PLAN_TEXT: Record<Plan, string> = {
   voluntary: 'rgba(255,255,255,0.5)',
   plus:      '#60A5FA',
-  premium:   '#C9A84C',
+  premium:   'var(--gold-light)',
 }
 
 const COMPARISON_ROWS = [
@@ -397,7 +397,7 @@ function SettingsContent() {
                         <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{row.feature}</span>
                         <span style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center' }}>{row.voluntary}</span>
                         <span style={{ fontSize: 12, color: currentPlan === 'plus' ? 'var(--text-primary)' : 'var(--text-secondary)', textAlign: 'center' }}>{row.plus}</span>
-                        <span style={{ fontSize: 12, color: currentPlan === 'premium' ? '#C9A84C' : 'var(--text-secondary)', textAlign: 'center', fontWeight: currentPlan === 'premium' ? 500 : 400 }}>{row.premium}</span>
+                        <span style={{ fontSize: 12, color: currentPlan === 'premium' ? 'var(--gold-light)' : 'var(--text-secondary)', textAlign: 'center', fontWeight: currentPlan === 'premium' ? 500 : 400 }}>{row.premium}</span>
                       </div>
                     ))}
                   </div>

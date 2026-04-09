@@ -212,7 +212,7 @@ export default function ForgotPasswordPage() {
                     width: '100%',
                     padding: '11px 0',
                     borderRadius: 10,
-                    background: 'linear-gradient(135deg, #C49A10, #D9AF2E)',
+                    background: 'linear-gradient(135deg, var(--gold), var(--gold-light))',
                     border: 'none',
                     color: '#1A1A18',
                     fontSize: 13.5,

@@ -43,7 +43,7 @@ export default function LoginPage() {
         <div
           className="rounded-xl px-8 py-10"
           style={{
-            backgroundColor: '#1A1A1A',
+            backgroundColor: 'var(--surface-2)',
             borderRadius: 12,
             border: '0.5px solid rgba(255,255,255,0.07)',
             borderTop: '1px solid rgba(196,154,16,0.2)',
@@ -73,7 +73,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className="w-full px-4 py-3 text-white placeholder-white/30 border border-white/10 focus:outline-none focus:border-[#B8960C] transition-colors text-sm"
+                className="w-full px-4 py-3 text-white placeholder-white/30 border border-white/10 focus:outline-none focus:border-[var(--gold)] transition-colors text-sm"
                 style={{ background: 'var(--surface-3)', borderRadius: 10 }}
               />
             </div>
@@ -89,7 +89,7 @@ export default function LoginPage() {
                 <Link
                   href="/forgot-password"
                   className="text-xs transition-opacity hover:opacity-80"
-                  style={{ color: '#B8960C' }}
+                  style={{ color: 'var(--gold)' }}
                 >
                   Forgot password?
                 </Link>
@@ -102,7 +102,7 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full px-4 py-3 text-white placeholder-white/30 border border-white/10 focus:outline-none focus:border-[#B8960C] transition-colors text-sm"
+                className="w-full px-4 py-3 text-white placeholder-white/30 border border-white/10 focus:outline-none focus:border-[var(--gold)] transition-colors text-sm"
                 style={{ background: 'var(--surface-3)', borderRadius: 10 }}
               />
             </div>
@@ -118,8 +118,8 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full py-3 font-semibold text-sm transition-opacity disabled:opacity-50"
               style={{
-                background: 'linear-gradient(135deg, #C49A10, #D9AF2E)',
-                color: '#1A1A1A',
+                background: 'linear-gradient(135deg, var(--gold), var(--gold-light))',
+                color: 'var(--surface-2)',
                 borderRadius: 10,
                 border: 'none',
                 boxShadow: '0 2px 8px rgba(196,154,16,0.25)',
@@ -134,7 +134,7 @@ export default function LoginPage() {
             <Link
               href="/signup"
               className="font-medium hover:opacity-80 transition-opacity"
-              style={{ color: '#B8960C' }}
+              style={{ color: 'var(--gold)' }}
             >
               Sign up
             </Link>
