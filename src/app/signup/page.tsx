@@ -1288,7 +1288,7 @@ export default function SignupPage() {
   // ── Wizard layout ───────────────────────────────────────────────────────────
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--surface)', display: 'flex', flexDirection: 'column' }}>
+    <div data-theme="dark" style={{ minHeight: '100vh', background: 'var(--surface)', display: 'flex', flexDirection: 'column' }}>
       {/* Progress bar */}
       <div style={{ height: '2px', background: 'var(--surface-3)', flexShrink: 0 }}>
         <div

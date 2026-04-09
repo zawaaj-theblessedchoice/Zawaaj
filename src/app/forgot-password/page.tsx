@@ -43,6 +43,7 @@ export default function ForgotPasswordPage() {
 
   return (
     <main
+      data-theme="dark"
       style={{
         minHeight: '100vh',
         background: 'var(--surface)',

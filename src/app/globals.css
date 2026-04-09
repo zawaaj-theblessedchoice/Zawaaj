@@ -29,6 +29,33 @@
   --border-gold:    rgba(196, 154, 16, 0.30);
 }
 
+/* ─── Dark override — any element with data-theme="dark" forces dark tokens ─ */
+/* This is how dark-pinned pages (admin, browse, etc.) override a light <html> */
+[data-theme="dark"] {
+  --surface:   #111110;
+  --surface-2: #1B1B19;
+  --surface-3: #232321;
+  --surface-4: #2C2C2A;
+
+  --page:      #111110;
+  --card:      #1B1B19;
+  --s3:        #232321;
+
+  --text-primary:   #F6F3EC;
+  --text-secondary: #AAA49D;
+  --text-muted:     #666259;
+
+  --border-default: rgba(255, 255, 255, 0.09);
+  --border-gold:    rgba(196, 154, 16, 0.30);
+  --gold-muted:     rgba(196, 154, 16, 0.12);
+}
+
+[data-theme="dark"] input,
+[data-theme="dark"] textarea,
+[data-theme="dark"] select {
+  color-scheme: dark;
+}
+
 /* ─── Light theme — only when data-theme="light" on <html> ──────────────── */
 html[data-theme="light"] {
   --surface:   #F5F2EC;
