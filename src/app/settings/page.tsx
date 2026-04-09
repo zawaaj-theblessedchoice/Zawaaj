@@ -8,6 +8,7 @@ import Sidebar from '@/components/Sidebar'
 
 type Plan = 'voluntary' | 'plus' | 'premium'
 type Tab = 'membership' | 'account' | 'privacy'
+type ThemeMode = 'light' | 'dark' | 'system'
 
 interface Subscription {
   plan: Plan
@@ -78,9 +79,40 @@ function SettingsContent() {
   const [checkoutError, setCheckoutError] = useState<string | null>(null)
   const [profile, setProfile] = useState<{ display_initials: string; gender: string | null; first_name: string | null } | null>(null)
   const [annual, setAnnual] = useState(false)
+  const [themeMode, setThemeMode] = useState<ThemeMode>('dark')
 
   // Show success flash if returning from Stripe checkout
   const checkoutSuccess = searchParams.get('checkout') === 'success'
+
+  // Read saved theme on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('zawaaj-theme') as ThemeMode | null
+      setThemeMode(saved ?? 'dark')
+    } catch { /* localStorage unavailable */ }
+  }, [])
+
+  function applyTheme(mode: ThemeMode) {
+    if (mode === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark')
+    } else if (mode === 'light') {
+      document.documentElement.removeAttribute('data-theme')
+    } else {
+      // system
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+      if (prefersDark) {
+        document.documentElement.setAttribute('data-theme', 'dark')
+      } else {
+        document.documentElement.removeAttribute('data-theme')
+      }
+    }
+  }
+
+  function handleTheme(mode: ThemeMode) {
+    setThemeMode(mode)
+    try { localStorage.setItem('zawaaj-theme', mode) } catch { /* ignore */ }
+    applyTheme(mode)
+  }
 
   useEffect(() => {
     const supabase = createClient()
@@ -391,6 +423,55 @@ function SettingsContent() {
               <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 12 }}>Manage all profiles linked to your account, including family members.</p>
               <Link href="/my-profile" style={{ fontSize: 12, color: 'var(--gold)', textDecoration: 'none' }}>
                 Go to My Profile →
+              </Link>
+            </div>
+
+            {/* Appearance */}
+            <div style={{ background: 'var(--surface-2)', border: '0.5px solid var(--border-default)', borderRadius: 16, padding: 20 }}>
+              <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>Appearance</p>
+              <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 16 }}>Choose how Zawaaj looks on this device.</p>
+              <div style={{ display: 'flex', gap: 10 }}>
+                {([
+                  { mode: 'light' as ThemeMode, label: 'Light', icon: '☀️' },
+                  { mode: 'dark'  as ThemeMode, label: 'Dark',  icon: '🌙' },
+                  { mode: 'system' as ThemeMode, label: 'System', icon: '⚙️' },
+                ]).map(({ mode, label, icon }) => {
+                  const active = themeMode === mode
+                  return (
+                    <button
+                      key={mode}
+                      onClick={() => handleTheme(mode)}
+                      style={{
+                        flex: 1,
+                        padding: '10px 8px',
+                        borderRadius: 10,
+                        border: active ? '1.5px solid var(--gold)' : '0.5px solid var(--border-default)',
+                        background: active ? 'var(--gold-muted)' : 'var(--surface-3)',
+                        color: active ? 'var(--gold)' : 'var(--text-secondary)',
+                        fontSize: 12,
+                        fontWeight: active ? 600 : 400,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: 6,
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      <span style={{ fontSize: 18 }}>{icon}</span>
+                      {label}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Help & support */}
+            <div style={{ background: 'var(--surface-2)', border: '0.5px solid var(--border-default)', borderRadius: 16, padding: 20 }}>
+              <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>Help & support</p>
+              <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 12 }}>Browse articles, FAQs, and guidance about using Zawaaj.</p>
+              <Link href="/help" target="_blank" style={{ fontSize: 12, color: 'var(--gold)', textDecoration: 'none' }}>
+                Visit help centre →
               </Link>
             </div>
           </div>

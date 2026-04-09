@@ -150,6 +150,16 @@ function TrophyIcon() {
   )
 }
 
+function HelpIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" style={{ flexShrink: 0 }}>
+      <circle cx="7.5" cy="7.5" r="6" stroke="currentColor" strokeWidth="1.2" />
+      <path d="M6 6a1.5 1.5 0 0 1 3 0c0 1-1.5 1.5-1.5 2.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+      <circle cx="7.5" cy="11" r="0.6" fill="currentColor" />
+    </svg>
+  )
+}
+
 /** Icon tile — 26×26 rounded square wrapping an SVG icon */
 function IconTile({ children, active }: { children: React.ReactNode; active: boolean }) {
   return (
@@ -584,6 +594,25 @@ export default function Sidebar({
           )}
         </div>
       )}
+      {/* Help centre */}
+      <button
+        onClick={() => window.open('/help', '_blank')}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          width: '100%', padding: '10px 20px',
+          background: 'none', border: 'none',
+          borderTop: '0.5px solid var(--border-default)',
+          color: 'var(--text-muted)', fontSize: 12,
+          cursor: 'pointer', textAlign: 'left',
+          transition: 'color 0.15s',
+        }}
+        onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.color = 'var(--text-secondary)')}
+        onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.color = 'var(--text-muted)')}
+      >
+        <HelpIcon />
+        Help centre
+      </button>
+
       {/* Sign out */}
       <button
         onClick={handleSignOut}

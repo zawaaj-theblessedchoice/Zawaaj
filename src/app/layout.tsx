@@ -17,6 +17,22 @@ export const metadata: Metadata = {
   description: "A trusted matrimonial platform",
 };
 
+// Inline script runs synchronously before first paint to avoid theme flash.
+// Default is 'dark' — consistent with existing app behaviour.
+const themeInitScript = `
+  try {
+    var mode = localStorage.getItem('zawaaj-theme') || 'dark';
+    if (mode === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    } else if (mode === 'system') {
+      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    }
+    // 'light' — no attribute needed; CSS :root defaults are already light
+  } catch(e) {}
+`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -27,7 +43,9 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-surface">{children}</body>
+      {/* eslint-disable-next-line @next/next/no-before-interactive-script-component */}
+      <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
 }

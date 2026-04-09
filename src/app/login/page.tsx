@@ -35,8 +35,8 @@ export default function LoginPage() {
     <main className="min-h-screen flex items-center justify-center bg-surface px-4">
       <div className="w-full max-w-md">
         {/* Logo */}
-        <div className="flex justify-center mb-8">
-          <ZawaajLogo size={90} tagline={true} />
+        <div className="flex justify-center mb-10">
+          <ZawaajLogo size={180} tagline={true} />
         </div>
 
         {/* Card */}

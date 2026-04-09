@@ -749,8 +749,13 @@ export default function BrowseClient({
                   gap: 5,
                 }}
               >
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                  <path d="M1 3h10M3 6h6M5 9h2" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+                <svg width="14" height="14" viewBox="0 0 22 22" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                  <line x1="3" y1="6" x2="19" y2="6"/>
+                  <line x1="3" y1="11" x2="19" y2="11"/>
+                  <line x1="3" y1="16" x2="19" y2="16"/>
+                  <circle cx="8" cy="6" r="2.5" fill="var(--surface-2)" strokeWidth="1.7"/>
+                  <circle cx="14" cy="11" r="2.5" fill="var(--surface-2)" strokeWidth="1.7"/>
+                  <circle cx="9" cy="16" r="2.5" fill="var(--surface-2)" strokeWidth="1.7"/>
                 </svg>
                 Filter
               </button>
@@ -1048,10 +1053,8 @@ export default function BrowseClient({
                   pointerEvents: 'none',
                 }}
               >
-                <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-                  <path d="M4.5 4.5L6.5 2.5L8.5 4.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M4.5 8.5L6.5 10.5L8.5 8.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M6.5 2.5V10.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+                <svg width="13" height="13" viewBox="0 0 22 22" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M7 4v14M7 4L4 7M7 4l3 3M15 18V4M15 18l-3-3M15 18l3-3"/>
                 </svg>
               </span>
               <select

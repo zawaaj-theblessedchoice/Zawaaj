@@ -201,7 +201,7 @@ export default function LandingPage() {
       {/* ── Nav ── */}
       <nav className="sticky top-0 z-50 border-b border-white/8 bg-[#111110]/90 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between gap-6">
-          <ZawaajLogo size={32} tagline={false} />
+          <ZawaajLogo size={52} tagline={false} />
           <div className="hidden md:flex items-center gap-8 text-sm text-white/60">
             <a href="#how-it-works" className="hover:text-white transition-colors">How it works</a>
             <a href="#values" className="hover:text-white transition-colors">Our values</a>
@@ -412,7 +412,7 @@ export default function LandingPage() {
       <footer className="bg-[#0D0D0C] border-t border-white/8">
         <div className="max-w-5xl mx-auto px-5 py-12 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex flex-col items-center md:items-start gap-2">
-            <ZawaajLogo size={28} tagline={false} />
+            <ZawaajLogo size={44} tagline={true} />
             <p className="text-xs text-white/30">© {new Date().getFullYear()} Zawaaj. All rights reserved.</p>
           </div>
           <div className="flex flex-wrap justify-center gap-x-8 gap-y-2 text-sm text-white/40">

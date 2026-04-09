@@ -1,219 +1,159 @@
-'use client'
+import HelpNav from '@/components/help/HelpNav'
+import HelpSidebar from '@/components/help/HelpSidebar'
+import HelpSearch from '@/components/help/HelpSearch'
+import CategoryCard from '@/components/help/CategoryCard'
+import ArticleRow from '@/components/help/ArticleRow'
+import { CATEGORIES, getArticle } from '@/lib/helpContent'
 
-import { useState } from 'react'
-import Link from 'next/link'
-
-interface FaqItem {
-  q: string
-  a: string
-}
-
-interface FaqSection {
-  title: string
-  items: FaqItem[]
-}
-
-const FAQ_SECTIONS: FaqSection[] = [
-  {
-    title: 'Getting Started',
-    items: [
-      {
-        q: 'What is Zawaaj?',
-        a: 'Zawaaj is a private, invite-only Muslim matrimonial platform. It is not a dating app — its sole purpose is to facilitate serious matrimonial introductions between Muslim adults who are genuinely seeking marriage in accordance with Islamic principles.',
-      },
-      {
-        q: 'Is there a fee to use Zawaaj?',
-        a: 'Zawaaj is completely free for members. There are no subscription fees, no paid features, and no charges for requesting introductions.',
-      },
-      {
-        q: 'How do I join?',
-        a: 'Create an account and submit your profile using the sign-up form. Your profile will be reviewed by the admin team before being approved. This typically takes 1–3 business days. You will be notified once your profile is approved and you can access the member directory.',
-      },
-    ],
-  },
-  {
-    title: 'The Directory',
-    items: [
-      {
-        q: 'Who can see profiles in the directory?',
-        a: 'Only approved members of Zawaaj can see other profiles in the directory. Profiles are not publicly accessible and are not indexed by search engines.',
-      },
-      {
-        q: 'Why are profiles shown with initials only?',
-        a: 'Privacy is a core value of the platform. Profiles display initials rather than full names to protect members until a formal introduction is made. Full names and contact details are only shared once both families have given verbal consent through the admin.',
-      },
-      {
-        q: 'What information is shown in the directory?',
-        a: 'The directory displays non-sensitive fields: approximate age, height, ethnicity, school of thought, education level, profession sector, location, and any attributes or preferences the member has chosen to share. Sensitive information such as contact number, date of birth, and guardian name is never displayed to other members.',
-      },
-    ],
-  },
-  {
-    title: 'Requesting Introductions',
-    items: [
-      {
-        q: 'How do I request an introduction?',
-        a: 'Browse the directory and open a profile that interests you. Click the "Request Introduction" button on the profile page. The admin team will be notified and will begin the facilitation process.',
-      },
-      {
-        q: 'Is there a limit on how many introductions I can request?',
-        a: 'Yes. Each profile can send up to 5 introduction requests per calendar month. This is to encourage thoughtful, sincere requests rather than a high-volume approach. The counter resets at the start of each month.',
-      },
-      {
-        q: 'What happens after I request an introduction?',
-        a: 'The admin team reviews the request and contacts both families to gauge interest. If both parties are willing, the admin facilitates an introduction — this may be a phone call or meeting arranged between the families. Contact details are only exchanged once both sides have verbally consented through the admin.',
-      },
-    ],
-  },
-  {
-    title: 'Your Profile',
-    items: [
-      {
-        q: 'How do I edit my profile?',
-        a: 'Visit the "My Profile" page from the navigation. You can update your details there. Some changes may require admin review before taking effect.',
-      },
-      {
-        q: 'Can I pause my profile?',
-        a: 'Yes. If you need a break — for example, you are pursuing an introduction or need time — you can pause your profile from the My Profile page. A paused profile is hidden from the directory but your account remains active.',
-      },
-      {
-        q: 'How do I withdraw my profile?',
-        a: 'You can withdraw your profile at any time from the My Profile page. You will be asked to provide a reason. Once withdrawn, your profile is removed from the directory immediately. Your data is retained for 2 years for audit purposes, after which it is deleted. If you want earlier deletion, contact the admin.',
-      },
-    ],
-  },
-  {
-    title: 'Etiquette & Conduct',
-    items: [
-      {
-        q: 'What conduct is expected of members?',
-        a: 'All members are expected to behave with respect, sincerity, and Islamic etiquette. This is a platform built on trust. Every interaction should reflect that.',
-      },
-      {
-        q: 'Can I contact another member directly?',
-        a: 'No. Do not attempt to contact any member or their family outside of the platform\'s facilitated process. All introductions must go through the admin team. Attempting direct unsolicited contact will result in immediate suspension.',
-      },
-      {
-        q: 'How do I report a concern?',
-        a: 'If you have any concern about another member\'s conduct or about any interaction on the platform, please contact the admin directly. All reports are handled with confidentiality.',
-      },
-    ],
-  },
+const MOST_READ = [
+  { category: 'introductions', slug: 'how-introductions-work' },
+  { category: 'getting-started', slug: 'what-is-zawaaj' },
+  { category: 'your-profile', slug: 'creating-a-good-profile' },
+  { category: 'privacy', slug: 'what-others-can-see' },
+  { category: 'families', slug: 'guide-for-parents' },
 ]
 
-function AccordionSection({ section }: { section: FaqSection }) {
-  const [openIndex, setOpenIndex] = useState<number | null>(null)
-
-  function toggle(i: number) {
-    setOpenIndex((prev) => (prev === i ? null : i))
-  }
-
-  return (
-    <div className="rounded-xl overflow-hidden shadow-sm" style={{ backgroundColor: '#1A1A1A' }}>
-      {/* Section header */}
-      <div
-        className="px-5 py-4 border-b"
-        style={{ borderColor: '#2E2E2E' }}
-      >
-        <h2
-          className="text-sm font-bold uppercase tracking-wider"
-          style={{ color: '#B8960C' }}
-        >
-          {section.title}
-        </h2>
-      </div>
-
-      {/* Items */}
-      <div>
-        {section.items.map((item, i) => {
-          const isOpen = openIndex === i
-          const isLast = i === section.items.length - 1
-          return (
-            <div
-              key={i}
-              className={!isLast ? 'border-b' : ''}
-              style={{ borderColor: '#2E2E2E' }}
-            >
-              <button
-                type="button"
-                onClick={() => toggle(i)}
-                className="w-full flex items-center justify-between px-5 py-4 text-left gap-4 transition-colors hover:bg-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1"
-                aria-expanded={isOpen}
-              >
-                <span
-                  className="text-sm font-medium"
-                  style={{ color: '#F8F6F1' }}
-                >
-                  {item.q}
-                </span>
-                <span
-                  className="shrink-0 text-base font-bold transition-transform duration-200"
-                  style={{
-                    color: '#B8960C',
-                    display: 'inline-block',
-                    transform: isOpen ? 'rotate(45deg)' : 'rotate(0deg)',
-                  }}
-                  aria-hidden="true"
-                >
-                  +
-                </span>
-              </button>
-
-              {isOpen && (
-                <div className="px-5 pb-5">
-                  <p
-                    className="text-sm leading-relaxed"
-                    style={{ color: '#C8C5BC' }}
-                  >
-                    {item.a}
-                  </p>
-                </div>
-              )}
-            </div>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
+const QUICK_LINKS = [
+  { label: 'How introductions work', href: '/help/introductions/how-introductions-work' },
+  { label: 'Creating your profile', href: '/help/your-profile/creating-a-good-profile' },
+  { label: 'Privacy & safety', href: '/help/privacy/what-others-can-see' },
+]
 
 export default function HelpPage() {
+  const mostReadArticles = MOST_READ
+    .map(({ category, slug }) => getArticle(category, slug))
+    .filter((a): a is NonNullable<typeof a> => a !== undefined)
+
   return (
-    <main className="min-h-screen bg-[#F8F6F1] px-4 py-14">
-      <div className="max-w-2xl mx-auto">
+    <div style={{ minHeight: '100vh', background: '#F8F6F1', fontFamily: 'var(--font-geist-sans, Inter, sans-serif)' }}>
+      <HelpNav />
 
-        {/* Header */}
-        <div className="mb-10">
-          <h1
-            className="text-2xl font-bold tracking-tight mb-1"
-            style={{ color: '#1A1A1A' }}
-          >
-            Help &amp; FAQ
-          </h1>
-          <p className="text-sm" style={{ color: '#6B6B6B' }}>
-            Answers to common questions about Zawaaj.
-          </p>
-        </div>
+      <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+        <HelpSidebar />
 
-        {/* Sections */}
-        <div className="flex flex-col gap-5">
-          {FAQ_SECTIONS.map((section) => (
-            <AccordionSection key={section.title} section={section} />
-          ))}
-        </div>
+        <main style={{ flex: 1, minWidth: 0, padding: '48px 48px 80px' }}>
+          {/* Hero */}
+          <div style={{ maxWidth: 640, marginBottom: 56 }}>
+            {/* Eyebrow */}
+            <div
+              style={{
+                display: 'inline-block',
+                padding: '3px 12px',
+                background: '#FBF6E9',
+                border: '1px solid rgba(184,150,12,0.3)',
+                borderRadius: 20,
+                fontSize: 12,
+                fontWeight: 600,
+                color: '#B8960C',
+                marginBottom: 16,
+                letterSpacing: '0.02em',
+              }}
+            >
+              Help &amp; guidance
+            </div>
 
-        {/* Footer nav */}
-        <div className="mt-10 pt-6 border-t" style={{ borderColor: '#D6D2C8' }}>
-          <Link
-            href="/login"
-            className="text-sm font-medium transition-opacity hover:opacity-70"
-            style={{ color: '#B8960C' }}
-          >
-            &larr; Back to login
-          </Link>
-        </div>
+            <h1
+              style={{
+                fontSize: 36,
+                fontWeight: 700,
+                color: '#1C1A14',
+                lineHeight: 1.15,
+                margin: '0 0 14px',
+                letterSpacing: '-0.02em',
+              }}
+            >
+              How can we help you?
+            </h1>
 
+            <p style={{ fontSize: 15, color: '#6B6A65', lineHeight: 1.6, margin: '0 0 28px' }}>
+              Find answers, understand the process, and get the support you need — at every step of your journey with Zawaaj.
+            </p>
+
+            {/* Search */}
+            <HelpSearch />
+
+            {/* Quick links */}
+            <div
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: 8,
+                marginTop: 16,
+                alignItems: 'center',
+              }}
+            >
+              <span style={{ fontSize: 12, color: '#9B9A94' }}>Popular:</span>
+              {QUICK_LINKS.map(link => (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  style={{
+                    fontSize: 12.5,
+                    color: '#B8960C',
+                    textDecoration: 'none',
+                    padding: '3px 10px',
+                    background: '#FBF6E9',
+                    borderRadius: 20,
+                    border: '1px solid rgba(184,150,12,0.2)',
+                    transition: 'background 0.12s',
+                  }}
+                >
+                  {link.label}
+                </a>
+              ))}
+            </div>
+          </div>
+
+          {/* Category grid */}
+          <section style={{ marginBottom: 56 }}>
+            <h2
+              style={{
+                fontSize: 16,
+                fontWeight: 600,
+                color: '#1C1A14',
+                marginBottom: 20,
+                letterSpacing: '-0.01em',
+              }}
+            >
+              Browse by topic
+            </h2>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                gap: 14,
+              }}
+            >
+              {CATEGORIES.map(cat => (
+                <CategoryCard key={cat.id} category={cat} />
+              ))}
+            </div>
+          </section>
+
+          {/* Most read */}
+          <section style={{ maxWidth: 600 }}>
+            <h2
+              style={{
+                fontSize: 16,
+                fontWeight: 600,
+                color: '#1C1A14',
+                marginBottom: 4,
+                letterSpacing: '-0.01em',
+              }}
+            >
+              Most read articles
+            </h2>
+            <p style={{ fontSize: 13, color: '#9B9A94', marginBottom: 16 }}>
+              The articles members find most useful.
+            </p>
+            <div>
+              {mostReadArticles.map(article => (
+                <ArticleRow key={article.slug} article={article} />
+              ))}
+            </div>
+          </section>
+        </main>
       </div>
-    </main>
+    </div>
   )
 }

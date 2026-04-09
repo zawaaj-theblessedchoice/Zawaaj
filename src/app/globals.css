@@ -2,37 +2,77 @@
 
 /* ─── Design tokens ──────────────────────────────────────────────────────── */
 :root {
-  /* Gold — richer, warmer */
+  /* Gold — richer, warmer (theme-agnostic) */
   --gold:        #C49A10;
   --gold-light:  #D9AF2E;
-  --gold-muted:  rgba(196, 154, 16, 0.12);
+  --gold-muted:  rgba(196, 154, 16, 0.10);
   --gold-border: rgba(196, 154, 16, 0.30);
 
-  /* Surfaces — warm dark */
+  /* Surfaces — light palette (default) */
+  --page:      #F5F2EC;
+  --white:     #FFFFFF;
+  --s3:        #EAEAE2;
+
+  --surface:   #F5F2EC;
+  --surface-2: #FFFFFF;
+  --surface-3: #EAEAE2;
+  --surface-4: #D8D4CC;
+
+  /* Text — dark on light */
+  --text-primary:   #1C1A14;
+  --text-secondary: #6B6A65;
+  --text-muted:     #9B9690;
+
+  /* Borders — subtle on light */
+  --border-default: rgba(0, 0, 0, 0.10);
+  --border-gold:    rgba(196, 154, 16, 0.30);
+}
+
+/* ─── Dark theme — only when data-theme="dark" is on <html> ─────────────── */
+html[data-theme="dark"] {
+  --page:      #111110;
+  --white:     #1B1B19;
+  --s3:        #222220;
+
   --surface:   #111110;
   --surface-2: #1B1B19;
   --surface-3: #232321;
   --surface-4: #2C2C2A;
 
-  /* Text — crisper contrast */
   --text-primary:   #F6F3EC;
   --text-secondary: #AAA49D;
   --text-muted:     #666259;
 
-  /* Borders — more defined */
   --border-default: rgba(255, 255, 255, 0.09);
   --border-gold:    rgba(196, 154, 16, 0.30);
+  --gold-muted:     rgba(196, 154, 16, 0.12);
 }
 
 /* ─── Tailwind theme registration ────────────────────────────────────────── */
 @theme inline {
+  /* Gold */
   --color-gold:       var(--gold);
   --color-gold-light: var(--gold-light);
 
+  /* Semantic surface aliases — use bg-page, bg-white, bg-s3 in components */
+  --color-page:    var(--page);
+  --color-white:   var(--white);
+  --color-s3:      var(--s3);
+
+  /* Legacy surface names — kept for backwards compat */
   --color-surface:   var(--surface);
   --color-surface-2: var(--surface-2);
   --color-surface-3: var(--surface-3);
   --color-surface-4: var(--surface-4);
+
+  /* Text — use text-ink, text-ink-2, text-ink-3 */
+  --color-ink:   var(--text-primary);
+  --color-ink-2: var(--text-secondary);
+  --color-ink-3: var(--text-muted);
+
+  /* Borders — use border-br, border-gold */
+  --color-br:      var(--border-default);
+  --color-br-gold: var(--border-gold);
 
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
@@ -40,7 +80,7 @@
 
 /* ─── Base ───────────────────────────────────────────────────────────────── */
 body {
-  background-color: var(--surface);
+  background-color: var(--page);
   color: var(--text-primary);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -48,7 +88,7 @@ body {
   letter-spacing: -0.01em;
 }
 
-/* ─── Scrollbar (dark theme) ─────────────────────────────────────────────── */
+/* ─── Scrollbar ──────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar       { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: var(--surface-2); }
 ::-webkit-scrollbar-thumb { background: var(--surface-4); border-radius: 3px; }
@@ -71,6 +111,11 @@ a, button { transition: opacity 0.15s ease, color 0.15s ease, background 0.15s e
 
 /* ─── Input base ─────────────────────────────────────────────────────────── */
 input, textarea, select {
+  color-scheme: light;
+}
+html[data-theme="dark"] input,
+html[data-theme="dark"] textarea,
+html[data-theme="dark"] select {
   color-scheme: dark;
 }
 input:focus, textarea:focus, select:focus {
