@@ -32,7 +32,8 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-surface px-4">
+    // Login is always dark — force dark token values regardless of user theme preference
+    <main className="min-h-screen flex items-center justify-center px-4" style={{ background: '#111110' }}>
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="flex justify-center mb-10">

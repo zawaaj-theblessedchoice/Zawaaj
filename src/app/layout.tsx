@@ -18,16 +18,15 @@ export const metadata: Metadata = {
 };
 
 // Inline script runs synchronously before first paint to avoid theme flash.
-// CSS :root defaults to dark — only override to light when explicitly chosen.
+// CSS :root is always dark. Only apply 'light' when user EXPLICITLY chose it.
+// 'system' is intentionally ignored here — Zawaaj is a dark-first app.
 const themeInitScript = `
   try {
     var mode = localStorage.getItem('zawaaj-theme');
     if (mode === 'light') {
       document.documentElement.setAttribute('data-theme', 'light');
-    } else if (mode === 'system' && !window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      document.documentElement.setAttribute('data-theme', 'light');
     }
-    // 'dark' or no preference — no attribute needed; CSS :root is already dark
+    // 'dark', 'system', null — no attribute; CSS :root is already dark
   } catch(e) {}
 `;
 

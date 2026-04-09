@@ -94,18 +94,11 @@ function SettingsContent() {
 
 
   function applyTheme(mode: ThemeMode) {
-    // CSS :root is already dark — only set data-theme="light" to opt in to light
+    // CSS :root is always dark — only set data-theme="light" for explicit light choice
     if (mode === 'light') {
       document.documentElement.setAttribute('data-theme', 'light')
-    } else if (mode === 'system') {
-      const prefersLight = !window.matchMedia('(prefers-color-scheme: dark)').matches
-      if (prefersLight) {
-        document.documentElement.setAttribute('data-theme', 'light')
-      } else {
-        document.documentElement.removeAttribute('data-theme')
-      }
     } else {
-      // 'dark' — remove any light override
+      // 'dark' or 'system' — remove light override, app stays dark
       document.documentElement.removeAttribute('data-theme')
     }
   }
