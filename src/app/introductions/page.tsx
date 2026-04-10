@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import IntroductionsClient from './IntroductionsClient'
+import IntroductionsClient, { type IntroStatus } from './IntroductionsClient'
 import type { Plan } from '@/lib/plans'
 
 interface ManagedProfile {
@@ -133,7 +133,7 @@ export default async function IntroductionsPage() {
   const requests = (sentRows ?? []).map(r => ({
     id: r.id as string,
     target_profile_id: r.target_profile_id as string,
-    status: r.status as string,
+    status: r.status as IntroStatus,
     created_at: r.created_at as string,
     expires_at: r.expires_at as string | null,
     mutual_at: r.mutual_at as string | null,
@@ -144,7 +144,7 @@ export default async function IntroductionsPage() {
   const receivedRequests = (receivedRows ?? []).map(r => ({
     id: r.id as string,
     requesting_profile_id: r.requesting_profile_id as string,
-    status: r.status as string,
+    status: r.status as IntroStatus,
     created_at: r.created_at as string,
     expires_at: r.expires_at as string | null,
     requester: (requesterMap.get(r.requesting_profile_id as string) ?? null) as {

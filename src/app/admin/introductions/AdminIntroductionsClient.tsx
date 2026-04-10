@@ -22,15 +22,46 @@ export interface IntroRequest {
     last_name: string | null
     gender: string | null
   }
-  status: 'pending' | 'mutual' | 'facilitated' | 'expired'
+  status: string
   created_at: string
-  expires_at: string
+  expires_at: string | null
   mutual_at: string | null
-  facilitated_at: string | null
+  responded_at: string | null
+  assigned_manager_id: string | null
+  handled_by: string | null
+  handled_at: string | null
   admin_notes: string | null
 }
 
-type FilterTab = 'all' | 'pending' | 'mutual' | 'facilitated' | 'expired'
+export interface ManagerProfile {
+  id: string
+  display_initials: string
+  first_name: string | null
+  last_name: string | null
+}
+
+export interface AdminIntroductionsClientProps {
+  requests: IntroRequest[]
+  managers: ManagerProfile[]
+  role: 'super_admin' | 'manager'
+}
+
+type FilterTab = 'pending' | 'mutual' | 'active' | 'completed' | 'declined'
+
+const VALID_STATUSES = [
+  'pending',
+  'responded_positive',
+  'responded_negative',
+  'mutual_confirmed',
+  'admin_pending',
+  'admin_assigned',
+  'admin_in_progress',
+  'admin_completed',
+  'expired',
+  'withdrawn',
+] as const
+
+type ValidStatus = typeof VALID_STATUSES[number]
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -48,325 +79,518 @@ function profileName(p: IntroRequest['requesting_profile']): string {
   return [p.first_name, last].filter(Boolean).join(' ')
 }
 
-function avatarBg(gender: string | null): string {
-  return gender === 'female' ? 'var(--avatar-female-text)' : 'var(--avatar-male-text)'
+function managerName(m: ManagerProfile): string {
+  if (!m.first_name && !m.last_name) return m.display_initials
+  const last = m.last_name ? `${m.last_name[0]}.` : ''
+  return [m.first_name, last].filter(Boolean).join(' ')
 }
 
-function avatarBgLight(gender: string | null): string {
-  return gender === 'female' ? 'var(--avatar-female-bg)' : 'var(--avatar-male-bg)'
+function avatarTextColor(gender: string | null): string {
+  return gender === 'female' ? '#534AB7' : '#185FA5'
 }
 
-// ─── Avatar cell ──────────────────────────────────────────────────────────────
+function avatarBgColor(gender: string | null): string {
+  return gender === 'female' ? '#EEEDFE' : '#E6F1FB'
+}
+
+function statusLabel(status: string): string {
+  const labels: Record<string, string> = {
+    pending:            'Pending',
+    responded_positive: 'Responded +',
+    responded_negative: 'Declined',
+    mutual_confirmed:   'Mutual',
+    admin_pending:      'Admin Pending',
+    admin_assigned:     'Assigned',
+    admin_in_progress:  'In Progress',
+    admin_completed:    'Completed',
+    expired:            'Expired',
+    withdrawn:          'Withdrawn',
+  }
+  return labels[status] ?? status
+}
+
+function statusColors(status: string): { bg: string; color: string } {
+  switch (status) {
+    case 'pending':            return { bg: '#1e1e1e', color: '#9ca3af' }
+    case 'responded_positive': return { bg: '#052e16', color: '#4ade80' }
+    case 'responded_negative': return { bg: '#2d1515', color: '#f87171' }
+    case 'mutual_confirmed':   return { bg: '#2a200a', color: '#B8960C' }
+    case 'admin_pending':      return { bg: '#1e1e2e', color: '#a5b4fc' }
+    case 'admin_assigned':     return { bg: '#0f2a3f', color: '#60a5fa' }
+    case 'admin_in_progress':  return { bg: '#1a2000', color: '#a3e635' }
+    case 'admin_completed':    return { bg: '#052e16', color: '#4ade80' }
+    case 'expired':            return { bg: '#1c1c1c', color: '#6b7280' }
+    case 'withdrawn':          return { bg: '#1c1c1c', color: '#6b7280' }
+    default:                   return { bg: '#1e1e1e', color: '#9ca3af' }
+  }
+}
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
 
 function ProfileCell({ profile }: { profile: IntroRequest['requesting_profile'] }) {
   return (
     <div className="flex items-center gap-2 min-w-0">
       <div
         className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
-        style={{ backgroundColor: avatarBg(profile.gender), color: avatarBgLight(profile.gender) }}
+        style={{
+          backgroundColor: avatarBgColor(profile.gender),
+          color: avatarTextColor(profile.gender),
+        }}
       >
         {profile.display_initials}
       </div>
-      <span
-        className="text-sm truncate"
-        style={{ color: 'var(--text-primary)' }}
-      >
+      <span className="text-sm text-white/80 truncate">
         {profileName(profile)}
       </span>
     </div>
   )
 }
 
-// ─── Status badge ─────────────────────────────────────────────────────────────
-
-function StatusBadge({ status }: { status: IntroRequest['status'] }) {
-  const styles: Record<IntroRequest['status'], { bg: string; color: string }> = {
-    pending:     { bg: 'var(--surface-3)',              color: 'var(--text-secondary)' },
-    mutual:      { bg: 'var(--gold-muted)',              color: 'var(--gold-light)' },
-    facilitated: { bg: 'var(--status-success-bg)',        color: 'var(--status-success)' },
-    expired:     { bg: 'var(--surface-3)',               color: 'var(--text-muted)' },
-  }
-  const s = styles[status]
+function StatusBadge({ status }: { status: string }) {
+  const { bg, color } = statusColors(status)
   return (
     <span
-      className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize"
-      style={{ backgroundColor: s.bg, color: s.color }}
+      className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
+      style={{ backgroundColor: bg, color }}
     >
-      {status}
+      {statusLabel(status)}
     </span>
   )
 }
 
-// ─── Facilitate modal ─────────────────────────────────────────────────────────
+// ─── Assign Manager inline UI ─────────────────────────────────────────────────
 
-interface FacilitateModalProps {
-  req: IntroRequest
-  onClose: () => void
-  onFacilitated: (id: string) => void
+interface AssignManagerDropdownProps {
+  reqId: string
+  managers: ManagerProfile[]
+  currentAssignedId: string | null
+  loading: boolean
+  onAssign: (reqId: string, managerId: string) => void
 }
 
-function FacilitateModal({ req, onClose, onFacilitated }: FacilitateModalProps) {
-  const [adminNotes, setAdminNotes] = useState(req.admin_notes ?? '')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+function AssignManagerDropdown({
+  reqId,
+  managers,
+  currentAssignedId,
+  loading,
+  onAssign,
+}: AssignManagerDropdownProps) {
+  const [open, setOpen] = useState(false)
 
-  const fromName = profileName(req.requesting_profile)
-  const toName   = profileName(req.target_profile)
-
-  const emailPreview = `Assalamu alaikum [Name],\n\nWe are pleased to facilitate an introduction between you and [Other Name]. Our team has reviewed both profiles and believe this could be a compatible match, in sha Allah.\n\nPlease reach out at your earliest convenience. We ask that all communication remain respectful and in accordance with Islamic etiquette.\n\nJazakAllah khayran,\nThe Zawaaj Team`
-
-  async function handleSend() {
-    setLoading(true)
-    setError(null)
-    try {
-      const res = await fetch('/api/admin/facilitate-introduction', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ request_id: req.id, admin_notes: adminNotes }),
-      })
-      const json = await res.json() as { success?: boolean; error?: string }
-      if (!res.ok || !json.success) {
-        setError(json.error ?? 'Something went wrong')
-      } else {
-        onFacilitated(req.id)
-      }
-    } catch {
-      setError('Network error')
-    } finally {
-      setLoading(false)
-    }
+  if (!open) {
+    return (
+      <button
+        onClick={() => setOpen(true)}
+        disabled={loading}
+        className="px-2.5 py-1 rounded text-xs font-medium border border-white/10 text-white/70 hover:text-white hover:border-white/20 transition-colors disabled:opacity-50"
+      >
+        {currentAssignedId ? 'Reassign' : 'Assign manager'}
+      </button>
+    )
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center"
-      style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
-      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+    <div className="flex items-center gap-1.5">
+      <select
+        autoFocus
+        className="bg-[#1a1a1a] border border-white/10 text-white text-xs rounded px-2 py-1 outline-none"
+        defaultValue=""
+        onChange={(e) => {
+          if (e.target.value) {
+            onAssign(reqId, e.target.value)
+            setOpen(false)
+          }
+        }}
+        onBlur={() => setOpen(false)}
+      >
+        <option value="" disabled>Select manager…</option>
+        {managers.map((m) => (
+          <option key={m.id} value={m.id}>{managerName(m)}</option>
+        ))}
+      </select>
+      <button
+        onClick={() => setOpen(false)}
+        className="text-white/40 hover:text-white/70 text-xs"
+      >
+        ✕
+      </button>
+    </div>
+  )
+}
+
+// ─── Override Status dropdown (super_admin only) ──────────────────────────────
+
+interface OverrideStatusDropdownProps {
+  reqId: string
+  currentStatus: string
+  loading: boolean
+  onOverride: (reqId: string, status: ValidStatus) => void
+}
+
+function OverrideStatusDropdown({ reqId, currentStatus, loading, onOverride }: OverrideStatusDropdownProps) {
+  return (
+    <select
+      disabled={loading}
+      value={currentStatus}
+      onChange={(e) => {
+        const val = e.target.value as ValidStatus
+        onOverride(reqId, val)
+      }}
+      className="bg-[#1a1a1a] border border-white/10 text-white/60 text-xs rounded px-2 py-1 outline-none disabled:opacity-50"
     >
-      <div
-        className="w-full mx-4 flex flex-col gap-5 overflow-y-auto"
+      {VALID_STATUSES.map((s) => (
+        <option key={s} value={s}>{statusLabel(s)}</option>
+      ))}
+    </select>
+  )
+}
+
+// ─── Request row ──────────────────────────────────────────────────────────────
+
+interface RequestRowProps {
+  req: IntroRequest
+  managers: ManagerProfile[]
+  role: 'super_admin' | 'manager'
+  loadingIds: Set<string>
+  errors: Map<string, string>
+  onAssignManager: (reqId: string, managerId: string) => void
+  onSetInProgress: (reqId: string) => void
+  onComplete: (reqId: string) => void
+  onOverrideStatus: (reqId: string, status: ValidStatus) => void
+  isLast: boolean
+}
+
+function RequestRow({
+  req,
+  managers,
+  role,
+  loadingIds,
+  errors,
+  onAssignManager,
+  onSetInProgress,
+  onComplete,
+  onOverrideStatus,
+  isLast,
+}: RequestRowProps) {
+  const loading = loadingIds.has(req.id)
+  const rowError = errors.get(req.id)
+
+  const assignedManager = req.assigned_manager_id
+    ? managers.find((m) => m.id === req.assigned_manager_id)
+    : null
+
+  const canAssign =
+    role === 'super_admin' &&
+    (req.status === 'mutual_confirmed' || req.status === 'admin_pending')
+
+  const canSetInProgress =
+    req.status === 'admin_assigned' &&
+    (role === 'super_admin' || req.assigned_manager_id === req.assigned_manager_id) // manager scope enforced at API
+
+  const canComplete = req.status === 'admin_in_progress'
+
+  return (
+    <>
+      <tr
         style={{
-          maxWidth: 500,
-          backgroundColor: 'var(--surface-2)',
-          border: '0.5px solid var(--border-default)',
-          borderRadius: 13,
-          padding: 28,
-          maxHeight: '90vh',
+          borderBottom: isLast && !rowError ? 'none' : '0.5px solid rgba(255,255,255,0.06)',
         }}
       >
-        {/* Header */}
-        <div>
-          <h2 style={{ color: 'var(--text-primary)', fontSize: 16, fontWeight: 600, marginBottom: 4 }}>
-            Facilitate Introduction
-          </h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: 13 }}>
-            This will mark the request as facilitated. Emails are not yet sent automatically.
-          </p>
-        </div>
+        {/* From */}
+        <td className="px-4 py-3">
+          <ProfileCell profile={req.requesting_profile} />
+        </td>
 
-        {/* Both names side by side */}
-        <div className="flex items-center gap-4">
-          <div
-            className="flex-1 rounded-lg p-3 flex flex-col gap-1"
-            style={{ backgroundColor: 'var(--surface-3)', border: '0.5px solid var(--border-default)' }}
-          >
-            <span style={{ color: 'var(--text-muted)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em' }}>From</span>
-            <div className="flex items-center gap-2">
-              <div
-                className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
-                style={{ backgroundColor: avatarBg(req.requesting_profile.gender), color: avatarBgLight(req.requesting_profile.gender) }}
-              >
-                {req.requesting_profile.display_initials}
-              </div>
-              <span style={{ color: 'var(--text-primary)', fontSize: 14, fontWeight: 500 }}>{fromName}</span>
-            </div>
-          </div>
+        {/* To */}
+        <td className="px-4 py-3">
+          <ProfileCell profile={req.target_profile} />
+        </td>
 
-          <span style={{ color: 'var(--text-muted)', fontSize: 18 }}>↔</span>
+        {/* Status */}
+        <td className="px-4 py-3">
+          <StatusBadge status={req.status} />
+        </td>
 
-          <div
-            className="flex-1 rounded-lg p-3 flex flex-col gap-1"
-            style={{ backgroundColor: 'var(--surface-3)', border: '0.5px solid var(--border-default)' }}
-          >
-            <span style={{ color: 'var(--text-muted)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em' }}>To</span>
-            <div className="flex items-center gap-2">
-              <div
-                className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
-                style={{ backgroundColor: avatarBg(req.target_profile.gender), color: avatarBgLight(req.target_profile.gender) }}
-              >
-                {req.target_profile.display_initials}
-              </div>
-              <span style={{ color: 'var(--text-primary)', fontSize: 14, fontWeight: 500 }}>{toName}</span>
-            </div>
-          </div>
-        </div>
+        {/* Requested */}
+        <td className="px-4 py-3 text-sm text-white/50 whitespace-nowrap">
+          {fmtDate(req.created_at)}
+        </td>
 
-        {/* Admin notes */}
-        <div className="flex flex-col gap-2">
-          <label
-            htmlFor="admin-notes"
-            style={{ color: 'var(--text-secondary)', fontSize: 12, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.06em' }}
-          >
-            Admin notes (optional)
-          </label>
-          <textarea
-            id="admin-notes"
-            value={adminNotes}
-            onChange={(e) => setAdminNotes(e.target.value)}
-            rows={3}
-            placeholder="Add any internal notes about this introduction..."
-            className="w-full resize-none rounded-lg p-3 text-sm outline-none"
-            style={{
-              backgroundColor: 'var(--surface-3)',
-              border: '0.5px solid var(--border-default)',
-              color: 'var(--text-primary)',
-            }}
-          />
-        </div>
+        {/* Mutual at */}
+        <td className="px-4 py-3 text-sm text-white/50 whitespace-nowrap">
+          {fmtDate(req.mutual_at)}
+        </td>
 
-        {/* Email preview */}
-        <div className="flex flex-col gap-2">
-          <span
-            style={{ color: 'var(--text-secondary)', fontSize: 12, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.06em' }}
-          >
-            Email preview (template)
-          </span>
-          <pre
-            className="text-xs whitespace-pre-wrap rounded-lg p-3 leading-relaxed"
-            style={{
-              backgroundColor: 'var(--surface-3)',
-              border: '0.5px solid var(--border-default)',
-              color: 'var(--text-muted)',
-              fontFamily: 'inherit',
-            }}
-          >
-            {emailPreview}
-          </pre>
-        </div>
+        {/* Assigned (super_admin only) */}
+        {role === 'super_admin' && (
+          <td className="px-4 py-3 text-sm text-white/50 whitespace-nowrap">
+            {assignedManager ? (
+              <span className="text-white/70">{managerName(assignedManager)}</span>
+            ) : (
+              <span className="text-white/25">—</span>
+            )}
+          </td>
+        )}
 
-        {/* Error */}
-        {error && (
-          <p className="text-sm" style={{ color: 'var(--status-error)' }}>{error}</p>
+        {/* handled_by / handled_at (super_admin only) */}
+        {role === 'super_admin' && (
+          <td className="px-4 py-3 text-sm text-white/50 whitespace-nowrap">
+            {req.handled_at ? (
+              <span title={req.handled_by ?? undefined}>{fmtDate(req.handled_at)}</span>
+            ) : (
+              <span className="text-white/25">—</span>
+            )}
+          </td>
         )}
 
         {/* Actions */}
-        <div className="flex gap-3 justify-end">
-          <button
-            onClick={onClose}
-            disabled={loading}
-            className="px-4 py-2 rounded-lg text-sm"
-            style={{
-              border: '0.5px solid var(--border-default)',
-              color: 'var(--text-secondary)',
-              backgroundColor: 'transparent',
-            }}
+        <td className="px-4 py-3">
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Assign manager button (mutual_confirmed or admin_pending, super_admin only) */}
+            {canAssign && (
+              <AssignManagerDropdown
+                reqId={req.id}
+                managers={managers}
+                currentAssignedId={req.assigned_manager_id}
+                loading={loading}
+                onAssign={onAssignManager}
+              />
+            )}
+
+            {/* Mark in progress (admin_assigned) */}
+            {canSetInProgress && (
+              <button
+                onClick={() => onSetInProgress(req.id)}
+                disabled={loading}
+                className="px-2.5 py-1 rounded text-xs font-medium bg-[#0f2a3f] text-[#60a5fa] border border-[#60a5fa]/20 hover:bg-[#1a3d56] transition-colors disabled:opacity-50"
+              >
+                {loading ? 'Saving…' : 'Mark in progress'}
+              </button>
+            )}
+
+            {/* Mark complete (admin_in_progress) */}
+            {canComplete && (
+              <button
+                onClick={() => onComplete(req.id)}
+                disabled={loading}
+                className="px-2.5 py-1 rounded text-xs font-medium bg-[#052e16] text-[#4ade80] border border-[#4ade80]/20 hover:bg-[#0a4a25] transition-colors disabled:opacity-50"
+              >
+                {loading ? 'Saving…' : 'Mark complete'}
+              </button>
+            )}
+
+            {/* Override status dropdown (super_admin only) */}
+            {role === 'super_admin' && (
+              <OverrideStatusDropdown
+                reqId={req.id}
+                currentStatus={req.status}
+                loading={loading}
+                onOverride={onOverrideStatus}
+              />
+            )}
+
+            {/* View profiles link */}
+            <Link
+              href={`/admin/sidebyside/${req.requesting_profile.id}__${req.target_profile.id}`}
+              className="px-2.5 py-1 rounded text-xs text-white/50 border border-white/10 hover:text-white/80 hover:border-white/20 transition-colors"
+            >
+              View profiles
+            </Link>
+          </div>
+        </td>
+      </tr>
+
+      {/* Inline error row */}
+      {rowError && (
+        <tr style={{ borderBottom: isLast ? 'none' : '0.5px solid rgba(255,255,255,0.06)' }}>
+          <td
+            colSpan={role === 'super_admin' ? 8 : 6}
+            className="px-4 pb-3 text-xs"
+            style={{ color: '#f87171' }}
           >
-            Cancel
-          </button>
-          <button
-            onClick={handleSend}
-            disabled={loading}
-            className="px-4 py-2 rounded-lg text-sm font-medium"
-            style={{
-              backgroundColor: 'var(--gold)',
-              color: 'var(--surface-2)',
-              opacity: loading ? 0.6 : 1,
-            }}
-          >
-            {loading ? 'Saving…' : 'Send introduction emails'}
-          </button>
-        </div>
-      </div>
-    </div>
+            {rowError}
+          </td>
+        </tr>
+      )}
+    </>
   )
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-interface Props {
-  requests: IntroRequest[]
-}
-
-export default function AdminIntroductionsClient({ requests: initialRequests }: Props) {
+export default function AdminIntroductionsClient({
+  requests: initialRequests,
+  managers,
+  role,
+}: AdminIntroductionsClientProps) {
   const [requests, setRequests] = useState<IntroRequest[]>(initialRequests)
-  const [filter, setFilter] = useState<FilterTab>('all')
-  const [facilitatingReq, setFacilitatingReq] = useState<IntroRequest | null>(null)
+  const [filter, setFilter] = useState<FilterTab>('mutual')
+  const [loadingIds, setLoadingIds] = useState<Set<string>>(new Set())
+  const [errors, setErrors] = useState<Map<string, string>>(new Map())
 
-  const filterTabs: { key: FilterTab; label: string }[] = [
-    { key: 'all',         label: 'All' },
-    { key: 'pending',     label: 'Pending' },
-    { key: 'mutual',      label: 'Mutual' },
-    { key: 'facilitated', label: 'Facilitated' },
-    { key: 'expired',     label: 'Expired' },
+  // ─── Tab filtering ────────────────────────────────────────────────────────
+
+  const tabDefs: { key: FilterTab; label: string; statuses: string[] }[] = [
+    { key: 'pending',   label: 'Pending',          statuses: ['pending'] },
+    { key: 'mutual',    label: 'Mutual',            statuses: ['mutual_confirmed', 'admin_pending'] },
+    { key: 'active',    label: 'Active',            statuses: ['admin_assigned', 'admin_in_progress'] },
+    { key: 'completed', label: 'Completed',         statuses: ['admin_completed'] },
+    { key: 'declined',  label: 'Declined / Expired', statuses: ['responded_negative', 'expired', 'withdrawn'] },
   ]
 
-  const filtered = filter === 'all' ? requests : requests.filter((r) => r.status === filter)
+  const filtered = requests.filter((r) => {
+    const tab = tabDefs.find((t) => t.key === filter)
+    return tab ? tab.statuses.includes(r.status) : false
+  })
 
-  function handleFacilitated(id: string) {
-    setRequests((prev) =>
-      prev.map((r) =>
-        r.id === id
-          ? { ...r, status: 'facilitated', facilitated_at: new Date().toISOString() }
-          : r
-      )
-    )
-    setFacilitatingReq(null)
+  // ─── Helpers ──────────────────────────────────────────────────────────────
+
+  function setRowLoading(id: string, val: boolean) {
+    setLoadingIds((prev) => {
+      const next = new Set(prev)
+      if (val) next.add(id)
+      else next.delete(id)
+      return next
+    })
   }
 
+  function setRowError(id: string, msg: string | null) {
+    setErrors((prev) => {
+      const next = new Map(prev)
+      if (msg === null) next.delete(id)
+      else next.set(id, msg)
+      return next
+    })
+  }
+
+  function applyUpdate(id: string, patch: Partial<IntroRequest>) {
+    setRequests((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, ...patch } : r))
+    )
+  }
+
+  async function callApi(
+    reqId: string,
+    body: Record<string, string | undefined>
+  ): Promise<boolean> {
+    setRowLoading(reqId, true)
+    setRowError(reqId, null)
+    try {
+      const res = await fetch(`/api/admin/introductions/${reqId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      const json = await res.json() as { success?: boolean; error?: string }
+      if (!res.ok || !json.success) {
+        setRowError(reqId, json.error ?? 'Something went wrong')
+        return false
+      }
+      return true
+    } catch {
+      setRowError(reqId, 'Network error — please try again')
+      return false
+    } finally {
+      setRowLoading(reqId, false)
+    }
+  }
+
+  // ─── Action handlers ──────────────────────────────────────────────────────
+
+  async function handleAssignManager(reqId: string, managerId: string) {
+    const ok = await callApi(reqId, { action: 'assign_manager', manager_profile_id: managerId })
+    if (ok) {
+      applyUpdate(reqId, {
+        status: 'admin_assigned',
+        assigned_manager_id: managerId,
+        handled_at: new Date().toISOString(),
+      })
+    }
+  }
+
+  async function handleSetInProgress(reqId: string) {
+    const ok = await callApi(reqId, { action: 'set_in_progress' })
+    if (ok) {
+      applyUpdate(reqId, {
+        status: 'admin_in_progress',
+        handled_at: new Date().toISOString(),
+      })
+    }
+  }
+
+  async function handleComplete(reqId: string) {
+    const ok = await callApi(reqId, { action: 'complete' })
+    if (ok) {
+      applyUpdate(reqId, {
+        status: 'admin_completed',
+        handled_at: new Date().toISOString(),
+      })
+    }
+  }
+
+  async function handleOverrideStatus(reqId: string, status: ValidStatus) {
+    const ok = await callApi(reqId, { action: 'override_status', status })
+    if (ok) {
+      applyUpdate(reqId, {
+        status,
+        handled_at: new Date().toISOString(),
+      })
+    }
+  }
+
+  // ─── Columns ──────────────────────────────────────────────────────────────
+
+  const baseColumns = ['From', 'To', 'Status', 'Requested', 'Mutual at']
+  const superAdminColumns = role === 'super_admin' ? ['Assigned to', 'Handled at'] : []
+  const columns = [...baseColumns, ...superAdminColumns, 'Actions']
+
+  // ─── Render ───────────────────────────────────────────────────────────────
+
   return (
-    <div
-      className="min-h-screen"
-      style={{ backgroundColor: 'var(--surface)', color: 'var(--text-primary)' }}
-    >
-      {/* ── Top nav ── */}
-      <div
-        className="flex items-center justify-between px-6 py-4"
-        style={{ borderBottom: '0.5px solid var(--border-default)' }}
-      >
+    <div className="min-h-screen bg-[#111111] text-white">
+
+      {/* Top nav */}
+      <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
         <ZawaajLogo size={32} tagline={false} />
-        <Link
-          href="/admin"
-          className="text-sm"
-          style={{ color: 'var(--text-secondary)' }}
-        >
+        <Link href="/admin" className="text-sm text-white/50 hover:text-white/80 transition-colors">
           ← Back to dashboard
         </Link>
       </div>
 
-      {/* ── Page header + filter tabs ── */}
-      <div
-        className="px-6 pt-8 pb-0"
-        style={{ borderBottom: '0.5px solid var(--border-default)' }}
-      >
-        <h1 style={{ fontSize: 22, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 20 }}>
-          Introductions
-        </h1>
+      {/* Page header */}
+      <div className="px-6 pt-8 pb-0 border-b border-white/10">
+        <div className="flex items-center justify-between mb-5">
+          <h1 className="text-xl font-semibold text-white">Introductions</h1>
+          {role === 'super_admin' && (
+            <span className="text-xs px-2 py-1 rounded-full bg-[#B8960C]/10 text-[#B8960C] border border-[#B8960C]/20">
+              Super Admin
+            </span>
+          )}
+        </div>
 
         {/* Filter tabs */}
-        <div className="flex gap-1">
-          {filterTabs.map(({ key, label }) => {
-            const count = key === 'all' ? requests.length : requests.filter((r) => r.status === key).length
+        <div className="flex gap-0.5">
+          {tabDefs.map(({ key, label, statuses }) => {
+            const count = requests.filter((r) => statuses.includes(r.status)).length
             const isActive = filter === key
             return (
               <button
                 key={key}
                 onClick={() => setFilter(key)}
-                className="px-4 py-2 text-sm rounded-t-lg flex items-center gap-2"
+                className="px-4 py-2 text-sm rounded-t-lg flex items-center gap-2 transition-colors"
                 style={{
-                  backgroundColor: isActive ? 'var(--surface-2)' : 'transparent',
-                  color: isActive ? 'var(--text-primary)' : 'var(--text-muted)',
-                  borderBottom: isActive ? '2px solid var(--gold)' : '2px solid transparent',
+                  backgroundColor: isActive ? '#1a1a1a' : 'transparent',
+                  color: isActive ? '#ffffff' : 'rgba(255,255,255,0.4)',
+                  borderBottom: isActive ? '2px solid #B8960C' : '2px solid transparent',
                   fontWeight: isActive ? 500 : 400,
                 }}
               >
                 {label}
                 <span
-                  className="rounded-full px-1.5 py-0.5 text-xs"
+                  className="rounded-full px-1.5 py-0.5 text-xs min-w-[20px] text-center"
                   style={{
-                    backgroundColor: isActive ? 'var(--surface-3)' : 'var(--surface-2)',
-                    color: isActive ? 'var(--text-secondary)' : 'var(--text-muted)',
-                    minWidth: 20,
-                    textAlign: 'center',
+                    backgroundColor: isActive ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)',
+                    color: isActive ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.3)',
                   }}
                 >
                   {count}
@@ -377,33 +601,21 @@ export default function AdminIntroductionsClient({ requests: initialRequests }: 
         </div>
       </div>
 
-      {/* ── Table ── */}
+      {/* Table */}
       <div className="px-6 py-6">
         {filtered.length === 0 ? (
-          <p className="py-12 text-center" style={{ color: 'var(--text-muted)', fontSize: 14 }}>
-            No introduction requests{filter !== 'all' ? ` with status "${filter}"` : ''}.
+          <p className="py-16 text-center text-sm text-white/30">
+            No introduction requests in this category.
           </p>
         ) : (
-          <div
-            className="rounded-xl overflow-hidden"
-            style={{ border: '0.5px solid var(--border-default)' }}
-          >
+          <div className="rounded-xl overflow-hidden border border-white/10">
             <table className="w-full border-collapse">
               <thead>
-                <tr style={{ backgroundColor: 'var(--surface-2)' }}>
-                  {['From', 'To', 'Status', 'Requested', 'Expires', 'Mutual at', 'Actions'].map((col) => (
+                <tr className="bg-[#1a1a1a]">
+                  {columns.map((col) => (
                     <th
                       key={col}
-                      className="px-4 py-3 text-left"
-                      style={{
-                        fontSize: 11,
-                        fontWeight: 600,
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.06em',
-                        color: 'var(--text-muted)',
-                        borderBottom: '0.5px solid var(--border-default)',
-                        whiteSpace: 'nowrap',
-                      }}
+                      className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-white/40 border-b border-white/10 whitespace-nowrap"
                     >
                       {col}
                     </th>
@@ -411,94 +623,26 @@ export default function AdminIntroductionsClient({ requests: initialRequests }: 
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((req, idx) => {
-                  const isMutual = req.status === 'mutual'
-                  const isLast = idx === filtered.length - 1
-                  return (
-                    <tr
-                      key={req.id}
-                      style={{
-                        backgroundColor: isMutual ? 'var(--gold-muted)' : (idx % 2 === 0 ? 'var(--surface)' : 'var(--surface-2)'),
-                        borderBottom: isLast ? 'none' : '0.5px solid var(--border-default)',
-                      }}
-                    >
-                      {/* From */}
-                      <td className="px-4 py-3">
-                        <ProfileCell profile={req.requesting_profile} />
-                      </td>
-
-                      {/* To */}
-                      <td className="px-4 py-3">
-                        <ProfileCell profile={req.target_profile} />
-                      </td>
-
-                      {/* Status */}
-                      <td className="px-4 py-3">
-                        <StatusBadge status={req.status} />
-                      </td>
-
-                      {/* Requested */}
-                      <td className="px-4 py-3">
-                        <span style={{ color: 'var(--text-secondary)', fontSize: 13 }}>
-                          {fmtDate(req.created_at)}
-                        </span>
-                      </td>
-
-                      {/* Expires */}
-                      <td className="px-4 py-3">
-                        <span style={{ color: 'var(--text-secondary)', fontSize: 13 }}>
-                          {fmtDate(req.expires_at)}
-                        </span>
-                      </td>
-
-                      {/* Mutual at */}
-                      <td className="px-4 py-3">
-                        <span style={{ color: 'var(--text-secondary)', fontSize: 13 }}>
-                          {fmtDate(req.mutual_at)}
-                        </span>
-                      </td>
-
-                      {/* Actions */}
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          {req.status === 'mutual' && (
-                            <button
-                              onClick={() => setFacilitatingReq(req)}
-                              className="px-3 py-1.5 rounded-lg text-xs font-medium"
-                              style={{ backgroundColor: 'var(--gold)', color: 'var(--surface-2)' }}
-                            >
-                              Facilitate introduction
-                            </button>
-                          )}
-                          <Link
-                            href={`/admin/sidebyside/${req.requesting_profile.id}__${req.target_profile.id}`}
-                            className="px-3 py-1.5 rounded-lg text-xs"
-                            style={{
-                              border: '0.5px solid var(--border-default)',
-                              color: 'var(--text-secondary)',
-                            }}
-                          >
-                            View profiles
-                          </Link>
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })}
+                {filtered.map((req, idx) => (
+                  <RequestRow
+                    key={req.id}
+                    req={req}
+                    managers={managers}
+                    role={role}
+                    loadingIds={loadingIds}
+                    errors={errors}
+                    onAssignManager={handleAssignManager}
+                    onSetInProgress={handleSetInProgress}
+                    onComplete={handleComplete}
+                    onOverrideStatus={handleOverrideStatus}
+                    isLast={idx === filtered.length - 1}
+                  />
+                ))}
               </tbody>
             </table>
           </div>
         )}
       </div>
-
-      {/* ── Facilitate modal ── */}
-      {facilitatingReq && (
-        <FacilitateModal
-          req={facilitatingReq}
-          onClose={() => setFacilitatingReq(null)}
-          onFacilitated={handleFacilitated}
-        />
-      )}
     </div>
   )
 }

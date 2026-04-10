@@ -44,6 +44,10 @@ export interface BrowseClientProps {
   activeProfileId?: string
   /** Member's current subscription plan */
   plan?: 'free' | 'plus' | 'premium'
+  /** Number of currently active (pending) introduction requests */
+  activeCount?: number
+  /** Max concurrent active requests for this plan (null = unlimited) */
+  activeLimit?: number | null
 }
 
 interface FilterState {
@@ -334,6 +338,8 @@ export default function BrowseClient({
   managedProfiles,
   activeProfileId,
   plan = 'free',
+  activeCount = 0,
+  activeLimit = null,
 }: BrowseClientProps) {
   const PLAN_MONTHLY_LIMITS = { free: 2, plus: 5, premium: 10 } as const
   const monthlyLimit = PLAN_MONTHLY_LIMITS[plan as keyof typeof PLAN_MONTHLY_LIMITS] ?? 2
@@ -648,6 +654,58 @@ export default function BrowseClient({
             >
               Find a Match
             </h1>
+            {/* Active requests pill */}
+            <span
+              title="Concurrently active (pending) introduction requests"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                padding: '3px 10px',
+                borderRadius: 999,
+                background:
+                  activeLimit !== null && activeCount >= activeLimit
+                    ? 'rgba(248,113,113,0.1)'
+                    : 'var(--surface-3)',
+                border: `0.5px solid ${
+                  activeLimit !== null && activeCount >= activeLimit
+                    ? 'rgba(248,113,113,0.3)'
+                    : 'var(--border-default)'
+                }`,
+                fontSize: 11.5,
+                fontWeight: 500,
+                color:
+                  activeLimit !== null && activeCount >= activeLimit
+                    ? 'var(--status-error)'
+                    : 'var(--text-muted)',
+                cursor: 'default',
+              }}
+            >
+              {activeLimit !== null
+                ? `Active: ${activeCount}/${activeLimit}`
+                : `Active: ${activeCount}`}
+            </span>
+
+            {/* Active limit warning — shown when at the concurrent limit */}
+            {activeLimit !== null && activeCount >= activeLimit && (
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  padding: '3px 10px',
+                  borderRadius: 999,
+                  background: 'rgba(248,113,113,0.08)',
+                  border: '0.5px solid rgba(248,113,113,0.25)',
+                  fontSize: 11,
+                  fontWeight: 500,
+                  color: 'var(--status-error)',
+                  cursor: 'default',
+                }}
+              >
+                Active request limit reached — withdraw a request to send another.
+              </span>
+            )}
+
             {/* Monthly request usage pill */}
             <span
               title="Introduction requests used this calendar month"

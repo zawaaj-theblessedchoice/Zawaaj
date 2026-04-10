@@ -192,6 +192,16 @@ export default async function BrowsePage({
     .maybeSingle()
   const plan: Plan = (subData?.plan ?? 'free') as Plan
 
+  // Active (pending) introduction request count for this profile
+  const ACTIVE_LIMITS: Record<string, number | null> = { free: 1, plus: 2, premium: null }
+  const { count: activeCountRaw } = await supabase
+    .from('zawaaj_introduction_requests')
+    .select('id', { count: 'exact', head: true })
+    .eq('requesting_profile_id', activeProfileId)
+    .eq('status', 'pending')
+  const activeCount: number = activeCountRaw ?? 0
+  const activeLimit: number | null = ACTIVE_LIMITS[plan] ?? 1
+
   const typedViewerProfile: ProfileRecord = {
     ...viewerProfile,
     wears_hijab: viewerProfile.wears_hijab ?? null,
@@ -213,6 +223,8 @@ export default async function BrowsePage({
       managedProfiles={managedProfiles}
       activeProfileId={activeProfileId}
       plan={plan}
+      activeCount={activeCount}
+      activeLimit={activeLimit}
     />
   )
 }

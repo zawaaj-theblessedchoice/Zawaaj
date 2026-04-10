@@ -43,7 +43,7 @@ export const CATEGORIES: HelpCategory[] = [
   {
     id: 'introductions',
     title: 'Introductions',
-    description: 'The introduction system — requests, mutual matches, and facilitation.',
+    description: 'The introduction system — requests, confirmed interest, and facilitation.',
     icon: 'envelope',
     articleCount: 8,
   },
@@ -165,7 +165,7 @@ export const ARTICLES: HelpArticle[] = [
         type: 'step',
         number: 5,
         title: 'Mutual interest',
-        body: 'If the other member also sends you a request (or expresses interest through us), the system flags a mutual match and our team is notified.',
+        body: 'If the other member responds positively to your request, mutual interest is confirmed automatically and our team is notified.',
       },
       {
         type: 'step',
@@ -733,11 +733,11 @@ export const ARTICLES: HelpArticle[] = [
       },
       {
         type: 'h2',
-        text: 'Step three: mutual interest',
+        text: 'Step three: the other member responds',
       },
       {
         type: 'p',
-        text: 'If both members have expressed interest in each other — either through simultaneous requests or through separate conversations with our team — the system flags a mutual match.',
+        text: 'Community Access members respond using simple Accept or Decline buttons. Plus and Premium members respond using a formal templated message — all templates begin with Assalamu alaikum. If the response is positive, mutual interest is confirmed and the admin team is notified automatically.',
       },
       {
         type: 'h2',
@@ -745,7 +745,7 @@ export const ARTICLES: HelpArticle[] = [
       },
       {
         type: 'p',
-        text: 'Our team contacts both families to confirm interest and gather verbal consent. We take care to handle this sensitively and do not rush anyone.',
+        text: 'Once mutual interest is confirmed, our team contacts both families to verify and gather verbal consent. We take care to handle this sensitively and do not rush anyone.',
       },
       {
         type: 'h2',
@@ -801,7 +801,7 @@ export const ARTICLES: HelpArticle[] = [
       },
       {
         type: 'p',
-        text: 'If the other member also expresses interest in you, the system will flag a mutual match and our team will begin the facilitation process.',
+        text: 'If the other member responds positively, mutual interest is confirmed automatically and our team will begin the facilitation process.',
       },
     ],
   },
@@ -833,6 +833,11 @@ export const ARTICLES: HelpArticle[] = [
         ],
       },
       {
+        type: 'callout',
+        title: 'Active request limits',
+        body: 'In addition to your monthly allowance, there is a cap on how many requests can be pending at once: Community Access members can have 1 active pending request at a time, Plus members 2, and Premium members have no limit on active pending requests.',
+      },
+      {
         type: 'h2',
         text: 'How to use your allowance wisely',
       },
@@ -849,15 +854,15 @@ export const ARTICLES: HelpArticle[] = [
   },
   {
     slug: 'mutual-match-explained',
-    title: 'Mutual match explained',
-    deck: 'A mutual match is when both members have independently expressed interest in each other. Here is what it means and what happens next.',
+    title: 'Mutual interest confirmed — what it means',
+    deck: 'Mutual interest is confirmed when both members have positively responded to each other\'s introduction request. Here is what it means and what happens next.',
     category: 'introductions',
     readTime: 3,
     related: ['after-a-mutual-match', 'how-introductions-work', 'requesting-an-introduction'],
     blocks: [
       {
         type: 'p',
-        text: 'A mutual match happens when you and another member have both expressed interest in each other through the introduction request system. Neither of you knew the other had sent a request — and yet you both did. That is genuinely significant.',
+        text: 'Mutual interest is confirmed when you and another member have both positively responded to each other\'s introduction request. The response may be a simple Accept (Community Access) or a formal Assalamu alaikum template (Plus and Premium). Either way, both sides have independently said yes — and that is genuinely significant.',
       },
       {
         type: 'h2',
@@ -865,11 +870,11 @@ export const ARTICLES: HelpArticle[] = [
       },
       {
         type: 'p',
-        text: 'The system checks both directions. If you send a request to someone, and that same person has already sent a request to you (or sends one while yours is still active), the system automatically flags a mutual match.',
+        text: 'The system checks both directions. When you respond positively to a request and the other member has also responded positively to yours, the system automatically confirms mutual interest and notifies the admin team.',
       },
       {
         type: 'h2',
-        text: 'What happens when a mutual match is flagged',
+        text: 'What happens when mutual interest is confirmed',
       },
       {
         type: 'p',
@@ -877,15 +882,15 @@ export const ARTICLES: HelpArticle[] = [
       },
       {
         type: 'callout',
-        title: 'A mutual match is not a guarantee',
-        body: 'A mutual match means both sides expressed interest — but facilitation still requires verbal consent from both families before any details are shared. Either party can still say no at that stage.',
+        title: 'Mutual interest confirmed is not a guarantee',
+        body: 'Mutual interest confirmed means both sides have responded positively — but facilitation still requires verbal consent from both families before any details are shared. Either party can still say no at that stage.',
       },
     ],
   },
   {
     slug: 'after-a-mutual-match',
-    title: 'What happens after a mutual match',
-    deck: 'Both sides have expressed interest. Here is the step-by-step process our team follows to facilitate an introduction.',
+    title: 'What happens after mutual interest is confirmed',
+    deck: 'Both sides have confirmed interest. Here is the step-by-step process our team follows to facilitate an introduction.',
     category: 'introductions',
     readTime: 4,
     related: ['mutual-match-explained', 'how-introductions-work', 'introduction-etiquette'],
@@ -894,13 +899,13 @@ export const ARTICLES: HelpArticle[] = [
         type: 'step',
         number: 1,
         title: 'Our team is notified',
-        body: 'As soon as a mutual match is detected, our team receives an alert. We aim to begin the facilitation process within 1–2 business days.',
+        body: 'As soon as mutual interest is confirmed, our team receives an automatic alert. We aim to begin the facilitation process within 1–2 business days.',
       },
       {
         type: 'step',
         number: 2,
         title: 'We contact both families',
-        body: 'We reach out to both parties — usually by phone or email — to let them know there is a mutual match and to gauge whether they would like to proceed.',
+        body: 'We reach out to both parties — usually by phone or email — to let them know mutual interest has been confirmed and to gauge whether they would like to proceed.',
       },
       {
         type: 'step',
@@ -917,7 +922,7 @@ export const ARTICLES: HelpArticle[] = [
       {
         type: 'callout',
         title: 'Please be responsive',
-        body: 'When we contact you about a mutual match, please respond promptly. If we cannot reach you within a reasonable time, we may have to pause the process.',
+        body: 'When we contact you about a confirmed introduction, please respond promptly. If we cannot reach you within a reasonable time, we may have to pause the process.',
       },
       {
         type: 'p',
@@ -928,7 +933,7 @@ export const ARTICLES: HelpArticle[] = [
   {
     slug: 'when-a-request-expires',
     title: 'When a request expires without a match',
-    deck: 'Introduction requests expire after 30 days if no mutual match is detected. Here is what that means and what to do next.',
+    deck: 'Introduction requests expire after 30 days if mutual interest is not confirmed. Here is what that means and what to do next.',
     category: 'introductions',
     readTime: 2,
     related: ['no-response-guidance', 'requesting-an-introduction', 'monthly-request-limits'],
@@ -1462,7 +1467,7 @@ export const ARTICLES: HelpArticle[] = [
         items: [
           'Before submitting a profile — asking Allah for ease and the right outcome',
           'Before sending an introduction request for a specific person',
-          'After a mutual match, when deciding whether to proceed',
+          'After mutual interest is confirmed, when deciding whether to proceed',
           'At any point when you feel uncertain or need clarity',
         ],
       },
@@ -1516,7 +1521,7 @@ export const ARTICLES: HelpArticle[] = [
       },
       {
         type: 'p',
-        text: 'A well-written profile, a shortlist of good candidates, a mutual match — each of these is progress. Recognise them as such.',
+        text: 'A well-written profile, a shortlist of good candidates, a confirmed introduction — each of these is progress. Recognise them as such.',
       },
     ],
   },
@@ -1758,7 +1763,7 @@ export const ARTICLES: HelpArticle[] = [
       },
       {
         type: 'p',
-        text: 'Community Access is free with no credit card required. You can browse approved profiles, shortlist people, and send up to 2 introduction requests per month. You will see a summary view of profiles — full profile details are available on Plus and above.',
+        text: 'Community Access is free with no credit card required. You can browse approved profiles, shortlist people, and send up to 2 introduction requests per month. When responding to requests, you use simple Accept or Decline buttons — no templated responses. You will see a summary view of profiles — full profile details are available on Plus and above.',
       },
       {
         type: 'h2',
@@ -1766,7 +1771,7 @@ export const ARTICLES: HelpArticle[] = [
       },
       {
         type: 'p',
-        text: 'Plus gives you 5 introduction requests per month, full profile details for every member, and a monthly profile boost. It is ideal for members who are actively searching and want a meaningful step up from the free tier.',
+        text: 'Plus gives you 5 introduction requests per month, full profile details for every member, and a monthly profile boost. Plus and Premium members respond to requests using 10 formal Assalamu alaikum templates, giving responses a more considered, Islamic tone. It is ideal for members who are actively searching and want a meaningful step up from the free tier.',
       },
       {
         type: 'h2',
@@ -2039,7 +2044,7 @@ export const ARTICLES: HelpArticle[] = [
     blocks: [
       {
         type: 'p',
-        text: 'We send emails for important events: profile approval, introduction request updates, mutual matches, and account changes. You can manage which of these you receive from Settings.',
+        text: 'We send emails for important events: profile approval, introduction request updates, confirmed introductions, and account changes. You can manage which of these you receive from Settings.',
       },
       {
         type: 'h2',
