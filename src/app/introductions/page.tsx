@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import IntroductionsClient from './IntroductionsClient'
+import type { Plan } from '@/lib/plans'
 
 interface ManagedProfile {
   id: string
@@ -8,6 +9,13 @@ interface ManagedProfile {
   first_name: string | null
   gender: string | null
   status: string
+}
+
+interface ResponseTemplate {
+  id: string
+  tone: 'positive' | 'decline'
+  text: string
+  display_order: number
 }
 
 export default async function IntroductionsPage() {
@@ -51,6 +59,8 @@ export default async function IntroductionsPage() {
     { data: sentRows },
     { data: receivedRows },
     slResult,
+    { data: templateRows },
+    { data: subData },
   ] = await Promise.all([
     supabase
       .from('zawaaj_profiles')
@@ -65,12 +75,26 @@ export default async function IntroductionsPage() {
       .from('zawaaj_introduction_requests')
       .select('id, requesting_profile_id, status, created_at, expires_at')
       .eq('target_profile_id', activeProfileId)
+      .or('visible_at.is.null,visible_at.lte.' + new Date().toISOString())
       .order('created_at', { ascending: false }),
     supabase
       .from('zawaaj_saved_profiles')
       .select('id', { count: 'exact', head: true })
       .eq('profile_id', activeProfileId),
+    supabase
+      .from('zawaaj_response_templates')
+      .select('id, tone, text, display_order')
+      .eq('is_active', true)
+      .order('display_order', { ascending: true }),
+    supabase
+      .from('zawaaj_subscriptions')
+      .select('plan')
+      .eq('user_id', user.id)
+      .eq('status', 'active')
+      .maybeSingle(),
   ])
+
+  const plan: Plan = ((subData as { plan?: string } | null)?.plan ?? 'free') as Plan
 
   const managedProfiles: ManagedProfile[] = (profileRows ?? []).map(p => ({
     id: p.id,
@@ -131,6 +155,13 @@ export default async function IntroductionsPage() {
 
   const shortlistCount = slResult.count ?? 0
 
+  const responseTemplates: ResponseTemplate[] = (templateRows ?? []).map(t => ({
+    id: t.id as string,
+    tone: t.tone as 'positive' | 'decline',
+    text: t.text as string,
+    display_order: t.display_order as number,
+  }))
+
   return (
     <IntroductionsClient
       requests={requests}
@@ -144,6 +175,8 @@ export default async function IntroductionsPage() {
       }}
       managedProfiles={managedProfiles}
       activeProfileId={activeProfileId}
+      responseTemplates={responseTemplates}
+      plan={plan}
     />
   )
 }

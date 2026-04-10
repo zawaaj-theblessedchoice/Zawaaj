@@ -1,9 +1,15 @@
 import { createClient } from '@/lib/supabase/server'
-import { supabaseAdmin } from '@/lib/supabase/admin'
 import { NextResponse } from 'next/server'
 
-// Plan-aware monthly limits — single source of truth with plans.ts
+// Plan-aware monthly limits
 const MONTHLY_LIMITS: Record<string, number> = { free: 2, plus: 5, premium: 10 }
+
+// Plan-aware active request limits (pending = awaiting response)
+// Infinity is encoded as a large number for the DB count comparison
+const ACTIVE_LIMITS: Record<string, number> = { free: 1, plus: 2, premium: Infinity }
+
+// Request expiry window (brief: 7 days)
+const EXPIRY_DAYS = 7
 
 // ─── POST — Create introduction request ──────────────────────────────────────
 
@@ -114,6 +120,27 @@ export async function POST(request: Request): Promise<Response> {
       )
     }
 
+    // 4f2. Active request limit — count pending requests (awaiting response)
+    const activeLimit = ACTIVE_LIMITS[userPlan] ?? 1
+    if (activeLimit !== Infinity) {
+      const { count: activeCount, error: activeCountError } = await supabase
+        .from('zawaaj_introduction_requests')
+        .select('id', { count: 'exact', head: true })
+        .eq('requesting_profile_id', activeProfileId)
+        .eq('status', 'pending')
+
+      if (activeCountError) {
+        return NextResponse.json({ error: 'Failed to check active request limit' }, { status: 500 })
+      }
+
+      if ((activeCount ?? 0) >= activeLimit) {
+        return NextResponse.json(
+          { error: 'Active request limit reached', plan: userPlan, activeLimit },
+          { status: 422 }
+        )
+      }
+    }
+
     // 4g. Not already requested (pending, active, mutual, or facilitated)
     const { data: existingRequest, error: existingError } = await supabase
       .from('zawaaj_introduction_requests')
@@ -131,14 +158,27 @@ export async function POST(request: Request): Promise<Response> {
       return NextResponse.json({ error: 'Already requested' }, { status: 422 })
     }
 
-    // 5. Insert new request
+    // 5. Compute visible_at based on sender's plan (visibility delay)
+    // Premium = immediate, Plus = +24h, Free = +48h
+    const VISIBILITY_DELAY_MS: Record<string, number> = {
+      free: 48 * 60 * 60 * 1000,
+      plus: 24 * 60 * 60 * 1000,
+      premium: 0,
+    }
+    const delayMs = VISIBILITY_DELAY_MS[userPlan] ?? VISIBILITY_DELAY_MS.free
+    const visibleAt = delayMs > 0
+      ? new Date(Date.now() + delayMs).toISOString()
+      : null // null = immediately visible
+
+    // 6. Insert new request
     const { data: newRequest, error: insertError } = await supabase
       .from('zawaaj_introduction_requests')
       .insert({
         requesting_profile_id: activeProfileId,
         target_profile_id,
         status: 'pending',
-        expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        expires_at: new Date(Date.now() + EXPIRY_DAYS * 24 * 60 * 60 * 1000).toISOString(),
+        visible_at: visibleAt,
       })
       .select('id')
       .single()
@@ -147,48 +187,10 @@ export async function POST(request: Request): Promise<Response> {
       return NextResponse.json({ error: 'Failed to create introduction request' }, { status: 500 })
     }
 
-    // 6. Check for mutual — has target already requested us?
-    const { data: mutualRow, error: mutualError } = await supabase
-      .from('zawaaj_introduction_requests')
-      .select('id')
-      .eq('requesting_profile_id', target_profile_id)
-      .eq('target_profile_id', activeProfileId)
-      .eq('status', 'pending')
-      .gt('expires_at', new Date().toISOString())
-      .maybeSingle()
-
-    if (mutualError) {
-      // Non-fatal — we already inserted the request, just return non-mutual
-      return NextResponse.json({ success: true, mutual: false })
-    }
-
-    // 7. Mutual — update both rows
-    if (mutualRow) {
-      await supabase
-        .from('zawaaj_introduction_requests')
-        .update({ status: 'mutual', mutual_at: new Date().toISOString() })
-        .in('id', [newRequest.id, mutualRow.id])
-
-      // Create a match row so admin sees it in the Mutual/Introductions tab
-      await supabaseAdmin
-        .from('zawaaj_matches')
-        .insert({
-          profile_a_id: activeProfileId,
-          profile_b_id: target_profile_id,
-          mutual_date: new Date().toISOString(),
-          status: 'awaiting_admin',
-          admin_notified_date: null,
-          family_a_consented: false,
-          family_b_consented: false,
-        })
-        // Non-fatal — if insert fails, mutual is still detected for members
-        .maybeSingle()
-
-      return NextResponse.json({ success: true, mutual: true })
-    }
-
-    // 8. Not mutual
-    return NextResponse.json({ success: true, mutual: false })
+    // 7. Notify the target — but only if their request is already visible
+    //    If visible_at is in the future, the notification will be created when they first see it.
+    //    For now we just insert the request. Mutual is now formed via /respond, not dual-request.
+    return NextResponse.json({ success: true })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Internal server error'
     return NextResponse.json({ error: message }, { status: 500 })
