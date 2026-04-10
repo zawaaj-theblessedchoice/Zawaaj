@@ -71,7 +71,7 @@ export const CATEGORIES: HelpCategory[] = [
   {
     id: 'membership',
     title: 'Membership & billing',
-    description: 'Plans, billing, upgrading, and the voluntary contribution model.',
+    description: 'Community Access, Plus, and Premium plans — billing, upgrading, and what each tier includes.',
     icon: 'star',
     articleCount: 6,
   },
@@ -159,7 +159,7 @@ export const ARTICLES: HelpArticle[] = [
         type: 'step',
         number: 4,
         title: 'Request an introduction',
-        body: 'When you find someone you feel is worth exploring, you can send an introduction request. You can send up to five per month. The request is private — the other member does not see your name, only that someone has expressed interest.',
+        body: 'When you find someone you feel is worth exploring, you can send an introduction request. How many you can send per month depends on your membership tier (Community Access members get 2, Plus members get 5, Premium members get 10). The request is private — the other member does not see your name, only that someone has expressed interest.',
       },
       {
         type: 'step',
@@ -796,8 +796,8 @@ export const ARTICLES: HelpArticle[] = [
       },
       {
         type: 'callout',
-        title: 'You have 5 requests per month',
-        body: 'Use them thoughtfully. It is better to send five sincere requests than twenty hasty ones. The counter resets on the first of each month.',
+        title: 'Monthly request limits apply',
+        body: 'Community Access members can send 2 requests per month, Plus members 5, and Premium members 10. Use them thoughtfully — the counter resets on the first of each month.',
       },
       {
         type: 'p',
@@ -808,7 +808,7 @@ export const ARTICLES: HelpArticle[] = [
   {
     slug: 'monthly-request-limits',
     title: 'Monthly request limits — how they work and why',
-    deck: 'Each member can send up to five introduction requests per calendar month. Here is why we do this and how to make the most of your allowance.',
+    deck: 'Introduction requests are limited per calendar month depending on your membership tier. Here is why we do this and how to make the most of your allowance.',
     category: 'introductions',
     readTime: 3,
     related: ['requesting-an-introduction', 'how-introductions-work', 'introduction-etiquette'],
@@ -824,7 +824,9 @@ export const ARTICLES: HelpArticle[] = [
       {
         type: 'ul',
         items: [
-          '5 requests per profile per calendar month',
+          'Community Access: 2 requests per month',
+          'Zawaaj Plus: 5 requests per month',
+          'Zawaaj Premium: 10 requests per month',
           'The counter resets on the 1st of each month',
           'Pending requests that expire do not restore your allowance',
           'Requests you withdraw do not restore your allowance either',
@@ -841,7 +843,7 @@ export const ARTICLES: HelpArticle[] = [
       {
         type: 'callout',
         title: 'Quality over quantity',
-        body: 'Members who send five thoughtful requests tend to get better outcomes than those who rush through their allowance on the first day of each month.',
+        body: 'Members who send thoughtful, considered requests tend to get better outcomes than those who rush through their allowance on the first day of each month.',
       },
     ],
   },
@@ -1740,44 +1742,44 @@ export const ARTICLES: HelpArticle[] = [
   // ─── membership ──────────────────────────────────────────────────────────────
   {
     slug: 'plans-overview',
-    title: 'Plans overview — Voluntary, Plus, and Premium',
+    title: 'Plans overview — Community Access, Plus, and Premium',
     deck: 'Zawaaj offers three membership tiers. Here is what each one includes and how to decide which is right for you.',
     category: 'membership',
     readTime: 3,
-    related: ['upgrading-your-plan', 'voluntary-contribution-explained', 'billing-faq'],
+    related: ['upgrading-your-plan', 'billing-faq', 'monthly-request-limits'],
     blocks: [
       {
         type: 'p',
-        text: 'Zawaaj is free to use for all essential features. Our membership tiers are offered for members who want enhanced features or who wish to support the platform financially.',
+        text: 'Zawaaj offers a free Community Access tier alongside two paid plans. All members go through the same admin-facilitated introduction process — the tier you choose affects how many introductions you can send and which features are available to you.',
       },
       {
         type: 'h2',
-        text: 'Voluntary (free)',
+        text: 'Community Access (free)',
       },
       {
         type: 'p',
-        text: 'The free tier includes everything you need to find a match: browsing, shortlisting, 5 introduction requests per month, and full access to the facilitation process. No credit card required.',
+        text: 'Community Access is free with no credit card required. You can browse approved profiles, shortlist people, and send up to 2 introduction requests per month. You will see a summary view of profiles — full profile details are available on Plus and above.',
       },
       {
         type: 'h2',
-        text: 'Plus',
+        text: 'Zawaaj Plus',
       },
       {
         type: 'p',
-        text: 'Plus membership includes increased monthly introduction requests, priority facilitation, and the ability to see who has shortlisted your profile. It is ideal for members who are actively searching and want a little extra.',
+        text: 'Plus gives you 5 introduction requests per month, full profile details for every member, and a monthly profile boost. It is ideal for members who are actively searching and want a meaningful step up from the free tier.',
       },
       {
         type: 'h2',
-        text: 'Premium',
+        text: 'Zawaaj Premium',
       },
       {
         type: 'p',
-        text: 'Premium is our highest tier, with the maximum number of introduction requests, first access to newly approved profiles, and dedicated support. It is for members who want the most from the platform.',
+        text: 'Premium gives you 10 introduction requests per month, weekly profile boosts, concierge matching (our team proactively suggests profiles for you), and the ability to see who has viewed your profile. It is for members who want the most from the platform.',
       },
       {
         type: 'callout',
         title: 'No tier is better at finding a match',
-        body: 'A thoughtful, sincere free member will often find a match before a premium member who sends requests carelessly. The tier you choose affects your features, not your chances.',
+        body: 'A thoughtful, sincere Community Access member will often find a match before a Premium member who sends requests carelessly. The tier you choose affects your features, not your chances.',
       },
     ],
   },
@@ -1900,34 +1902,34 @@ export const ARTICLES: HelpArticle[] = [
       },
       {
         type: 'p',
-        text: 'After cancellation, your account reverts to the free Voluntary tier automatically. No further charges will be made.',
+        text: 'After cancellation, your account reverts to Community Access automatically. No further charges will be made.',
       },
     ],
   },
   {
     slug: 'voluntary-contribution-explained',
-    title: 'The voluntary contribution explained',
-    deck: 'The free tier is called "Voluntary" for a reason. Here is what that means.',
+    title: 'Why Community Access is free',
+    deck: 'The Community Access tier is genuinely free. Here is our thinking behind it.',
     category: 'membership',
     readTime: 2,
     related: ['plans-overview', 'upgrading-your-plan', 'billing-faq'],
     blocks: [
       {
         type: 'p',
-        text: 'We call our free tier "Voluntary" because we believe in the principle of contributing what you can. The platform is free to use — but it costs money to run. If Zawaaj has been useful to you, a voluntary contribution helps us keep it going for others.',
+        text: 'We believe that cost should never be a barrier to finding a spouse. Community Access gives every approved member the ability to browse, shortlist, and send introduction requests at no cost. It is not a trial or a stripped-down taster — it is a genuine tier.',
       },
       {
         type: 'h2',
-        text: 'How to make a voluntary contribution',
+        text: 'What is different about paid plans?',
       },
       {
         type: 'p',
-        text: 'From the Pricing page, you will find a voluntary contribution option. You can contribute any amount you feel is appropriate. It is a one-time payment, not a subscription.',
+        text: 'Plus and Premium offer more introduction requests per month, full profile detail access, profile boosts, and (for Premium) concierge matching. These features help members who are actively searching get more out of the platform — but they are not required to find a match.',
       },
       {
         type: 'callout',
-        title: 'No pressure, no guilt',
-        body: 'The free tier is genuinely free, with no hidden costs and no features removed to push you toward paid plans. If you cannot contribute, that is completely fine. We just wanted to make it easy for those who want to.',
+        title: 'Supporting the platform',
+        body: 'Paid memberships help keep Zawaaj running for everyone, including the Community Access members who cannot or choose not to pay. If the platform has been useful to you, upgrading is one way to give back.',
       },
     ],
   },
@@ -1952,7 +1954,7 @@ export const ARTICLES: HelpArticle[] = [
         items: [
           'Subscription periods you have already used',
           'Charges where you simply changed your mind after using the service',
-          'Voluntary contributions (these are non-refundable by nature)',
+          'Charges where you used the plan features during that period',
         ],
       },
       {
