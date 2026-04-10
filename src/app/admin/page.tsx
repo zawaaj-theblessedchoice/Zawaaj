@@ -2437,19 +2437,19 @@ export default function AdminPage() {
   const [events, setEvents] = useState<ZawaajEvent[]>([])
   const [loading, setLoading] = useState(true)
 
-  // Check admin access
+  // Check admin access via zawaaj_get_role() RPC
   useEffect(() => {
     async function checkAdmin() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { setAccessChecked(true); return }
       setCurrentUserId(user.id)
-      const { data } = await supabase
-        .from('zawaaj_profiles')
-        .select('is_admin')
-        .eq('user_id', user.id)
-        .eq('is_admin', true)
-        .maybeSingle()
-      setIsAdmin(!!data)
+      const { data: role } = await supabase.rpc('zawaaj_get_role')
+      if (role === 'manager') {
+        // Managers have a scoped admin role — redirect to their page
+        window.location.href = '/admin/introductions'
+        return
+      }
+      setIsAdmin(role === 'super_admin')
       setAccessChecked(true)
     }
     checkAdmin()
@@ -2605,6 +2605,7 @@ export default function AdminPage() {
             { href: '/admin/introductions', icon: '✉️', label: 'All Introductions', sub: 'View & facilitate requests' },
             { href: '/admin/subscriptions', icon: '💳', label: 'Subscriptions', sub: 'MRR, plans & overrides' },
             { href: '/admin/concierge', icon: '✦', label: 'Concierge Queue', sub: 'Suggest matches to Premium members' },
+            { href: '/admin/help', icon: '?', label: 'Admin Help', sub: 'Roles, workflow & responsibilities' },
           ].map(link => (
             <Link
               key={link.href}

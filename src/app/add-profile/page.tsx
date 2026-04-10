@@ -1020,7 +1020,7 @@ export default function AddProfilePage() {
 
   if (!authChecked) {
     return (
-      <div data-theme="dark" style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
+      <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
         <Sidebar activeRoute="/add-profile" shortlistCount={0} introRequestsCount={0} profile={null} />
         <main style={{ marginLeft: 200, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>Loading…</span>
@@ -1032,7 +1032,7 @@ export default function AddProfilePage() {
   const totalSteps = STEPS.length
 
   return (
-    <div data-theme="dark" style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
       <Sidebar
         activeRoute={pathname ?? '/add-profile'}
         shortlistCount={shortlistCount}

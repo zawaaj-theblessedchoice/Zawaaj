@@ -29,9 +29,10 @@ export default async function IntroductionsPage() {
 
   if (userError || !user) redirect('/login')
 
-  // Admin check
-  const { data: isAdmin } = await supabase.rpc('zawaaj_is_admin')
-  if (isAdmin) redirect('/admin')
+  // Admin check — super_admin → /admin, manager → /admin/introductions
+  const { data: role } = await supabase.rpc('zawaaj_get_role')
+  if (role === 'super_admin') redirect('/admin')
+  if (role === 'manager') redirect('/admin/introductions')
 
   // Get active profile
   const { data: settings } = await supabase

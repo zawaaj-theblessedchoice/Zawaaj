@@ -192,7 +192,7 @@ function PlanCard({ plan, annual }: { plan: typeof PLANS[number]; annual: boolea
 
 // ─── Main landing page ────────────────────────────────────────────────────────
 
-export default function LandingPage() {
+export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
   const [annual, setAnnual] = useState(false)
 
   return (
@@ -209,12 +209,20 @@ export default function LandingPage() {
             <a href="#faq" className="hover:text-white transition-colors">FAQ</a>
           </div>
           <div className="flex items-center gap-3">
-            <Link href="/login" className="text-sm text-white/60 hover:text-white px-4 py-2 rounded-xl border border-white/10 hover:bg-white/5 transition-colors">
-              Sign in
-            </Link>
-            <Link href="/signup" className="text-sm font-semibold px-4 py-2 rounded-xl bg-gold text-black hover:bg-[var(--gold-hover)] transition-colors">
-              Create profile
-            </Link>
+            {isLoggedIn ? (
+              <Link href="/browse" className="text-sm font-semibold px-4 py-2 rounded-xl bg-gold text-black hover:bg-[var(--gold-hover)] transition-colors">
+                Browse profiles →
+              </Link>
+            ) : (
+              <>
+                <Link href="/login" className="text-sm text-white/60 hover:text-white px-4 py-2 rounded-xl border border-white/10 hover:bg-white/5 transition-colors">
+                  Sign in
+                </Link>
+                <Link href="/signup" className="text-sm font-semibold px-4 py-2 rounded-xl bg-gold text-black hover:bg-[var(--gold-hover)] transition-colors">
+                  Create profile
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </nav>
@@ -233,12 +241,20 @@ export default function LandingPage() {
           Every introduction is admin-mediated. No direct messaging. No photos. Just sincere, halal searching.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Link href="/signup" className="px-8 py-3.5 rounded-xl text-sm font-semibold bg-gold text-black hover:bg-[var(--gold-hover)] transition-colors">
-            Create your profile →
-          </Link>
-          <Link href="/login" className="px-8 py-3.5 rounded-xl text-sm font-medium border border-white/15 text-white hover:bg-white/5 transition-colors">
-            Sign in
-          </Link>
+          {isLoggedIn ? (
+            <Link href="/browse" className="px-8 py-3.5 rounded-xl text-sm font-semibold bg-gold text-black hover:bg-[var(--gold-hover)] transition-colors">
+              Browse profiles →
+            </Link>
+          ) : (
+            <>
+              <Link href="/signup" className="px-8 py-3.5 rounded-xl text-sm font-semibold bg-gold text-black hover:bg-[var(--gold-hover)] transition-colors">
+                Create your profile →
+              </Link>
+              <Link href="/login" className="px-8 py-3.5 rounded-xl text-sm font-medium border border-white/15 text-white hover:bg-white/5 transition-colors">
+                Sign in
+              </Link>
+            </>
+          )}
         </div>
         <p className="mt-5 text-xs text-white/30">Invite-only platform · All profiles manually reviewed · UK-based</p>
       </section>

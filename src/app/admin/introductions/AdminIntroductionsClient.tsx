@@ -552,9 +552,18 @@ export default function AdminIntroductionsClient({
       {/* Top nav */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
         <ZawaajLogo size={32} tagline={false} />
-        <Link href="/admin" className="text-sm text-white/50 hover:text-white/80 transition-colors">
-          ← Back to dashboard
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link href="/admin/help" className="text-sm text-white/40 hover:text-white/70 transition-colors">
+            ? Help
+          </Link>
+          <Link
+            href={role === 'super_admin' ? '/admin' : '#'}
+            className="text-sm text-white/50 hover:text-white/80 transition-colors"
+            style={role === 'manager' ? { pointerEvents: 'none', opacity: 0.3 } : undefined}
+          >
+            ← Back to dashboard
+          </Link>
+        </div>
       </div>
 
       {/* Page header */}

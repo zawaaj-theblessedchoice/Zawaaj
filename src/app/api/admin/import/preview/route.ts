@@ -90,8 +90,8 @@ export async function POST(req: NextRequest): Promise<Response> {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const { data: isAdmin } = await supabase.rpc('zawaaj_is_admin')
-    if (!isAdmin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    const { data: isSuperAdmin } = await supabase.rpc('zawaaj_is_super_admin')
+    if (!isSuperAdmin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
     const csvText = await req.text()
     if (!csvText.trim()) {

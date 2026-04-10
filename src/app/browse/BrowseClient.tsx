@@ -356,6 +356,9 @@ export default function BrowseClient({
       : 'recommended'
 
   const [activeTab, setActiveTab] = useState<Tab>(initialTab)
+  // Sync tab state when URL changes (e.g. sidebar link clicks change the URL
+  // without calling handleTabChange, so the useState initialiser doesn't rerun)
+  useEffect(() => { setActiveTab(initialTab) }, [initialTab])
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set(initialSavedIds))
   const [introRequests, setIntroRequests] = useState<IntroRequest[]>(initialIntroRequests)
   const [monthlyUsed, setMonthlyUsed] = useState(initialMonthlyUsed)

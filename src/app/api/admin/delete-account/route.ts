@@ -22,8 +22,8 @@ export async function POST(request: Request): Promise<Response> {
     const supabase = await createClient()
 
     // Verify caller is admin
-    const { data: isAdmin } = await supabase.rpc('zawaaj_is_admin')
-    if (!isAdmin) {
+    const { data: isSuperAdmin } = await supabase.rpc('zawaaj_is_super_admin')
+    if (!isSuperAdmin) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 

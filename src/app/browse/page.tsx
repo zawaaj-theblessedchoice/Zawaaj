@@ -22,11 +22,14 @@ export default async function BrowsePage({
     redirect('/login')
   }
 
-  // 2. Admin check — use the SECURITY DEFINER RPC so it's always authoritative.
-  //    Admins never use the member browse UI; send them straight to /admin.
+  // 2. Admin check — use zawaaj_get_role() so managers route correctly.
+  //    super_admin → /admin dashboard, manager → /admin/introductions.
   //    Exception: ?preview=1 lets an admin see the member-facing browse view.
-  const { data: isAdmin } = await supabase.rpc('zawaaj_is_admin')
-  if (isAdmin && params.preview !== '1') redirect('/admin')
+  if (params.preview !== '1') {
+    const { data: role } = await supabase.rpc('zawaaj_get_role')
+    if (role === 'super_admin') redirect('/admin')
+    if (role === 'manager') redirect('/admin/introductions')
+  }
 
   // 3. Get active_profile_id
   const { data: settings } = await supabase

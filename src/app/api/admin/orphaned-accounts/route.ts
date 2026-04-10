@@ -11,8 +11,8 @@ export async function GET(): Promise<Response> {
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     // Admin check
-    const { data: isAdmin } = await supabase.rpc('zawaaj_is_admin')
-    if (!isAdmin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    const { data: isSuperAdmin } = await supabase.rpc('zawaaj_is_super_admin')
+    if (!isSuperAdmin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
     // List all auth users (up to 1000 — sufficient for an MVP)
     const { data: { users }, error: listError } = await supabaseAdmin.auth.admin.listUsers({

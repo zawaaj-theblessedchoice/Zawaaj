@@ -141,13 +141,13 @@ export async function POST(request: Request): Promise<Response> {
       }
     }
 
-    // 4g. Not already requested (pending, active, mutual, or facilitated)
+    // 4g. Not already requested with an active (non-terminal) status
     const { data: existingRequest, error: existingError } = await supabase
       .from('zawaaj_introduction_requests')
       .select('id')
       .eq('requesting_profile_id', activeProfileId)
       .eq('target_profile_id', target_profile_id)
-      .in('status', ['pending', 'active', 'mutual', 'facilitated'])
+      .in('status', ['pending', 'mutual_confirmed', 'admin_pending', 'admin_assigned', 'admin_in_progress'])
       .maybeSingle()
 
     if (existingError) {
