@@ -55,7 +55,7 @@ interface ProfileModalProps {
   onRequestIntro: (profileId: string) => void
   monthlyUsed: number
   /** Member's current plan — controls locked sections */
-  plan?: 'voluntary' | 'plus' | 'premium'
+  plan?: 'free' | 'plus' | 'premium'
 }
 
 function calcAge(dateOfBirth: string | null): number | null {
@@ -160,14 +160,16 @@ export default function ProfileModal({
   introStatus,
   onRequestIntro,
   monthlyUsed,
-  plan = 'voluntary',
+  plan = 'free',
 }: ProfileModalProps) {
   const [toastMsg, setToastMsg] = useState<string | null>(null)
   const [confirmingIntro, setConfirmingIntro] = useState(false)
   const [bioExpanded, setBioExpanded] = useState(false)
   const [showUpgrade, setShowUpgrade] = useState(false)
 
-  const isVoluntary = plan === 'voluntary'
+  const isFree = plan === 'free'
+  const PLAN_MONTHLY_LIMITS = { free: 2, plus: 5, premium: 10 } as const
+  const monthlyLimit = PLAN_MONTHLY_LIMITS[plan as keyof typeof PLAN_MONTHLY_LIMITS] ?? 2
 
   const isOpen = profile !== null
 
@@ -319,7 +321,7 @@ export default function ProfileModal({
                           >
                             Monthly limit reached
                           </button>
-                          {isVoluntary && (
+                          {isFree && (
                             <button
                               onClick={() => setShowUpgrade(true)}
                               style={{
@@ -457,7 +459,7 @@ export default function ProfileModal({
                   }}
                 >
                   The admin will be notified privately. This uses 1 of your{' '}
-                  {5 - monthlyUsed} remaining monthly requests.
+                  {monthlyLimit - monthlyUsed} remaining monthly requests.
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button
@@ -546,6 +548,7 @@ export default function ProfileModal({
               <SectionDivider />
               <SectionLabel>About</SectionLabel>
 
+              {/* Summary fields visible to all plans */}
               <FieldRow
                 label="Age"
                 value={
@@ -554,163 +557,185 @@ export default function ProfileModal({
                     : profile.age_display ?? null
                 }
               />
+              {/* Location + school of thought visible to all — these appear on browse cards too */}
               <FieldRow label="Location" value={profile.location} />
-              <FieldRow label="Profession" value={profile.profession_detail} />
-              <FieldRow label="Education" value={profile.education_level} />
               <FieldRow label="School of thought" value={profile.school_of_thought} />
               <FieldRow label="Ethnicity" value={profile.ethnicity} />
-              <FieldRow label="Languages" value={profile.languages_spoken} />
-              <FieldRow label="Nationality" value={profile.nationality} />
-              <FieldRow
-                label="Marital status"
-                value={displayMaritalStatus(profile.marital_status)}
-              />
-              <FieldRow
-                label="Has children"
-                value={
-                  profile.has_children === true
-                    ? 'Yes'
-                    : profile.has_children === false
-                    ? 'No'
-                    : null
-                }
-              />
-              {profile.height && <FieldRow label="Height" value={profile.height} />}
-              <FieldRow
-                label="Living situation"
-                value={displayLivingSituation(profile.living_situation)}
-              />
 
-              {/* ── Faith & values ────────────────────────────────────────── */}
-              <SectionDivider />
-              <SectionLabel>Faith &amp; values</SectionLabel>
-
-              <FieldRow label="Religiosity" value={profile.religiosity} />
-              <FieldRow
-                label="Prayer regularity"
-                value={displayPrayerRegularity(profile.prayer_regularity)}
-              />
-              {profile.gender === 'female' && (
-                <FieldRow
-                  label="Wears hijab"
-                  value={
-                    profile.wears_hijab === true
-                      ? 'Yes'
-                      : profile.wears_hijab === false
-                      ? 'No'
-                      : null
-                  }
-                />
-              )}
-              {profile.gender === 'male' && (
-                <FieldRow
-                  label="Keeps beard"
-                  value={
-                    profile.keeps_beard === true
-                      ? 'Yes'
-                      : profile.keeps_beard === false
-                      ? 'No'
-                      : null
-                  }
-                />
-              )}
-
-              {/* ── About me / bio ────────────────────────────────────────── */}
-              {profile.bio && profile.bio.trim().length > 0 && (
+              {/* ── Full details — Plus / Premium only ───────────────────── */}
+              {isFree && !isOwnProfile ? (
                 <>
                   <SectionDivider />
-                  <SectionLabel>About me</SectionLabel>
-                  <div
-                    style={{
-                      fontSize: 13,
-                      color: 'var(--text-secondary)',
-                      lineHeight: 1.6,
-                      overflow: 'hidden',
-                      maxHeight: bioExpanded ? 'none' : '5.2em',
-                    }}
-                  >
-                    {profile.bio}
-                  </div>
-                  <button
-                    onClick={() => setBioExpanded(prev => !prev)}
-                    style={{
-                      marginTop: 6,
-                      background: 'none',
-                      border: 'none',
-                      color: 'var(--gold)',
-                      fontSize: 12,
-                      cursor: 'pointer',
-                      padding: 0,
-                    }}
-                  >
-                    {bioExpanded ? 'Read less' : 'Read more'}
-                  </button>
-                </>
-              )}
-
-              {/* ── Upgrade nudge — Voluntary only, shown once between sections ── */}
-              {isVoluntary && !isOwnProfile && (
-                <>
-                  <SectionDivider />
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 12,
-                      padding: '12px 14px',
-                      borderRadius: 10,
-                      background: 'rgba(184,150,12,0.06)',
-                      border: '0.5px solid rgba(184,150,12,0.25)',
-                      margin: '4px 0',
-                    }}
-                  >
-                    <span style={{ fontSize: 18, flexShrink: 0 }}>🔒</span>
-                    <div style={{ flex: 1 }}>
-                      <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-primary)', marginBottom: 2 }}>
-                        Unlock full profile details
-                      </p>
-                      <p style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.4 }}>
-                        See the complete bio, faith depth, and lifestyle notes.
-                      </p>
+                  {/* Blurred preview rows to hint at hidden content */}
+                  <div style={{ position: 'relative', userSelect: 'none' }}>
+                    <div style={{ filter: 'blur(4px)', opacity: 0.4, pointerEvents: 'none' }}>
+                      <FieldRow label="Profession" value="Doctor · NHS Trust" />
+                      <FieldRow label="Education" value="Postgraduate" />
+                      <FieldRow label="Marital status" value="Never married" />
+                      <FieldRow label="Living situation" value="Independent" />
+                      <FieldRow label="Religiosity" value="Practising" />
+                      <FieldRow label="Prayer regularity" value="Yes, regularly" />
                     </div>
-                    <button
-                      onClick={() => setShowUpgrade(true)}
+                    <div
                       style={{
-                        flexShrink: 0,
-                        padding: '6px 12px',
-                        borderRadius: 7,
-                        fontSize: 11,
-                        fontWeight: 600,
-                        background: 'var(--gold)',
-                        border: 'none',
-                        color: 'var(--surface)',
-                        cursor: 'pointer',
-                        whiteSpace: 'nowrap',
+                        position: 'absolute',
+                        inset: 0,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 10,
                       }}
                     >
-                      Upgrade to Plus
-                    </button>
+                      <div
+                        style={{
+                          padding: '14px 18px',
+                          borderRadius: 12,
+                          background: 'var(--surface-2)',
+                          border: '0.5px solid var(--border-gold)',
+                          textAlign: 'center',
+                          boxShadow: '0 4px 24px rgba(0,0,0,0.15)',
+                          maxWidth: 240,
+                        }}
+                      >
+                        <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>
+                          Full profile details
+                        </p>
+                        <p style={{ fontSize: 11.5, color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: 12 }}>
+                          Profession, education, faith depth, bio and lifestyle — visible on Zawaaj Plus.
+                        </p>
+                        <button
+                          onClick={() => setShowUpgrade(true)}
+                          style={{
+                            width: '100%',
+                            padding: '8px 0',
+                            borderRadius: 8,
+                            fontSize: 12,
+                            fontWeight: 600,
+                            background: 'var(--gold)',
+                            border: 'none',
+                            color: 'var(--surface)',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          Upgrade to Plus →
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </>
+              ) : (
+                <>
+                  <FieldRow label="Profession" value={profile.profession_detail} />
+                  <FieldRow label="Education" value={profile.education_level} />
+                  <FieldRow label="Languages" value={profile.languages_spoken} />
+                  <FieldRow label="Nationality" value={profile.nationality} />
+                  <FieldRow
+                    label="Marital status"
+                    value={displayMaritalStatus(profile.marital_status)}
+                  />
+                  <FieldRow
+                    label="Has children"
+                    value={
+                      profile.has_children === true
+                        ? 'Yes'
+                        : profile.has_children === false
+                        ? 'No'
+                        : null
+                    }
+                  />
+                  {profile.height && <FieldRow label="Height" value={profile.height} />}
+                  <FieldRow
+                    label="Living situation"
+                    value={displayLivingSituation(profile.living_situation)}
+                  />
+
+                  {/* ── Faith & values ──────────────────────────────────── */}
+                  <SectionDivider />
+                  <SectionLabel>Faith &amp; values</SectionLabel>
+
+                  <FieldRow label="Religiosity" value={profile.religiosity} />
+                  <FieldRow
+                    label="Prayer regularity"
+                    value={displayPrayerRegularity(profile.prayer_regularity)}
+                  />
+                  {profile.gender === 'female' && (
+                    <FieldRow
+                      label="Wears hijab"
+                      value={
+                        profile.wears_hijab === true
+                          ? 'Yes'
+                          : profile.wears_hijab === false
+                          ? 'No'
+                          : null
+                      }
+                    />
+                  )}
+                  {profile.gender === 'male' && (
+                    <FieldRow
+                      label="Keeps beard"
+                      value={
+                        profile.keeps_beard === true
+                          ? 'Yes'
+                          : profile.keeps_beard === false
+                          ? 'No'
+                          : null
+                      }
+                    />
+                  )}
+
+                  {/* ── About me / bio ───────────────────────────────────── */}
+                  {profile.bio && profile.bio.trim().length > 0 && (
+                    <>
+                      <SectionDivider />
+                      <SectionLabel>About me</SectionLabel>
+                      <div
+                        style={{
+                          fontSize: 13,
+                          color: 'var(--text-secondary)',
+                          lineHeight: 1.6,
+                          overflow: 'hidden',
+                          maxHeight: bioExpanded ? 'none' : '5.2em',
+                        }}
+                      >
+                        {profile.bio}
+                      </div>
+                      <button
+                        onClick={() => setBioExpanded(prev => !prev)}
+                        style={{
+                          marginTop: 6,
+                          background: 'none',
+                          border: 'none',
+                          color: 'var(--gold)',
+                          fontSize: 12,
+                          cursor: 'pointer',
+                          padding: 0,
+                        }}
+                      >
+                        {bioExpanded ? 'Read less' : 'Read more'}
+                      </button>
+                    </>
+                  )}
+
+                  {/* ── Looking for ─────────────────────────────────────── */}
+                  <SectionDivider />
+                  <SectionLabel>Looking for</SectionLabel>
+
+                  <FieldRow label="Preferred age" value={prefAgeDisplay} />
+                  <FieldRow label="Preferred location" value={profile.pref_location} />
+                  <FieldRow label="Ethnicity preference" value={profile.pref_ethnicity} />
+                  <FieldRow
+                    label="School of thought"
+                    value={
+                      profile.pref_school_of_thought && profile.pref_school_of_thought.length > 0
+                        ? profile.pref_school_of_thought.join(', ')
+                        : null
+                    }
+                  />
+                  <FieldRow label="Relocation" value={profile.pref_relocation} />
+                  <FieldRow label="Partner&apos;s children" value={profile.pref_partner_children} />
+                </>
               )}
-
-              {/* ── Looking for ──────────────────────────────────────────── */}
-              <SectionDivider />
-              <SectionLabel>Looking for</SectionLabel>
-
-              <FieldRow label="Preferred age" value={prefAgeDisplay} />
-              <FieldRow label="Preferred location" value={profile.pref_location} />
-              <FieldRow label="Ethnicity preference" value={profile.pref_ethnicity} />
-              <FieldRow
-                label="School of thought"
-                value={
-                  profile.pref_school_of_thought && profile.pref_school_of_thought.length > 0
-                    ? profile.pref_school_of_thought.join(', ')
-                    : null
-                }
-              />
-              <FieldRow label="Relocation" value={profile.pref_relocation} />
-              <FieldRow label="Partner&apos;s children" value={profile.pref_partner_children} />
             </div>
 
             {/* ── Privacy note ─────────────────────────────────────────────── */}

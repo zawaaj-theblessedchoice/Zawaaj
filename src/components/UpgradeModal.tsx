@@ -20,11 +20,11 @@ interface UpgradeModalProps {
 // ─── Plan data (compact — 5 key rows) ────────────────────────────────────────
 
 const KEY_ROWS = [
-  { feature: 'Monthly requests',    voluntary: '5',    plus: '15',         premium: 'Unlimited' },
-  { feature: 'Profile boost',       voluntary: '—',    plus: '1× / month', premium: 'Weekly' },
-  { feature: 'Full profile detail', voluntary: 'Basic', plus: '✓',         premium: '✓' },
-  { feature: 'See who viewed you',  voluntary: '—',    plus: '—',          premium: '✓' },
-  { feature: 'Concierge matching',  voluntary: '—',    plus: '—',          premium: '✓' },
+  { feature: 'Monthly requests',    free: '2',    plus: '5',          premium: '10' },
+  { feature: 'Profile boost',       free: '—',    plus: '1× / month', premium: 'Weekly' },
+  { feature: 'Full profile detail', free: 'Basic', plus: '✓',         premium: '✓' },
+  { feature: 'See who viewed you',  free: '—',    plus: '—',          premium: '✓' },
+  { feature: 'Concierge matching',  free: '—',    plus: '—',          premium: '✓' },
 ]
 
 const TRIGGER_COPY: Record<UpgradeTrigger, { icon: string; heading: string; sub: string }> = {
@@ -42,7 +42,7 @@ export default function UpgradeModal({ trigger, onClose }: UpgradeModalProps) {
   const copy = TRIGGER_COPY[trigger]
 
   const plans = [
-    { key: 'voluntary', name: 'Voluntary', monthly: 0,  annual: 0,  highlight: false, col: 0 },
+    { key: 'free', name: 'Community Access', monthly: 0,  annual: 0,  highlight: false, col: 0 },
     { key: 'plus',      name: 'Plus',      monthly: 9,  annual: 7,  highlight: trigger === 'intro_limit' || trigger === 'boost' || trigger === 'locked_profile', col: 1 },
     { key: 'premium',   name: 'Premium',   monthly: 19, annual: 15, highlight: trigger === 'who_viewed' || trigger === 'premium_match', col: 2 },
   ]
@@ -134,8 +134,8 @@ export default function UpgradeModal({ trigger, onClose }: UpgradeModalProps) {
                   )}
                 </div>
                 <Link
-                  href={p.key === 'voluntary' ? '#' : '/pricing'}
-                  onClick={p.key === 'voluntary' ? onClose : undefined}
+                  href={p.key === 'free' ? '#' : '/pricing'}
+                  onClick={p.key === 'free' ? onClose : undefined}
                   style={{
                     display: 'block', textAlign: 'center',
                     padding: '7px 0', borderRadius: 8, fontSize: 12, fontWeight: 500,
@@ -145,7 +145,7 @@ export default function UpgradeModal({ trigger, onClose }: UpgradeModalProps) {
                     textDecoration: 'none', transition: 'opacity 0.15s',
                   }}
                 >
-                  {p.key === 'voluntary' ? 'Current' : 'Upgrade →'}
+                  {p.key === 'free' ? 'Current' : 'Upgrade →'}
                 </Link>
               </div>
             )
@@ -168,7 +168,7 @@ export default function UpgradeModal({ trigger, onClose }: UpgradeModalProps) {
               borderTop: '0.5px solid var(--border-default)',
             }}>
               <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{row.feature}</span>
-              <span style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'center' }}>{row.voluntary}</span>
+              <span style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'center' }}>{row.free}</span>
               <span style={{ fontSize: 11, color: 'var(--text-primary)', textAlign: 'center' }}>{row.plus}</span>
               <span style={{ fontSize: 11, color: 'var(--gold)', textAlign: 'center', fontWeight: 500 }}>{row.premium}</span>
             </div>

@@ -295,12 +295,12 @@ export async function POST(req: NextRequest): Promise<Response> {
         console.error(`[import] user_settings insert failed for ${email}:`, settingsErr.message)
       }
 
-      // ── 4. Insert voluntary subscription ────────────────────────────────────
+      // ── 4. Insert free subscription ──────────────────────────────────────────
       const { error: subErr } = await supabaseAdmin
         .from('zawaaj_subscriptions')
         .insert({
           user_id: newUserId,
-          plan:    'voluntary',
+          plan:    'free',
           status:  'active',
         })
 

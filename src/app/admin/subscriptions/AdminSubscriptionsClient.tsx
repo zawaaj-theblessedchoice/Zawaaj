@@ -19,7 +19,7 @@ function profileName(p: SubscriptionRow['profile']): string {
 }
 
 const PLAN_BADGE: Record<string, { bg: string; text: string; label: string }> = {
-  voluntary: { bg: 'rgba(255,255,255,0.06)', text: 'rgba(255,255,255,0.45)', label: 'Free' },
+  free:      { bg: 'rgba(255,255,255,0.06)', text: 'rgba(255,255,255,0.45)', label: 'Free' },
   plus:      { bg: 'var(--status-info-bg)',   text: 'var(--status-info)',     label: 'Plus' },
   premium:   { bg: 'var(--gold-muted)',       text: 'var(--gold)',            label: 'Premium' },
 }
@@ -31,7 +31,7 @@ const STATUS_BADGE: Record<string, { bg: string; text: string }> = {
   trialing:  { bg: 'var(--status-warning-bg)', text: 'var(--status-warning)' },
 }
 
-const PLAN_PRICES = { voluntary: 0, plus: 9, premium: 19 }
+const PLAN_PRICES = { free: 0, plus: 9, premium: 19 }
 
 // ─── Override modal ───────────────────────────────────────────────────────────
 
@@ -77,7 +77,7 @@ function OverrideModal({
         </p>
 
         <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
-          {(['voluntary', 'plus', 'premium'] as const).map(p => {
+          {(['free', 'plus', 'premium'] as const).map(p => {
             const b = PLAN_BADGE[p]
             return (
               <button

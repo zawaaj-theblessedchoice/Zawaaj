@@ -166,7 +166,7 @@ export default function MyProfilePage() {
   const [withdrawReason, setWithdrawReason] = useState(WITHDRAWAL_REASONS[0])
   const [withdrawn, setWithdrawn] = useState(false)
   const [bioExpanded, setBioExpanded] = useState(false)
-  const [plan, setPlan] = useState<'voluntary' | 'plus' | 'premium'>('voluntary')
+  const [plan, setPlan] = useState<'free' | 'plus' | 'premium'>('free')
   const [showViewsUpgrade, setShowViewsUpgrade] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [editSection, setEditSection] = useState<string>('about')
@@ -257,7 +257,7 @@ export default function MyProfilePage() {
         .eq('user_id', user.id)
         .eq('status', 'active')
         .maybeSingle()
-      setPlan((subData?.plan ?? 'voluntary') as 'voluntary' | 'plus' | 'premium')
+      setPlan((subData?.plan ?? 'free') as 'free' | 'plus' | 'premium')
 
       // Sidebar counts
       const [slResult, irCountResult] = await Promise.all([

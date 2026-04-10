@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import Sidebar from '@/components/Sidebar'
 
-type Plan = 'voluntary' | 'plus' | 'premium'
+type Plan = 'free' | 'plus' | 'premium'
 type Tab = 'membership' | 'account' | 'privacy'
 type ThemeMode = 'light' | 'dark' | 'system'
 
@@ -18,38 +18,38 @@ interface Subscription {
 }
 
 const PLAN_LABELS: Record<Plan, string> = {
-  voluntary: 'Voluntary',
+  free:    'Community Access',
   plus:      'Zawaaj Plus',
   premium:   'Zawaaj Premium',
 }
 
 const PLAN_PRICES: Record<Plan, { monthly: number; annual: number }> = {
-  voluntary: { monthly: 0,  annual: 0 },
+  free:    { monthly: 0,  annual: 0 },
   plus:      { monthly: 9,  annual: 7 },
   premium:   { monthly: 19, annual: 15 },
 }
 
 const PLAN_COLORS: Record<Plan, string> = {
-  voluntary: 'rgba(255,255,255,0.08)',
+  free:    'rgba(255,255,255,0.08)',
   plus:      'rgba(96,165,250,0.12)',
   premium:   'rgba(184,150,12,0.15)',
 }
 
 const PLAN_TEXT: Record<Plan, string> = {
-  voluntary: 'rgba(255,255,255,0.5)',
+  free:    'rgba(255,255,255,0.5)',
   plus:      'var(--status-info)',
   premium:   'var(--gold-light)',
 }
 
 const COMPARISON_ROWS = [
-  { feature: 'Monthly introduction requests', voluntary: '5', plus: '15', premium: 'Unlimited' },
-  { feature: 'Profile boost',                 voluntary: '—', plus: '1× / month', premium: 'Weekly' },
-  { feature: 'Spotlight listing',             voluntary: '—', plus: '—', premium: '1× / month' },
-  { feature: 'Full profile details',          voluntary: 'Summary', plus: '✓', premium: '✓' },
-  { feature: 'New profile alerts',            voluntary: '—', plus: '✓', premium: '✓' },
-  { feature: 'See who viewed you',            voluntary: '—', plus: '—', premium: '✓' },
-  { feature: 'Concierge matching',            voluntary: '—', plus: '—', premium: '✓' },
-  { feature: 'Email support',                 voluntary: 'Standard', plus: 'Priority', premium: 'Priority' },
+  { feature: 'Monthly introduction requests', free: '2', plus: '5', premium: '10' },
+  { feature: 'Profile boost',                 free: '—', plus: '1× / month', premium: 'Weekly' },
+  { feature: 'Spotlight listing',             free: '—', plus: '—', premium: '1× / month' },
+  { feature: 'Full profile details',          free: 'Summary', plus: '✓', premium: '✓' },
+  { feature: 'New profile alerts',            free: '—', plus: '✓', premium: '✓' },
+  { feature: 'See who viewed you',            free: '—', plus: '—', premium: '✓' },
+  { feature: 'Concierge matching',            free: '—', plus: '—', premium: '✓' },
+  { feature: 'Email support',                 free: 'Standard', plus: 'Priority', premium: 'Priority' },
 ]
 
 function PlanBadge({ plan }: { plan: Plan }) {
@@ -144,14 +144,14 @@ function SettingsContent() {
         .eq('status', 'active')
         .maybeSingle()
 
-      setSub(subData ?? { plan: 'voluntary', status: 'active', current_period_end: null, cancel_at_period_end: false })
+      setSub(subData ?? { plan: 'free', status: 'active', current_period_end: null, cancel_at_period_end: false })
       setLoading(false)
     }
     void load()
   }, [])
 
-  const currentPlan: Plan = (sub?.plan as Plan) ?? 'voluntary'
-  const isPaid = currentPlan !== 'voluntary'
+  const currentPlan: Plan = (sub?.plan as Plan) ?? 'free'
+  const isPaid = currentPlan !== 'free'
 
   async function startCheckout(plan: 'plus' | 'premium') {
     const billing = annual ? 'annual' : 'monthly'
@@ -327,7 +327,7 @@ function SettingsContent() {
 
                   {/* Plan upgrade cards */}
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
-                    {(['voluntary', 'plus', 'premium'] as const).map(p => {
+                    {(['free', 'plus', 'premium'] as const).map(p => {
                       const price = annual ? PLAN_PRICES[p].annual : PLAN_PRICES[p].monthly
                       const isCurrent = p === currentPlan
                       return (
@@ -355,7 +355,7 @@ function SettingsContent() {
                           {annual && PLAN_PRICES[p].monthly > 0 && (
                             <p style={{ fontSize: 10, color: 'var(--gold)', marginBottom: 10 }}>£{PLAN_PRICES[p].annual * 12}/yr · save 20%</p>
                           )}
-                          {!isCurrent && p !== 'voluntary' && (
+                          {!isCurrent && p !== 'free' && (
                             <button
                               onClick={() => startCheckout(p)}
                               disabled={checkoutLoading !== null}
@@ -393,7 +393,7 @@ function SettingsContent() {
                         borderTop: '0.5px solid var(--border-default)',
                       }}>
                         <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{row.feature}</span>
-                        <span style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center' }}>{row.voluntary}</span>
+                        <span style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center' }}>{row.free}</span>
                         <span style={{ fontSize: 12, color: currentPlan === 'plus' ? 'var(--text-primary)' : 'var(--text-secondary)', textAlign: 'center' }}>{row.plus}</span>
                         <span style={{ fontSize: 12, color: currentPlan === 'premium' ? 'var(--gold-light)' : 'var(--text-secondary)', textAlign: 'center', fontWeight: currentPlan === 'premium' ? 500 : 400 }}>{row.premium}</span>
                       </div>

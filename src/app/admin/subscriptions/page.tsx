@@ -6,7 +6,7 @@ import AdminSubscriptionsClient from './AdminSubscriptionsClient'
 export interface SubscriptionRow {
   id: string
   user_id: string
-  plan: 'voluntary' | 'plus' | 'premium'
+  plan: 'free' | 'plus' | 'premium'
   status: 'active' | 'cancelled' | 'past_due' | 'trialing'
   stripe_customer_id: string | null
   stripe_subscription_id: string | null

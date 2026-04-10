@@ -10,44 +10,44 @@ type CellValue = string | boolean
 
 const SECTIONS: Array<{
   title: string
-  rows: Array<{ feature: string; desc: string; voluntary: CellValue; plus: CellValue; premium: CellValue }>
+  rows: Array<{ feature: string; desc: string; free: CellValue; plus: CellValue; premium: CellValue }>
 }> = [
   {
     title: 'Access & discovery',
     rows: [
-      { feature: 'Profile creation', desc: 'Create and submit your profile for admin review', voluntary: true, plus: true, premium: true },
-      { feature: 'Discover profiles', desc: 'Browse all approved profiles with filters and sorting', voluntary: true, plus: true, premium: true },
-      { feature: 'Shortlist profiles', desc: 'Save profiles privately to revisit before requesting', voluntary: true, plus: true, premium: true },
-      { feature: 'Compatibility highlights', desc: 'Auto-generated match points vs your preferences', voluntary: true, plus: true, premium: true },
-      { feature: 'Full profile detail', desc: 'Extended bio, faith depth, lifestyle notes', voluntary: 'Summary only', plus: true, premium: true },
-      { feature: 'New profile alerts', desc: 'Notified when matching profiles are listed', voluntary: false, plus: true, premium: true },
+      { feature: 'Profile creation', desc: 'Create and submit your profile for admin review', free: true, plus: true, premium: true },
+      { feature: 'Discover profiles', desc: 'Browse all approved profiles with filters and sorting', free: true, plus: true, premium: true },
+      { feature: 'Shortlist profiles', desc: 'Save profiles privately to revisit before requesting', free: true, plus: true, premium: true },
+      { feature: 'Compatibility highlights', desc: 'Auto-generated match points vs your preferences', free: true, plus: true, premium: true },
+      { feature: 'Full profile detail', desc: 'Extended bio, faith depth, lifestyle notes', free: 'Summary only', plus: true, premium: true },
+      { feature: 'New profile alerts', desc: 'Notified when matching profiles are listed', free: false, plus: true, premium: true },
     ],
   },
   {
     title: 'Introductions',
     rows: [
-      { feature: 'Monthly requests', desc: 'Introduction requests per calendar month', voluntary: '5', plus: '15', premium: 'Unlimited' },
-      { feature: 'Mutual match notifications', desc: 'Alert when mutual interest confirmed within 30 days', voluntary: true, plus: true, premium: true },
-      { feature: 'Admin-facilitated introduction', desc: 'Admin personally shares contact details on confirmation', voluntary: true, plus: true, premium: true },
-      { feature: 'Concierge matching', desc: 'Admin proactively suggests compatible profiles', voluntary: false, plus: false, premium: true },
+      { feature: 'Monthly requests', desc: 'Introduction requests per calendar month', free: '2', plus: '5', premium: '10' },
+      { feature: 'Mutual match notifications', desc: 'Alert when mutual interest confirmed within 30 days', free: true, plus: true, premium: true },
+      { feature: 'Admin-facilitated introduction', desc: 'Admin personally shares contact details on confirmation', free: true, plus: true, premium: true },
+      { feature: 'Concierge matching', desc: 'Admin proactively suggests compatible profiles', free: false, plus: false, premium: true },
     ],
   },
   {
     title: 'Visibility & reach',
     rows: [
-      { feature: 'Profile boost', desc: 'Featured at top of browse results temporarily', voluntary: false, plus: '1× / month', premium: 'Weekly' },
-      { feature: 'Spotlight listing', desc: 'Pinned with badge at top of browse sections for 7 days', voluntary: false, plus: false, premium: '1× / month' },
-      { feature: 'See who viewed your profile', desc: 'View when members open your profile, with timestamps', voluntary: false, plus: false, premium: true },
-      { feature: 'Profile share link', desc: 'Private auth-gated link to share with family/contacts', voluntary: true, plus: true, premium: true },
+      { feature: 'Profile boost', desc: 'Featured at top of browse results temporarily', free: false, plus: '1× / month', premium: 'Weekly' },
+      { feature: 'Spotlight listing', desc: 'Pinned with badge at top of browse sections for 7 days', free: false, plus: false, premium: '1× / month' },
+      { feature: 'See who viewed your profile', desc: 'View when members open your profile, with timestamps', free: false, plus: false, premium: true },
+      { feature: 'Profile share link', desc: 'Private auth-gated link to share with family/contacts', free: true, plus: true, premium: true },
     ],
   },
   {
     title: 'Support & extras',
     rows: [
-      { feature: 'Email support', desc: 'Contact the Zawaaj team for help', voluntary: 'Standard', plus: 'Priority', premium: 'Priority' },
-      { feature: 'Events access', desc: 'Community and family events', voluntary: 'Selected only', plus: true, premium: true },
-      { feature: 'Activity history', desc: 'Past requests, matches, and interactions', voluntary: 'Last 30 days', plus: 'Full', premium: 'Full' },
-      { feature: 'Light & dark mode', desc: 'Theme preference in settings', voluntary: true, plus: true, premium: true },
+      { feature: 'Email support', desc: 'Contact the Zawaaj team for help', free: 'Standard', plus: 'Priority', premium: 'Priority' },
+      { feature: 'Events access', desc: 'Community and family events', free: 'Selected only', plus: true, premium: true },
+      { feature: 'Activity history', desc: 'Past requests, matches, and interactions', free: 'Last 30 days', plus: 'Full', premium: 'Full' },
+      { feature: 'Light & dark mode', desc: 'Theme preference in settings', free: true, plus: true, premium: true },
     ],
   },
 ]
@@ -62,7 +62,7 @@ export default function PricingPage() {
   const [annual, setAnnual] = useState(false)
 
   const plans = [
-    { name: 'Voluntary', monthly: 0, annual: 0, highlight: false, ctaLabel: 'Get started', cta: '/signup' },
+    { name: 'Free', monthly: 0, annual: 0, highlight: false, ctaLabel: 'Get started', cta: '/signup' },
     { name: 'Zawaaj Plus', monthly: 9, annual: 7, highlight: true, ctaLabel: 'Get Plus', cta: '/signup' },
     { name: 'Zawaaj Premium', monthly: 19, annual: 15, highlight: false, ctaLabel: 'Get Premium', cta: '/signup' },
   ]
@@ -177,7 +177,7 @@ export default function PricingPage() {
                     <p className="text-sm text-white font-medium">{row.feature}</p>
                     <p className="text-xs text-white/35 mt-0.5">{row.desc}</p>
                   </div>
-                  <div className="text-center"><Cell value={row.voluntary} /></div>
+                  <div className="text-center"><Cell value={row.free} /></div>
                   <div className="text-center"><Cell value={row.plus} /></div>
                   <div className="text-center"><Cell value={row.premium} /></div>
                 </div>

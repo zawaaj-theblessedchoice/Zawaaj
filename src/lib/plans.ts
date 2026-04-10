@@ -1,29 +1,39 @@
 import { createClient } from '@/lib/supabase/server'
 
-export type Plan = 'voluntary' | 'plus' | 'premium'
+// ─── Plan type ────────────────────────────────────────────────────────────────
+
+export type Plan = 'free' | 'plus' | 'premium'
+
+// ─── Limits (source of truth — enforced in API, reflected in UI) ──────────────
 
 export const PLAN_LIMITS = {
-  voluntary: { intros: 5,        boosts: 0, spotlight: 0, concierge: false, viewTracking: false },
-  plus:      { intros: 15,       boosts: 1, spotlight: 0, concierge: false, viewTracking: false },
-  premium:   { intros: Infinity, boosts: 4, spotlight: 1, concierge: true,  viewTracking: true  },
+  free:    { introsPerMonth: 2,  activeRequests: 1,        boosts: 0, spotlight: 0, concierge: false, viewTracking: false, fullProfile: false, savedSearches: 0, digestEmail: false },
+  plus:    { introsPerMonth: 5,  activeRequests: 2,        boosts: 1, spotlight: 0, concierge: false, viewTracking: false, fullProfile: true,  savedSearches: 1, digestEmail: true  },
+  premium: { introsPerMonth: 10, activeRequests: Infinity, boosts: 4, spotlight: 1, concierge: true,  viewTracking: true,  fullProfile: true,  savedSearches: 5, digestEmail: true  },
 } as const
 
+// ─── UI display names ─────────────────────────────────────────────────────────
+
 export const PLAN_LABELS: Record<Plan, string> = {
-  voluntary: 'Voluntary',
-  plus:      'Zawaaj Plus',
-  premium:   'Zawaaj Premium',
+  free:    'Community Access',
+  plus:    'Zawaaj Plus',
+  premium: 'Zawaaj Premium',
 }
 
+// ─── Pricing ──────────────────────────────────────────────────────────────────
+
 export const PLAN_PRICES: Record<Plan, { monthly: number; annual: number }> = {
-  voluntary: { monthly: 0,  annual: 0  },
-  plus:      { monthly: 9,  annual: 7  },
-  premium:   { monthly: 19, annual: 15 },
+  free:    { monthly: 0,  annual: 0  },
+  plus:    { monthly: 9,  annual: 7  },
+  premium: { monthly: 19, annual: 15 },
 }
+
+// ─── Server helper — get active plan for a user ───────────────────────────────
 
 /**
  * Returns the active plan for a user.
- * Falls back to 'voluntary' if no subscription row exists.
- * Server-side only (uses server Supabase client).
+ * Falls back to 'free' if no active subscription row exists.
+ * Server-side only.
  */
 export async function getUserPlan(userId: string): Promise<Plan> {
   const supabase = await createClient()
@@ -33,7 +43,7 @@ export async function getUserPlan(userId: string): Promise<Plan> {
     .eq('user_id', userId)
     .eq('status', 'active')
     .maybeSingle()
-  return (data?.plan ?? 'voluntary') as Plan
+  return (data?.plan ?? 'free') as Plan
 }
 
 /**

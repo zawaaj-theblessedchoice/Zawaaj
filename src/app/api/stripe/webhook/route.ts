@@ -84,7 +84,7 @@ export async function POST(req: NextRequest) {
         break
       }
 
-      // ── Subscription deleted → downgrade to voluntary ──────────────────────
+      // ── Subscription deleted → downgrade to free ──────────────────────────
       case 'customer.subscription.deleted': {
         const rawSub = event.data.object as Stripe.Subscription
         const userId = rawSub.metadata?.user_id
@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
 
         await upsertSubscription({
           userId,
-          plan: 'voluntary',
+          plan: 'free',
           status: 'cancelled',
           stripeCustomerId: rawSub.customer as string,
           stripeSubscriptionId: rawSub.id,
@@ -192,7 +192,7 @@ interface SubWithPeriod {
 type SubscriptionStatus = 'active' | 'cancelled' | 'past_due' | 'trialing'
 
 /** Determine Zawaaj plan from subscription price IDs */
-function resolvePlan(sub: Stripe.Subscription): 'voluntary' | 'plus' | 'premium' {
+function resolvePlan(sub: Stripe.Subscription): 'free' | 'plus' | 'premium' {
   const priceId = sub.items.data[0]?.price?.id ?? ''
 
   const premiumPrices = [
@@ -207,12 +207,12 @@ function resolvePlan(sub: Stripe.Subscription): 'voluntary' | 'plus' | 'premium'
 
   if (premiumPrices.includes(priceId)) return 'premium'
   if (plusPrices.includes(priceId)) return 'plus'
-  return 'voluntary'
+  return 'free'
 }
 
 interface UpsertArgs {
   userId: string
-  plan: 'voluntary' | 'plus' | 'premium'
+  plan: 'free' | 'plus' | 'premium'
   status: SubscriptionStatus
   stripeCustomerId: string
   stripeSubscriptionId: string

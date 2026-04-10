@@ -22,10 +22,10 @@ export async function GET() {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  // No row → voluntary (free) member
+  // No row → free member
   if (!data) {
     return NextResponse.json({
-      plan: 'voluntary',
+      plan: 'free',
       status: 'active',
       current_period_end: null,
       cancel_at_period_end: false,

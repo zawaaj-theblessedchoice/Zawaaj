@@ -8,8 +8,8 @@ import ZawaajLogo from '@/components/ZawaajLogo'
 
 const PLANS = [
   {
-    key: 'voluntary',
-    name: 'Voluntary',
+    key: 'free',
+    name: 'Community Access',
     monthly: 0,
     annual: 0,
     description: 'Everything you need to find your match, with full admin support.',
@@ -35,7 +35,7 @@ const PLANS = [
     ctaHref: '/signup',
     highlight: true,
     features: [
-      'Everything in Voluntary',
+      'Everything in Community Access',
       '15 introduction requests / month',
       '1 profile boost / month',
       'Full profile details unlocked',
@@ -66,11 +66,11 @@ const PLANS = [
 ]
 
 const COMPACT_COMPARISON = [
-  { feature: 'Introduction requests / month', voluntary: '5', plus: '15', premium: 'Unlimited' },
-  { feature: 'Profile boost', voluntary: '—', plus: '1× / month', premium: 'Weekly' },
-  { feature: 'Concierge matching', voluntary: '—', plus: '—', premium: '✓' },
-  { feature: 'See who viewed you', voluntary: '—', plus: '—', premium: '✓' },
-  { feature: 'Full profile details', voluntary: 'Summary', plus: '✓', premium: '✓' },
+  { feature: 'Introduction requests / month', free: '2', plus: '5', premium: '10' },
+  { feature: 'Profile boost', free: '—', plus: '1× / month', premium: 'Weekly' },
+  { feature: 'Concierge matching', free: '—', plus: '—', premium: '✓' },
+  { feature: 'See who viewed you', free: '—', plus: '—', premium: '✓' },
+  { feature: 'Full profile details', free: 'Summary', plus: '✓', premium: '✓' },
 ]
 
 const HOW_IT_WORKS = [
@@ -112,7 +112,7 @@ const FAQS = [
   },
   {
     q: 'Is there a free option?',
-    a: 'Yes. The Voluntary tier gives you full access to browse profiles and send 5 introduction requests per month — completely free. Paid plans add more requests and visibility features.',
+    a: 'Yes. The Community Access tier gives you full access to browse profiles and send 5 introduction requests per month — completely free. Paid plans add more requests and visibility features.',
   },
 ]
 
@@ -332,14 +332,14 @@ export default function LandingPage() {
         <div className="bg-surface-2 rounded-2xl border border-white/10 overflow-hidden">
           <div className="grid grid-cols-4 text-xs font-semibold text-white/40 uppercase tracking-wide px-6 py-3 bg-surface-3 border-b border-white/8">
             <span className="col-span-1">Feature</span>
-            <span className="text-center">Voluntary</span>
+            <span className="text-center">Free</span>
             <span className="text-center">Plus</span>
             <span className="text-center">Premium</span>
           </div>
           {COMPACT_COMPARISON.map((row, i) => (
             <div key={row.feature} className={`grid grid-cols-4 px-6 py-3 text-sm ${i % 2 === 0 ? '' : 'bg-white/2'}`}>
               <span className="text-white/60 col-span-1">{row.feature}</span>
-              <span className="text-center text-white/50">{row.voluntary}</span>
+              <span className="text-center text-white/50">{row.free}</span>
               <span className="text-center text-white/80">{row.plus}</span>
               <span className="text-center text-gold font-medium">{row.premium}</span>
             </div>

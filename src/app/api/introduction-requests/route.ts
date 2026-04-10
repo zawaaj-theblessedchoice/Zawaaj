@@ -2,6 +2,9 @@ import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { NextResponse } from 'next/server'
 
+// Plan-aware monthly limits — single source of truth with plans.ts
+const MONTHLY_LIMITS: Record<string, number> = { free: 2, plus: 5, premium: 10 }
+
 // ─── POST — Create introduction request ──────────────────────────────────────
 
 export async function POST(request: Request): Promise<Response> {
@@ -84,7 +87,16 @@ export async function POST(request: Request): Promise<Response> {
       )
     }
 
-    // 4f. Monthly limit — count requests this calendar month (per profile, not per account)
+    // 4f. Monthly limit — look up user's active plan, then apply per-plan cap
+    const { data: subRow } = await supabase
+      .from('zawaaj_subscriptions')
+      .select('plan')
+      .eq('user_id', user.id)
+      .eq('status', 'active')
+      .maybeSingle()
+    const userPlan = (subRow?.plan ?? 'free') as string
+    const monthlyLimit = MONTHLY_LIMITS[userPlan] ?? 2
+
     const { count: monthlyCount, error: countError } = await supabase
       .from('zawaaj_introduction_requests')
       .select('id', { count: 'exact', head: true })
@@ -95,8 +107,11 @@ export async function POST(request: Request): Promise<Response> {
       return NextResponse.json({ error: 'Failed to check monthly limit' }, { status: 500 })
     }
 
-    if ((monthlyCount ?? 0) >= 5) {
-      return NextResponse.json({ error: 'Monthly limit reached' }, { status: 422 })
+    if ((monthlyCount ?? 0) >= monthlyLimit) {
+      return NextResponse.json(
+        { error: 'Monthly limit reached', plan: userPlan, limit: monthlyLimit },
+        { status: 422 }
+      )
     }
 
     // 4g. Not already requested (pending, active, mutual, or facilitated)

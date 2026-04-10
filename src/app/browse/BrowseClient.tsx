@@ -43,7 +43,7 @@ export interface BrowseClientProps {
   /** Currently active profile id */
   activeProfileId?: string
   /** Member's current subscription plan */
-  plan?: 'voluntary' | 'plus' | 'premium'
+  plan?: 'free' | 'plus' | 'premium'
 }
 
 interface FilterState {
@@ -333,8 +333,10 @@ export default function BrowseClient({
   newSince,
   managedProfiles,
   activeProfileId,
-  plan = 'voluntary',
+  plan = 'free',
 }: BrowseClientProps) {
+  const PLAN_MONTHLY_LIMITS = { free: 2, plus: 5, premium: 10 } as const
+  const monthlyLimit = PLAN_MONTHLY_LIMITS[plan as keyof typeof PLAN_MONTHLY_LIMITS] ?? 2
   const searchParams = useSearchParams()
   const router = useRouter()
 
@@ -663,11 +665,11 @@ export default function BrowseClient({
                 cursor: 'default',
               }}
             >
-              {monthlyUsed}/5 requests
+              {monthlyUsed}/{monthlyLimit} requests
             </span>
 
-            {/* Upgrade nudge — shown to Voluntary members who have used 3+ requests */}
-            {plan === 'voluntary' && monthlyUsed >= 3 && (
+            {/* Upgrade nudge — shown to free members who have used ≥ 1 request */}
+            {plan === 'free' && monthlyUsed >= 1 && (
               <button
                 onClick={() => setShowUpgrade(true)}
                 style={{
