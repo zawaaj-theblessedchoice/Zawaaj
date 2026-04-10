@@ -14,19 +14,43 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Zawaaj",
-  description: "A trusted matrimonial platform",
+  description: "Find your perfect match on Zawaaj — a private, invite-only Muslim matrimonial platform.",
+  metadataBase: new URL("https://www.zawaaj.uk"),
+  openGraph: {
+    title: "Zawaaj",
+    description: "Find your perfect match on Zawaaj — a private, invite-only Muslim matrimonial platform.",
+    url: "https://www.zawaaj.uk",
+    siteName: "Zawaaj",
+    images: [
+      {
+        url: "https://www.zawaaj.uk/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "Zawaaj — Private Muslim Matrimonial",
+      },
+    ],
+    type: "website",
+    locale: "en_GB",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Zawaaj",
+    description: "Find your perfect match on Zawaaj — a private, invite-only Muslim matrimonial platform.",
+    images: ["https://www.zawaaj.uk/opengraph-image"],
+  },
 };
 
 // Inline script runs synchronously before first paint to avoid theme flash.
-// CSS :root is always dark. Only apply 'light' when user EXPLICITLY chose it.
-// 'system' is intentionally ignored here — Zawaaj is a dark-first app.
+// CSS :root is LIGHT by default (no attribute). Dark mode = data-theme="dark" on <html>.
 const themeInitScript = `
   try {
     var mode = localStorage.getItem('zawaaj-theme');
-    if (mode === 'light') {
-      document.documentElement.setAttribute('data-theme', 'light');
+    if (mode === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    } else if (mode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      document.documentElement.setAttribute('data-theme', 'dark');
     }
-    // 'dark', 'system', null — no attribute; CSS :root is already dark
+    // 'light', null, or system+light — no attribute; :root is already light
   } catch(e) {}
 `;
 

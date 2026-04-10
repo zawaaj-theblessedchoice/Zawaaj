@@ -855,7 +855,7 @@ function Step5({
         <span
           style={{
             fontSize: '11px',
-            color: tooMany ? '#e07070' : 'var(--text-muted)',
+            color: tooMany ? 'var(--status-error)' : 'var(--text-muted)',
           }}
         >
           {wc > 0 ? `${wc} / 200 words` : ''}
@@ -1357,7 +1357,7 @@ export default function SignupPage() {
                       fontWeight: 600,
                       background: isDone ? 'var(--gold)' : isActive ? 'var(--gold-muted)' : 'var(--surface-3)',
                       border: isActive && !isDone ? '1px solid var(--gold-border)' : 'none',
-                      color: isDone ? '#111' : isActive ? 'var(--gold)' : 'var(--text-muted)',
+                      color: isDone ? 'var(--surface)' : isActive ? 'var(--gold)' : 'var(--text-muted)',
                     }}
                   >
                     {isDone ? '✓' : i + 1}
@@ -1412,12 +1412,12 @@ export default function SignupPage() {
           {error && (
             <div
               style={{
-                background: 'rgba(220, 80, 80, 0.1)',
-                border: '0.5px solid rgba(220, 80, 80, 0.3)',
+                background: 'var(--status-error-bg)',
+                border: '0.5px solid var(--status-error-br)',
                 borderRadius: '9px',
                 padding: '10px 14px',
                 fontSize: '13px',
-                color: '#e07070',
+                color: 'var(--status-error)',
                 marginBottom: '20px',
                 marginTop: '12px',
                 lineHeight: 1.5,

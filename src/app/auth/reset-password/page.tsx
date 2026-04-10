@@ -122,7 +122,7 @@ export default function ResetPasswordPage() {
               padding: '9px 20px',
               borderRadius: 8,
               background: 'var(--gold)',
-              color: '#1A1A18',
+              color: 'var(--surface)',
               fontSize: 13,
               fontWeight: 500,
               textDecoration: 'none',
@@ -175,7 +175,7 @@ export default function ResetPasswordPage() {
                 }}
               >
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                  <path d="M4 10l4 4 8-8" stroke="#4ADE80" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M4 10l4 4 8-8" stroke="var(--status-success)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </div>
               <h1 style={{ fontSize: 17, fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 8px' }}>
@@ -257,7 +257,7 @@ export default function ResetPasswordPage() {
                     onBlur={e => ((e.currentTarget as HTMLInputElement).style.borderColor = confirm && password !== confirm ? 'rgba(248,113,113,0.5)' : 'var(--border-default)')}
                   />
                   {confirm && password !== confirm && (
-                    <p style={{ fontSize: 11.5, color: '#F87171', margin: '4px 0 0' }}>Passwords do not match</p>
+                    <p style={{ fontSize: 11.5, color: 'var(--status-error)', margin: '4px 0 0' }}>Passwords do not match</p>
                   )}
                 </div>
 
@@ -265,7 +265,7 @@ export default function ResetPasswordPage() {
                   <div
                     style={{
                       fontSize: 12.5,
-                      color: '#F87171',
+                      color: 'var(--status-error)',
                       background: 'rgba(248,113,113,0.1)',
                       border: '0.5px solid rgba(248,113,113,0.3)',
                       borderRadius: 8,
@@ -286,7 +286,7 @@ export default function ResetPasswordPage() {
                     borderRadius: 8,
                     background: 'var(--gold)',
                     border: 'none',
-                    color: '#1A1A18',
+                    color: 'var(--surface)',
                     fontSize: 13.5,
                     fontWeight: 600,
                     cursor: loading || !password || !confirm ? 'not-allowed' : 'pointer',

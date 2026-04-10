@@ -106,12 +106,12 @@ export default function NavBar() {
   }
 
   const used = activeProfile?.interests_this_month ?? 0
-  const badgeBg = used > 0 ? '#B8960C' : '#6B7280'
+  const badgeBg = used > 0 ? 'var(--gold)' : 'var(--text-muted)'
 
   return (
     <nav
       className="fixed top-0 left-0 right-0 z-50 h-14 flex items-center px-4 shadow-md"
-      style={{ backgroundColor: '#1A1A1A' }}
+      style={{ backgroundColor: 'var(--surface-2)' }}
     >
       {/* Left: Logo */}
       <div className="flex-shrink-0">
@@ -140,7 +140,7 @@ export default function NavBar() {
           <Link
             href="/admin"
             className="hidden md:inline text-sm font-semibold"
-            style={{ color: '#B8960C' }}
+            style={{ color: 'var(--gold)' }}
           >
             Admin
           </Link>
@@ -174,7 +174,7 @@ export default function NavBar() {
             {profileDropdownOpen && (
               <div
                 className="absolute right-0 top-9 w-56 rounded-xl shadow-xl border border-white/10 py-1.5 z-50"
-                style={{ backgroundColor: '#2A2A2A' }}
+                style={{ backgroundColor: 'var(--surface-3)' }}
               >
                 <p className="px-3 py-1 text-[10px] uppercase tracking-widest text-white/40 font-semibold">
                   Switch profile
@@ -224,7 +224,7 @@ export default function NavBar() {
       {mobileMenuOpen && (
         <div
           className="absolute top-14 left-0 right-0 shadow-xl border-t border-white/10 py-2 z-40"
-          style={{ backgroundColor: '#1A1A1A' }}
+          style={{ backgroundColor: 'var(--surface-2)' }}
         >
           {NAV_LINKS.map((link) => (
             <Link
@@ -241,7 +241,7 @@ export default function NavBar() {
               href="/admin"
               onClick={() => setMobileMenuOpen(false)}
               className="block px-4 py-2.5 text-sm font-semibold"
-              style={{ color: '#B8960C' }}
+              style={{ color: 'var(--gold)' }}
             >
               Admin
             </Link>

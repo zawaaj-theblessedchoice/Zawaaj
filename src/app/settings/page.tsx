@@ -37,7 +37,7 @@ const PLAN_COLORS: Record<Plan, string> = {
 
 const PLAN_TEXT: Record<Plan, string> = {
   voluntary: 'rgba(255,255,255,0.5)',
-  plus:      '#60A5FA',
+  plus:      'var(--status-info)',
   premium:   'var(--gold-light)',
 }
 
@@ -84,21 +84,26 @@ function SettingsContent() {
   // Show success flash if returning from Stripe checkout
   const checkoutSuccess = searchParams.get('checkout') === 'success'
 
-  // Read saved theme on mount (default is dark — same as CSS :root)
+  // Read saved theme on mount (default is light — same as CSS :root)
   useEffect(() => {
     try {
       const saved = localStorage.getItem('zawaaj-theme') as ThemeMode | null
-      setThemeMode(saved ?? 'dark')
+      setThemeMode(saved ?? 'light')
     } catch { /* localStorage unavailable */ }
   }, [])
 
-
   function applyTheme(mode: ThemeMode) {
-    // CSS :root is always dark — only set data-theme="light" for explicit light choice
-    if (mode === 'light') {
-      document.documentElement.setAttribute('data-theme', 'light')
+    // CSS :root is LIGHT by default — set data-theme="dark" on <html> to enable dark mode
+    if (mode === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark')
+    } else if (mode === 'system') {
+      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.documentElement.setAttribute('data-theme', 'dark')
+      } else {
+        document.documentElement.removeAttribute('data-theme')
+      }
     } else {
-      // 'dark' or 'system' — remove light override, app stays dark
+      // 'light' — remove any dark override
       document.documentElement.removeAttribute('data-theme')
     }
   }
@@ -175,7 +180,7 @@ function SettingsContent() {
   }
 
   return (
-    <div data-theme="dark" style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
       <Sidebar
         activeRoute={pathname}
         shortlistCount={0}
@@ -215,12 +220,12 @@ function SettingsContent() {
         {tab === 'membership' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
             {checkoutSuccess && (
-              <div style={{ padding: '12px 16px', borderRadius: 10, background: 'rgba(74,222,128,0.1)', border: '0.5px solid rgba(74,222,128,0.3)', fontSize: 13, color: '#4ADE80' }}>
+              <div style={{ padding: '12px 16px', borderRadius: 10, background: 'rgba(74,222,128,0.1)', border: '0.5px solid rgba(74,222,128,0.3)', fontSize: 13, color: 'var(--status-success)' }}>
                 ✓ Subscription activated — welcome to {PLAN_LABELS[currentPlan]}!
               </div>
             )}
             {checkoutError && (
-              <div style={{ padding: '12px 16px', borderRadius: 10, background: 'rgba(248,113,113,0.1)', border: '0.5px solid rgba(248,113,113,0.3)', fontSize: 13, color: '#F87171' }}>
+              <div style={{ padding: '12px 16px', borderRadius: 10, background: 'rgba(248,113,113,0.1)', border: '0.5px solid rgba(248,113,113,0.3)', fontSize: 13, color: 'var(--status-error)' }}>
                 {checkoutError}
               </div>
             )}
@@ -247,7 +252,7 @@ function SettingsContent() {
                         <span style={{ fontSize: 11, color: 'rgba(74,222,128,0.9)' }}>● Active</span>
                       )}
                       {sub?.status === 'past_due' && (
-                        <span style={{ fontSize: 11, color: '#F87171' }}>● Payment due</span>
+                        <span style={{ fontSize: 11, color: 'var(--status-error)' }}>● Payment due</span>
                       )}
                     </div>
                     {isPaid && sub?.current_period_end && (
@@ -289,7 +294,7 @@ function SettingsContent() {
                         fontSize: 12,
                         fontWeight: 600,
                         background: 'var(--gold)',
-                        color: '#111',
+                        color: 'var(--surface)',
                         textDecoration: 'none',
                       }}
                     >
@@ -311,7 +316,7 @@ function SettingsContent() {
                         style={{
                           padding: '6px 16px', borderRadius: 7, fontSize: 12, fontWeight: 500,
                           background: (annual ? b === 'Annual' : b === 'Monthly') ? 'var(--gold)' : 'transparent',
-                          color: (annual ? b === 'Annual' : b === 'Monthly') ? '#111' : 'var(--text-muted)',
+                          color: (annual ? b === 'Annual' : b === 'Monthly') ? 'var(--surface)' : 'var(--text-muted)',
                           border: 'none', cursor: 'pointer', transition: 'all 0.15s',
                         }}
                       >
@@ -338,7 +343,7 @@ function SettingsContent() {
                           }}
                         >
                           {isCurrent && (
-                            <span style={{ fontSize: 9, fontWeight: 600, color: '#111', background: PLAN_TEXT[p], borderRadius: 4, padding: '2px 6px', display: 'inline-block', marginBottom: 8 }}>
+                            <span style={{ fontSize: 9, fontWeight: 600, color: 'var(--surface)', background: PLAN_TEXT[p], borderRadius: 4, padding: '2px 6px', display: 'inline-block', marginBottom: 8 }}>
                               Current
                             </span>
                           )}
@@ -357,7 +362,7 @@ function SettingsContent() {
                               style={{
                                 display: 'block', textAlign: 'center', marginTop: 12, width: '100%',
                                 padding: '8px 0', borderRadius: 8, fontSize: 12, fontWeight: 600,
-                                background: 'var(--gold)', color: '#111', border: 'none',
+                                background: 'var(--gold)', color: 'var(--surface)', border: 'none',
                                 cursor: checkoutLoading !== null ? 'not-allowed' : 'pointer',
                                 opacity: checkoutLoading === `${p}_${annual ? 'annual' : 'monthly'}` ? 0.6 : 1,
                               }}
@@ -504,7 +509,7 @@ function SettingsContent() {
 export default function SettingsPage() {
   return (
     <Suspense fallback={
-      <div data-theme="dark" style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)', alignItems: 'center', justifyContent: 'center' }}>
         <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>Loading…</span>
       </div>
     }>

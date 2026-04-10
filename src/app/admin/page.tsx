@@ -135,7 +135,7 @@ function phoneDigits(phone: string | null): string {
 }
 
 function avatarBg(gender: string | null): string {
-  return gender === 'female' ? '#8B5CF6' : '#2563EB'
+  return gender === 'female' ? 'var(--status-purple)' : 'var(--status-info)'
 }
 
 // ─── DetailRow (used in QueueTab expanded panel) ──────────────────────────────
@@ -155,25 +155,25 @@ function DetailRow({ label, value }: { label: string; value: string | boolean | 
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { bg: string; text: string }> = {
-    pending:              { bg: 'rgba(251,191,36,0.12)',  text: '#FBBF24' },
-    approved:             { bg: 'rgba(74,222,128,0.12)',  text: '#4ADE80' },
-    rejected:             { bg: 'rgba(248,113,113,0.12)', text: '#F87171' },
-    withdrawn:            { bg: 'rgba(255,255,255,0.08)', text: 'rgba(255,255,255,0.45)' },
-    suspended:            { bg: 'rgba(248,113,113,0.12)', text: '#F87171' },
-    introduced:           { bg: 'rgba(96,165,250,0.12)',  text: '#60A5FA' },
-    paused:               { bg: 'rgba(251,191,36,0.12)',  text: '#FBBF24' },
-    awaiting_admin:       { bg: 'rgba(167,139,250,0.12)', text: '#A78BFA' },
-    admin_reviewing:      { bg: 'rgba(251,191,36,0.12)',  text: '#FBBF24' },
-    nikah:                { bg: 'rgba(74,222,128,0.12)',  text: '#4ADE80' },
-    no_longer_proceeding: { bg: 'rgba(248,113,113,0.12)', text: '#F87171' },
-    dismissed:            { bg: 'rgba(255,255,255,0.08)', text: 'rgba(255,255,255,0.45)' },
-    in_discussion:        { bg: 'rgba(96,165,250,0.12)',  text: '#60A5FA' },
-    upcoming:             { bg: 'rgba(74,222,128,0.12)',  text: '#4ADE80' },
-    ended:                { bg: 'rgba(251,191,36,0.12)',  text: '#FBBF24' },
-    archived:             { bg: 'rgba(255,255,255,0.08)', text: 'rgba(255,255,255,0.45)' },
-    banned:               { bg: 'rgba(220,38,38,0.18)',   text: '#FCA5A5' },
+    pending:              { bg: 'var(--status-warning-bg)',  text: 'var(--status-warning)' },
+    approved:             { bg: 'var(--status-success-bg)',  text: 'var(--status-success)' },
+    rejected:             { bg: 'var(--status-error-bg)',    text: 'var(--status-error)' },
+    withdrawn:            { bg: 'var(--border-default)',     text: 'rgba(255,255,255,0.45)' },
+    suspended:            { bg: 'var(--status-error-bg)',    text: 'var(--status-error)' },
+    introduced:           { bg: 'var(--status-info-bg)',     text: 'var(--status-info)' },
+    paused:               { bg: 'var(--status-warning-bg)',  text: 'var(--status-warning)' },
+    awaiting_admin:       { bg: 'var(--status-purple-bg)',   text: 'var(--status-purple)' },
+    admin_reviewing:      { bg: 'var(--status-warning-bg)',  text: 'var(--status-warning)' },
+    nikah:                { bg: 'var(--status-success-bg)',  text: 'var(--status-success)' },
+    no_longer_proceeding: { bg: 'var(--status-error-bg)',    text: 'var(--status-error)' },
+    dismissed:            { bg: 'var(--border-default)',     text: 'rgba(255,255,255,0.45)' },
+    in_discussion:        { bg: 'var(--status-info-bg)',     text: 'var(--status-info)' },
+    upcoming:             { bg: 'var(--status-success-bg)',  text: 'var(--status-success)' },
+    ended:                { bg: 'var(--status-warning-bg)',  text: 'var(--status-warning)' },
+    archived:             { bg: 'var(--border-default)',     text: 'rgba(255,255,255,0.45)' },
+    banned:               { bg: 'var(--status-error-bg)',    text: 'var(--status-error)' },
   }
-  const s = map[status] ?? { bg: 'rgba(255,255,255,0.08)', text: 'rgba(255,255,255,0.45)' }
+  const s = map[status] ?? { bg: 'var(--border-default)', text: 'rgba(255,255,255,0.45)' }
   return (
     <span
       className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize"
@@ -200,11 +200,11 @@ function Confirm({
 }: { message: string; onConfirm: () => void; onCancel: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-[#1E1E1E] rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl">
+      <div className="bg-surface-2 rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl">
         <p className="text-white mb-6">{message}</p>
         <div className="flex gap-3 justify-end">
           <button onClick={onCancel} className="px-4 py-2 rounded-lg text-sm border border-white/10 text-white hover:bg-white/5">Cancel</button>
-          <button onClick={onConfirm} className="px-4 py-2 rounded-lg text-sm bg-surface-2 text-white hover:bg-[#333]">Confirm</button>
+          <button onClick={onConfirm} className="px-4 py-2 rounded-lg text-sm bg-surface-2 text-white hover:bg-surface-3">Confirm</button>
         </div>
       </div>
     </div>
@@ -404,7 +404,7 @@ function LiftBanModal({ profile, onClose, onDone }: {
           <button
             onClick={confirmLift}
             disabled={saving || !liftReason.trim()}
-            className="px-5 py-2.5 rounded-xl text-sm font-medium bg-gold text-white hover:bg-[#9a7a0a] disabled:opacity-40 disabled:cursor-not-allowed"
+            className="px-5 py-2.5 rounded-xl text-sm font-medium bg-gold text-white hover:bg-gold-hover disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {saving ? 'Lifting…' : 'Lift ban'}
           </button>
@@ -468,7 +468,7 @@ function ProfileEditModal({ profile, onClose, onSave, onDeleteProfile, onDeleteA
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 flex items-start justify-center py-8 px-4">
-      <div className="bg-[#1E1E1E] rounded-2xl w-full max-w-2xl shadow-2xl">
+      <div className="bg-surface-2 rounded-2xl w-full max-w-2xl shadow-2xl">
         <div className="flex items-center justify-between p-6 border-b border-white/10">
           <h2 className="text-lg font-semibold text-white">Edit Profile — {profile.display_initials}</h2>
           <button onClick={onClose} className="text-white/30 hover:text-white text-2xl leading-none">&times;</button>
@@ -592,7 +592,7 @@ function ProfileEditModal({ profile, onClose, onSave, onDeleteProfile, onDeleteA
           {/* Save / cancel */}
           <div className="flex gap-3">
             <button onClick={onClose} className="px-5 py-2.5 rounded-xl text-sm border border-white/10 text-white hover:bg-white/5">Cancel</button>
-            <button onClick={save} disabled={saving} className="px-5 py-2.5 rounded-xl text-sm font-medium bg-surface-2 text-gold hover:bg-[#333] disabled:opacity-50">
+            <button onClick={save} disabled={saving} className="px-5 py-2.5 rounded-xl text-sm font-medium bg-surface-2 text-gold hover:bg-surface-3 disabled:opacity-50">
               {saving ? 'Saving…' : 'Save Changes'}
             </button>
           </div>
@@ -608,7 +608,7 @@ function ContactPopup({ profile, onClose }: { profile: Profile; onClose: () => v
   const digits = phoneDigits(profile.contact_number)
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-[#1E1E1E] rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl">
+      <div className="bg-surface-2 rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl">
         <div className="flex justify-between items-start mb-4">
           <h3 className="font-semibold text-white">Contact — {profile.display_initials}</h3>
           <button onClick={onClose} className="text-white/30 hover:text-white text-xl leading-none">&times;</button>
@@ -678,14 +678,14 @@ function FacilitateModal({ match, onClose, onDone }: {
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 flex items-start justify-center py-8 px-4">
-      <div className="bg-[#1E1E1E] rounded-2xl w-full max-w-xl shadow-2xl">
+      <div className="bg-surface-2 rounded-2xl w-full max-w-xl shadow-2xl">
         <div className="flex items-center justify-between p-6 border-b border-white/10">
           <h2 className="text-lg font-semibold text-white">Facilitate Introduction</h2>
           <button onClick={onClose} className="text-white/30 hover:text-white text-2xl leading-none">&times;</button>
         </div>
 
         <div className="p-6 space-y-6">
-          <div className="bg-[#2A2200] border border-yellow-700/40 rounded-xl p-4 flex gap-3">
+          <div className="bg-gold-muted border border-gold/30 rounded-xl p-4 flex gap-3">
             <span className="text-amber-600 text-lg">⚠</span>
             <p className="text-sm text-amber-800 font-medium">Never share contact details without explicit verbal consent from both families.</p>
           </div>
@@ -754,7 +754,7 @@ function FacilitateModal({ match, onClose, onDone }: {
           <button
             onClick={markIntroduced}
             disabled={!consentA || !consentB || saving}
-            className="px-5 py-2.5 rounded-xl text-sm font-medium bg-gold text-white hover:bg-[#9a7a0a] disabled:opacity-40 disabled:cursor-not-allowed"
+            className="px-5 py-2.5 rounded-xl text-sm font-medium bg-gold text-white hover:bg-gold-hover disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {saving ? 'Saving…' : 'Mark as Introduced'}
           </button>
@@ -865,7 +865,7 @@ function QueueTab({ profiles, onRefresh, currentUserId }: { profiles: Profile[];
       )}
       <div className="space-y-3">
         {pending.map(p => (
-          <div key={p.id} className="bg-[#1E1E1E] rounded-2xl p-5 border border-white/10">
+          <div key={p.id} className="bg-surface-2 rounded-2xl p-5 border border-white/10">
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex gap-4 flex-1 min-w-0">
                 <Avatar initials={p.display_initials} gender={p.gender} size={48} />
@@ -905,7 +905,7 @@ function QueueTab({ profiles, onRefresh, currentUserId }: { profiles: Profile[];
                   )}
                   <p className="text-xs text-white/40 mt-1">Submitted {daysAgo(p.submitted_date)}</p>
                   {p.admin_comments && (
-                    <div className="mt-2 bg-[#2A2200] border border-yellow-700/40 rounded-lg px-3 py-2 text-xs text-yellow-400">
+                    <div className="mt-2 bg-gold-muted border border-gold/30 rounded-lg px-3 py-2 text-xs text-yellow-400">
                       <span className="font-medium">Admin note:</span> {p.admin_comments}
                     </div>
                   )}
@@ -1249,7 +1249,7 @@ function ManualMatchModal({ profiles, onClose, onDone }: {
           <button
             onClick={createMatch}
             disabled={!profileA || !profileB || saving}
-            className="px-5 py-2.5 rounded-xl text-sm font-medium bg-gold text-white hover:bg-[#9a7a0a] disabled:opacity-40 disabled:cursor-not-allowed"
+            className="px-5 py-2.5 rounded-xl text-sm font-medium bg-gold text-white hover:bg-gold-hover disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {saving ? 'Creating…' : 'Create Match'}
           </button>
@@ -1308,8 +1308,8 @@ function MutualTab({ matches, onRefresh, profiles }: { matches: Match[]; onRefre
           const pA = m.profile_a
           const pB = m.profile_b
           return (
-            <div key={m.id} className="bg-[#1E1E1E] rounded-2xl border border-white/10 overflow-hidden">
-              <div className="grid sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-[#E8E4DC]">
+            <div key={m.id} className="bg-surface-2 rounded-2xl border border-white/10 overflow-hidden">
+              <div className="grid sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-border-default">
                 {/* Profile A */}
                 <div className="p-5 flex gap-4">
                   <Avatar initials={pA?.display_initials ?? '?'} gender={pA?.gender ?? null} size={44} />
@@ -1337,16 +1337,16 @@ function MutualTab({ matches, onRefresh, profiles }: { matches: Match[]; onRefre
                   </div>
                 </div>
               </div>
-              <div className="px-5 py-3 bg-[#171717] border-t border-white/10 flex flex-wrap items-center gap-3">
+              <div className="px-5 py-3 bg-surface-3 border-t border-white/10 flex flex-wrap items-center gap-3">
                 <StatusBadge status={m.status} />
                 <span className="text-xs text-white/50">Mutual {daysAgo(m.mutual_date)}</span>
                 <div className="ml-auto flex flex-wrap gap-2">
                   <button onClick={() => setFacilitateMatch(m)}
-                    className="px-3 py-1.5 rounded-lg text-xs font-medium bg-gold text-white hover:bg-[#9a7a0a]">
+                    className="px-3 py-1.5 rounded-lg text-xs font-medium bg-gold text-white hover:bg-gold-hover">
                     Facilitate Introduction
                   </button>
                   <Link href={`/admin/sidebyside/${m.id}`}
-                    className="px-3 py-1.5 rounded-lg text-xs font-medium border border-white/10 text-white hover:bg-[#1E1E1E]">
+                    className="px-3 py-1.5 rounded-lg text-xs font-medium border border-white/10 text-white hover:bg-surface-2">
                     View Side by Side
                   </Link>
                   <button onClick={() => setDismissId(m.id)}
@@ -1386,7 +1386,7 @@ function IntroducedTab({ matches, onRefresh }: { matches: Match[]; onRefresh: ()
         const pA = m.profile_a
         const pB = m.profile_b
         return (
-          <div key={m.id} className="bg-[#1E1E1E] rounded-2xl p-5 border border-white/10 flex flex-col sm:flex-row sm:items-center gap-4">
+          <div key={m.id} className="bg-surface-2 rounded-2xl p-5 border border-white/10 flex flex-col sm:flex-row sm:items-center gap-4">
             <div className="flex items-center gap-3 flex-1 min-w-0">
               <div className="flex -space-x-2">
                 <Avatar initials={pA?.display_initials ?? '?'} gender={pA?.gender ?? null} size={36} />
@@ -1574,7 +1574,7 @@ function MembersTab({ profiles, onRefresh, currentUserId }: { profiles: Profile[
               border: '1px solid',
               transition: 'all 0.15s',
               background: statusFilter === s ? 'var(--gold)' : 'transparent',
-              color: statusFilter === s ? '#111' : 'rgba(255,255,255,0.5)',
+              color: statusFilter === s ? 'var(--surface)' : 'rgba(255,255,255,0.5)',
               borderColor: statusFilter === s ? 'var(--gold)' : 'rgba(255,255,255,0.15)',
               fontWeight: statusFilter === s ? 600 : 400,
             }}
@@ -1586,7 +1586,7 @@ function MembersTab({ profiles, onRefresh, currentUserId }: { profiles: Profile[
       <div className="overflow-x-auto rounded-2xl border border-white/10">
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-[#171717] text-white/40 text-left text-xs">
+            <tr className="bg-surface-3 text-white/40 text-left text-xs">
               <th className="px-4 py-3 font-medium">Member</th>
               <th className="px-4 py-3 font-medium">Gender</th>
               <th className="px-4 py-3 font-medium">Age</th>
@@ -1597,7 +1597,7 @@ function MembersTab({ profiles, onRefresh, currentUserId }: { profiles: Profile[
               <th className="px-4 py-3 font-medium">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#E8E4DC] bg-[#1E1E1E]">
+          <tbody className="divide-y divide-border-default bg-surface-2">
             {filtered.map(p => {
               const isParentAccount = p.user_id ? (userProfileCount[p.user_id] ?? 0) > 1 : false
               const isDeleting = deletingUserId === (p.user_id ?? p.id)
@@ -1732,7 +1732,7 @@ function WithdrawnTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh:
       )}
       <div className="space-y-3">
         {withdrawn.map(p => (
-          <div key={p.id} className="bg-[#1E1E1E] rounded-2xl p-5 border border-white/10 flex items-center gap-4">
+          <div key={p.id} className="bg-surface-2 rounded-2xl p-5 border border-white/10 flex items-center gap-4">
             <Avatar initials={p.display_initials} gender={p.gender} size={44} />
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
@@ -1746,7 +1746,7 @@ function WithdrawnTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh:
             </div>
             <div className="flex gap-2 flex-shrink-0">
               <button onClick={() => reinstate(p.id)}
-                className="px-3 py-2 rounded-xl text-xs font-medium bg-gold text-white hover:bg-[#9a7a0a]">
+                className="px-3 py-2 rounded-xl text-xs font-medium bg-gold text-white hover:bg-gold-hover">
                 Reinstate
               </button>
               <button onClick={() => setDeleteId(p.id)}
@@ -1817,7 +1817,7 @@ function UnlinkedTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh: 
     <>
       {linkId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-[#1E1E1E] rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl">
+          <div className="bg-surface-2 rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl">
             <h3 className="font-semibold text-white mb-2">Link Profile to User</h3>
             <p className="text-xs text-white/50 mb-3">
               Enter the user&apos;s Supabase Auth UUID. You can find this in the Supabase dashboard under Authentication &gt; Users.
@@ -1835,7 +1835,7 @@ function UnlinkedTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh: 
                 Cancel
               </button>
               <button onClick={linkProfile} disabled={!userId.trim() || linking}
-                className="flex-1 px-4 py-2 rounded-xl text-sm font-medium bg-surface-2 text-gold hover:bg-[#333] disabled:opacity-50">
+                className="flex-1 px-4 py-2 rounded-xl text-sm font-medium bg-surface-2 text-gold hover:bg-surface-3 disabled:opacity-50">
                 {linking ? 'Linking…' : 'Link'}
               </button>
             </div>
@@ -1843,7 +1843,7 @@ function UnlinkedTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh: 
         </div>
       )}
 
-      <div className="mb-6 bg-[#2A2200] border border-yellow-700/40 rounded-xl px-5 py-4">
+      <div className="mb-6 bg-gold-muted border border-gold/30 rounded-xl px-5 py-4">
         <p className="text-sm font-medium text-amber-800">
           {unlinked.length} approved {unlinked.length === 1 ? 'profile has' : 'profiles have'} not yet been claimed by a user account.
         </p>
@@ -1851,7 +1851,7 @@ function UnlinkedTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh: 
 
       <div className="space-y-3">
         {unlinked.map(p => (
-          <div key={p.id} className="bg-[#1E1E1E] rounded-2xl p-5 border border-white/10 flex items-center gap-4">
+          <div key={p.id} className="bg-surface-2 rounded-2xl p-5 border border-white/10 flex items-center gap-4">
             <Avatar initials={p.display_initials} gender={p.gender} size={44} />
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
@@ -1870,7 +1870,7 @@ function UnlinkedTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh: 
               </div>
             </div>
             <button onClick={() => setLinkId(p.id)}
-              className="px-3 py-2 rounded-xl text-xs font-medium bg-surface-2 text-gold hover:bg-[#333] flex-shrink-0">
+              className="px-3 py-2 rounded-xl text-xs font-medium bg-surface-2 text-gold hover:bg-surface-3 flex-shrink-0">
               Link to User
             </button>
           </div>
@@ -1967,7 +1967,7 @@ function EventsTab({ events, onRefresh }: { events: ZawaajEvent[]; onRefresh: ()
       )}
 
       {/* New Event Form */}
-      <div className="bg-[#1E1E1E] rounded-2xl p-5 border border-white/10 mb-6">
+      <div className="bg-surface-2 rounded-2xl p-5 border border-white/10 mb-6">
         <h3 className="text-sm font-semibold text-white mb-4">Add New Event</h3>
         <div className="grid sm:grid-cols-2 gap-3">
           <label className="block">
@@ -1993,7 +1993,7 @@ function EventsTab({ events, onRefresh }: { events: ZawaajEvent[]; onRefresh: ()
         </div>
         <p className="text-xs text-white/30 mt-3">Past dates are automatically saved as ended events in history.</p>
         <button onClick={createEvent} disabled={!newForm.title || creating}
-          className="mt-4 px-5 py-2.5 rounded-xl text-sm font-medium bg-surface-2 text-gold hover:bg-[#333] disabled:opacity-50">
+          className="mt-4 px-5 py-2.5 rounded-xl text-sm font-medium bg-surface-2 text-gold hover:bg-surface-3 disabled:opacity-50">
           {creating ? 'Creating…' : 'Create Event'}
         </button>
       </div>
@@ -2004,7 +2004,7 @@ function EventsTab({ events, onRefresh }: { events: ZawaajEvent[]; onRefresh: ()
       )}
       <div className="space-y-3">
         {events.map(ev => (
-          <div key={ev.id} className="bg-[#1E1E1E] rounded-2xl border border-white/10 overflow-hidden">
+          <div key={ev.id} className="bg-surface-2 rounded-2xl border border-white/10 overflow-hidden">
             <div className="p-5 flex flex-col sm:flex-row sm:items-center gap-3">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
@@ -2045,7 +2045,7 @@ function EventsTab({ events, onRefresh }: { events: ZawaajEvent[]; onRefresh: ()
               </div>
             </div>
             {/* Core details edit */}
-            <div className="px-5 py-3 border-t border-white/10 bg-[#171717] grid sm:grid-cols-3 gap-3">
+            <div className="px-5 py-3 border-t border-white/10 bg-surface-3 grid sm:grid-cols-3 gap-3">
               <div className="flex items-center gap-1.5">
                 <span className="text-xs text-white/40 flex-shrink-0 w-12">Title:</span>
                 <input
@@ -2071,13 +2071,13 @@ function EventsTab({ events, onRefresh }: { events: ZawaajEvent[]; onRefresh: ()
                   onChange={e => setEditDetails(prev => ({ ...prev, [ev.id]: { ...prev[ev.id], title: prev[ev.id]?.title ?? ev.title, event_date: prev[ev.id]?.event_date ?? ev.event_date ?? '', location_text: e.target.value } }))}
                 />
                 <button onClick={() => updateDetails(ev.id)}
-                  className="px-3 py-1 rounded-lg text-xs bg-surface-2 text-gold hover:bg-[#333] flex-shrink-0">
+                  className="px-3 py-1 rounded-lg text-xs bg-surface-2 text-gold hover:bg-surface-3 flex-shrink-0">
                   Save
                 </button>
               </div>
             </div>
             {/* URL edit */}
-            <div className="px-5 py-3 border-t border-white/10 bg-[#171717] flex items-center gap-2">
+            <div className="px-5 py-3 border-t border-white/10 bg-surface-3 flex items-center gap-2">
               <span className="text-xs text-white/50 flex-shrink-0">Registration URL:</span>
               <input
                 className="field flex-1 text-xs py-1"
@@ -2086,13 +2086,13 @@ function EventsTab({ events, onRefresh }: { events: ZawaajEvent[]; onRefresh: ()
                 onChange={e => setEditUrl(prev => ({ ...prev, [ev.id]: e.target.value }))}
               />
               <button onClick={() => updateUrl(ev.id)}
-                className="px-3 py-1 rounded-lg text-xs bg-surface-2 text-gold hover:bg-[#333] flex-shrink-0">
+                className="px-3 py-1 rounded-lg text-xs bg-surface-2 text-gold hover:bg-surface-3 flex-shrink-0">
                 Save
               </button>
             </div>
             {/* Attendance note (only for ended/archived) */}
             {(ev.status === 'ended' || ev.status === 'archived') && (
-              <div className="px-5 py-3 border-t border-white/10 bg-[#171717] flex items-center gap-2">
+              <div className="px-5 py-3 border-t border-white/10 bg-surface-3 flex items-center gap-2">
                 <span className="text-xs text-white/50 flex-shrink-0">Attendance note:</span>
                 <input
                   className="field flex-1 text-xs py-1"
@@ -2100,7 +2100,7 @@ function EventsTab({ events, onRefresh }: { events: ZawaajEvent[]; onRefresh: ()
                   onChange={e => setEditNote(prev => ({ ...prev, [ev.id]: e.target.value }))}
                 />
                 <button onClick={() => updateNote(ev.id)}
-                  className="px-3 py-1 rounded-lg text-xs bg-surface-2 text-gold hover:bg-[#333] flex-shrink-0">
+                  className="px-3 py-1 rounded-lg text-xs bg-surface-2 text-gold hover:bg-surface-3 flex-shrink-0">
                   Save
                 </button>
               </div>
@@ -2171,7 +2171,7 @@ function OrphanedTab() {
 
   return (
     <>
-      <div className="mb-6 bg-[#2A1A1A] border border-red-900/40 rounded-xl px-5 py-4">
+      <div className="mb-6 bg-status-error-bg border border-red-900/40 rounded-xl px-5 py-4">
         <p className="text-sm font-medium text-red-400">
           {orphaned.length} auth {orphaned.length === 1 ? 'account has' : 'accounts have'} no linked profile.
           These may be from failed or abandoned sign-ups.
@@ -2180,8 +2180,8 @@ function OrphanedTab() {
 
       <div className="space-y-3">
         {orphaned.map(u => (
-          <div key={u.id} className="bg-[#1E1E1E] rounded-2xl p-5 border border-white/10 flex items-center gap-4">
-            <div className="w-10 h-10 rounded-full bg-[#2A2A2A] border border-white/10 flex items-center justify-center text-white/30 text-sm flex-shrink-0">
+          <div key={u.id} className="bg-surface-2 rounded-2xl p-5 border border-white/10 flex items-center gap-4">
+            <div className="w-10 h-10 rounded-full bg-surface-3 border border-white/10 flex items-center justify-center text-white/30 text-sm flex-shrink-0">
               ?
             </div>
             <div className="flex-1 min-w-0">
@@ -2287,14 +2287,14 @@ function ImportTab() {
   return (
     <div className="max-w-3xl space-y-8">
       {/* New CSV import tool */}
-      <div className="bg-[#1A1500] border border-gold/30 rounded-2xl p-5 flex items-center gap-5">
+      <div className="bg-gold-muted border border-gold/30 rounded-2xl p-5 flex items-center gap-5">
         <div className="text-3xl">📥</div>
         <div className="flex-1">
           <p className="font-semibold text-white mb-1">New: CSV Import Tool</p>
           <p className="text-sm text-white/50">Upload a CSV, preview validation errors, then run the real import to create member accounts automatically.</p>
         </div>
         <Link href="/admin/import"
-          className="flex-shrink-0 px-4 py-2.5 rounded-xl text-sm font-semibold bg-gold text-black hover:bg-[#9a7a0a] transition-colors">
+          className="flex-shrink-0 px-4 py-2.5 rounded-xl text-sm font-semibold bg-gold text-black hover:bg-gold-hover transition-colors">
           Open import tool →
         </Link>
       </div>
@@ -2337,7 +2337,7 @@ function ImportTab() {
                   One INSERT per profile row. Copy this example as a starting template:
                 </p>
                 <div className="relative">
-                  <pre className="bg-[#111] border border-white/10 rounded-xl p-4 text-xs text-white/70 overflow-x-auto whitespace-pre-wrap">
+                  <pre className="bg-surface border border-white/10 rounded-xl p-4 text-xs text-white/70 overflow-x-auto whitespace-pre-wrap">
                     {sqlTemplate}
                   </pre>
                   <button
@@ -2377,7 +2377,7 @@ function ImportTab() {
           },
         ].map(step => (
           <div key={step.n} className="flex gap-4">
-            <div className="w-7 h-7 rounded-full bg-[#252525] border border-white/10 flex items-center justify-center text-xs font-semibold text-gold flex-shrink-0 mt-0.5">
+            <div className="w-7 h-7 rounded-full bg-surface-3 border border-white/10 flex items-center justify-center text-xs font-semibold text-gold flex-shrink-0 mt-0.5">
               {step.n}
             </div>
             <div className="flex-1">
@@ -2524,11 +2524,11 @@ export default function AdminPage() {
   if (!isAdmin) {
     return (
       <div className="min-h-screen bg-surface flex flex-col items-center justify-center gap-4" data-theme="dark">
-        <div className="bg-[#1E1E1E] rounded-2xl p-10 border border-white/10 text-center max-w-sm mx-4">
+        <div className="bg-surface-2 rounded-2xl p-10 border border-white/10 text-center max-w-sm mx-4">
           <p className="text-2xl mb-2">🔒</p>
           <h1 className="text-xl font-semibold text-white mb-2">Access Denied</h1>
           <p className="text-white/50 text-sm mb-6">You do not have admin access to this page.</p>
-          <Link href="/browse" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium bg-surface-2 text-gold hover:bg-[#333]">
+          <Link href="/browse" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium bg-surface-2 text-gold hover:bg-surface-3">
             Return to Browse
           </Link>
         </div>
@@ -2553,8 +2553,8 @@ export default function AdminPage() {
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <Link href="/browse" className="text-white/40 hover:text-white/80 text-xs transition-colors">
-              Browse
+            <Link href="/browse?preview=1" className="text-white/40 hover:text-white/80 text-xs transition-colors">
+              Member view
             </Link>
             <button
               onClick={async () => {
@@ -2580,17 +2580,17 @@ export default function AdminPage() {
         {/* Stats Row — each card navigates to the relevant tab */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
           {([
-            { label: 'Pending review',  value: pendingCount,    tab: 'queue'      as Tab, accent: '#F59E0B' },
-            { label: 'Approved',        value: approvedCount,   tab: 'members'    as Tab, accent: '#4ADE80' },
-            { label: 'Awaiting admin',  value: mutualCount,     tab: 'mutual'     as Tab, accent: '#A78BFA' },
-            { label: 'Introduced',      value: introducedCount, tab: 'introduced' as Tab, accent: '#60A5FA' },
-            { label: 'Withdrawn',       value: withdrawnCount,  tab: 'withdrawn'  as Tab, accent: '#6B7280' },
+            { label: 'Pending review',  value: pendingCount,    tab: 'queue'      as Tab, accent: 'var(--status-warning)' },
+            { label: 'Approved',        value: approvedCount,   tab: 'members'    as Tab, accent: 'var(--status-success)' },
+            { label: 'Awaiting admin',  value: mutualCount,     tab: 'mutual'     as Tab, accent: 'var(--status-purple)' },
+            { label: 'Introduced',      value: introducedCount, tab: 'introduced' as Tab, accent: 'var(--status-info)' },
+            { label: 'Withdrawn',       value: withdrawnCount,  tab: 'withdrawn'  as Tab, accent: 'var(--text-muted)' },
             { label: 'Total members',   value: totalProfiles,   tab: 'members'    as Tab, accent: 'var(--gold)' },
           ] as const).map(stat => (
             <button
               key={stat.label}
               onClick={() => setTab(stat.tab)}
-              className="bg-[#1E1E1E] rounded-2xl p-4 text-left hover:bg-[#252525] transition-colors w-full"
+              className="bg-surface-2 rounded-2xl p-4 text-left hover:bg-surface-3 transition-colors w-full"
               style={{ border: `1px solid rgba(255,255,255,0.08)`, borderLeft: `3px solid ${stat.accent}` }}
             >
               <p className="text-2xl font-bold text-white">{stat.value}</p>
@@ -2609,7 +2609,7 @@ export default function AdminPage() {
             <Link
               key={link.href}
               href={link.href}
-              className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[#252525] transition-colors"
+              className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-surface-3 transition-colors"
               style={{ background: 'var(--surface-2)', border: '0.5px solid rgba(255,255,255,0.1)', textDecoration: 'none', minWidth: 200 }}
             >
               <span style={{ fontSize: 18 }}>{link.icon}</span>
@@ -2623,7 +2623,7 @@ export default function AdminPage() {
         </div>
 
         {/* Tab Bar */}
-        <div className="flex flex-wrap gap-1 mb-6 bg-[#1E1E1E] rounded-2xl p-1.5 border border-white/10 w-fit">
+        <div className="flex flex-wrap gap-1 mb-6 bg-surface-2 rounded-2xl p-1.5 border border-white/10 w-fit">
           {tabs.map(({ key, label, badge }) => (
             <button
               key={key}
@@ -2639,7 +2639,7 @@ export default function AdminPage() {
                 <span
                   className="w-5 h-5 rounded-full text-xs flex items-center justify-center font-bold"
                   style={{
-                    backgroundColor: tab === key ? 'var(--gold)' : '#E8E4DC',
+                    backgroundColor: tab === key ? 'var(--gold)' : 'var(--border-default)',
                     color: 'var(--surface-2)',
                   }}
                 >
@@ -2676,7 +2676,7 @@ export default function AdminPage() {
           padding: 0.5rem 0.75rem;
           font-size: 0.875rem;
           border: 1px solid rgba(255,255,255,0.12);
-          background: #141414;
+          background: var(--surface);
           color: rgba(255,255,255,0.9);
           outline: none;
           transition: border-color 0.15s;
@@ -2685,7 +2685,7 @@ export default function AdminPage() {
           border-color: var(--gold);
         }
         .field option {
-          background: #1E1E1E;
+          background: var(--surface-2);
           color: rgba(255,255,255,0.9);
         }
       `}</style>

@@ -11,8 +11,8 @@ export default function HelpNav() {
         zIndex: 50,
         width: '100%',
         height: 52,
-        background: '#FFFFFF',
-        borderBottom: '1px solid #E8E4DC',
+        background: 'var(--surface-2)',
+        borderBottom: '1px solid var(--border-default)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -34,17 +34,17 @@ export default function HelpNav() {
           style={{
             fontSize: 15,
             fontWeight: 700,
-            color: '#1C1A14',
+            color: 'var(--text-primary)',
             letterSpacing: '-0.01em',
           }}
         >
           Zawaaj
         </span>
-        <span style={{ color: '#C5BFB3', fontSize: 15 }}>/</span>
+        <span style={{ color: 'var(--text-muted)', fontSize: 15 }}>/</span>
         <span
           style={{
             fontSize: 14,
-            color: '#6B6A65',
+            color: 'var(--text-secondary)',
             fontWeight: 400,
           }}
         >
@@ -60,16 +60,16 @@ export default function HelpNav() {
           alignItems: 'center',
           gap: 6,
           padding: '5px 12px',
-          border: '1px solid #B8960C',
+          border: '1px solid var(--gold)',
           borderRadius: 6,
-          color: '#B8960C',
+          color: 'var(--gold)',
           fontSize: 12.5,
           fontWeight: 500,
           textDecoration: 'none',
           transition: 'background 0.15s',
         }}
         onMouseEnter={e => {
-          ;(e.currentTarget as HTMLAnchorElement).style.background = '#FBF6E9'
+          ;(e.currentTarget as HTMLAnchorElement).style.background = 'var(--gold-muted)'
         }}
         onMouseLeave={e => {
           ;(e.currentTarget as HTMLAnchorElement).style.background = 'transparent'

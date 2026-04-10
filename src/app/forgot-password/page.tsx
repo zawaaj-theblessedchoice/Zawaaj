@@ -194,7 +194,7 @@ export default function ForgotPasswordPage() {
                   <div
                     style={{
                       fontSize: 12.5,
-                      color: '#F87171',
+                      color: 'var(--status-error)',
                       background: 'rgba(248,113,113,0.1)',
                       border: '0.5px solid rgba(248,113,113,0.3)',
                       borderRadius: 8,
@@ -215,7 +215,7 @@ export default function ForgotPasswordPage() {
                     borderRadius: 10,
                     background: 'linear-gradient(135deg, var(--gold), var(--gold-light))',
                     border: 'none',
-                    color: '#1A1A18',
+                    color: 'var(--surface)',
                     fontSize: 13.5,
                     fontWeight: 600,
                     cursor: loading || !email.trim() ? 'not-allowed' : 'pointer',

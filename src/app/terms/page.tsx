@@ -49,21 +49,21 @@ const CLAUSES = [
 
 export default function TermsPage() {
   return (
-    <main className="min-h-screen bg-[#F8F6F1] px-4 py-14">
+    <main className="min-h-screen bg-[--surface] px-4 py-14">
       <div className="max-w-3xl mx-auto">
 
         {/* Header */}
         <div className="mb-10 text-center">
           <h1
             className="text-3xl font-bold tracking-tight mb-2"
-            style={{ color: '#B8960C' }}
+            style={{ color: 'var(--gold)' }}
           >
             ZAWAAJ
           </h1>
-          <p className="text-base font-semibold" style={{ color: '#1A1A1A' }}>
+          <p className="text-base font-semibold" style={{ color: 'var(--text-primary)' }}>
             Terms &amp; Conditions
           </p>
-          <p className="mt-1 text-xs" style={{ color: '#6B6B6B' }}>
+          <p className="mt-1 text-xs" style={{ color: 'var(--text-secondary)' }}>
             Last updated: April 2026
           </p>
         </div>
@@ -71,7 +71,7 @@ export default function TermsPage() {
         {/* Intro */}
         <p
           className="mb-10 text-sm leading-relaxed"
-          style={{ color: '#3A3A3A' }}
+          style={{ color: 'var(--text-secondary)' }}
         >
           Please read these Terms &amp; Conditions carefully before using the
           Zawaaj platform. By creating a profile and using this service, you
@@ -85,11 +85,11 @@ export default function TermsPage() {
             <section key={clause.number}>
               <h2
                 className="text-sm font-bold uppercase tracking-wider mb-2"
-                style={{ color: '#1A1A1A' }}
+                style={{ color: 'var(--text-primary)' }}
               >
                 {clause.number} {clause.title}
               </h2>
-              <p className="text-sm leading-relaxed" style={{ color: '#3A3A3A' }}>
+              <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
                 {clause.body}
               </p>
             </section>
@@ -97,11 +97,11 @@ export default function TermsPage() {
         </div>
 
         {/* Footer nav */}
-        <div className="mt-12 pt-6 border-t" style={{ borderColor: '#D6D2C8' }}>
+        <div className="mt-12 pt-6 border-t" style={{ borderColor: 'var(--border-default)' }}>
           <Link
             href="/login"
             className="text-sm font-medium transition-opacity hover:opacity-70"
-            style={{ color: '#B8960C' }}
+            style={{ color: 'var(--gold)' }}
           >
             &larr; Back to login
           </Link>

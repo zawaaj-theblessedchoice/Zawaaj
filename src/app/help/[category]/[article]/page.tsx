@@ -28,7 +28,7 @@ function renderBlock(block: HelpBlock, index: number) {
           style={{
             fontSize: 14,
             lineHeight: 1.8,
-            color: '#4A4945',
+            color: 'var(--text-secondary)',
             margin: '0 0 16px',
           }}
         >
@@ -44,7 +44,7 @@ function renderBlock(block: HelpBlock, index: number) {
             fontFamily: 'Georgia, serif',
             fontSize: 19,
             fontWeight: 600,
-            color: '#1C1A14',
+            color: 'var(--text-primary)',
             margin: '32px 0 12px',
             letterSpacing: '-0.01em',
           }}
@@ -60,7 +60,7 @@ function renderBlock(block: HelpBlock, index: number) {
           style={{
             fontSize: 15,
             fontWeight: 600,
-            color: '#1C1A14',
+            color: 'var(--text-primary)',
             margin: '24px 0 10px',
           }}
         >
@@ -73,8 +73,8 @@ function renderBlock(block: HelpBlock, index: number) {
         <div
           key={index}
           style={{
-            background: '#FBF6E9',
-            border: '1px solid #E2CC88',
+            background: 'var(--gold-muted)',
+            border: '1px solid var(--border-gold)',
             borderRadius: 10,
             padding: '14px 18px',
             margin: '20px 0',
@@ -84,7 +84,7 @@ function renderBlock(block: HelpBlock, index: number) {
             style={{
               fontSize: 13,
               fontWeight: 600,
-              color: '#B8960C',
+              color: 'var(--gold)',
               marginBottom: 6,
             }}
           >
@@ -94,7 +94,7 @@ function renderBlock(block: HelpBlock, index: number) {
             style={{
               fontSize: 13.5,
               lineHeight: 1.65,
-              color: '#5A5750',
+              color: 'var(--text-secondary)',
             }}
           >
             {block.body}
@@ -119,8 +119,8 @@ function renderBlock(block: HelpBlock, index: number) {
               width: 28,
               height: 28,
               borderRadius: '50%',
-              background: '#B8960C',
-              color: '#FFFFFF',
+              background: 'var(--gold)',
+              color: 'var(--surface-2)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -139,7 +139,7 @@ function renderBlock(block: HelpBlock, index: number) {
               style={{
                 fontSize: 14,
                 fontWeight: 600,
-                color: '#1C1A14',
+                color: 'var(--text-primary)',
                 marginBottom: 4,
               }}
             >
@@ -149,7 +149,7 @@ function renderBlock(block: HelpBlock, index: number) {
               style={{
                 fontSize: 13.5,
                 lineHeight: 1.7,
-                color: '#4A4945',
+                color: 'var(--text-secondary)',
               }}
             >
               {block.body}
@@ -174,7 +174,7 @@ function renderBlock(block: HelpBlock, index: number) {
               style={{
                 fontSize: 14,
                 lineHeight: 1.75,
-                color: '#4A4945',
+                color: 'var(--text-secondary)',
                 marginBottom: 4,
               }}
             >
@@ -200,7 +200,7 @@ function renderBlock(block: HelpBlock, index: number) {
               style={{
                 fontSize: 14,
                 lineHeight: 1.75,
-                color: '#4A4945',
+                color: 'var(--text-secondary)',
                 marginBottom: 4,
               }}
             >
@@ -232,7 +232,7 @@ export default async function ArticlePage({ params }: Props) {
   const relatedArticles = getRelatedArticles(article)
 
   return (
-    <div style={{ minHeight: '100vh', background: '#F8F6F1', fontFamily: 'var(--font-geist-sans, Inter, sans-serif)' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--surface)', fontFamily: 'var(--font-geist-sans, Inter, sans-serif)' }}>
       <HelpNav />
       <div style={{ display: 'flex', alignItems: 'flex-start' }}>
         <HelpSidebar activeCategoryId={categoryId} />
@@ -242,19 +242,19 @@ export default async function ArticlePage({ params }: Props) {
           <nav style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 28, flexWrap: 'wrap' }}>
             <Link
               href="/help"
-              style={{ fontSize: 13, color: '#9B9A94', textDecoration: 'none' }}
+              style={{ fontSize: 13, color: 'var(--text-muted)', textDecoration: 'none' }}
             >
               All topics
             </Link>
-            <span style={{ color: '#C5BFB3', fontSize: 13 }}>/</span>
+            <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>/</span>
             <Link
               href={`/help/${categoryId}`}
-              style={{ fontSize: 13, color: '#9B9A94', textDecoration: 'none' }}
+              style={{ fontSize: 13, color: 'var(--text-muted)', textDecoration: 'none' }}
             >
               {categoryTitle(categoryId)}
             </Link>
-            <span style={{ color: '#C5BFB3', fontSize: 13 }}>/</span>
-            <span style={{ fontSize: 13, color: '#1C1A14', fontWeight: 500 }}>
+            <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>/</span>
+            <span style={{ fontSize: 13, color: 'var(--text-primary)', fontWeight: 500 }}>
               {truncate(article.title, 30)}
             </span>
           </nav>
@@ -266,12 +266,12 @@ export default async function ArticlePage({ params }: Props) {
               style={{
                 display: 'inline-block',
                 padding: '3px 10px',
-                background: '#FBF6E9',
-                border: '1px solid rgba(184,150,12,0.3)',
+                background: 'var(--gold-muted)',
+                border: '1px solid var(--border-gold)',
                 borderRadius: 20,
                 fontSize: 11.5,
                 fontWeight: 600,
-                color: '#B8960C',
+                color: 'var(--gold)',
                 marginBottom: 14,
                 letterSpacing: '0.02em',
               }}
@@ -283,7 +283,7 @@ export default async function ArticlePage({ params }: Props) {
               style={{
                 fontSize: 30,
                 fontWeight: 700,
-                color: '#1C1A14',
+                color: 'var(--text-primary)',
                 lineHeight: 1.2,
                 margin: '0 0 12px',
                 letterSpacing: '-0.02em',
@@ -295,7 +295,7 @@ export default async function ArticlePage({ params }: Props) {
             <p
               style={{
                 fontSize: 15,
-                color: '#6B6A65',
+                color: 'var(--text-secondary)',
                 lineHeight: 1.65,
                 margin: '0 0 6px',
               }}
@@ -303,13 +303,13 @@ export default async function ArticlePage({ params }: Props) {
               {article.deck}
             </p>
 
-            <div style={{ fontSize: 12, color: '#9B9A94' }}>
+            <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
               {article.readTime} min read
             </div>
           </div>
 
           {/* Divider */}
-          <div style={{ height: 1, background: '#E8E4DC', marginBottom: 28 }} />
+          <div style={{ height: 1, background: 'var(--border-default)', marginBottom: 28 }} />
 
           {/* Article body */}
           <div style={{ maxWidth: 640 }}>
@@ -328,14 +328,14 @@ export default async function ArticlePage({ params }: Props) {
                 style={{
                   fontSize: 16,
                   fontWeight: 600,
-                  color: '#1C1A14',
+                  color: 'var(--text-primary)',
                   marginBottom: 4,
                   letterSpacing: '-0.01em',
                 }}
               >
                 Related articles
               </h2>
-              <p style={{ fontSize: 13, color: '#9B9A94', marginBottom: 12 }}>
+              <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 12 }}>
                 You might also find these helpful.
               </p>
               {relatedArticles.map(related => (

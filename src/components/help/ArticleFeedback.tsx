@@ -32,18 +32,18 @@ export default function ArticleFeedback({ articleSlug }: ArticleFeedbackProps) {
       style={{
         marginTop: 40,
         padding: '20px 24px',
-        background: '#F8F6F1',
-        border: '1px solid #E8E4DC',
+        background: 'var(--surface)',
+        border: '1px solid var(--border-default)',
         borderRadius: 12,
       }}
     >
       {submitted ? (
-        <div style={{ fontSize: 13.5, color: '#6B6A65', textAlign: 'center' }}>
+        <div style={{ fontSize: 13.5, color: 'var(--text-secondary)', textAlign: 'center' }}>
           Thank you for your feedback — it helps us improve our help centre.
         </div>
       ) : (
         <>
-          <div style={{ fontSize: 13.5, fontWeight: 500, color: '#1C1A14', marginBottom: 12, textAlign: 'center' }}>
+          <div style={{ fontSize: 13.5, fontWeight: 500, color: 'var(--text-primary)', marginBottom: 12, textAlign: 'center' }}>
             Was this article helpful?
           </div>
           <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
@@ -52,11 +52,11 @@ export default function ArticleFeedback({ articleSlug }: ArticleFeedbackProps) {
               disabled={loading}
               style={{
                 padding: '8px 20px',
-                background: '#FFFFFF',
-                border: '1px solid #E8E4DC',
+                background: 'var(--surface-2)',
+                border: '1px solid var(--border-default)',
                 borderRadius: 8,
                 fontSize: 13,
-                color: '#1C1A14',
+                color: 'var(--text-primary)',
                 cursor: loading ? 'not-allowed' : 'pointer',
                 fontWeight: 500,
                 fontFamily: 'inherit',
@@ -66,14 +66,14 @@ export default function ArticleFeedback({ articleSlug }: ArticleFeedbackProps) {
               onMouseEnter={e => {
                 if (!loading) {
                   const el = e.currentTarget as HTMLButtonElement
-                  el.style.borderColor = '#B8960C'
-                  el.style.background = '#FBF6E9'
+                  el.style.borderColor = 'var(--gold)'
+                  el.style.background = 'var(--gold-muted)'
                 }
               }}
               onMouseLeave={e => {
                 const el = e.currentTarget as HTMLButtonElement
-                el.style.borderColor = '#E8E4DC'
-                el.style.background = '#FFFFFF'
+                el.style.borderColor = 'var(--border-default)'
+                el.style.background = 'var(--surface-2)'
               }}
             >
               Yes, thank you
@@ -83,11 +83,11 @@ export default function ArticleFeedback({ articleSlug }: ArticleFeedbackProps) {
               disabled={loading}
               style={{
                 padding: '8px 20px',
-                background: '#FFFFFF',
-                border: '1px solid #E8E4DC',
+                background: 'var(--surface-2)',
+                border: '1px solid var(--border-default)',
                 borderRadius: 8,
                 fontSize: 13,
-                color: '#6B6A65',
+                color: 'var(--text-secondary)',
                 cursor: loading ? 'not-allowed' : 'pointer',
                 fontFamily: 'inherit',
                 transition: 'border-color 0.15s, background 0.15s',
@@ -96,14 +96,14 @@ export default function ArticleFeedback({ articleSlug }: ArticleFeedbackProps) {
               onMouseEnter={e => {
                 if (!loading) {
                   const el = e.currentTarget as HTMLButtonElement
-                  el.style.borderColor = '#C5BFB3'
-                  el.style.background = '#F0EDE6'
+                  el.style.borderColor = 'var(--text-muted)'
+                  el.style.background = 'var(--surface-3)'
                 }
               }}
               onMouseLeave={e => {
                 const el = e.currentTarget as HTMLButtonElement
-                el.style.borderColor = '#E8E4DC'
-                el.style.background = '#FFFFFF'
+                el.style.borderColor = 'var(--border-default)'
+                el.style.background = 'var(--surface-2)'
               }}
             >
               Could be clearer

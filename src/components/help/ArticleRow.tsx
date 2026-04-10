@@ -37,7 +37,7 @@ export default function ArticleRow({ article }: ArticleRowProps) {
         gap: 12,
         padding: '12px 0',
         textDecoration: 'none',
-        borderBottom: '1px solid #F0EDE6',
+        borderBottom: '1px solid var(--surface-3)',
         transition: 'background 0.1s',
       }}
     >
@@ -47,11 +47,11 @@ export default function ArticleRow({ article }: ArticleRowProps) {
           width: 32,
           height: 32,
           borderRadius: 8,
-          background: '#F0EDE6',
+          background: 'var(--surface-3)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: '#9B9A94',
+          color: 'var(--text-muted)',
           flexShrink: 0,
         }}
       >
@@ -64,7 +64,7 @@ export default function ArticleRow({ article }: ArticleRowProps) {
           style={{
             fontSize: 13.5,
             fontWeight: 500,
-            color: '#1C1A14',
+            color: 'var(--text-primary)',
             marginBottom: 2,
             overflow: 'hidden',
             textOverflow: 'ellipsis',
@@ -73,13 +73,13 @@ export default function ArticleRow({ article }: ArticleRowProps) {
         >
           {article.title}
         </div>
-        <div style={{ fontSize: 11.5, color: '#9B9A94' }}>
+        <div style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>
           {categoryTitle(article.category)} · {article.readTime} min read
         </div>
       </div>
 
       {/* Chevron */}
-      <span style={{ color: '#C5BFB3' }}>
+      <span style={{ color: 'var(--text-muted)' }}>
         <ChevronRight />
       </span>
     </Link>

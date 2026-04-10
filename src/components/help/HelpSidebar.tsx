@@ -100,8 +100,8 @@ export default function HelpSidebar({ activeCategoryId }: HelpSidebarProps) {
         width: 240,
         flexShrink: 0,
         minHeight: 'calc(100vh - 52px)',
-        background: '#F8F6F1',
-        borderRight: '1px solid #E8E4DC',
+        background: 'var(--surface)',
+        borderRight: '1px solid var(--border-default)',
         display: 'flex',
         flexDirection: 'column',
         position: 'sticky',
@@ -119,8 +119,8 @@ export default function HelpSidebar({ activeCategoryId }: HelpSidebarProps) {
           fontWeight: 600,
           textTransform: 'uppercase',
           letterSpacing: '0.09em',
-          color: '#9B9A94',
-          borderBottom: '1px solid #E8E4DC',
+          color: 'var(--text-muted)',
+          borderBottom: '1px solid var(--border-default)',
         }}
       >
         All topics
@@ -140,15 +140,15 @@ export default function HelpSidebar({ activeCategoryId }: HelpSidebarProps) {
                 gap: 9,
                 padding: '7px 16px',
                 textDecoration: 'none',
-                borderLeft: isActive ? '2px solid #B8960C' : '2px solid transparent',
-                background: isActive ? 'rgba(184,150,12,0.06)' : 'transparent',
-                color: isActive ? '#B8960C' : '#3D3C37',
+                borderLeft: isActive ? '2px solid var(--gold)' : '2px solid transparent',
+                background: isActive ? 'var(--gold-muted)' : 'transparent',
+                color: isActive ? 'var(--gold)' : 'var(--text-secondary)',
                 fontSize: 13,
                 fontWeight: isActive ? 500 : 400,
                 transition: 'color 0.12s, background 0.12s',
               }}
             >
-              <span style={{ color: isActive ? '#B8960C' : '#9B9A94', display: 'flex', flexShrink: 0 }}>
+              <span style={{ color: isActive ? 'var(--gold)' : 'var(--text-muted)', display: 'flex', flexShrink: 0 }}>
                 <CategoryIcon icon={cat.icon} />
               </span>
               <span>{cat.title}</span>
@@ -162,15 +162,15 @@ export default function HelpSidebar({ activeCategoryId }: HelpSidebarProps) {
         style={{
           margin: '12px 14px 20px',
           padding: '14px',
-          background: '#FBF6E9',
-          border: '1px solid rgba(184,150,12,0.25)',
+          background: 'var(--gold-muted)',
+          border: '1px solid var(--border-gold)',
           borderRadius: 10,
         }}
       >
-        <div style={{ fontSize: 12, fontWeight: 600, color: '#1C1A14', marginBottom: 4 }}>
+        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>
           Need more help?
         </div>
-        <div style={{ fontSize: 12, color: '#6B6A65', marginBottom: 10, lineHeight: 1.5 }}>
+        <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 10, lineHeight: 1.5 }}>
           Our team is happy to assist with anything not covered here.
         </div>
         <a
@@ -179,7 +179,7 @@ export default function HelpSidebar({ activeCategoryId }: HelpSidebarProps) {
             display: 'inline-block',
             fontSize: 12,
             fontWeight: 500,
-            color: '#B8960C',
+            color: 'var(--gold)',
             textDecoration: 'none',
           }}
         >

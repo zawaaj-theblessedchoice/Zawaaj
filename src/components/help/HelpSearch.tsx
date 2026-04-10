@@ -64,18 +64,18 @@ export default function HelpSearch() {
           display: 'flex',
           alignItems: 'center',
           gap: 10,
-          background: '#FFFFFF',
-          border: `1.5px solid ${focused ? '#B8960C' : '#E0DCD3'}`,
+          background: 'var(--surface-2)',
+          border: `1.5px solid ${focused ? 'var(--gold)' : 'var(--border-default)'}`,
           borderRadius: 12,
           padding: '11px 16px',
-          boxShadow: focused ? '0 0 0 3px rgba(184,150,12,0.1)' : '0 2px 8px rgba(0,0,0,0.06)',
+          boxShadow: focused ? '0 0 0 3px var(--gold-muted)' : '0 2px 8px rgba(0,0,0,0.06)',
           transition: 'border-color 0.15s, box-shadow 0.15s',
         }}
       >
         {/* Magnifier */}
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
-          <circle cx="6.5" cy="6.5" r="5" stroke="#9B9A94" strokeWidth="1.4" />
-          <path d="M11 11l3.5 3.5" stroke="#9B9A94" strokeWidth="1.4" strokeLinecap="round" />
+          <circle cx="6.5" cy="6.5" r="5" stroke="var(--text-muted)" strokeWidth="1.4" />
+          <path d="M11 11l3.5 3.5" stroke="var(--text-muted)" strokeWidth="1.4" strokeLinecap="round" />
         </svg>
         <input
           ref={inputRef}
@@ -92,7 +92,7 @@ export default function HelpSearch() {
             outline: 'none',
             background: 'transparent',
             fontSize: 14,
-            color: '#1C1A14',
+            color: 'var(--text-primary)',
             fontFamily: 'inherit',
           }}
         />
@@ -104,7 +104,7 @@ export default function HelpSearch() {
               border: 'none',
               cursor: 'pointer',
               padding: 0,
-              color: '#9B9A94',
+              color: 'var(--text-muted)',
               fontSize: 16,
               lineHeight: 1,
               display: 'flex',
@@ -126,8 +126,8 @@ export default function HelpSearch() {
             left: 0,
             right: 0,
             marginTop: 6,
-            background: '#FFFFFF',
-            border: '1px solid #E0DCD3',
+            background: 'var(--surface-2)',
+            border: '1px solid var(--border-default)',
             borderRadius: 12,
             boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
             zIndex: 100,
@@ -146,16 +146,16 @@ export default function HelpSearch() {
                 padding: '11px 16px',
                 background: 'none',
                 border: 'none',
-                borderBottom: i < results.length - 1 ? '1px solid #F0EDE6' : 'none',
+                borderBottom: i < results.length - 1 ? '1px solid var(--border-default)' : 'none',
                 cursor: 'pointer',
                 textAlign: 'left',
                 transition: 'background 0.1s',
               }}
-              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F8F6F1' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--surface)' }}
               onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'none' }}
             >
-              <div style={{ fontSize: 13.5, fontWeight: 500, color: '#1C1A14' }}>{result.title}</div>
-              <div style={{ fontSize: 11.5, color: '#9B9A94' }}>{categoryTitle(result.category)}</div>
+              <div style={{ fontSize: 13.5, fontWeight: 500, color: 'var(--text-primary)' }}>{result.title}</div>
+              <div style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>{categoryTitle(result.category)}</div>
             </button>
           ))}
         </div>

@@ -24,8 +24,8 @@ function profileName(p: { first_name: string | null; last_name: string | null; d
 
 function avatarStyle(gender: string | null) {
   return {
-    background: gender === 'female' ? '#EEEDFE' : '#E6F1FB',
-    color: gender === 'female' ? '#534AB7' : '#185FA5',
+    background: gender === 'female' ? 'var(--avatar-female-bg)' : 'var(--avatar-male-bg)',
+    color: gender === 'female' ? 'var(--avatar-female-text)' : 'var(--avatar-male-text)',
   }
 }
 
@@ -100,19 +100,19 @@ function SuggestPicker({
           placeholder="Search candidates…"
           value={search}
           onChange={e => setSearch(e.target.value)}
-          style={{ flex: 1, padding: '7px 12px', borderRadius: 8, border: '0.5px solid rgba(255,255,255,0.12)', background: '#111', color: 'white', fontSize: 12, outline: 'none' }}
+          style={{ flex: 1, padding: '7px 12px', borderRadius: 8, border: '0.5px solid rgba(255,255,255,0.12)', background: 'var(--surface)', color: 'white', fontSize: 12, outline: 'none' }}
         />
         <input
           type="text"
           placeholder="Optional admin note…"
           value={note}
           onChange={e => setNote(e.target.value)}
-          style={{ flex: 1.5, padding: '7px 12px', borderRadius: 8, border: '0.5px solid rgba(255,255,255,0.12)', background: '#111', color: 'white', fontSize: 12, outline: 'none' }}
+          style={{ flex: 1.5, padding: '7px 12px', borderRadius: 8, border: '0.5px solid rgba(255,255,255,0.12)', background: 'var(--surface)', color: 'white', fontSize: 12, outline: 'none' }}
         />
       </div>
 
       {toast && (
-        <div style={{ fontSize: 12, color: '#4ADE80', marginBottom: 10, padding: '6px 12px', background: 'rgba(74,222,128,0.08)', borderRadius: 7, border: '0.5px solid rgba(74,222,128,0.2)' }}>
+        <div style={{ fontSize: 12, color: 'var(--status-success)', marginBottom: 10, padding: '6px 12px', background: 'var(--status-success-bg)', borderRadius: 7, border: '0.5px solid var(--status-success-br)' }}>
           {toast}
         </div>
       )}
@@ -143,7 +143,7 @@ function SuggestPicker({
                 </div>
               </div>
               {suggested ? (
-                <span style={{ fontSize: 11, color: '#4ADE80', flexShrink: 0 }}>✓ Suggested</span>
+                <span style={{ fontSize: 11, color: 'var(--status-success)', flexShrink: 0 }}>✓ Suggested</span>
               ) : (
                 <button
                   onClick={() => suggest(c)}

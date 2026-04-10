@@ -379,13 +379,13 @@ export default function Sidebar({
             gap: 9,
             padding: '9px 12px',
             borderRadius: 10,
-            background: '#2A1F0A',
+            background: 'var(--gold-muted)',
             border: '0.5px solid rgba(201,168,76,0.25)',
             textDecoration: 'none',
             transition: 'background 0.15s',
           }}
-          onMouseEnter={e => ((e.currentTarget as HTMLAnchorElement).style.background = '#332609')}
-          onMouseLeave={e => ((e.currentTarget as HTMLAnchorElement).style.background = '#2A1F0A')}
+          onMouseEnter={e => ((e.currentTarget as HTMLAnchorElement).style.background = 'var(--gold-muted)')}
+          onMouseLeave={e => ((e.currentTarget as HTMLAnchorElement).style.background = 'var(--gold-muted)')}
         >
           <span style={{
             display: 'inline-flex', alignItems: 'center', justifyContent: 'center',

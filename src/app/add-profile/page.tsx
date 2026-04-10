@@ -735,7 +735,7 @@ function Step5({
         />
       </Field>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '-8px', marginBottom: '12px' }}>
-        <span style={{ fontSize: '11px', color: tooMany ? '#e07070' : 'var(--text-muted)' }}>
+        <span style={{ fontSize: '11px', color: tooMany ? 'var(--status-error)' : 'var(--text-muted)' }}>
           {wc > 0 ? `${wc} / 500 words` : ''}
           {tooMany ? ` — please keep to 500 words or fewer` : ''}
         </span>
@@ -1070,7 +1070,7 @@ export default function AddProfilePage() {
           ) : success ? (
             <div style={{ padding: '24px', borderRadius: 13, background: 'rgba(74,222,128,0.08)', border: '0.5px solid rgba(74,222,128,0.25)', textAlign: 'center' }}>
               <div style={{ fontSize: 24, marginBottom: 12 }}>&#x2713;</div>
-              <p style={{ fontSize: 14, fontWeight: 500, color: '#4ADE80', marginBottom: 6 }}>Profile submitted</p>
+              <p style={{ fontSize: 14, fontWeight: 500, color: 'var(--status-success)', marginBottom: 6 }}>Profile submitted</p>
               <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Redirecting you back to browse…</p>
             </div>
           ) : (
@@ -1099,7 +1099,7 @@ export default function AddProfilePage() {
 
               {/* Error */}
               {error && (
-                <div style={{ marginTop: 16, padding: '10px 14px', borderRadius: 9, background: 'rgba(248,113,113,0.1)', border: '0.5px solid rgba(248,113,113,0.3)', fontSize: 13, color: '#F87171' }}>
+                <div style={{ marginTop: 16, padding: '10px 14px', borderRadius: 9, background: 'var(--status-error-bg)', border: '0.5px solid var(--status-error-br)', fontSize: 13, color: 'var(--status-error)' }}>
                   {error}
                 </div>
               )}
@@ -1119,7 +1119,7 @@ export default function AddProfilePage() {
                   <button
                     type="button"
                     onClick={handleNext}
-                    style={{ flex: 1, padding: '12px', borderRadius: 9, fontSize: 14, fontWeight: 600, background: 'linear-gradient(135deg, var(--gold), var(--gold-light))', border: 'none', color: '#111', cursor: 'pointer' }}
+                    style={{ flex: 1, padding: '12px', borderRadius: 9, fontSize: 14, fontWeight: 600, background: 'linear-gradient(135deg, var(--gold), var(--gold-light))', border: 'none', color: 'var(--surface)', cursor: 'pointer' }}
                   >
                     Continue
                   </button>
@@ -1128,7 +1128,7 @@ export default function AddProfilePage() {
                     type="button"
                     onClick={handleSubmit}
                     disabled={loading}
-                    style={{ flex: 1, padding: '12px', borderRadius: 9, fontSize: 14, fontWeight: 600, background: 'linear-gradient(135deg, var(--gold), var(--gold-light))', border: 'none', color: '#111', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.6 : 1 }}
+                    style={{ flex: 1, padding: '12px', borderRadius: 9, fontSize: 14, fontWeight: 600, background: 'linear-gradient(135deg, var(--gold), var(--gold-light))', border: 'none', color: 'var(--surface)', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.6 : 1 }}
                   >
                     {loading ? 'Submitting…' : 'Submit for review'}
                   </button>

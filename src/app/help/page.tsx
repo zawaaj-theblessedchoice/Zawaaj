@@ -25,7 +25,7 @@ export default function HelpPage() {
     .filter((a): a is NonNullable<typeof a> => a !== undefined)
 
   return (
-    <div style={{ minHeight: '100vh', background: '#F8F6F1', fontFamily: 'var(--font-geist-sans, Inter, sans-serif)' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--surface)', fontFamily: 'var(--font-geist-sans, Inter, sans-serif)' }}>
       <HelpNav />
 
       <div style={{ display: 'flex', alignItems: 'flex-start' }}>
@@ -39,12 +39,12 @@ export default function HelpPage() {
               style={{
                 display: 'inline-block',
                 padding: '3px 12px',
-                background: '#FBF6E9',
-                border: '1px solid rgba(184,150,12,0.3)',
+                background: 'var(--gold-muted)',
+                border: '1px solid var(--border-gold)',
                 borderRadius: 20,
                 fontSize: 12,
                 fontWeight: 600,
-                color: '#B8960C',
+                color: 'var(--gold)',
                 marginBottom: 16,
                 letterSpacing: '0.02em',
               }}
@@ -56,7 +56,7 @@ export default function HelpPage() {
               style={{
                 fontSize: 36,
                 fontWeight: 700,
-                color: '#1C1A14',
+                color: 'var(--text-primary)',
                 lineHeight: 1.15,
                 margin: '0 0 14px',
                 letterSpacing: '-0.02em',
@@ -65,7 +65,7 @@ export default function HelpPage() {
               How can we help you?
             </h1>
 
-            <p style={{ fontSize: 15, color: '#6B6A65', lineHeight: 1.6, margin: '0 0 28px' }}>
+            <p style={{ fontSize: 15, color: 'var(--text-secondary)', lineHeight: 1.6, margin: '0 0 28px' }}>
               Find answers, understand the process, and get the support you need — at every step of your journey with Zawaaj.
             </p>
 
@@ -82,19 +82,19 @@ export default function HelpPage() {
                 alignItems: 'center',
               }}
             >
-              <span style={{ fontSize: 12, color: '#9B9A94' }}>Popular:</span>
+              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Popular:</span>
               {QUICK_LINKS.map(link => (
                 <a
                   key={link.href}
                   href={link.href}
                   style={{
                     fontSize: 12.5,
-                    color: '#B8960C',
+                    color: 'var(--gold)',
                     textDecoration: 'none',
                     padding: '3px 10px',
-                    background: '#FBF6E9',
+                    background: 'var(--gold-muted)',
                     borderRadius: 20,
-                    border: '1px solid rgba(184,150,12,0.2)',
+                    border: '1px solid var(--border-gold)',
                     transition: 'background 0.12s',
                   }}
                 >
@@ -110,7 +110,7 @@ export default function HelpPage() {
               style={{
                 fontSize: 16,
                 fontWeight: 600,
-                color: '#1C1A14',
+                color: 'var(--text-primary)',
                 marginBottom: 20,
                 letterSpacing: '-0.01em',
               }}
@@ -136,14 +136,14 @@ export default function HelpPage() {
               style={{
                 fontSize: 16,
                 fontWeight: 600,
-                color: '#1C1A14',
+                color: 'var(--text-primary)',
                 marginBottom: 4,
                 letterSpacing: '-0.01em',
               }}
             >
               Most read articles
             </h2>
-            <p style={{ fontSize: 13, color: '#9B9A94', marginBottom: 16 }}>
+            <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16 }}>
               The articles members find most useful.
             </p>
             <div>

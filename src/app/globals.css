@@ -2,44 +2,68 @@
 
 /* ─── Design tokens ──────────────────────────────────────────────────────── */
 :root {
-  /* Gold — richer, warmer */
+  /* Gold — brand accent, theme-stable */
   --gold:        #C49A10;
   --gold-light:  #D9AF2E;
-  --gold-muted:  rgba(196, 154, 16, 0.12);
+  --gold-hover:  #9a7a0a;
+  --gold-muted:  rgba(196, 154, 16, 0.10);
   --gold-border: rgba(196, 154, 16, 0.30);
 
-  /* Surfaces — dark by default */
-  --surface:   #111110;
-  --surface-2: #1B1B19;
-  --surface-3: #232321;
-  --surface-4: #2C2C2A;
+  /* Surfaces — LIGHT by default (no data-theme attribute) */
+  --surface:   #F5F2EC;
+  --surface-2: #FFFFFF;
+  --surface-3: #EAEAE2;
+  --surface-4: #D8D4CC;
 
-  /* Semantic aliases (new tokens) — dark values */
-  --page:      #111110;
-  --card:      #1B1B19;
-  --s3:        #232321;
+  /* Semantic aliases */
+  --page: #F5F2EC;
+  --card: #FFFFFF;
+  --s3:   #EAEAE2;
 
   /* Text */
-  --text-primary:   #F6F3EC;
-  --text-secondary: #AAA49D;
-  --text-muted:     #666259;
+  --text-primary:   #1C1A14;
+  --text-secondary: #6B6A65;
+  --text-muted:     #9B9690;
 
   /* Borders */
-  --border-default: rgba(255, 255, 255, 0.09);
+  --border-default: rgba(0, 0, 0, 0.10);
   --border-gold:    rgba(196, 154, 16, 0.30);
+
+  /* Status colours — light-theme variants */
+  --status-success:     #16A34A;
+  --status-success-bg:  rgba(22, 163, 74, 0.10);
+  --status-success-br:  rgba(22, 163, 74, 0.25);
+  --status-error:       #DC2626;
+  --status-error-bg:    rgba(220, 38, 38, 0.10);
+  --status-error-br:    rgba(220, 38, 38, 0.25);
+  --status-warning:     #D97706;
+  --status-warning-bg:  rgba(217, 119, 6, 0.10);
+  --status-warning-br:  rgba(217, 119, 6, 0.25);
+  --status-info:        #2563EB;
+  --status-info-bg:     rgba(37, 99, 235, 0.10);
+  --status-info-br:     rgba(37, 99, 235, 0.25);
+  --status-purple:      #7C3AED;
+  --status-purple-bg:   rgba(124, 58, 237, 0.10);
+  --status-purple-br:   rgba(124, 58, 237, 0.25);
+
+  /* Avatar colours — light theme */
+  --avatar-female-bg:   #EEEDFE;
+  --avatar-female-text: #534AB7;
+  --avatar-male-bg:     #E6F1FB;
+  --avatar-male-text:   #185FA5;
 }
 
-/* ─── Dark override — any element with data-theme="dark" forces dark tokens ─ */
-/* This is how dark-pinned pages (admin, browse, etc.) override a light <html> */
+/* ─── Dark theme — applied by data-theme="dark" on <html> (Settings toggle)
+       or on a specific element to force dark regardless of the <html> theme   ─ */
 [data-theme="dark"] {
   --surface:   #111110;
   --surface-2: #1B1B19;
   --surface-3: #232321;
   --surface-4: #2C2C2A;
 
-  --page:      #111110;
-  --card:      #1B1B19;
-  --s3:        #232321;
+  --page: #111110;
+  --card: #1B1B19;
+  --s3:   #232321;
 
   --text-primary:   #F6F3EC;
   --text-secondary: #AAA49D;
@@ -48,6 +72,29 @@
   --border-default: rgba(255, 255, 255, 0.09);
   --border-gold:    rgba(196, 154, 16, 0.30);
   --gold-muted:     rgba(196, 154, 16, 0.12);
+
+  /* Status colours — dark-theme variants (brighter for readability on dark bg) */
+  --status-success:     #4ADE80;
+  --status-success-bg:  rgba(74, 222, 128, 0.10);
+  --status-success-br:  rgba(74, 222, 128, 0.25);
+  --status-error:       #F87171;
+  --status-error-bg:    rgba(248, 113, 113, 0.10);
+  --status-error-br:    rgba(248, 113, 113, 0.25);
+  --status-warning:     #FBBF24;
+  --status-warning-bg:  rgba(251, 191, 36, 0.10);
+  --status-warning-br:  rgba(251, 191, 36, 0.25);
+  --status-info:        #60A5FA;
+  --status-info-bg:     rgba(96, 165, 250, 0.10);
+  --status-info-br:     rgba(96, 165, 250, 0.25);
+  --status-purple:      #A78BFA;
+  --status-purple-bg:   rgba(167, 139, 250, 0.10);
+  --status-purple-br:   rgba(167, 139, 250, 0.25);
+
+  /* Avatar colours — dark theme */
+  --avatar-female-bg:   #2D2455;
+  --avatar-female-text: #C4BCFF;
+  --avatar-male-bg:     #0D2A3A;
+  --avatar-male-text:   #7BBFE8;
 }
 
 [data-theme="dark"] input,
@@ -56,41 +103,36 @@
   color-scheme: dark;
 }
 
-/* ─── Light theme — only when data-theme="light" on <html> ──────────────── */
-html[data-theme="light"] {
-  --surface:   #F5F2EC;
-  --surface-2: #FFFFFF;
-  --surface-3: #EAEAE2;
-  --surface-4: #D8D4CC;
-
-  --page:      #F5F2EC;
-  --card:      #FFFFFF;
-  --s3:        #EAEAE2;
-
-  --text-primary:   #1C1A14;
-  --text-secondary: #6B6A65;
-  --text-muted:     #9B9690;
-
-  --border-default: rgba(0, 0, 0, 0.10);
-  --border-gold:    rgba(196, 154, 16, 0.30);
-  --gold-muted:     rgba(196, 154, 16, 0.10);
-}
-
 /* ─── Tailwind theme registration ────────────────────────────────────────── */
 @theme inline {
-  --color-gold:       var(--gold);
+  /* Brand */
+  --color-gold:      var(--gold);
   --color-gold-light: var(--gold-light);
+  --color-gold-hover: var(--gold-hover);
+  --color-gold-bg:   var(--gold-muted);
 
-  /* Surface tokens — use bg-surface, bg-surface-2 etc. in components */
+  /* Surfaces */
   --color-surface:   var(--surface);
   --color-surface-2: var(--surface-2);
   --color-surface-3: var(--surface-3);
   --color-surface-4: var(--surface-4);
+  --color-page:      var(--page);
+  --color-card:      var(--card);
+  --color-s3:        var(--s3);
 
-  /* Semantic aliases */
-  --color-page: var(--page);
-  --color-card: var(--card);
-  --color-s3:   var(--s3);
+  /* Text — semantic class names (text-ink, text-dim, text-muted) */
+  --color-ink:       var(--text-primary);
+  --color-dim:       var(--text-secondary);
+
+  /* Border — semantic class name (border-br) */
+  --color-br:        var(--border-default);
+
+  /* Status */
+  --color-success:   var(--status-success);
+  --color-error:     var(--status-error);
+  --color-warning:   var(--status-warning);
+  --color-info:      var(--status-info);
+  --color-purple:    var(--status-purple);
 
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
@@ -104,6 +146,11 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   letter-spacing: -0.01em;
+}
+
+/* ─── Input colour-scheme — light default, dark when in dark theme ───────── */
+input, textarea, select {
+  color-scheme: light;
 }
 
 /* ─── Scrollbar ──────────────────────────────────────────────────────────── */
@@ -128,14 +175,6 @@ body {
 a, button { transition: opacity 0.15s ease, color 0.15s ease, background 0.15s ease; }
 
 /* ─── Input base ─────────────────────────────────────────────────────────── */
-input, textarea, select {
-  color-scheme: dark;
-}
-html[data-theme="light"] input,
-html[data-theme="light"] textarea,
-html[data-theme="light"] select {
-  color-scheme: light;
-}
 input:focus, textarea:focus, select:focus {
   outline: none;
   box-shadow: 0 0 0 1.5px var(--gold-border);

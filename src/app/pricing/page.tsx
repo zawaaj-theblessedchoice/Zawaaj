@@ -53,7 +53,7 @@ const SECTIONS: Array<{
 ]
 
 function Cell({ value }: { value: CellValue }) {
-  if (value === true) return <span className="text-[#4ADE80] text-base">✓</span>
+  if (value === true) return <span className="text-[var(--status-success)] text-base">✓</span>
   if (value === false) return <span className="text-white/20 text-base">—</span>
   return <span className="text-white/70 text-xs">{value}</span>
 }
@@ -78,7 +78,7 @@ export default function PricingPage() {
             <Link href="/login" className="text-sm text-white/60 hover:text-white px-4 py-2 rounded-xl border border-white/10 hover:bg-white/5 transition-colors">
               Sign in
             </Link>
-            <Link href="/signup" className="text-sm font-semibold px-4 py-2 rounded-xl bg-gold text-black hover:bg-[#9a7a0a] transition-colors">
+            <Link href="/signup" className="text-sm font-semibold px-4 py-2 rounded-xl bg-gold text-black hover:bg-[var(--gold-hover)] transition-colors">
               Create profile
             </Link>
           </div>
@@ -121,7 +121,7 @@ export default function PricingPage() {
             return (
               <div key={p.name} className={`rounded-2xl p-5 text-center border ${
                 p.highlight
-                  ? 'bg-[#1E1800] border-gold/50'
+                  ? 'bg-surface-2 border-gold/50'
                   : 'bg-surface-2 border-white/10'
               }`}>
                 {p.highlight && (
@@ -146,7 +146,7 @@ export default function PricingPage() {
                 <Link href={p.cta}
                   className={`mt-3 block py-2 rounded-xl text-xs font-semibold transition-colors ${
                     p.highlight
-                      ? 'bg-gold text-black hover:bg-[#9a7a0a]'
+                      ? 'bg-gold text-black hover:bg-[var(--gold-hover)]'
                       : 'border border-white/15 text-white hover:bg-white/5'
                   }`}>
                   {p.ctaLabel}
@@ -161,7 +161,7 @@ export default function PricingPage() {
           {SECTIONS.map((section, si) => (
             <div key={section.title}>
               {/* Section header */}
-              <div className="grid grid-cols-4 gap-4 px-5 py-3 bg-[#171717] border-t border-white/8">
+              <div className="grid grid-cols-4 gap-4 px-5 py-3 bg-surface-3 border-t border-white/8">
                 <p className="text-xs font-semibold text-white/50 uppercase tracking-wide col-span-1">{section.title}</p>
                 <div className="col-span-3" />
               </div>
@@ -170,7 +170,7 @@ export default function PricingPage() {
                 <div
                   key={row.feature}
                   className={`grid grid-cols-4 gap-4 px-5 py-3.5 items-center ${
-                    si % 2 === 0 && ri % 2 === 0 ? 'bg-[#161614]' : 'bg-surface'
+                    si % 2 === 0 && ri % 2 === 0 ? 'bg-surface-2' : 'bg-surface'
                   } border-t border-white/5`}
                 >
                   <div className="col-span-1">

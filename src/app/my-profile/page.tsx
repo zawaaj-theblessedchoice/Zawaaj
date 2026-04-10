@@ -98,12 +98,12 @@ function SectionLabel({ children }: { children: string }) {
 
 function statusColour(s: string): { bg: string; text: string } {
   const map: Record<string, { bg: string; text: string }> = {
-    approved:  { bg: 'rgba(74,222,128,0.12)', text: '#4ADE80' },
-    pending:   { bg: 'rgba(251,191,36,0.12)', text: '#FBBF24' },
-    paused:    { bg: 'rgba(96,165,250,0.12)', text: '#60A5FA' },
-    rejected:  { bg: 'rgba(248,113,113,0.12)', text: '#F87171' },
+    approved:  { bg: 'rgba(74,222,128,0.12)', text: 'var(--status-success)' },
+    pending:   { bg: 'rgba(251,191,36,0.12)', text: 'var(--status-warning)' },
+    paused:    { bg: 'rgba(96,165,250,0.12)', text: 'var(--status-info)' },
+    rejected:  { bg: 'rgba(248,113,113,0.12)', text: 'var(--status-error)' },
     withdrawn: { bg: 'var(--surface-3)', text: 'var(--text-muted)' },
-    suspended: { bg: 'rgba(248,113,113,0.12)', text: '#F87171' },
+    suspended: { bg: 'rgba(248,113,113,0.12)', text: 'var(--status-error)' },
     introduced:{ bg: 'var(--gold-muted)', text: 'var(--gold-light)' },
   }
   return map[s] ?? { bg: 'var(--surface-3)', text: 'var(--text-secondary)' }
@@ -421,7 +421,7 @@ export default function MyProfilePage() {
 
   if (loading) {
     return (
-      <div data-theme="dark" style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
+      <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
         <Sidebar activeRoute={pathname ?? ''} shortlistCount={0} introRequestsCount={0} profile={null} managedProfiles={[]} />
         <main style={{ marginLeft: 200, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>Loading…</span>
@@ -432,7 +432,7 @@ export default function MyProfilePage() {
 
   if (!profile) {
     return (
-      <div data-theme="dark" style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
+      <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
         <Sidebar activeRoute={pathname ?? ''} shortlistCount={0} introRequestsCount={0} profile={null} />
         <main style={{ marginLeft: 200, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ textAlign: 'center' }}>
@@ -453,7 +453,7 @@ export default function MyProfilePage() {
   }).length
 
   return (
-    <div data-theme="dark" style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)', color: 'var(--text-primary)' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)', color: 'var(--text-primary)' }}>
       <Sidebar
         activeRoute={pathname ?? ''}
         shortlistCount={shortlistCount}
@@ -567,7 +567,7 @@ export default function MyProfilePage() {
                 <button
                   onClick={handlePauseResume}
                   disabled={actionLoading}
-                  style={{ padding: '8px 16px', borderRadius: 9, fontSize: 13, fontWeight: 600, cursor: 'pointer', background: 'var(--gold)', color: '#111', border: 'none', opacity: actionLoading ? 0.5 : 1 }}
+                  style={{ padding: '8px 16px', borderRadius: 9, fontSize: 13, fontWeight: 600, cursor: 'pointer', background: 'var(--gold)', color: 'var(--surface)', border: 'none', opacity: actionLoading ? 0.5 : 1 }}
                 >
                   {profile.status === 'approved' ? 'Pause profile' : 'Resume profile'}
                 </button>
@@ -575,7 +575,7 @@ export default function MyProfilePage() {
               <button
                 onClick={() => setShowWithdrawModal(true)}
                 disabled={actionLoading}
-                style={{ padding: '8px 16px', borderRadius: 9, fontSize: 13, fontWeight: 500, cursor: 'pointer', background: 'none', border: '0.5px solid rgba(248,113,113,0.4)', color: '#F87171', opacity: actionLoading ? 0.5 : 1 }}
+                style={{ padding: '8px 16px', borderRadius: 9, fontSize: 13, fontWeight: 500, cursor: 'pointer', background: 'none', border: '0.5px solid rgba(248,113,113,0.4)', color: 'var(--status-error)', opacity: actionLoading ? 0.5 : 1 }}
               >
                 Withdraw profile
               </button>
@@ -621,7 +621,7 @@ export default function MyProfilePage() {
                       pointerEvents: 'none',
                     }}
                   >
-                    <div style={{ width: 32, height: 32, borderRadius: 8, background: i % 2 === 0 ? '#EEEDFE' : '#E6F1FB', flexShrink: 0 }} />
+                    <div style={{ width: 32, height: 32, borderRadius: 8, background: i % 2 === 0 ? 'var(--avatar-female-bg)' : 'var(--avatar-male-bg)', flexShrink: 0 }} />
                     <div style={{ flex: 1 }}>
                       <div style={{ width: 80 + i * 20, height: 11, borderRadius: 4, background: 'var(--surface-3)', marginBottom: 5 }} />
                       <div style={{ width: 50 + i * 10, height: 9, borderRadius: 4, background: 'var(--surface-3)' }} />
@@ -639,7 +639,7 @@ export default function MyProfilePage() {
                   onClick={() => setShowViewsUpgrade(true)}
                   style={{
                     padding: '8px 20px', borderRadius: 9, fontSize: 12.5, fontWeight: 600,
-                    background: 'var(--gold)', color: '#111', border: 'none', cursor: 'pointer',
+                    background: 'var(--gold)', color: 'var(--surface)', border: 'none', cursor: 'pointer',
                   }}
                 >
                   👁 See who viewed you →
@@ -666,7 +666,7 @@ export default function MyProfilePage() {
                 const badge = r.status === 'mutual'
                   ? { bg: 'var(--gold-muted)', text: 'var(--gold-light)', label: 'Mutual' }
                   : r.status === 'facilitated'
-                  ? { bg: 'rgba(74,222,128,0.12)', text: '#4ADE80', label: 'Facilitated' }
+                  ? { bg: 'rgba(74,222,128,0.12)', text: 'var(--status-success)', label: 'Facilitated' }
                   : r.status === 'expired'
                   ? { bg: 'var(--surface-3)', text: 'var(--text-muted)', label: 'Expired' }
                   : { bg: 'var(--surface-3)', text: 'var(--text-secondary)', label: 'Pending' }
@@ -817,7 +817,7 @@ export default function MyProfilePage() {
             {/* Footer */}
             <div style={{ padding: '16px 24px 20px', borderTop: '0.5px solid var(--border-default)', flexShrink: 0 }}>
               {editError && (
-                <div style={{ padding: '8px 12px', borderRadius: 8, background: 'rgba(248,113,113,0.1)', border: '0.5px solid rgba(248,113,113,0.3)', fontSize: 12.5, color: '#F87171', marginBottom: 10 }}>
+                <div style={{ padding: '8px 12px', borderRadius: 8, background: 'rgba(248,113,113,0.1)', border: '0.5px solid rgba(248,113,113,0.3)', fontSize: 12.5, color: 'var(--status-error)', marginBottom: 10 }}>
                   {editError}
                 </div>
               )}
@@ -825,7 +825,7 @@ export default function MyProfilePage() {
                 <button onClick={() => setShowEditModal(false)} disabled={editLoading} style={{ flex: 1, padding: '10px', borderRadius: 9, fontSize: 13, fontWeight: 500, background: 'var(--surface-3)', border: '0.5px solid var(--border-default)', color: 'var(--text-secondary)', cursor: 'pointer' }}>
                   Cancel
                 </button>
-                <button onClick={saveEdit} disabled={editLoading} style={{ flex: 2, padding: '10px', borderRadius: 9, fontSize: 13, fontWeight: 600, background: 'linear-gradient(135deg, var(--gold), var(--gold-light))', border: 'none', color: '#111', cursor: editLoading ? 'not-allowed' : 'pointer', opacity: editLoading ? 0.6 : 1 }}>
+                <button onClick={saveEdit} disabled={editLoading} style={{ flex: 2, padding: '10px', borderRadius: 9, fontSize: 13, fontWeight: 600, background: 'linear-gradient(135deg, var(--gold), var(--gold-light))', border: 'none', color: 'var(--surface)', cursor: editLoading ? 'not-allowed' : 'pointer', opacity: editLoading ? 0.6 : 1 }}>
                   {editLoading ? 'Saving…' : 'Save changes'}
                 </button>
               </div>
@@ -847,11 +847,11 @@ export default function MyProfilePage() {
               <div style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: 6 }}>Confirm password</div>
               <input type="password" value={pwForm.confirm} onChange={e => setPwForm(f => ({ ...f, confirm: e.target.value }))} placeholder="Repeat new password" style={{ width: '100%', padding: '10px 12px', borderRadius: 9, border: '0.5px solid var(--border-default)', background: 'var(--surface-3)', color: 'var(--text-primary)', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
             </div>
-            {pwError && <div style={{ padding: '8px 12px', borderRadius: 8, background: 'rgba(248,113,113,0.1)', border: '0.5px solid rgba(248,113,113,0.3)', fontSize: 12.5, color: '#F87171', marginBottom: 12 }}>{pwError}</div>}
-            {pwSuccess && <div style={{ padding: '8px 12px', borderRadius: 8, background: 'rgba(74,222,128,0.08)', border: '0.5px solid rgba(74,222,128,0.25)', fontSize: 12.5, color: '#4ADE80', marginBottom: 12 }}>Password updated ✓</div>}
+            {pwError && <div style={{ padding: '8px 12px', borderRadius: 8, background: 'rgba(248,113,113,0.1)', border: '0.5px solid rgba(248,113,113,0.3)', fontSize: 12.5, color: 'var(--status-error)', marginBottom: 12 }}>{pwError}</div>}
+            {pwSuccess && <div style={{ padding: '8px 12px', borderRadius: 8, background: 'rgba(74,222,128,0.08)', border: '0.5px solid rgba(74,222,128,0.25)', fontSize: 12.5, color: 'var(--status-success)', marginBottom: 12 }}>Password updated ✓</div>}
             <div style={{ display: 'flex', gap: 10 }}>
               <button onClick={() => setShowPasswordModal(false)} style={{ flex: 1, padding: '10px', borderRadius: 9, fontSize: 13, fontWeight: 500, background: 'var(--surface-3)', border: '0.5px solid var(--border-default)', color: 'var(--text-secondary)', cursor: 'pointer' }}>Cancel</button>
-              <button onClick={savePassword} disabled={pwLoading} style={{ flex: 2, padding: '10px', borderRadius: 9, fontSize: 13, fontWeight: 600, background: 'linear-gradient(135deg, var(--gold), var(--gold-light))', border: 'none', color: '#111', cursor: pwLoading ? 'not-allowed' : 'pointer', opacity: pwLoading ? 0.6 : 1 }}>
+              <button onClick={savePassword} disabled={pwLoading} style={{ flex: 2, padding: '10px', borderRadius: 9, fontSize: 13, fontWeight: 600, background: 'linear-gradient(135deg, var(--gold), var(--gold-light))', border: 'none', color: 'var(--surface)', cursor: pwLoading ? 'not-allowed' : 'pointer', opacity: pwLoading ? 0.6 : 1 }}>
                 {pwLoading ? 'Updating…' : 'Update password'}
               </button>
             </div>
@@ -879,7 +879,7 @@ export default function MyProfilePage() {
               <button onClick={() => setShowWithdrawModal(false)} style={{ flex: 1, padding: '10px', borderRadius: 9, fontSize: 13, fontWeight: 500, background: 'var(--surface-3)', border: '0.5px solid var(--border-default)', color: 'var(--text-secondary)', cursor: 'pointer' }}>
                 Cancel
               </button>
-              <button onClick={handleWithdraw} disabled={actionLoading} style={{ flex: 1, padding: '10px', borderRadius: 9, fontSize: 13, fontWeight: 600, background: 'rgba(248,113,113,0.15)', border: '0.5px solid rgba(248,113,113,0.4)', color: '#F87171', cursor: 'pointer', opacity: actionLoading ? 0.5 : 1 }}>
+              <button onClick={handleWithdraw} disabled={actionLoading} style={{ flex: 1, padding: '10px', borderRadius: 9, fontSize: 13, fontWeight: 600, background: 'rgba(248,113,113,0.15)', border: '0.5px solid rgba(248,113,113,0.4)', color: 'var(--status-error)', cursor: 'pointer', opacity: actionLoading ? 0.5 : 1 }}>
                 {actionLoading ? 'Withdrawing…' : 'Confirm'}
               </button>
             </div>

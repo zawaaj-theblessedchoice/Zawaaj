@@ -141,7 +141,7 @@ function PlanCard({ plan, annual }: { plan: typeof PLANS[number]; annual: boolea
   return (
     <div className={`relative rounded-2xl p-6 flex flex-col gap-5 border ${
       plan.highlight
-        ? 'bg-[#1E1800] border-gold/60 shadow-[0_0_40px_rgba(184,150,12,0.12)]'
+        ? 'bg-surface-2 border-gold/60 shadow-[0_0_40px_rgba(184,150,12,0.12)]'
         : 'bg-surface-2 border-white/10'
     }`}>
       {plan.highlight && (
@@ -180,7 +180,7 @@ function PlanCard({ plan, annual }: { plan: typeof PLANS[number]; annual: boolea
         href={plan.ctaHref}
         className={`block text-center py-3 rounded-xl text-sm font-semibold transition-colors ${
           plan.highlight
-            ? 'bg-gold text-black hover:bg-[#9a7a0a]'
+            ? 'bg-gold text-black hover:bg-[var(--gold-hover)]'
             : 'border border-white/20 text-white hover:bg-white/5'
         }`}
       >
@@ -212,7 +212,7 @@ export default function LandingPage() {
             <Link href="/login" className="text-sm text-white/60 hover:text-white px-4 py-2 rounded-xl border border-white/10 hover:bg-white/5 transition-colors">
               Sign in
             </Link>
-            <Link href="/signup" className="text-sm font-semibold px-4 py-2 rounded-xl bg-gold text-black hover:bg-[#9a7a0a] transition-colors">
+            <Link href="/signup" className="text-sm font-semibold px-4 py-2 rounded-xl bg-gold text-black hover:bg-[var(--gold-hover)] transition-colors">
               Create profile
             </Link>
           </div>
@@ -233,7 +233,7 @@ export default function LandingPage() {
           Every introduction is admin-mediated. No direct messaging. No photos. Just sincere, halal searching.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Link href="/signup" className="px-8 py-3.5 rounded-xl text-sm font-semibold bg-gold text-black hover:bg-[#9a7a0a] transition-colors">
+          <Link href="/signup" className="px-8 py-3.5 rounded-xl text-sm font-semibold bg-gold text-black hover:bg-[var(--gold-hover)] transition-colors">
             Create your profile →
           </Link>
           <Link href="/login" className="px-8 py-3.5 rounded-xl text-sm font-medium border border-white/15 text-white hover:bg-white/5 transition-colors">
@@ -244,7 +244,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Trust bar ── */}
-      <section className="border-y border-white/8 bg-[#161614]">
+      <section className="border-y border-white/8 bg-surface-2">
         <div className="max-w-5xl mx-auto px-5 py-10 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           {[
             { icon: '🔐', label: 'No direct messaging', sub: 'Every intro goes through admin' },
@@ -279,7 +279,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Values ── */}
-      <section id="values" className="bg-[#161614] border-y border-white/8">
+      <section id="values" className="bg-surface-2 border-y border-white/8">
         <div className="max-w-5xl mx-auto px-5 py-24">
           <div className="text-center mb-14">
             <p className="text-xs font-semibold text-gold uppercase tracking-widest mb-3">What we stand for</p>
@@ -287,7 +287,7 @@ export default function LandingPage() {
           </div>
           <div className="grid sm:grid-cols-2 gap-6">
             {VALUES.map(v => (
-              <div key={v.title} className="bg-[#1E1E1C] rounded-2xl p-6 border border-white/8 flex gap-5">
+              <div key={v.title} className="bg-surface-3 rounded-2xl p-6 border border-white/8 flex gap-5">
                 <span className="text-2xl flex-shrink-0 mt-0.5">{v.icon}</span>
                 <div>
                   <p className="font-semibold text-white mb-1">{v.title}</p>
@@ -330,7 +330,7 @@ export default function LandingPage() {
 
         {/* Compact comparison */}
         <div className="bg-surface-2 rounded-2xl border border-white/10 overflow-hidden">
-          <div className="grid grid-cols-4 text-xs font-semibold text-white/40 uppercase tracking-wide px-6 py-3 bg-[#171717] border-b border-white/8">
+          <div className="grid grid-cols-4 text-xs font-semibold text-white/40 uppercase tracking-wide px-6 py-3 bg-surface-3 border-b border-white/8">
             <span className="col-span-1">Feature</span>
             <span className="text-center">Voluntary</span>
             <span className="text-center">Plus</span>
@@ -353,7 +353,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Testimonials ── */}
-      <section className="bg-[#161614] border-y border-white/8">
+      <section className="bg-surface-2 border-y border-white/8">
         <div className="max-w-4xl mx-auto px-5 py-24">
           <div className="text-center mb-14">
             <p className="text-xs font-semibold text-gold uppercase tracking-widest mb-3">Stories</p>
@@ -365,7 +365,7 @@ export default function LandingPage() {
               { initials: 'M.R.', quote: 'I appreciated that there was no pressure and no direct contact. Everything was handled with respect and care.', location: 'Birmingham' },
               { initials: 'F.K.', quote: 'Finally a platform that actually respects Islamic values. The team were helpful and quick to respond throughout.', location: 'Manchester' },
             ].map(t => (
-              <div key={t.initials} className="bg-[#1E1E1C] rounded-2xl p-6 border border-white/8 flex flex-col gap-4">
+              <div key={t.initials} className="bg-surface-3 rounded-2xl p-6 border border-white/8 flex flex-col gap-4">
                 <p className="text-sm text-white/60 leading-relaxed italic">&ldquo;{t.quote}&rdquo;</p>
                 <div className="flex items-center gap-3 mt-auto">
                   <div className="w-8 h-8 rounded-full bg-gold/20 flex items-center justify-center text-xs font-bold text-gold">
@@ -394,7 +394,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── CTA ── */}
-      <section className="bg-[#1A1500] border-y border-gold/20">
+      <section className="bg-surface-2 border-y border-gold/20">
         <div className="max-w-2xl mx-auto px-5 py-20 text-center">
           <h2 className="text-3xl font-bold text-white mb-4">
             Begin your search with <span style={{ color: 'var(--gold)' }}>barakah</span>
@@ -402,7 +402,7 @@ export default function LandingPage() {
           <p className="text-white/50 text-sm mb-8">
             Join a platform built with Islamic values at its core. Private, trusted, and admin-supported.
           </p>
-          <Link href="/signup" className="inline-block px-10 py-4 rounded-xl text-sm font-semibold bg-gold text-black hover:bg-[#9a7a0a] transition-colors">
+          <Link href="/signup" className="inline-block px-10 py-4 rounded-xl text-sm font-semibold bg-gold text-black hover:bg-[var(--gold-hover)] transition-colors">
             Create your profile →
           </Link>
         </div>

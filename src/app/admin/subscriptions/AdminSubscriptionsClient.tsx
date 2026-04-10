@@ -20,15 +20,15 @@ function profileName(p: SubscriptionRow['profile']): string {
 
 const PLAN_BADGE: Record<string, { bg: string; text: string; label: string }> = {
   voluntary: { bg: 'rgba(255,255,255,0.06)', text: 'rgba(255,255,255,0.45)', label: 'Free' },
-  plus:      { bg: 'rgba(96,165,250,0.12)',  text: '#60A5FA',                label: 'Plus' },
-  premium:   { bg: 'rgba(184,150,12,0.15)',  text: 'var(--gold)',            label: 'Premium' },
+  plus:      { bg: 'var(--status-info-bg)',   text: 'var(--status-info)',     label: 'Plus' },
+  premium:   { bg: 'var(--gold-muted)',       text: 'var(--gold)',            label: 'Premium' },
 }
 
 const STATUS_BADGE: Record<string, { bg: string; text: string }> = {
-  active:    { bg: 'rgba(74,222,128,0.12)', text: '#4ADE80' },
-  cancelled: { bg: 'rgba(255,255,255,0.06)', text: 'rgba(255,255,255,0.35)' },
-  past_due:  { bg: 'rgba(248,113,113,0.12)', text: '#F87171' },
-  trialing:  { bg: 'rgba(251,191,36,0.12)',  text: '#FBBF24' },
+  active:    { bg: 'var(--status-success-bg)', text: 'var(--status-success)' },
+  cancelled: { bg: 'rgba(255,255,255,0.06)',   text: 'rgba(255,255,255,0.35)' },
+  past_due:  { bg: 'var(--status-error-bg)',   text: 'var(--status-error)' },
+  trialing:  { bg: 'var(--status-warning-bg)', text: 'var(--status-warning)' },
 }
 
 const PLAN_PRICES = { voluntary: 0, plus: 9, premium: 19 }
@@ -95,7 +95,7 @@ function OverrideModal({
           })}
         </div>
 
-        {error && <p style={{ fontSize: 12, color: '#F87171', marginBottom: 12 }}>{error}</p>}
+        {error && <p style={{ fontSize: 12, color: 'var(--status-error)', marginBottom: 12 }}>{error}</p>}
 
         <div style={{ display: 'flex', gap: 8 }}>
           <button onClick={onClose} style={{ flex: 1, padding: '9px 0', borderRadius: 9, background: 'rgba(255,255,255,0.06)', border: '0.5px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.5)', fontSize: 13, cursor: 'pointer' }}>
@@ -208,8 +208,8 @@ export default function AdminSubscriptionsClient({ subs: initialSubs }: { subs: 
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <div style={{
                     width: 28, height: 28, borderRadius: 7, flexShrink: 0,
-                    background: sub.profile?.gender === 'female' ? '#EEEDFE' : '#E6F1FB',
-                    color: sub.profile?.gender === 'female' ? '#534AB7' : '#185FA5',
+                    background: sub.profile?.gender === 'female' ? 'var(--avatar-female-bg)' : 'var(--avatar-male-bg)',
+                    color: sub.profile?.gender === 'female' ? 'var(--avatar-female-text)' : 'var(--avatar-male-text)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 10, fontWeight: 600,
                   }}>

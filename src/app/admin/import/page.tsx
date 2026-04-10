@@ -58,11 +58,11 @@ function fmtDate(dateStr: string | null): string {
 
 function StatusPill({ status }: { status: string | null }) {
   const map: Record<string, { bg: string; text: string }> = {
-    pending:    { bg: 'rgba(251,191,36,0.12)',  text: '#FBBF24' },
-    preview:    { bg: 'rgba(96,165,250,0.12)',  text: '#60A5FA' },
-    processing: { bg: 'rgba(167,139,250,0.12)', text: '#A78BFA' },
-    complete:   { bg: 'rgba(74,222,128,0.12)',  text: '#4ADE80' },
-    failed:     { bg: 'rgba(248,113,113,0.12)', text: '#F87171' },
+    pending:    { bg: 'var(--status-warning-bg)',  text: 'var(--status-warning)' },
+    preview:    { bg: 'var(--status-info-bg)',     text: 'var(--status-info)' },
+    processing: { bg: 'var(--status-purple-bg)',   text: 'var(--status-purple)' },
+    complete:   { bg: 'var(--status-success-bg)',  text: 'var(--status-success)' },
+    failed:     { bg: 'var(--status-error-bg)',    text: 'var(--status-error)' },
   }
   const s = map[status ?? ''] ?? { bg: 'rgba(255,255,255,0.08)', text: 'rgba(255,255,255,0.45)' }
   return (
@@ -218,7 +218,7 @@ export default function ImportPage() {
   const canRun = preview !== null && !testRun && preview.validCount > 0 && runResult === null
 
   return (
-    <div className="min-h-screen bg-[#111111] text-white">
+    <div className="min-h-screen bg-surface text-white">
       {/* Header */}
       <div className="border-b border-white/10 px-6 py-4 flex items-center gap-4">
         <Link
@@ -245,11 +245,11 @@ export default function ImportPage() {
         </div>
 
         {/* ── Step 1: Download template ── */}
-        <section className="bg-[#1A1A1A] border border-white/10 rounded-2xl p-6">
+        <section className="bg-surface-2 border border-white/10 rounded-2xl p-6">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
               <h2 className="text-base font-semibold text-white mb-1">
-                <span className="text-[#B8960C] mr-2">1.</span>Download CSV template
+                <span className="text-gold mr-2">1.</span>Download CSV template
               </h2>
               <p className="text-sm text-white/50">
                 Use this template as a starting point. Do not change the header row.
@@ -257,7 +257,7 @@ export default function ImportPage() {
             </div>
             <button
               onClick={downloadTemplate}
-              className="shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border border-[#B8960C]/40 text-[#B8960C] hover:bg-[#B8960C]/10 transition-colors"
+              className="shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border border-gold/40 text-gold hover:bg-gold-bg transition-colors"
             >
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                 <path d="M7 1v8M4 6l3 3 3-3M2 12h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -275,10 +275,10 @@ export default function ImportPage() {
         </section>
 
         {/* ── Step 2: Upload & Preview ── */}
-        <section className="bg-[#1A1A1A] border border-white/10 rounded-2xl p-6 space-y-5">
+        <section className="bg-surface-2 border border-white/10 rounded-2xl p-6 space-y-5">
           <div>
             <h2 className="text-base font-semibold text-white mb-1">
-              <span className="text-[#B8960C] mr-2">2.</span>Upload and preview
+              <span className="text-gold mr-2">2.</span>Upload and preview
             </h2>
             <p className="text-sm text-white/50">Select your filled CSV, then preview to validate rows before importing.</p>
           </div>
@@ -293,10 +293,10 @@ export default function ImportPage() {
               onChange={handleFileChange}
               className="block w-full text-sm text-white/70
                 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0
-                file:text-sm file:font-medium file:bg-[#B8960C]/15 file:text-[#B8960C]
-                hover:file:bg-[#B8960C]/25 file:transition-colors file:cursor-pointer cursor-pointer"
+                file:text-sm file:font-medium file:bg-gold/15 file:text-gold
+                hover:file:bg-gold/25 file:transition-colors file:cursor-pointer cursor-pointer"
             />
-            {fileError && <p className="mt-2 text-xs text-red-400">{fileError}</p>}
+            {fileError && <p className="mt-2 text-xs text-error">{fileError}</p>}
           </div>
 
           {/* Test run checkbox */}
@@ -309,7 +309,7 @@ export default function ImportPage() {
                 setPreview(null)
                 setRunResult(null)
               }}
-              className="w-4 h-4 accent-[#B8960C] cursor-pointer"
+              className="w-4 h-4 accent-gold cursor-pointer"
             />
             <span className="text-sm text-white/80">
               Test run — preview only, do not create accounts
@@ -321,7 +321,7 @@ export default function ImportPage() {
             onClick={handlePreview}
             disabled={!csvText || previewing}
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium
-              bg-[#B8960C] text-black hover:bg-[#a07c0a] disabled:opacity-40 disabled:cursor-not-allowed
+              bg-gold text-black hover:bg-gold-hover disabled:opacity-40 disabled:cursor-not-allowed
               transition-colors"
           >
             {previewing ? (
@@ -335,7 +335,7 @@ export default function ImportPage() {
           </button>
 
           {previewError && (
-            <div className="rounded-xl border border-red-500/20 bg-red-500/8 p-4 text-sm text-red-400">
+            <div className="rounded-xl border border-error/20 bg-status-error-bg p-4 text-sm text-error">
               {previewError}
             </div>
           )}
@@ -345,9 +345,9 @@ export default function ImportPage() {
             <div className="space-y-3">
               {/* Summary */}
               <div className="flex items-center gap-3 text-sm">
-                <span className="text-emerald-400 font-medium">{preview.validCount} valid</span>
+                <span className="text-success font-medium">{preview.validCount} valid</span>
                 <span className="text-white/30">·</span>
-                <span className="text-red-400 font-medium">{preview.errorCount} errors</span>
+                <span className="text-error font-medium">{preview.errorCount} errors</span>
                 {fileName && <span className="text-white/30 text-xs ml-auto">{fileName}</span>}
               </div>
 
@@ -374,9 +374,9 @@ export default function ImportPage() {
                         <td className="px-4 py-2.5 text-white/60 capitalize">{r.status}</td>
                         <td className="px-4 py-2.5">
                           {r.valid ? (
-                            <span className="text-emerald-400">&#10003; valid</span>
+                            <span className="text-success">&#10003; valid</span>
                           ) : (
-                            <span className="text-red-400">&#10007; {r.error}</span>
+                            <span className="text-error">&#10007; {r.error}</span>
                           )}
                         </td>
                       </tr>
@@ -390,10 +390,10 @@ export default function ImportPage() {
 
         {/* ── Step 3: Confirm real import ── */}
         {canRun && (
-          <section className="bg-[#1A1A1A] border border-white/10 rounded-2xl p-6 space-y-4">
+          <section className="bg-surface-2 border border-white/10 rounded-2xl p-6 space-y-4">
             <div>
               <h2 className="text-base font-semibold text-white mb-1">
-                <span className="text-[#B8960C] mr-2">3.</span>Run import
+                <span className="text-gold mr-2">3.</span>Run import
               </h2>
               <p className="text-sm text-white/50">
                 This will create <strong className="text-white/80">{preview?.validCount}</strong> auth user account{preview?.validCount !== 1 ? 's' : ''} and send each a password-reset email.
@@ -402,7 +402,7 @@ export default function ImportPage() {
             </div>
 
             {runError && (
-              <div className="rounded-xl border border-red-500/20 bg-red-500/8 p-4 text-sm text-red-400">
+              <div className="rounded-xl border border-error/20 bg-status-error-bg p-4 text-sm text-error">
                 {runError}
               </div>
             )}
@@ -428,16 +428,16 @@ export default function ImportPage() {
 
         {/* Run result */}
         {runResult && (
-          <section className="bg-[#1A1A1A] border border-emerald-500/20 rounded-2xl p-6">
-            <h2 className="text-base font-semibold text-emerald-400 mb-3">Import complete</h2>
+          <section className="bg-surface-2 border border-success/20 rounded-2xl p-6">
+            <h2 className="text-base font-semibold text-success mb-3">Import complete</h2>
             <div className="flex items-center gap-6 text-sm">
               <div>
                 <span className="text-white/40 text-xs block mb-0.5">Accounts created</span>
-                <span className="text-emerald-400 font-semibold text-lg">{runResult.success}</span>
+                <span className="text-success font-semibold text-lg">{runResult.success}</span>
               </div>
               <div>
                 <span className="text-white/40 text-xs block mb-0.5">Errors</span>
-                <span className={`font-semibold text-lg ${runResult.errors > 0 ? 'text-red-400' : 'text-white/30'}`}>{runResult.errors}</span>
+                <span className={`font-semibold text-lg ${runResult.errors > 0 ? 'text-error' : 'text-white/30'}`}>{runResult.errors}</span>
               </div>
               <div className="ml-auto">
                 <span className="text-white/40 text-xs block mb-0.5">Batch ID</span>
@@ -451,10 +451,10 @@ export default function ImportPage() {
         )}
 
         {/* ── Step 4: Import history ── */}
-        <section className="bg-[#1A1A1A] border border-white/10 rounded-2xl p-6 space-y-4">
+        <section className="bg-surface-2 border border-white/10 rounded-2xl p-6 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-semibold text-white">
-              <span className="text-[#B8960C] mr-2">4.</span>Import history
+              <span className="text-gold mr-2">4.</span>Import history
             </h2>
             <button
               onClick={loadHistory}
@@ -465,7 +465,7 @@ export default function ImportPage() {
           </div>
 
           {historyError && (
-            <p className="text-sm text-red-400">{historyError}</p>
+            <p className="text-sm text-error">{historyError}</p>
           )}
 
           {historyLoading ? (
@@ -492,9 +492,9 @@ export default function ImportPage() {
                       <td className="px-4 py-2.5 text-white/60 whitespace-nowrap">{fmtDate(b.created_at)}</td>
                       <td className="px-4 py-2.5 text-white/70 font-mono truncate max-w-[160px]">{b.filename ?? '—'}</td>
                       <td className="px-4 py-2.5 text-white/60">{b.row_count ?? '—'}</td>
-                      <td className="px-4 py-2.5 text-emerald-400">{b.success_count ?? '—'}</td>
+                      <td className="px-4 py-2.5 text-success">{b.success_count ?? '—'}</td>
                       <td className="px-4 py-2.5">
-                        <span className={(b.error_count ?? 0) > 0 ? 'text-red-400' : 'text-white/30'}>
+                        <span className={(b.error_count ?? 0) > 0 ? 'text-error' : 'text-white/30'}>
                           {b.error_count ?? '—'}
                         </span>
                       </td>
@@ -523,13 +523,13 @@ export default function ImportPage() {
           padding: 0.5rem 0.75rem;
           font-size: 0.875rem;
           border: 1px solid rgba(255,255,255,0.12);
-          background: #141414;
+          background: var(--surface);
           color: rgba(255,255,255,0.9);
           outline: none;
           transition: border-color 0.15s;
         }
         .field:focus {
-          border-color: #B8960C;
+          border-color: var(--gold);
         }
       `}</style>
     </div>

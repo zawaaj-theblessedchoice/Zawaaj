@@ -14,8 +14,8 @@ export default function AvatarInitials({
   const isFemale = gender === 'female'
 
   // Dark-theme avatar colours — gender-distinct, readable on dark surfaces
-  const bg    = isFemale ? '#2D2455' : '#0D2A3A'
-  const color = isFemale ? '#C4BCFF' : '#7BBFE8'
+  const bg    = isFemale ? 'var(--avatar-female-bg)' : 'var(--avatar-male-bg)'
+  const color = isFemale ? 'var(--avatar-female-text)' : 'var(--avatar-male-text)'
 
   const sizeClass =
     size === 'sm' ? 'w-[42px] h-[42px] text-xs' :

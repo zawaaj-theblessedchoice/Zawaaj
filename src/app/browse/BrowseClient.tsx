@@ -603,7 +603,7 @@ export default function BrowseClient({
   ]
 
   return (
-    <div data-theme="dark" style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
       {/* Sidebar */}
       <Sidebar
         activeRoute={activeTab !== 'recommended' ? `/browse?tab=${activeTab}` : '/browse'}
@@ -659,7 +659,7 @@ export default function BrowseClient({
                 border: `0.5px solid ${monthlyUsed >= 5 ? 'rgba(248,113,113,0.3)' : 'var(--border-default)'}`,
                 fontSize: 11.5,
                 fontWeight: 500,
-                color: monthlyUsed >= 5 ? '#F87171' : 'var(--text-muted)',
+                color: monthlyUsed >= 5 ? 'var(--status-error)' : 'var(--text-muted)',
                 cursor: 'default',
               }}
             >
@@ -1022,7 +1022,7 @@ export default function BrowseClient({
                         fontWeight: 500,
                         background: 'var(--gold)',
                         border: 'none',
-                        color: '#1A1A18',
+                        color: 'var(--surface)',
                         cursor: 'pointer',
                       }}
                     >

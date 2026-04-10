@@ -93,7 +93,7 @@ export default function UpgradeModal({ trigger, onClose }: UpgradeModalProps) {
                 style={{
                   padding: '6px 16px', borderRadius: 7, fontSize: 12, fontWeight: 500,
                   background: (annual ? b === 'Annual' : b === 'Monthly') ? 'var(--gold)' : 'transparent',
-                  color: (annual ? b === 'Annual' : b === 'Monthly') ? '#111' : 'var(--text-muted)',
+                  color: (annual ? b === 'Annual' : b === 'Monthly') ? 'var(--surface)' : 'var(--text-muted)',
                   border: 'none', cursor: 'pointer', transition: 'all 0.15s',
                 }}
               >
@@ -120,7 +120,7 @@ export default function UpgradeModal({ trigger, onClose }: UpgradeModalProps) {
               >
                 <div>
                   {p.highlight && (
-                    <span style={{ fontSize: 9, fontWeight: 600, color: '#111', background: 'var(--gold)', borderRadius: 4, padding: '2px 6px', display: 'inline-block', marginBottom: 6 }}>
+                    <span style={{ fontSize: 9, fontWeight: 600, color: 'var(--surface)', background: 'var(--gold)', borderRadius: 4, padding: '2px 6px', display: 'inline-block', marginBottom: 6 }}>
                       Recommended
                     </span>
                   )}
@@ -140,7 +140,7 @@ export default function UpgradeModal({ trigger, onClose }: UpgradeModalProps) {
                     display: 'block', textAlign: 'center',
                     padding: '7px 0', borderRadius: 8, fontSize: 12, fontWeight: 500,
                     background: p.highlight ? 'var(--gold)' : 'transparent',
-                    color: p.highlight ? '#111' : 'var(--text-secondary)',
+                    color: p.highlight ? 'var(--surface)' : 'var(--text-secondary)',
                     border: p.highlight ? 'none' : '0.5px solid var(--border-default)',
                     textDecoration: 'none', transition: 'opacity 0.15s',
                   }}
@@ -182,7 +182,7 @@ export default function UpgradeModal({ trigger, onClose }: UpgradeModalProps) {
           </button>
           <Link href="/pricing" style={{
             padding: '9px 20px', borderRadius: 10, fontSize: 13, fontWeight: 600,
-            background: 'var(--gold)', color: '#111', textDecoration: 'none',
+            background: 'var(--gold)', color: 'var(--surface)', textDecoration: 'none',
           }}>
             See all plans →
           </Link>

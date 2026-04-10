@@ -186,7 +186,7 @@ function RequestIntroductionButton({
         </div>
       )}
       {success && (
-        <div style={{ padding: '10px 14px', borderRadius: 9, background: 'rgba(74,222,128,0.08)', border: '0.5px solid rgba(74,222,128,0.25)', fontSize: 13, color: '#4ADE80', textAlign: 'center' }}>
+        <div style={{ padding: '10px 14px', borderRadius: 9, background: 'rgba(74,222,128,0.08)', border: '0.5px solid rgba(74,222,128,0.25)', fontSize: 13, color: 'var(--status-success)', textAlign: 'center' }}>
           Introduction request sent — our team will be in touch with both families.
         </div>
       )}
@@ -200,7 +200,7 @@ function RequestIntroductionButton({
             borderRadius: 9,
             background: loading ? 'var(--surface-3)' : 'var(--gold)',
             border: 'none',
-            color: loading ? 'var(--text-muted)' : '#111',
+            color: loading ? 'var(--text-muted)' : 'var(--surface)',
             fontSize: 13.5,
             fontWeight: 600,
             cursor: loading ? 'not-allowed' : 'pointer',
@@ -211,7 +211,7 @@ function RequestIntroductionButton({
         </button>
       )}
       {error && (
-        <div style={{ padding: '8px 12px', borderRadius: 8, background: 'rgba(248,113,113,0.1)', border: '0.5px solid rgba(248,113,113,0.3)', fontSize: 12.5, color: '#F87171' }}>
+        <div style={{ padding: '8px 12px', borderRadius: 8, background: 'rgba(248,113,113,0.1)', border: '0.5px solid rgba(248,113,113,0.3)', fontSize: 12.5, color: 'var(--status-error)' }}>
           {error}
         </div>
       )}
@@ -308,7 +308,7 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
 
   if (loading) {
     return (
-      <div data-theme="dark" style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
+      <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
         <Sidebar activeRoute={pathname ?? ''} shortlistCount={0} introRequestsCount={0} profile={null} managedProfiles={[]} />
         <main style={{ marginLeft: 200, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>Loading…</span>
@@ -319,7 +319,7 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
 
   if (notFound || !profile) {
     return (
-      <div data-theme="dark" style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
+      <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
         <Sidebar activeRoute={pathname ?? ''} shortlistCount={shortlistCount} introRequestsCount={introRequestsCount} profile={sidebarProfile} managedProfiles={managedProfiles} activeProfileId={activeProfileId} />
         <main style={{ marginLeft: 200, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ textAlign: 'center' }}>
@@ -340,7 +340,7 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
     profile.pref_ethnicity || (profile.pref_school_of_thought?.length ?? 0) > 0 || profile.pref_partner_children
 
   return (
-    <div data-theme="dark" style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
       <Sidebar
         activeRoute={pathname ?? ''}
         shortlistCount={shortlistCount}
@@ -377,8 +377,8 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
                   {profile.gender && (
                     <span style={{
                       fontSize: 11, fontWeight: 500, padding: '2px 10px', borderRadius: 999,
-                      background: profile.gender === 'female' ? '#EEEDFE' : '#E6F1FB',
-                      color: profile.gender === 'female' ? '#534AB7' : '#185FA5',
+                      background: profile.gender === 'female' ? 'var(--avatar-female-bg)' : 'var(--avatar-male-bg)',
+                      color: profile.gender === 'female' ? 'var(--avatar-female-text)' : 'var(--avatar-male-text)',
                     }}>
                       {profile.gender.charAt(0).toUpperCase() + profile.gender.slice(1)}
                     </span>

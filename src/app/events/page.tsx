@@ -126,7 +126,7 @@ function UpcomingEventCard({ event }: { event: ZawaajEvent }) {
             padding: '8px 18px',
             borderRadius: 8,
             background: 'var(--gold)',
-            color: '#111',
+            color: 'var(--surface)',
             fontSize: 13,
             fontWeight: 600,
             textDecoration: 'none',
@@ -259,7 +259,7 @@ export default function EventsPage() {
   const pastEvents = events.filter(e => e.status === 'ended' && e.show_in_history)
 
   return (
-    <div data-theme="dark" style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
       <Sidebar
         activeRoute={pathname ?? '/events'}
         shortlistCount={shortlistCount}

@@ -63,15 +63,15 @@ const PREF_OPTIONS = [
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { bg: string; text: string }> = {
-    pending:   { bg: '#FEF3C7', text: '#92400E' },
-    approved:  { bg: '#D1FAE5', text: '#065F46' },
-    rejected:  { bg: '#FEE2E2', text: '#991B1B' },
-    withdrawn: { bg: '#F3F4F6', text: '#374151' },
-    suspended: { bg: '#FEF3C7', text: '#92400E' },
-    introduced:{ bg: '#DBEAFE', text: '#1E40AF' },
-    paused:    { bg: '#FEF9C3', text: '#854D0E' },
+    pending:   { bg: 'var(--status-warning-bg)',  text: 'var(--status-warning)' },
+    approved:  { bg: 'var(--status-success-bg)',  text: 'var(--status-success)' },
+    rejected:  { bg: 'var(--status-error-bg)',    text: 'var(--status-error)' },
+    withdrawn: { bg: 'var(--border-default)',     text: 'rgba(255,255,255,0.45)' },
+    suspended: { bg: 'var(--status-warning-bg)',  text: 'var(--status-warning)' },
+    introduced:{ bg: 'var(--status-info-bg)',     text: 'var(--status-info)' },
+    paused:    { bg: 'var(--status-warning-bg)',  text: 'var(--status-warning)' },
   }
-  const s = map[status] ?? { bg: '#F3F4F6', text: '#374151' }
+  const s = map[status] ?? { bg: 'var(--border-default)', text: 'rgba(255,255,255,0.45)' }
   return (
     <span
       className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize"
@@ -87,7 +87,7 @@ function Field({
 }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="text-xs text-[var(--surface-2)]/50 font-medium uppercase tracking-wide mb-1 block">{label}</span>
+      <span className="text-xs text-white/50 font-medium uppercase tracking-wide mb-1 block">{label}</span>
       {children}
     </label>
   )
@@ -95,8 +95,8 @@ function Field({
 
 function SectionHeading({ children }: { children: React.ReactNode }) {
   return (
-    <div className="col-span-full border-t border-[#E8E4DC] pt-6 mt-2">
-      <h2 className="text-xs font-semibold text-[var(--surface-2)]/40 uppercase tracking-wider">{children}</h2>
+    <div className="col-span-full border-t border-white/10 pt-6 mt-2">
+      <h2 className="text-xs font-semibold text-white/40 uppercase tracking-wider">{children}</h2>
     </div>
   )
 }
@@ -213,10 +213,10 @@ export default function ProfileEditPage({
 
   if (accessDenied) {
     return (
-      <div className="min-h-screen bg-[#F8F6F1] flex items-center justify-center">
-        <div className="bg-white rounded-2xl p-10 border border-[#E8E4DC] text-center max-w-sm mx-4">
+      <div className="min-h-screen bg-surface flex items-center justify-center" data-theme="dark">
+        <div className="bg-surface-2 rounded-2xl p-10 border border-white/10 text-center max-w-sm mx-4">
           <p className="text-2xl mb-2">🔒</p>
-          <h1 className="text-xl font-semibold text-[var(--surface-2)] mb-2">Access Denied</h1>
+          <h1 className="text-xl font-semibold text-white mb-2">Access Denied</h1>
           <Link href="/admin" className="text-gold text-sm hover:underline">Back to Admin</Link>
         </div>
       </div>
@@ -225,27 +225,27 @@ export default function ProfileEditPage({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F8F6F1] flex items-center justify-center">
-        <p className="text-[var(--surface-2)]/40 text-sm">Loading profile…</p>
+      <div className="min-h-screen bg-surface flex items-center justify-center" data-theme="dark">
+        <p className="text-white/40 text-sm">Loading profile…</p>
       </div>
     )
   }
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-[#F8F6F1] flex items-center justify-center">
+      <div className="min-h-screen bg-surface flex items-center justify-center" data-theme="dark">
         <div className="text-center">
-          <p className="text-[var(--surface-2)]/60 mb-4">Profile not found.</p>
+          <p className="text-white/60 mb-4">Profile not found.</p>
           <Link href="/admin" className="text-gold text-sm hover:underline">Back to Admin</Link>
         </div>
       </div>
     )
   }
 
-  const avatarBg = profile.gender === 'female' ? '#8B5CF6' : '#2563EB'
+  const avatarBg = profile.gender === 'female' ? 'var(--status-purple)' : 'var(--status-info)'
 
   return (
-    <div className="min-h-screen bg-[#F8F6F1]">
+    <div className="min-h-screen bg-surface" data-theme="dark">
       {/* Header */}
       <header className="bg-surface-2 sticky top-0 z-30 shadow-sm">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
@@ -261,7 +261,7 @@ export default function ProfileEditPage({
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
         {/* Profile Header */}
-        <div className="bg-white rounded-2xl p-6 border border-[#E8E4DC] mb-6 flex items-center gap-5">
+        <div className="bg-surface-2 rounded-2xl p-6 border border-white/10 mb-6 flex items-center gap-5">
           <div
             className="w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-xl flex-shrink-0"
             style={{ backgroundColor: avatarBg }}
@@ -270,9 +270,9 @@ export default function ProfileEditPage({
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 flex-wrap">
-              <h1 className="text-xl font-bold text-[var(--surface-2)]">{profile.display_initials}</h1>
+              <h1 className="text-xl font-bold text-white">{profile.display_initials}</h1>
               {profile.legacy_ref && (
-                <span className="px-2 py-0.5 rounded-full bg-[#F8F6F1] text-xs text-[var(--surface-2)]/60 border border-[#E8E4DC]">
+                <span className="px-2 py-0.5 rounded-full bg-white/10 text-xs text-white/60 border border-white/10">
                   {profile.legacy_ref}
                 </span>
               )}
@@ -283,7 +283,7 @@ export default function ProfileEditPage({
                 </span>
               )}
             </div>
-            <p className="text-sm text-[var(--surface-2)]/50 mt-0.5 capitalize">
+            <p className="text-sm text-white/50 mt-0.5 capitalize">
               {profile.gender} · {profile.age_display} · {profile.location}
             </p>
           </div>
@@ -316,7 +316,7 @@ export default function ProfileEditPage({
             )}
             {profile.status !== 'withdrawn' && (
               <button onClick={() => setStatus('withdrawn')} disabled={saving}
-                className="px-3 py-1.5 rounded-lg text-xs font-medium border border-[#E8E4DC] text-[var(--surface-2)]/60 hover:bg-[#F8F6F1] disabled:opacity-50">
+                className="px-3 py-1.5 rounded-lg text-xs font-medium border border-white/10 text-white/60 hover:bg-white/5 disabled:opacity-50">
                 Withdraw
               </button>
             )}
@@ -324,7 +324,7 @@ export default function ProfileEditPage({
         </div>
 
         {/* Form */}
-        <div className="bg-white rounded-2xl p-6 border border-[#E8E4DC]">
+        <div className="bg-surface-2 rounded-2xl p-6 border border-white/10">
           {error && (
             <div className="mb-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
               {error}
@@ -392,8 +392,8 @@ export default function ProfileEditPage({
             </Field>
 
             {/* ── Attributes ── */}
-            <div className="col-span-full border-t border-[#E8E4DC] pt-6 mt-2">
-              <h2 className="text-xs font-semibold text-[var(--surface-2)]/40 uppercase tracking-wider mb-3">Attributes</h2>
+            <div className="col-span-full border-t border-white/10 pt-6 mt-2">
+              <h2 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-3">Attributes</h2>
               <div className="flex flex-wrap gap-2">
                 {ATTRIBUTE_OPTIONS.map(opt => {
                   const selected = ((form.attributes as string[] | null) ?? []).includes(opt)
@@ -404,9 +404,9 @@ export default function ProfileEditPage({
                       onClick={() => toggleArrayItem('attributes', opt)}
                       className="px-3 py-1.5 rounded-full text-xs font-medium border transition-colors"
                       style={{
-                        backgroundColor: selected ? 'var(--surface-2)' : 'white',
-                        color: selected ? 'var(--gold)' : 'var(--surface-2)',
-                        borderColor: selected ? 'var(--surface-2)' : '#E8E4DC',
+                        backgroundColor: selected ? 'var(--surface-4)' : 'transparent',
+                        color: selected ? 'var(--gold)' : 'rgba(255,255,255,0.6)',
+                        borderColor: selected ? 'var(--border-gold)' : 'var(--border-default)',
                       }}
                     >
                       {opt}
@@ -415,7 +415,7 @@ export default function ProfileEditPage({
                 })}
               </div>
               <div className="mt-2">
-                <span className="text-xs text-[var(--surface-2)]/40">Other (comma-separated): </span>
+                <span className="text-xs text-white/40">Other (comma-separated): </span>
                 <input
                   className="field mt-1"
                   placeholder="Any additional attributes…"
@@ -434,8 +434,8 @@ export default function ProfileEditPage({
             </div>
 
             {/* ── Spouse Preferences ── */}
-            <div className="col-span-full border-t border-[#E8E4DC] pt-6 mt-2">
-              <h2 className="text-xs font-semibold text-[var(--surface-2)]/40 uppercase tracking-wider mb-3">Spouse Preferences</h2>
+            <div className="col-span-full border-t border-white/10 pt-6 mt-2">
+              <h2 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-3">Spouse Preferences</h2>
               <div className="flex flex-wrap gap-2">
                 {PREF_OPTIONS.map(opt => {
                   const selected = ((form.spouse_preferences as string[] | null) ?? []).includes(opt)
@@ -446,9 +446,9 @@ export default function ProfileEditPage({
                       onClick={() => toggleArrayItem('spouse_preferences', opt)}
                       className="px-3 py-1.5 rounded-full text-xs font-medium border transition-colors"
                       style={{
-                        backgroundColor: selected ? 'var(--surface-2)' : 'white',
-                        color: selected ? 'var(--gold)' : 'var(--surface-2)',
-                        borderColor: selected ? 'var(--surface-2)' : '#E8E4DC',
+                        backgroundColor: selected ? 'var(--surface-4)' : 'transparent',
+                        color: selected ? 'var(--gold)' : 'rgba(255,255,255,0.6)',
+                        borderColor: selected ? 'var(--border-gold)' : 'var(--border-default)',
                       }}
                     >
                       {opt}
@@ -502,7 +502,7 @@ export default function ProfileEditPage({
                   onChange={e => set('duplicate_flag', e.target.checked)}
                   className="w-4 h-4 accent-gold"
                 />
-                <span className="text-sm text-[var(--surface-2)]">Flag as possible duplicate</span>
+                <span className="text-sm text-white">Flag as possible duplicate</span>
               </label>
             </div>
 
@@ -527,14 +527,14 @@ export default function ProfileEditPage({
           </div>
 
           {/* Save */}
-          <div className="flex justify-between items-center mt-8 pt-6 border-t border-[#E8E4DC]">
-            <Link href="/admin" className="text-sm text-[var(--surface-2)]/50 hover:text-[var(--surface-2)] transition-colors">
+          <div className="flex justify-between items-center mt-8 pt-6 border-t border-white/10">
+            <Link href="/admin" className="text-sm text-white/50 hover:text-white transition-colors">
               Cancel — back to dashboard
             </Link>
             <button
               onClick={save}
               disabled={saving}
-              className="px-6 py-3 rounded-2xl text-sm font-semibold bg-surface-2 text-gold hover:bg-[#333] disabled:opacity-50 transition-colors"
+              className="px-6 py-3 rounded-2xl text-sm font-semibold bg-surface-2 text-gold hover:bg-surface-3 disabled:opacity-50 transition-colors"
             >
               {saving ? 'Saving…' : 'Save Profile'}
             </button>
@@ -548,9 +548,9 @@ export default function ProfileEditPage({
           border-radius: 0.625rem;
           padding: 0.5rem 0.75rem;
           font-size: 0.875rem;
-          border: 1px solid #E8E4DC;
-          background: white;
-          color: var(--surface-2);
+          border: 1px solid rgba(255,255,255,0.12);
+          background: var(--surface);
+          color: rgba(255,255,255,0.9);
           outline: none;
           transition: border-color 0.15s;
         }

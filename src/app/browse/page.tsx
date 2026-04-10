@@ -4,7 +4,12 @@ import BrowseClient from './BrowseClient'
 import type { ProfileRecord } from '@/components/ProfileModal'
 import type { Plan } from '@/lib/plans'
 
-export default async function BrowsePage() {
+export default async function BrowsePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ preview?: string; tab?: string }>
+}) {
+  const params = await searchParams
   const supabase = await createClient()
 
   // 1. Get current user
@@ -19,8 +24,9 @@ export default async function BrowsePage() {
 
   // 2. Admin check — use the SECURITY DEFINER RPC so it's always authoritative.
   //    Admins never use the member browse UI; send them straight to /admin.
+  //    Exception: ?preview=1 lets an admin see the member-facing browse view.
   const { data: isAdmin } = await supabase.rpc('zawaaj_is_admin')
-  if (isAdmin) redirect('/admin')
+  if (isAdmin && params.preview !== '1') redirect('/admin')
 
   // 3. Get active_profile_id
   const { data: settings } = await supabase

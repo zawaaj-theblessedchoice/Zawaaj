@@ -111,7 +111,7 @@ export default async function CategoryPage({ params }: Props) {
   const articles = getArticlesByCategory(categoryId)
 
   return (
-    <div style={{ minHeight: '100vh', background: '#F8F6F1', fontFamily: 'var(--font-geist-sans, Inter, sans-serif)' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--surface)', fontFamily: 'var(--font-geist-sans, Inter, sans-serif)' }}>
       <HelpNav />
       <div style={{ display: 'flex', alignItems: 'flex-start' }}>
         <HelpSidebar activeCategoryId={categoryId} />
@@ -121,12 +121,12 @@ export default async function CategoryPage({ params }: Props) {
           <nav style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 32 }}>
             <Link
               href="/help"
-              style={{ fontSize: 13, color: '#9B9A94', textDecoration: 'none', transition: 'color 0.12s' }}
+              style={{ fontSize: 13, color: 'var(--text-muted)', textDecoration: 'none', transition: 'color 0.12s' }}
             >
               All topics
             </Link>
-            <span style={{ color: '#C5BFB3', fontSize: 13 }}>/</span>
-            <span style={{ fontSize: 13, color: '#1C1A14', fontWeight: 500 }}>{category.title}</span>
+            <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>/</span>
+            <span style={{ fontSize: 13, color: 'var(--text-primary)', fontWeight: 500 }}>{category.title}</span>
           </nav>
 
           {/* Category header */}
@@ -137,12 +137,12 @@ export default async function CategoryPage({ params }: Props) {
                 width: 48,
                 height: 48,
                 borderRadius: 12,
-                background: '#FBF6E9',
-                border: '1px solid rgba(184,150,12,0.3)',
+                background: 'var(--gold-muted)',
+                border: '1px solid var(--border-gold)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#B8960C',
+                color: 'var(--gold)',
                 marginBottom: 16,
               }}
             >
@@ -153,7 +153,7 @@ export default async function CategoryPage({ params }: Props) {
               style={{
                 fontSize: 28,
                 fontWeight: 700,
-                color: '#1C1A14',
+                color: 'var(--text-primary)',
                 lineHeight: 1.2,
                 margin: '0 0 10px',
                 letterSpacing: '-0.02em',
@@ -161,7 +161,7 @@ export default async function CategoryPage({ params }: Props) {
             >
               {category.title}
             </h1>
-            <p style={{ fontSize: 15, color: '#6B6A65', lineHeight: 1.6, margin: 0, maxWidth: 500 }}>
+            <p style={{ fontSize: 15, color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0, maxWidth: 500 }}>
               {category.description}
             </p>
           </div>

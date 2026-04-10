@@ -73,20 +73,20 @@ function daysAgo(dateStr: string | null): string {
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { bg: string; text: string }> = {
-    pending:              { bg: '#FEF3C7', text: '#92400E' },
-    approved:             { bg: '#D1FAE5', text: '#065F46' },
-    rejected:             { bg: '#FEE2E2', text: '#991B1B' },
-    withdrawn:            { bg: '#F3F4F6', text: '#374151' },
-    suspended:            { bg: '#FEF3C7', text: '#92400E' },
-    introduced:           { bg: '#DBEAFE', text: '#1E40AF' },
-    awaiting_admin:       { bg: '#EDE9FE', text: '#5B21B6' },
-    admin_reviewing:      { bg: '#FEF3C7', text: '#92400E' },
-    nikah:                { bg: '#D1FAE5', text: '#065F46' },
-    no_longer_proceeding: { bg: '#FEE2E2', text: '#991B1B' },
-    dismissed:            { bg: '#F3F4F6', text: '#374151' },
-    in_discussion:        { bg: '#DBEAFE', text: '#1E40AF' },
+    pending:              { bg: 'var(--status-warning-bg)', text: 'var(--status-warning)' },
+    approved:             { bg: 'var(--status-success-bg)', text: 'var(--status-success)' },
+    rejected:             { bg: 'var(--status-error-bg)', text: 'var(--status-error)' },
+    withdrawn:            { bg: 'var(--surface-3)', text: 'var(--text-muted)' },
+    suspended:            { bg: 'var(--status-warning-bg)', text: 'var(--status-warning)' },
+    introduced:           { bg: 'var(--status-info-bg)', text: 'var(--status-info)' },
+    awaiting_admin:       { bg: 'var(--status-purple-bg)', text: 'var(--status-purple)' },
+    admin_reviewing:      { bg: 'var(--status-warning-bg)', text: 'var(--status-warning)' },
+    nikah:                { bg: 'var(--status-success-bg)', text: 'var(--status-success)' },
+    no_longer_proceeding: { bg: 'var(--status-error-bg)', text: 'var(--status-error)' },
+    dismissed:            { bg: 'var(--surface-3)', text: 'var(--text-muted)' },
+    in_discussion:        { bg: 'var(--status-info-bg)', text: 'var(--status-info)' },
   }
-  const s = map[status] ?? { bg: '#F3F4F6', text: '#374151' }
+  const s = map[status] ?? { bg: 'var(--surface-3)', text: 'var(--text-muted)' }
   return (
     <span
       className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
@@ -107,20 +107,20 @@ function ProfileColumn({
   consented: boolean
   onConsentChange: (value: boolean) => void
 }) {
-  const bg = profile.gender === 'female' ? '#8B5CF6' : '#2563EB'
+  const bg = profile.gender === 'female' ? 'var(--status-purple)' : 'var(--status-info)'
   const digits = phoneDigits(profile.contact_number)
 
   function Row({ title, value }: { title: string; value: string | null | undefined }) {
     return value ? (
-      <div className="flex gap-3 py-2.5 border-b border-[#F8F6F1]">
-        <dt className="text-xs text-[#1A1A1A]/40 w-36 flex-shrink-0 pt-0.5">{title}</dt>
-        <dd className="text-sm text-[#1A1A1A] break-words">{value}</dd>
+      <div className="flex gap-3 py-2.5 border-b border-white/10">
+        <dt className="text-xs text-white/40 w-36 flex-shrink-0 pt-0.5">{title}</dt>
+        <dd className="text-sm text-white break-words">{value}</dd>
       </div>
     ) : null
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-[#E8E4DC] overflow-hidden">
+    <div className="bg-surface-2 rounded-2xl border border-white/10 overflow-hidden">
       {/* Avatar header */}
       <div
         className="px-6 py-8 flex flex-col items-center gap-2"
@@ -132,10 +132,10 @@ function ProfileColumn({
         >
           {profile.display_initials}
         </div>
-        <p className="text-sm font-medium text-[#1A1A1A]/50">{label}</p>
-        <p className="text-lg font-bold text-[#1A1A1A]">{profile.display_initials}</p>
+        <p className="text-sm font-medium text-white/50">{label}</p>
+        <p className="text-lg font-bold text-white">{profile.display_initials}</p>
         {profile.legacy_ref && (
-          <span className="px-2.5 py-0.5 rounded-full text-xs border border-[#E8E4DC] text-[#1A1A1A]/50 bg-white">
+          <span className="px-2.5 py-0.5 rounded-full text-xs border border-white/10 text-white/50 bg-surface-2">
             {profile.legacy_ref}
           </span>
         )}
@@ -162,10 +162,10 @@ function ProfileColumn({
         {/* Attributes */}
         {profile.attributes && profile.attributes.length > 0 && (
           <div className="mt-4">
-            <p className="text-xs text-[#1A1A1A]/40 font-medium uppercase tracking-wide mb-2">Attributes</p>
+            <p className="text-xs text-white/40 font-medium uppercase tracking-wide mb-2">Attributes</p>
             <div className="flex flex-wrap gap-1.5">
               {profile.attributes.map(a => (
-                <span key={a} className="px-2.5 py-1 rounded-full text-xs bg-[#F8F6F1] border border-[#E8E4DC] text-[#1A1A1A]/70">
+                <span key={a} className="px-2.5 py-1 rounded-full text-xs bg-surface-3 border border-white/10 text-white/70">
                   {a}
                 </span>
               ))}
@@ -176,10 +176,10 @@ function ProfileColumn({
         {/* Spouse Preferences */}
         {profile.spouse_preferences && profile.spouse_preferences.length > 0 && (
           <div className="mt-4">
-            <p className="text-xs text-[#1A1A1A]/40 font-medium uppercase tracking-wide mb-2">Spouse Preferences</p>
+            <p className="text-xs text-white/40 font-medium uppercase tracking-wide mb-2">Spouse Preferences</p>
             <div className="flex flex-wrap gap-1.5">
               {profile.spouse_preferences.map(p => (
-                <span key={p} className="px-2.5 py-1 rounded-full text-xs bg-[#EDE9FE] text-[#5B21B6] border border-[#DDD6FE]">
+                <span key={p} className="px-2.5 py-1 rounded-full text-xs bg-surface-3 text-white/70 border border-white/10">
                   {p}
                 </span>
               ))}
@@ -189,20 +189,20 @@ function ProfileColumn({
       </div>
 
       {/* Admin-only contact section */}
-      <div className="border-t border-[#E8E4DC] bg-[#F8F6F1] px-6 py-4">
-        <p className="text-xs font-semibold text-[#1A1A1A]/40 uppercase tracking-wider mb-3">Contact Details</p>
+      <div className="border-t border-white/10 bg-surface-3 px-6 py-4">
+        <p className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-3">Contact Details</p>
         <dl className="space-y-2 text-sm">
           <div className="flex gap-2">
-            <dt className="text-[#1A1A1A]/50 w-24 flex-shrink-0">Phone:</dt>
-            <dd className="font-medium text-[#1A1A1A]">{profile.contact_number ?? '—'}</dd>
+            <dt className="text-white/50 w-24 flex-shrink-0">Phone:</dt>
+            <dd className="font-medium text-white">{profile.contact_number ?? '—'}</dd>
           </div>
           <div className="flex gap-2">
-            <dt className="text-[#1A1A1A]/50 w-24 flex-shrink-0">Guardian:</dt>
-            <dd className="font-medium text-[#1A1A1A]">{profile.guardian_name ?? '—'}</dd>
+            <dt className="text-white/50 w-24 flex-shrink-0">Guardian:</dt>
+            <dd className="font-medium text-white">{profile.guardian_name ?? '—'}</dd>
           </div>
           <div className="flex gap-2">
-            <dt className="text-[#1A1A1A]/50 w-24 flex-shrink-0">Email:</dt>
-            <dd className="font-medium text-[#1A1A1A] break-all">{profile.imported_email ?? '—'}</dd>
+            <dt className="text-white/50 w-24 flex-shrink-0">Email:</dt>
+            <dd className="font-medium text-white break-all">{profile.imported_email ?? '—'}</dd>
           </div>
         </dl>
         {digits && (
@@ -219,32 +219,32 @@ function ProfileColumn({
 
       {/* Admin notes */}
       {(profile.admin_comments || profile.admin_notes) && (
-        <div className="border-t border-[#E8E4DC] px-6 py-4">
+        <div className="border-t border-white/10 px-6 py-4">
           {profile.admin_comments && (
             <div className="mb-3">
-              <p className="text-xs font-medium text-[#1A1A1A]/40 uppercase tracking-wide mb-1">Admin Comments</p>
-              <p className="text-sm text-[#1A1A1A]/70">{profile.admin_comments}</p>
+              <p className="text-xs font-medium text-white/40 uppercase tracking-wide mb-1">Admin Comments</p>
+              <p className="text-sm text-white/70">{profile.admin_comments}</p>
             </div>
           )}
           {profile.admin_notes && (
             <div>
-              <p className="text-xs font-medium text-[#1A1A1A]/40 uppercase tracking-wide mb-1">Admin Notes</p>
-              <p className="text-sm text-[#1A1A1A]/70">{profile.admin_notes}</p>
+              <p className="text-xs font-medium text-white/40 uppercase tracking-wide mb-1">Admin Notes</p>
+              <p className="text-sm text-white/70">{profile.admin_notes}</p>
             </div>
           )}
         </div>
       )}
 
       {/* Consent checkbox */}
-      <div className="border-t border-[#E8E4DC] px-6 py-4 bg-white">
+      <div className="border-t border-white/10 px-6 py-4 bg-surface-2">
         <label className="flex items-start gap-3 cursor-pointer">
           <input
             type="checkbox"
             checked={consented}
             onChange={e => onConsentChange(e.target.checked)}
-            className="w-4 h-4 mt-0.5 accent-[#B8960C] flex-shrink-0"
+            className="w-4 h-4 mt-0.5 accent-gold flex-shrink-0"
           />
-          <span className="text-sm text-[#1A1A1A]">
+          <span className="text-sm text-white">
             {label} has verbally confirmed consent to introduction
           </span>
         </label>
@@ -363,11 +363,11 @@ export default function SideBySidePage({
 
   if (accessDenied) {
     return (
-      <div className="min-h-screen bg-[#F8F6F1] flex items-center justify-center">
-        <div className="bg-white rounded-2xl p-10 border border-[#E8E4DC] text-center max-w-sm mx-4">
+      <div className="min-h-screen bg-surface flex items-center justify-center" data-theme="dark">
+        <div className="bg-surface-2 rounded-2xl p-10 border border-white/10 text-center max-w-sm mx-4">
           <p className="text-2xl mb-2">🔒</p>
-          <h1 className="text-xl font-semibold text-[#1A1A1A] mb-4">Access Denied</h1>
-          <Link href="/admin" className="text-[#B8960C] text-sm hover:underline">Back to Admin</Link>
+          <h1 className="text-xl font-semibold text-white mb-4">Access Denied</h1>
+          <Link href="/admin" className="text-gold text-sm hover:underline">Back to Admin</Link>
         </div>
       </div>
     )
@@ -375,18 +375,18 @@ export default function SideBySidePage({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F8F6F1] flex items-center justify-center">
-        <p className="text-[#1A1A1A]/40 text-sm">Loading match…</p>
+      <div className="min-h-screen bg-surface flex items-center justify-center" data-theme="dark">
+        <p className="text-white/40 text-sm">Loading match…</p>
       </div>
     )
   }
 
   if (!match) {
     return (
-      <div className="min-h-screen bg-[#F8F6F1] flex items-center justify-center">
+      <div className="min-h-screen bg-surface flex items-center justify-center" data-theme="dark">
         <div className="text-center">
-          <p className="text-[#1A1A1A]/60 mb-4">Match not found.</p>
-          <Link href="/admin" className="text-[#B8960C] text-sm hover:underline">Back to Admin</Link>
+          <p className="text-white/60 mb-4">Match not found.</p>
+          <Link href="/admin" className="text-gold text-sm hover:underline">Back to Admin</Link>
         </div>
       </div>
     )
@@ -395,15 +395,15 @@ export default function SideBySidePage({
   const canIntroduce = consentA && consentB && match.status !== 'introduced'
 
   return (
-    <div className="min-h-screen bg-[#F8F6F1]">
+    <div className="min-h-screen bg-surface" data-theme="dark">
       {/* Confirm Dismiss Modal */}
       {confirmDismiss && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl">
-            <p className="text-[#1A1A1A] mb-6">Dismiss this match? This cannot be undone.</p>
+          <div className="bg-surface-2 rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl">
+            <p className="text-white mb-6">Dismiss this match? This cannot be undone.</p>
             <div className="flex gap-3 justify-end">
               <button onClick={() => setConfirmDismiss(false)}
-                className="px-4 py-2 rounded-lg text-sm border border-[#E8E4DC] text-[#1A1A1A] hover:bg-[#F8F6F1]">
+                className="px-4 py-2 rounded-lg text-sm border border-white/10 text-white hover:bg-surface-3">
                 Cancel
               </button>
               <button onClick={dismissMatch} disabled={dismissing}
@@ -416,7 +416,7 @@ export default function SideBySidePage({
       )}
 
       {/* Header */}
-      <header className="bg-[#1A1A1A] sticky top-0 z-30 shadow-sm">
+      <header className="bg-surface-2 sticky top-0 z-30 shadow-sm">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <ZawaajLogo size={30} tagline={false} />
@@ -430,36 +430,36 @@ export default function SideBySidePage({
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-6">
         {/* Match Summary Bar */}
-        <div className="bg-white rounded-2xl p-5 border border-[#E8E4DC] flex flex-wrap items-center gap-4">
+        <div className="bg-surface-2 rounded-2xl p-5 border border-white/10 flex flex-wrap items-center gap-4">
           <div>
-            <p className="text-xs text-[#1A1A1A]/40 uppercase tracking-wide mb-1">Match Status</p>
+            <p className="text-xs text-white/40 uppercase tracking-wide mb-1">Match Status</p>
             <StatusBadge status={match.status} />
           </div>
           <div>
-            <p className="text-xs text-[#1A1A1A]/40 uppercase tracking-wide mb-1">Mutual Date</p>
-            <p className="text-sm font-medium text-[#1A1A1A]">{fmtDate(match.mutual_date)} <span className="text-[#1A1A1A]/40 font-normal">({daysAgo(match.mutual_date)})</span></p>
+            <p className="text-xs text-white/40 uppercase tracking-wide mb-1">Mutual Date</p>
+            <p className="text-sm font-medium text-white">{fmtDate(match.mutual_date)} <span className="text-white/40 font-normal">({daysAgo(match.mutual_date)})</span></p>
           </div>
           {match.introduced_date && (
             <div>
-              <p className="text-xs text-[#1A1A1A]/40 uppercase tracking-wide mb-1">Introduced</p>
-              <p className="text-sm font-medium text-[#1A1A1A]">{fmtDate(match.introduced_date)}</p>
+              <p className="text-xs text-white/40 uppercase tracking-wide mb-1">Introduced</p>
+              <p className="text-sm font-medium text-white">{fmtDate(match.introduced_date)}</p>
             </div>
           )}
           <div>
-            <p className="text-xs text-[#1A1A1A]/40 uppercase tracking-wide mb-1">Consent</p>
-            <p className="text-sm text-[#1A1A1A]">
-              <span className={consentA ? 'text-green-600 font-medium' : 'text-red-500'}>
+            <p className="text-xs text-white/40 uppercase tracking-wide mb-1">Consent</p>
+            <p className="text-sm text-white">
+              <span className={consentA ? 'text-green-400 font-medium' : 'text-red-400'}>
                 Family A {consentA ? '✓' : '✗'}
               </span>
               {' · '}
-              <span className={consentB ? 'text-green-600 font-medium' : 'text-red-500'}>
+              <span className={consentB ? 'text-green-400 font-medium' : 'text-red-400'}>
                 Family B {consentB ? '✓' : '✗'}
               </span>
             </p>
           </div>
           <div className="ml-auto flex gap-2 flex-wrap">
             <select
-              className="rounded-lg px-3 py-1.5 text-xs border border-[#E8E4DC] bg-white text-[#1A1A1A] outline-none focus:border-[#B8960C]"
+              className="rounded-lg px-3 py-1.5 text-xs border border-white/10 bg-surface-3 text-white outline-none focus:border-gold"
               value={outcomeValue}
               onChange={e => updateOutcome(e.target.value)}
             >
@@ -501,44 +501,44 @@ export default function SideBySidePage({
         </div>
 
         {/* Facilitate Introduction Section */}
-        <div className="bg-white rounded-2xl border border-[#E8E4DC] p-6">
-          <h2 className="text-base font-semibold text-[#1A1A1A] mb-4">Facilitate Introduction</h2>
+        <div className="bg-surface-2 rounded-2xl border border-white/10 p-6">
+          <h2 className="text-base font-semibold text-white mb-4">Facilitate Introduction</h2>
 
           {match.status === 'introduced' ? (
-            <div className="bg-green-50 border border-green-200 rounded-xl px-5 py-4">
-              <p className="text-sm font-medium text-green-700">
+            <div className="bg-green-950/40 border border-green-800/40 rounded-xl px-5 py-4">
+              <p className="text-sm font-medium text-green-400">
                 This match has been introduced on {fmtDate(match.introduced_date)}.
               </p>
             </div>
           ) : match.status === 'dismissed' ? (
-            <div className="bg-[#F3F4F6] border border-[#E8E4DC] rounded-xl px-5 py-4">
-              <p className="text-sm text-[#1A1A1A]/60">This match has been dismissed.</p>
+            <div className="bg-surface-3 border border-white/10 rounded-xl px-5 py-4">
+              <p className="text-sm text-white/60">This match has been dismissed.</p>
             </div>
           ) : (
             <div className="space-y-4">
               <div className="flex gap-3">
                 <div className="flex-1 grid sm:grid-cols-2 gap-3">
-                  <label className="flex items-start gap-3 bg-[#F8F6F1] rounded-xl p-4 cursor-pointer">
+                  <label className="flex items-start gap-3 bg-surface-3 rounded-xl p-4 cursor-pointer">
                     <input type="checkbox" checked={consentA} onChange={e => updateConsent('a', e.target.checked)}
-                      className="w-4 h-4 mt-0.5 accent-[#B8960C] flex-shrink-0" />
+                      className="w-4 h-4 mt-0.5 accent-gold flex-shrink-0" />
                     <div>
-                      <p className="text-sm font-medium text-[#1A1A1A]">Family A consent confirmed</p>
-                      <p className="text-xs text-[#1A1A1A]/50 mt-0.5">Verbal confirmation received from {profileA?.display_initials ?? 'Family A'}</p>
+                      <p className="text-sm font-medium text-white">Family A consent confirmed</p>
+                      <p className="text-xs text-white/50 mt-0.5">Verbal confirmation received from {profileA?.display_initials ?? 'Family A'}</p>
                     </div>
                   </label>
-                  <label className="flex items-start gap-3 bg-[#F8F6F1] rounded-xl p-4 cursor-pointer">
+                  <label className="flex items-start gap-3 bg-surface-3 rounded-xl p-4 cursor-pointer">
                     <input type="checkbox" checked={consentB} onChange={e => updateConsent('b', e.target.checked)}
-                      className="w-4 h-4 mt-0.5 accent-[#B8960C] flex-shrink-0" />
+                      className="w-4 h-4 mt-0.5 accent-gold flex-shrink-0" />
                     <div>
-                      <p className="text-sm font-medium text-[#1A1A1A]">Family B consent confirmed</p>
-                      <p className="text-xs text-[#1A1A1A]/50 mt-0.5">Verbal confirmation received from {profileB?.display_initials ?? 'Family B'}</p>
+                      <p className="text-sm font-medium text-white">Family B consent confirmed</p>
+                      <p className="text-xs text-white/50 mt-0.5">Verbal confirmation received from {profileB?.display_initials ?? 'Family B'}</p>
                     </div>
                   </label>
                 </div>
               </div>
 
               {!canIntroduce && (
-                <p className="text-xs text-[#1A1A1A]/50">
+                <p className="text-xs text-white/50">
                   Both families must verbally confirm consent before marking as introduced.
                 </p>
               )}
@@ -547,7 +547,7 @@ export default function SideBySidePage({
                 <button
                   onClick={markIntroduced}
                   disabled={!canIntroduce || introducing}
-                  className="px-6 py-3 rounded-xl text-sm font-semibold bg-[#B8960C] text-white hover:bg-[#9a7a0a] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  className="px-6 py-3 rounded-xl text-sm font-semibold bg-gold text-white hover:bg-gold/80 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
                   {introducing ? 'Saving…' : 'Mark as Introduced'}
                 </button>
@@ -563,10 +563,10 @@ export default function SideBySidePage({
         </div>
 
         {/* Admin Notes */}
-        <div className="bg-white rounded-2xl border border-[#E8E4DC] p-6">
-          <h2 className="text-base font-semibold text-[#1A1A1A] mb-4">Admin Notes</h2>
+        <div className="bg-surface-2 rounded-2xl border border-white/10 p-6">
+          <h2 className="text-base font-semibold text-white mb-4">Admin Notes</h2>
           <textarea
-            className="w-full rounded-xl px-4 py-3 text-sm border border-[#E8E4DC] bg-white text-[#1A1A1A] outline-none focus:border-[#B8960C] resize-none transition-colors"
+            className="w-full rounded-xl px-4 py-3 text-sm border border-white/10 bg-surface-3 text-white outline-none focus:border-gold resize-none transition-colors"
             rows={4}
             placeholder="Private notes about this match…"
             value={adminNotesValue}
@@ -576,7 +576,7 @@ export default function SideBySidePage({
             <button
               onClick={saveNotes}
               disabled={savingNotes}
-              className="px-5 py-2.5 rounded-xl text-sm font-medium bg-[#1A1A1A] text-[#B8960C] hover:bg-[#333] disabled:opacity-50 transition-colors"
+              className="px-5 py-2.5 rounded-xl text-sm font-medium bg-surface-3 text-gold hover:bg-white/10 disabled:opacity-50 transition-colors"
             >
               {savingNotes ? 'Saving…' : 'Save Notes'}
             </button>
@@ -586,7 +586,7 @@ export default function SideBySidePage({
 
         {/* Back link */}
         <div className="pb-4">
-          <Link href="/admin" className="text-sm text-[#1A1A1A]/50 hover:text-[#1A1A1A] transition-colors">
+          <Link href="/admin" className="text-sm text-white/50 hover:text-white transition-colors">
             ← Back to Admin Dashboard
           </Link>
         </div>

@@ -97,7 +97,7 @@ function StatusBadge({ status }: { status: string }) {
   const config: Record<string, { bg: string; text: string; label: string }> = {
     pending: {
       bg: 'rgba(251,191,36,0.12)',
-      text: '#FBBF24',
+      text: 'var(--status-warning)',
       label: 'Pending',
     },
     mutual: {
@@ -107,12 +107,12 @@ function StatusBadge({ status }: { status: string }) {
     },
     active: {
       bg: 'rgba(74,222,128,0.12)',
-      text: '#4ADE80',
+      text: 'var(--status-success)',
       label: 'Active',
     },
     facilitated: {
       bg: 'rgba(96,165,250,0.12)',
-      text: '#60A5FA',
+      text: 'var(--status-info)',
       label: 'Introduced',
     },
     expired: {
@@ -254,7 +254,7 @@ function RequestCard({ req }: { req: IntroRequest }) {
         )}
 
         {isActive && isExpiringSoon && (
-          <div style={{ marginTop: 6, fontSize: 11, color: '#FBBF24' }}>
+          <div style={{ marginTop: 6, fontSize: 11, color: 'var(--status-warning)' }}>
             Expires in {days} {days === 1 ? 'day' : 'days'}
           </div>
         )}
@@ -363,7 +363,7 @@ export default function IntroductionsClient({
   const hasAnything = requests.length > 0 || receivedRequests.length > 0
 
   return (
-    <div data-theme="dark" style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
       <Sidebar
         activeRoute="/introductions"
         shortlistCount={shortlistCount}
@@ -420,7 +420,7 @@ export default function IntroductionsClient({
                 padding: '8px 18px',
                 borderRadius: 8,
                 background: 'var(--gold)',
-                color: '#1A1A18',
+                color: 'var(--surface)',
                 fontSize: 13,
                 fontWeight: 500,
                 textDecoration: 'none',

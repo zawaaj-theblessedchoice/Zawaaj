@@ -49,11 +49,11 @@ function profileName(p: IntroRequest['requesting_profile']): string {
 }
 
 function avatarBg(gender: string | null): string {
-  return gender === 'female' ? '#534AB7' : '#185FA5'
+  return gender === 'female' ? 'var(--avatar-female-text)' : 'var(--avatar-male-text)'
 }
 
 function avatarBgLight(gender: string | null): string {
-  return gender === 'female' ? '#EEEDFE' : '#E6F1FB'
+  return gender === 'female' ? 'var(--avatar-female-bg)' : 'var(--avatar-male-bg)'
 }
 
 // ─── Avatar cell ──────────────────────────────────────────────────────────────
@@ -83,7 +83,7 @@ function StatusBadge({ status }: { status: IntroRequest['status'] }) {
   const styles: Record<IntroRequest['status'], { bg: string; color: string }> = {
     pending:     { bg: 'var(--surface-3)',              color: 'var(--text-secondary)' },
     mutual:      { bg: 'var(--gold-muted)',              color: 'var(--gold-light)' },
-    facilitated: { bg: '#1A3A1A',                        color: '#4CAF50' },
+    facilitated: { bg: 'var(--status-success-bg)',        color: 'var(--status-success)' },
     expired:     { bg: 'var(--surface-3)',               color: 'var(--text-muted)' },
   }
   const s = styles[status]
@@ -246,7 +246,7 @@ function FacilitateModal({ req, onClose, onFacilitated }: FacilitateModalProps) 
 
         {/* Error */}
         {error && (
-          <p className="text-sm" style={{ color: '#F87171' }}>{error}</p>
+          <p className="text-sm" style={{ color: 'var(--status-error)' }}>{error}</p>
         )}
 
         {/* Actions */}

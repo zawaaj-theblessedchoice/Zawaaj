@@ -83,7 +83,15 @@
       "Bash(node -e \"const fs=require\\(''fs''\\); const d=fs.readdirSync\\(''C:/Users/mrkha/OneDrive/Desktop/Zawaaj-MVP/node_modules/stripe/cjs''\\); console.log\\(d.slice\\(0,15\\).join\\(''\\\\n''\\)\\)\")",
       "Bash(node -e \"const fs=require\\(''fs''\\); const files=fs.readdirSync\\(''C:/Users/mrkha/OneDrive/Desktop/Zawaaj-MVP/node_modules/stripe/cjs''\\); const sub=files.filter\\(f=>f.toLowerCase\\(\\).includes\\(''subscri''\\)\\); console.log\\(sub.join\\(''\\\\n''\\)\\)\")",
       "Bash(node -e \"const fs=require\\(''fs''\\); const content=fs.readFileSync\\(''C:/Users/mrkha/OneDrive/Desktop/Zawaaj-MVP/node_modules/stripe/cjs/lib.d.ts'',''utf8''\\); const idx=content.indexOf\\(''Subscription''\\); console.log\\(content.substring\\(idx,idx+500\\)\\)\")",
-      "Bash(ls \"C:\\\\Users\\\\mrkha\\\\OneDrive\\\\Desktop\\\\Zawaaj-MVP\\\\src\\\\app\\\\help\"\" 2>/dev/null || echo \"Directory not found or empty \")"
+      "Bash(ls \"C:\\\\Users\\\\mrkha\\\\OneDrive\\\\Desktop\\\\Zawaaj-MVP\\\\src\\\\app\\\\help\"\" 2>/dev/null || echo \"Directory not found or empty \")",
+      "Bash(grep -r \"#[0-9A-Fa-f]\\\\{3,6\\\\}\" --include=\"*.tsx\" --include=\"*.ts\" -n)",
+      "Bash(grep \"#[0-9A-Fa-f]\\\\{3,6\\\\}\" --include=\"*.tsx\" --include=\"*.ts\" -n \"components/NavBar.tsx\" \"components/AvatarInitials.tsx\" \"components/Sidebar.tsx\" \"app/LandingPage.tsx\" \"app/pricing/page.tsx\")",
+      "Bash(grep \"#[0-9A-Fa-f]\\\\{3,6\\\\}\" --include=\"*.tsx\" --include=\"*.ts\" -n \"app/add-profile/page.tsx\" \"components/UpgradeModal.tsx\" \"app/admin/concierge/AdminConciergeClient.tsx\")",
+      "Bash(grep \"#[0-9A-Fa-f]\\\\{3,6\\\\}\" --include=\"*.tsx\" --include=\"*.ts\" -n \"app/admin/page.tsx\")",
+      "Bash(grep \"#[0-9A-Fa-f]\\\\{3,6\\\\}\" --include=\"*.tsx\" --include=\"*.ts\" -n \"app/admin/import/page.tsx\")",
+      "Bash(grep -n \"#[0-9A-Fa-f]\\\\{3,6\\\\}\" \"C:\\\\Users\\\\mrkha\\\\OneDrive\\\\Desktop\\\\Zawaaj-MVP\\\\src\\\\app\\\\settings\\\\page.tsx\" \"C:\\\\Users\\\\mrkha\\\\OneDrive\\\\Desktop\\\\Zawaaj-MVP\\\\src\\\\app\\\\browse\\\\BrowseClient.tsx\" \"C:\\\\Users\\\\mrkha\\\\OneDrive\\\\Desktop\\\\Zawaaj-MVP\\\\src\\\\app\\\\my-profile\\\\page.tsx\" \"C:\\\\Users\\\\mrkha\\\\OneDrive\\\\Desktop\\\\Zawaaj-MVP\\\\src\\\\app\\\\events\\\\page.tsx\" \"C:\\\\Users\\\\mrkha\\\\OneDrive\\\\Desktop\\\\Zawaaj-MVP\\\\src\\\\app\\\\introductions\\\\IntroductionsClient.tsx\" \"C:\\\\Users\\\\mrkha\\\\OneDrive\\\\Desktop\\\\Zawaaj-MVP\\\\src\\\\app\\\\profile\\\\[id]\\\\page.tsx\")",
+      "Bash(grep -rn \"#[0-9a-fA-F]\\\\{3,6\\\\}\" src --include=\"*.tsx\" --include=\"*.ts\")",
+      "Bash(grep -rn \"#[0-9a-fA-F]\\\\{3,6\\\\}\\\\b\" src --include=\"*.tsx\" --include=\"*.ts\")"
     ]
   }
 }

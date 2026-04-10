@@ -343,7 +343,7 @@ export default function ProfileModal({
                             fontWeight: 500,
                             background: 'var(--gold)',
                             border: 'none',
-                            color: '#1A1A18',
+                            color: 'var(--surface)',
                             cursor: 'pointer',
                             transition: 'opacity 0.15s',
                           }}
@@ -488,7 +488,7 @@ export default function ProfileModal({
                       fontWeight: 500,
                       background: 'var(--gold)',
                       border: 'none',
-                      color: '#1A1A18',
+                      color: 'var(--surface)',
                       cursor: 'pointer',
                     }}
                   >
@@ -683,7 +683,7 @@ export default function ProfileModal({
                         fontWeight: 600,
                         background: 'var(--gold)',
                         border: 'none',
-                        color: '#111',
+                        color: 'var(--surface)',
                         cursor: 'pointer',
                         whiteSpace: 'nowrap',
                       }}

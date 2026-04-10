@@ -106,8 +106,8 @@ export default function CategoryCard({ category }: CategoryCardProps) {
         flexDirection: 'column',
         gap: 10,
         padding: '16px',
-        background: '#FFFFFF',
-        border: '1px solid #E8E4DC',
+        background: 'var(--surface-2)',
+        border: '1px solid var(--border-default)',
         borderRadius: 12,
         cursor: 'pointer',
         textAlign: 'left',
@@ -117,12 +117,12 @@ export default function CategoryCard({ category }: CategoryCardProps) {
       onMouseEnter={e => {
         const el = e.currentTarget as HTMLButtonElement
         el.style.boxShadow = '0 4px 16px rgba(0,0,0,0.08)'
-        el.style.borderColor = '#D9D5CD'
+        el.style.borderColor = 'var(--border-default)'
       }}
       onMouseLeave={e => {
         const el = e.currentTarget as HTMLButtonElement
         el.style.boxShadow = 'none'
-        el.style.borderColor = '#E8E4DC'
+        el.style.borderColor = 'var(--border-default)'
       }}
     >
       {/* Icon tile */}
@@ -131,12 +131,12 @@ export default function CategoryCard({ category }: CategoryCardProps) {
           width: 40,
           height: 40,
           borderRadius: 10,
-          background: '#FBF6E9',
-          border: '1px solid rgba(184,150,12,0.3)',
+          background: 'var(--gold-muted)',
+          border: '1px solid var(--border-gold)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: '#B8960C',
+          color: 'var(--gold)',
           flexShrink: 0,
         }}
       >
@@ -144,12 +144,12 @@ export default function CategoryCard({ category }: CategoryCardProps) {
       </div>
 
       {/* Title */}
-      <div style={{ fontSize: 14, fontWeight: 600, color: '#1C1A14', lineHeight: 1.3 }}>
+      <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.3 }}>
         {category.title}
       </div>
 
       {/* Description */}
-      <div style={{ fontSize: 12.5, color: '#6B6A65', lineHeight: 1.5 }}>
+      <div style={{ fontSize: 12.5, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
         {category.description}
       </div>
 
@@ -159,10 +159,10 @@ export default function CategoryCard({ category }: CategoryCardProps) {
           display: 'inline-flex',
           alignItems: 'center',
           padding: '2px 8px',
-          background: '#F0EDE6',
+          background: 'var(--surface-3)',
           borderRadius: 20,
           fontSize: 11,
-          color: '#9B9A94',
+          color: 'var(--text-muted)',
           fontWeight: 500,
           alignSelf: 'flex-start',
         }}
