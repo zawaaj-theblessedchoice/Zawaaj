@@ -201,7 +201,12 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
       {/* ── Nav ── */}
       <nav className="sticky top-0 z-50 border-b border-white/8 bg-surface/90 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between gap-6">
-          <ZawaajLogo size={52} tagline={false} />
+          <div className="flex items-center gap-2.5">
+            <ZawaajLogo size={36} tagline={false} />
+            <span className="text-lg font-bold tracking-tight" style={{ color: 'var(--gold)', letterSpacing: '-0.02em' }}>
+              Zawaaj
+            </span>
+          </div>
           <div className="hidden md:flex items-center gap-8 text-sm text-white/60">
             <a href="#how-it-works" className="hover:text-white transition-colors">How it works</a>
             <a href="#values" className="hover:text-white transition-colors">Our values</a>
@@ -228,7 +233,11 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
       </nav>
 
       {/* ── Hero ── */}
-      <section className="max-w-4xl mx-auto px-5 pt-24 pb-20 text-center">
+      <section className="max-w-4xl mx-auto px-5 pt-16 pb-20 text-center">
+        {/* Logo — large, centred, above the badge */}
+        <div className="flex justify-center mb-8">
+          <ZawaajLogo size={110} tagline={true} />
+        </div>
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-gold/30 bg-gold/8 text-gold text-xs font-medium mb-8">
           🌙 Invite-only · Admin-mediated · Halal by design
         </div>

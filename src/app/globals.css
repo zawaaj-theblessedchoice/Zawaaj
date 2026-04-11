@@ -139,6 +139,13 @@
 }
 
 /* ─── Base ───────────────────────────────────────────────────────────────── */
+html {
+  scroll-behavior: smooth;
+  /* Offset anchor scrolls by the height of the sticky nav (64 px) so
+     section headings are never hidden underneath it */
+  scroll-padding-top: 72px;
+}
+
 body {
   background-color: var(--surface);
   color: var(--text-primary);

@@ -300,22 +300,31 @@ export default function Sidebar({
         zIndex: 100,
       }}
     >
-      {/* Logo header */}
+      {/* Logo header — emblem + wordmark, links to home */}
       <Link
-        href="/browse"
+        href="/"
         style={{
           display: 'flex',
-          flexDirection: 'column',
           alignItems: 'center',
-          justifyContent: 'center',
-          padding: '28px 20px 22px',
+          gap: 10,
+          padding: '18px 16px 16px',
           textDecoration: 'none',
           borderBottom: '1px solid rgba(196,154,16,0.18)',
           background: 'linear-gradient(180deg, rgba(196,154,16,0.06) 0%, transparent 100%)',
-          gap: 6,
         }}
       >
-        <ZawaajLogo size={72} tagline={true} />
+        <ZawaajLogo size={36} tagline={false} />
+        <span
+          style={{
+            fontSize: 17,
+            fontWeight: 700,
+            letterSpacing: '-0.02em',
+            color: 'var(--gold)',
+            lineHeight: 1,
+          }}
+        >
+          Zawaaj
+        </span>
       </Link>
 
       {/* Nav sections */}
