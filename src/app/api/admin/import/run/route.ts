@@ -280,7 +280,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         height:                 height    || null,
         ethnicity:              ethnicity || null,
         nationality:            nationality || null,
-        languages_spoken:       languages || null,
+        languages_spoken:       languages ? languages.split(',').map(s => s.trim()).filter(Boolean) : null,
         school_of_thought:      schoolOfThought || null,
         education_level:        education || null,
         education_detail:       institution || null,
