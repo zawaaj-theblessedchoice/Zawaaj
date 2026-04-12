@@ -58,7 +58,7 @@ const PLANS = [
     ctaHref: '/signup',
     highlight: false,
     features: [
-      `Everything in ${PLAN_LABELS.plus}`,
+      `Everything in ${PLAN_LABELS.free}`,
       `${limitLabel(PLAN_CONFIG.premium.monthlyLimit)} interest expressions / month`,
       'Weekly profile boosts',
       `${PLAN_CONFIG.premium.spotlight} spotlight listing / month`,
@@ -92,11 +92,31 @@ const HOW_IT_WORKS = [
 ]
 
 const VALUES = [
-  { title: 'Halal by design', body: 'No direct messaging. No photos. No swiping. Every introduction goes through our admin team.' },
-  { title: 'Privacy first', body: 'Contact details are never shared until both families are ready to proceed — coordinated personally by our team.' },
-  { title: 'Faith-centred', body: 'Built for practising Muslims seeking a serious commitment. We respect your values and your wali.' },
-  { title: 'Community trust', body: 'Every profile is manually reviewed. We keep the platform small, safe, and high quality.' },
-  { title: 'Family-first by design', body: 'Every introduction connects families, not just individuals. The mother or female guardian is always the point of contact — keeping the process rooted in respect and Islamic tradition.' },
+  {
+    title: 'Halal by design',
+    body: 'No direct messaging. No photos. No swiping. Every introduction goes through our admin team.',
+    icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>,
+  },
+  {
+    title: 'Privacy first',
+    body: 'Contact details are never shared until both families are ready to proceed — coordinated personally by our team.',
+    icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
+  },
+  {
+    title: 'Faith-centred',
+    body: 'Built for practising Muslims seeking a serious commitment. We respect your values and your wali.',
+    icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a7 7 0 1 0 0 14A7 7 0 0 0 12 2z" clipPath="url(#c)"/><path d="M17.5 6.5a5 5 0 1 1-7 7" /><path d="M15 8l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" strokeWidth="1.4"/></svg>,
+  },
+  {
+    title: 'Community trust',
+    body: 'Every profile is manually reviewed. We keep the platform small, safe, and high quality.',
+    icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
+  },
+  {
+    title: 'Family-first by design',
+    body: 'Every introduction connects families, not just individuals. The mother or female guardian is always the point of contact — keeping the process rooted in respect and Islamic tradition.',
+    icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
+  },
 ]
 
 const FAQS = [
@@ -206,11 +226,7 @@ function PlanCard({ plan, annual }: { plan: typeof PLANS[number]; annual: boolea
 
       <Link
         href={plan.ctaHref}
-        className={`block text-center py-3 rounded-xl text-sm font-semibold transition-colors ${
-          plan.highlight
-            ? 'bg-gold text-black hover:bg-[var(--gold-hover)]'
-            : 'border border-white/20 text-white hover:bg-white/5'
-        }`}
+        className="block text-center py-3 rounded-xl text-sm font-semibold transition-colors bg-gold text-black hover:bg-[var(--gold-hover)]"
       >
         {plan.cta}
       </Link>
@@ -339,19 +355,21 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
       </nav>
 
       {/* ── Hero ── */}
-      <section className="max-w-4xl mx-auto px-4 md:px-5 pt-2 pb-4 md:pt-3 md:pb-6 text-center">
+      <section className="max-w-4xl mx-auto px-4 md:px-5 pt-1 pb-3 md:pt-2 md:pb-4 text-center">
         {/* Arabic calligraphy logo */}
-        <div className="flex justify-center mb-1">
-          <ZawaajLogo height={280} />
+        <div className="flex justify-center" style={{ marginBottom: -8 }}>
+          <ZawaajLogo height={400} />
         </div>
-        <h1 className="text-[2rem] sm:text-5xl md:text-6xl font-bold text-white leading-tight tracking-tight mb-4">
+        <h1 className="text-[2rem] sm:text-5xl md:text-6xl font-bold text-white leading-tight tracking-tight mb-3">
           A dignified path to<br />
           <span style={{ color: 'var(--gold)' }}>your spouse</span>
         </h1>
-        <p className="text-lg text-white/60 max-w-xl mx-auto leading-relaxed mb-6">
-          Zawaaj is a private, family-aligned matrimonial platform. Every profile is reviewed, every introduction admin-verified. No direct messaging or casual chatting. No time-wasting. Just a proper, family-led process.
+        <p className="text-base text-white/60 max-w-xl mx-auto leading-relaxed mb-5">
+          Zawaaj is a private, family-aligned matrimonial platform.<br />
+          Every profile is reviewed, every introduction admin-verified.<br />
+          No direct messaging or casual chatting. No time-wasting. Just a proper, family-led process.
         </p>
-        <div className="flex flex-col sm:flex-row gap-3 justify-center mb-5">
+        <div className="flex flex-col sm:flex-row gap-3 justify-center mb-4">
           {isLoggedIn ? (
             <Link href="/browse" className="w-full sm:w-auto px-8 py-3.5 rounded-xl text-sm font-semibold bg-gold text-black hover:bg-[var(--gold-hover)] transition-colors">
               Browse profiles →
@@ -367,7 +385,7 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
             </>
           )}
         </div>
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-gold/30 bg-gold/8 text-gold text-sm font-medium">
+        <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full border border-gold/30 bg-gold/8 text-gold text-sm font-semibold">
           For Families Serious About Marriage
         </div>
       </section>
@@ -409,12 +427,25 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
       <section className="border-y border-white/8 bg-surface-2">
         <div className="max-w-5xl mx-auto px-4 md:px-5 py-10 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           {[
-            { label: 'Mother-to-mother introductions', sub: 'Verified by our team' },
-            { label: 'No photos shared', sub: 'Focused on character & values' },
-            { label: 'Every profile verified', sub: 'Manual review before going live' },
-            { label: 'Wali-respecting', sub: 'Both families consulted before contact' },
+            {
+              label: 'Parent to parent introductions', sub: 'Verified by our team',
+              icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
+            },
+            {
+              label: 'No photos shared', sub: 'Focused on character & values',
+              icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>,
+            },
+            {
+              label: 'Every profile verified', sub: 'Manual review before going live',
+              icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>,
+            },
+            {
+              label: 'Wali-respecting', sub: 'Both families consulted before contact',
+              icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>,
+            },
           ].map(t => (
             <div key={t.label} className="flex flex-col items-center gap-2">
+              <div style={{ color: 'var(--gold)', marginBottom: 2 }}>{t.icon}</div>
               <p className="text-sm font-medium text-white">{t.label}</p>
               <p className="text-xs text-white/40">{t.sub}</p>
             </div>
@@ -431,7 +462,7 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
         <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
           {HOW_IT_WORKS.map(s => (
             <div key={s.n} className="bg-surface-2 rounded-2xl p-6 border border-white/8">
-              <div style={{ fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--gold)', opacity: 0.7, marginBottom: 4 }}>
+              <div style={{ fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 700, marginBottom: 8, textAlign: 'center' }}>
                 Step No. {s.n}
               </div>
               <p className="font-semibold text-white mb-2">{s.title}</p>
@@ -451,7 +482,10 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
           <div className="grid sm:grid-cols-2 gap-6">
             {VALUES.map(v => (
               <div key={v.title} className="bg-surface-3 rounded-2xl p-6 border border-white/8">
-                <p className="font-semibold text-white mb-1">{v.title}</p>
+                <div className="flex items-center gap-3 mb-2">
+                  <div style={{ flexShrink: 0 }}>{v.icon}</div>
+                  <p className="font-semibold text-white">{v.title}</p>
+                </div>
                 <p className="text-sm text-white/50 leading-relaxed">{v.body}</p>
               </div>
             ))}
@@ -484,7 +518,7 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
         </div>
 
         {/* Plan cards */}
-        <div className="grid md:grid-cols-2 gap-5 mb-12 max-w-2xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-12 w-full max-w-2xl mx-auto">
           {PLANS.filter(p => !p.hidden).map(p => <PlanCard key={p.key} plan={p} annual={annual} />)}
         </div>
 
@@ -558,7 +592,8 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
             Begin your search with <span style={{ color: 'var(--gold)' }}>barakah</span>
           </h2>
           <p className="text-white/50 text-sm mb-8">
-            Join a platform built with Islamic values at its core. Private, trusted, and admin-supported.
+            Join a platform built with Islamic values at its core.<br />
+            Private, trusted, and admin-supported.
           </p>
           <Link href="/signup" className="inline-block px-10 py-4 rounded-xl text-sm font-semibold bg-gold text-black hover:bg-[var(--gold-hover)] transition-colors">
             Create your profile →
@@ -570,7 +605,6 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
       <footer className="bg-surface border-t border-white/8">
         <div className="max-w-5xl mx-auto px-4 md:px-5 py-12 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex flex-col items-center md:items-start gap-2">
-            <ZawaajLogo height={44} />
             <p className="text-xs text-white/30">© {new Date().getFullYear()} Zawaaj. All rights reserved.</p>
           </div>
           <div className="flex flex-wrap justify-center md:justify-start gap-x-8 gap-y-2 text-sm text-white/40 mx-auto md:mx-0">

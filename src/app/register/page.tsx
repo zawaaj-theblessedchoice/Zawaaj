@@ -25,7 +25,7 @@ export default function RegisterLandingPage() {
           gap: 32,
         }}
       >
-        <ZawaajLogo size={72} tagline={false} />
+        <ZawaajLogo height={320} />
 
         <div style={{ textAlign: 'center' }}>
           <h1

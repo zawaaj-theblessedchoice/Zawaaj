@@ -38,22 +38,22 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
 
         {/* Logo — large, centred, overlapping the top of the card */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', zIndex: 1, marginBottom: -48 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', zIndex: 1, marginBottom: -80, marginTop: -40 }}>
           <div style={{
-            background: 'radial-gradient(ellipse 70% 60% at 50% 60%, rgba(184,150,12,0.18) 0%, transparent 80%)',
+            background: 'radial-gradient(ellipse 70% 60% at 50% 60%, rgba(184,150,12,0.20) 0%, transparent 80%)',
             padding: '0 24px 8px',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             gap: 10,
           }}>
-            <ZawaajLogo height={160} />
+            <ZawaajLogo height={320} />
           </div>
         </div>
 
         {/* Card */}
         <div
-          className="rounded-xl px-8 pt-16 pb-10"
+          className="rounded-xl px-8 pt-24 pb-10"
           style={{
             backgroundColor: 'var(--surface-2)',
             borderRadius: 16,
