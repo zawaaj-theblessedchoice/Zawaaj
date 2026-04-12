@@ -36,20 +36,29 @@ export default function LoginPage() {
     // Login is always dark — force dark token values regardless of user theme preference
     <main data-theme="dark" className="min-h-screen flex items-center justify-center px-4" style={{ background: 'var(--surface)' }}>
       <div className="w-full max-w-md">
-        {/* Logo */}
-        <div className="flex justify-center mb-8">
-          <ZawaajLogo height={80} />
+
+        {/* Logo — large, centred, overlapping the top of the card */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', zIndex: 1, marginBottom: -48 }}>
+          <div style={{
+            background: 'radial-gradient(ellipse 70% 60% at 50% 60%, rgba(184,150,12,0.18) 0%, transparent 80%)',
+            padding: '0 24px 8px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 10,
+          }}>
+            <ZawaajLogo height={160} />
+          </div>
         </div>
 
         {/* Card */}
         <div
-          className="rounded-xl px-8 py-10"
+          className="rounded-xl px-8 pt-16 pb-10"
           style={{
             backgroundColor: 'var(--surface-2)',
-            borderRadius: 12,
-            border: '1px solid rgba(255,255,255,0.25)',
-            borderTop: '1px solid rgba(196,154,16,0.2)',
-            boxShadow: '0 16px 48px rgba(0,0,0,0.4)',
+            borderRadius: 16,
+            border: '1px solid rgba(196,154,16,0.25)',
+            boxShadow: '0 24px 64px rgba(0,0,0,0.5), 0 0 0 0.5px rgba(255,255,255,0.06) inset',
           }}
         >
           <h1 className="text-2xl font-semibold text-white mb-1">
