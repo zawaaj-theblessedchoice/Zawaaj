@@ -21,6 +21,12 @@ interface PreviewResult {
   errorCount: number
 }
 
+interface BatchError {
+  row: number
+  email: string
+  error: string
+}
+
 interface Batch {
   id: string
   filename: string | null
@@ -31,6 +37,7 @@ interface Batch {
   is_test_run: boolean | null
   created_at: string | null
   completed_at: string | null
+  errors: BatchError[] | null
 }
 
 // ─── CSV template ─────────────────────────────────────────────────────────────
@@ -494,27 +501,36 @@ export default function ImportPage() {
                 </thead>
                 <tbody>
                   {batches.map(b => (
-                    <tr key={b.id} className="border-b last:border-0 transition-colors" style={{ borderColor: 'var(--admin-border)' }}>
-                      <td className="px-4 py-2.5 whitespace-nowrap" style={{ color: 'var(--admin-muted)' }}>{fmtDate(b.created_at)}</td>
-                      <td className="px-4 py-2.5 font-mono truncate max-w-[160px]" style={{ color: 'var(--admin-text)' }}>{b.filename ?? '—'}</td>
-                      <td className="px-4 py-2.5" style={{ color: 'var(--admin-muted)' }}>{b.row_count ?? '—'}</td>
-                      <td className="px-4 py-2.5 text-success">{b.success_count ?? '—'}</td>
-                      <td className="px-4 py-2.5">
-                        <span className={(b.error_count ?? 0) > 0 ? 'text-error' : ''}
-                          style={(b.error_count ?? 0) === 0 ? { color: 'var(--admin-muted)' } : undefined}>
-                          {b.error_count ?? '—'}
-                        </span>
-                      </td>
-                      <td className="px-4 py-2.5">
-                        <span className={`text-xs px-1.5 py-0.5 rounded-full ${b.is_test_run ? 'bg-blue-500/15 text-blue-400' : ''}`}
-                          style={!b.is_test_run ? { background: 'var(--admin-border)', color: 'var(--admin-muted)' } : undefined}>
-                          {b.is_test_run ? 'test' : 'live'}
-                        </span>
-                      </td>
-                      <td className="px-4 py-2.5">
-                        <StatusPill status={b.status} />
-                      </td>
-                    </tr>
+                    <>
+                      <tr key={b.id} className="border-b transition-colors" style={{ borderColor: 'var(--admin-border)' }}>
+                        <td className="px-4 py-2.5 whitespace-nowrap" style={{ color: 'var(--admin-muted)' }}>{fmtDate(b.created_at)}</td>
+                        <td className="px-4 py-2.5 font-mono truncate max-w-[160px]" style={{ color: 'var(--admin-text)' }}>{b.filename ?? '—'}</td>
+                        <td className="px-4 py-2.5" style={{ color: 'var(--admin-muted)' }}>{b.row_count ?? '—'}</td>
+                        <td className="px-4 py-2.5 text-success">{b.success_count ?? '—'}</td>
+                        <td className="px-4 py-2.5">
+                          <span className={(b.error_count ?? 0) > 0 ? 'text-error' : ''}
+                            style={(b.error_count ?? 0) === 0 ? { color: 'var(--admin-muted)' } : undefined}>
+                            {b.error_count ?? '—'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2.5">
+                          <span className={`text-xs px-1.5 py-0.5 rounded-full ${b.is_test_run ? 'bg-blue-500/15 text-blue-400' : ''}`}
+                            style={!b.is_test_run ? { background: 'var(--admin-border)', color: 'var(--admin-muted)' } : undefined}>
+                            {b.is_test_run ? 'test' : 'live'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2.5">
+                          <StatusPill status={b.status} />
+                        </td>
+                      </tr>
+                      {/* Inline error detail rows */}
+                      {b.errors && b.errors.length > 0 && b.errors.map((e, i) => (
+                        <tr key={`${b.id}-err-${i}`} className="border-b last:border-0" style={{ borderColor: 'var(--admin-border)', background: 'var(--status-error-bg)' }}>
+                          <td className="px-4 py-2 text-error" colSpan={2}>Row {e.row} — <span className="font-mono">{e.email}</span></td>
+                          <td className="px-4 py-2 text-error" colSpan={5}>{e.error}</td>
+                        </tr>
+                      ))}
+                    </>
                   ))}
                 </tbody>
               </table>

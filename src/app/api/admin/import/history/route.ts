@@ -13,7 +13,7 @@ export async function GET(): Promise<Response> {
 
     const { data, error } = await supabaseAdmin
       .from('zawaaj_import_batches')
-      .select('id, filename, row_count, success_count, error_count, status, is_test_run, created_at, completed_at')
+      .select('id, filename, row_count, success_count, error_count, status, is_test_run, created_at, completed_at, errors')
       .order('created_at', { ascending: false })
       .limit(20)
 
