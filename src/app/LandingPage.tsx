@@ -74,26 +74,26 @@ function limitLabel(n: number): string {
 const COMPACT_COMPARISON = [
   { feature: 'Interest expressions / month', free: limitLabel(PLAN_CONFIG.free.monthlyLimit), plus: limitLabel(PLAN_CONFIG.plus.monthlyLimit), premium: limitLabel(PLAN_CONFIG.premium.monthlyLimit) },
   { feature: 'Profile boost',                 free: '—',                                   plus: '1× / month',                          premium: 'Weekly' },
-  { feature: 'Concierge matching',            free: '—',                                   plus: '—',                                   premium: PLAN_CONFIG.premium.concierge ? '✓' : '—' },
-  { feature: 'See who viewed you',            free: '—',                                   plus: '—',                                   premium: PLAN_CONFIG.premium.viewTracking ? '✓' : '—' },
-  { feature: 'Full profile details',          free: 'Summary',                             plus: PLAN_CONFIG.plus.fullProfile ? '✓' : '—', premium: '✓' },
+  { feature: 'Concierge matching',            free: '—',                                   plus: '—',                                   premium: PLAN_CONFIG.premium.concierge ? 'Yes' : '—' },
+  { feature: 'See who viewed you',            free: '—',                                   plus: '—',                                   premium: PLAN_CONFIG.premium.viewTracking ? 'Yes' : '—' },
+  { feature: 'Full profile details',          free: 'Summary',                             plus: PLAN_CONFIG.plus.fullProfile ? 'Yes' : '—', premium: 'Yes' },
 ]
 
 const HOW_IT_WORKS = [
-  { n: '01', title: 'Create your family account', body: 'A parent, guardian, or candidate registers. The primary contact for all introductions is always a mother or female guardian.' },
-  { n: '02', title: 'Admin review', body: 'Our team reviews every profile personally before it goes live — keeping the community trusted.' },
-  { n: '03', title: 'Express interest', body: 'When a profile feels right, express interest. The other family is notified and invited to respond. No contact details are shared at this stage.' },
-  { n: '04', title: 'Families connected', body: 'When both families accept, our team verifies the contacts and connects the mothers directly. Only then are details shared.' },
-  { n: '05', title: 'Mutual match', body: 'When both parties express interest, the admin is notified and facilitates the introduction.' },
-  { n: '06', title: 'Admin introduces families', body: 'Contact details are shared only with explicit consent from both families — never directly between members.' },
+  { n: 1, title: 'Create your family account', body: 'A parent, guardian, or candidate registers. The primary contact for all introductions is always a mother or female guardian.' },
+  { n: 2, title: 'Admin review', body: 'Our team reviews every profile personally before it goes live — keeping the community trusted.' },
+  { n: 3, title: 'Express interest', body: 'When a profile feels right, express interest. The other family is notified and invited to respond. No contact details are shared at this stage.' },
+  { n: 4, title: 'Families connected', body: 'When both families accept, our team verifies the contacts and connects the mothers directly. Only then are details shared.' },
+  { n: 5, title: 'Mutual match', body: 'When both parties express interest, the admin is notified and facilitates the introduction.' },
+  { n: 6, title: 'Admin introduces families', body: 'Contact details are shared only with explicit consent from both families — never directly between members.' },
 ]
 
 const VALUES = [
-  { icon: '🤝', title: 'Halal by design', body: 'No direct messaging. No photos. No swiping. Every introduction goes through our admin team.' },
-  { icon: '🔒', title: 'Privacy first', body: 'Contact details are never shared without explicit verbal consent from both families.' },
-  { icon: '🌙', title: 'Faith-centred', body: 'Built for practising Muslims seeking a serious commitment. We respect your values and your wali.' },
-  { icon: '👥', title: 'Community trust', body: 'Every profile is manually reviewed. We keep the platform small, safe, and high quality.' },
-  { icon: '👨‍👩‍👧', title: 'Family-first by design', body: 'Every introduction connects families, not just individuals. The mother or female guardian is always the point of contact — keeping the process rooted in respect and Islamic tradition.' },
+  { title: 'Halal by design', body: 'No direct messaging. No photos. No swiping. Every introduction goes through our admin team.' },
+  { title: 'Privacy first', body: 'Contact details are never shared without explicit verbal consent from both families.' },
+  { title: 'Faith-centred', body: 'Built for practising Muslims seeking a serious commitment. We respect your values and your wali.' },
+  { title: 'Community trust', body: 'Every profile is manually reviewed. We keep the platform small, safe, and high quality.' },
+  { title: 'Family-first by design', body: 'Every introduction connects families, not just individuals. The mother or female guardian is always the point of contact — keeping the process rooted in respect and Islamic tradition.' },
 ]
 
 const FAQS = [
@@ -177,7 +177,9 @@ function PlanCard({ plan, annual }: { plan: typeof PLANS[number]; annual: boolea
       <ul className="space-y-2 flex-1">
         {plan.features.map(f => (
           <li key={f} className="flex items-start gap-2 text-sm text-white/70">
-            <span className="text-gold mt-0.5 flex-shrink-0">✓</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ color: '#7A6020', flexShrink: 0, marginTop: 2 }}>
+              <path d="M3 8l3.5 3.5L13 4.5" stroke="#7A6020" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
             {f}
           </li>
         ))}
@@ -190,7 +192,9 @@ function PlanCard({ plan, annual }: { plan: typeof PLANS[number]; annual: boolea
           if (val === '—') return null
           return (
             <div key={row.feature} className="flex items-center gap-2 text-xs text-white/50 mt-1">
-              <span className="text-gold">✓</span>
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
+                <path d="M3 8l3.5 3.5L13 4.5" stroke="#7A6020" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
               <span>{row.feature}: <span className="text-white/70">{val}</span></span>
             </div>
           )
@@ -227,14 +231,16 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
           {/* Left — logo + primary CTA */}
           <div className="flex items-center gap-4">
             <Link href="/" style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
-              <Image
-                src="/Zawaaj Logo for Webapp.jpg"
-                alt="Zawaaj – The Blessed Choice"
-                width={176}
-                height={44}
-                style={{ height: 44, width: 'auto', display: 'block' }}
-                priority
-              />
+              <div style={{ background: '#1C1A14', borderRadius: 12, padding: 6, display: 'inline-block' }}>
+                <Image
+                  src="/Zawaaj Logo for Webapp.jpg"
+                  alt="Zawaaj – The Blessed Choice"
+                  width={176}
+                  height={44}
+                  style={{ height: 44, width: 'auto', display: 'block' }}
+                  priority
+                />
+              </div>
             </Link>
             {isLoggedIn ? (
               <Link href="/browse" className="text-sm font-semibold px-4 py-2 rounded-xl bg-gold text-black hover:bg-[var(--gold-hover)] transition-colors">
@@ -335,17 +341,19 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
       <section className="max-w-4xl mx-auto px-4 md:px-5 pt-10 pb-12 md:pt-16 md:pb-20 text-center">
         {/* Full brand logo — image already contains ZAWAAJ + THE BLESSED CHOICE text */}
         <div className="flex justify-center mb-8">
-          <Image
-            src="/Zawaaj Logo for Webapp.jpg"
-            alt="Zawaaj – The Blessed Choice"
-            width={600}
-            height={150}
-            style={{ height: 150, width: 'auto', display: 'block' }}
-            priority
-          />
+          <div style={{ background: '#1C1A14', borderRadius: 12, padding: 6, display: 'inline-block' }}>
+            <Image
+              src="/Zawaaj Logo for Webapp.jpg"
+              alt="Zawaaj – The Blessed Choice"
+              width={880}
+              height={220}
+              style={{ height: 220, width: 'auto', display: 'block' }}
+              priority
+            />
+          </div>
         </div>
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-gold/30 bg-gold/8 text-gold text-xs font-medium mb-8">
-          🌙 Invite-only · Admin-mediated · Halal by design
+          Invite-only · Admin-mediated · Halal by design
         </div>
         <h1 className="text-[2rem] sm:text-5xl md:text-6xl font-bold text-white leading-tight tracking-tight mb-6">
           A blessed path to<br />
@@ -373,7 +381,7 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
         </div>
         {/* Increased opacity so the caption is legible against the dark bg */}
         <p className="mt-6 text-sm text-white/50 tracking-wide">
-          Invite-only platform · All profiles manually reviewed · UK-based
+          Private · Family-mediated · Every profile reviewed
         </p>
       </section>
 
@@ -401,11 +409,11 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
           <div style={{ width: 40, height: 1, background: 'rgba(184,150,12,0.3)', flexShrink: 0 }} />
           {/* English translation */}
           <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.65)', lineHeight: 1.8, fontStyle: 'italic', maxWidth: '36rem', fontWeight: 400 }}>
-            &ldquo;And among His signs is that He created for you mates from amongst yourselves, that you may dwell in tranquility with them, and He has put love and mercy between your hearts. Verily in that are signs for those who reflect.&rdquo;
+            &ldquo;And among His Signs is that He created for you mates from amongst yourselves, that you may dwell in tranquillity with them, and He has put love and mercy between your hearts. Verily in that are Signs for those who reflect.&rdquo;
           </p>
           {/* Reference */}
           <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.06em', fontWeight: 500 }}>
-            — Quran 30:21
+            — Surah Ar-Rum, 30:21
           </p>
         </div>
       </section>
@@ -414,13 +422,12 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
       <section className="border-y border-white/8 bg-surface-2">
         <div className="max-w-5xl mx-auto px-4 md:px-5 py-10 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           {[
-            { icon: '👩‍👩‍👧', label: 'Mother-to-mother introductions', sub: 'Verified by our team' },
-            { icon: '👁‍🗨', label: 'No photos shared', sub: 'Focused on character & values' },
-            { icon: '✅', label: 'Every profile verified', sub: 'Manual review before going live' },
-            { icon: '🤲', label: 'Wali-respecting', sub: 'Both families consulted before contact' },
+            { label: 'Mother-to-mother introductions', sub: 'Verified by our team' },
+            { label: 'No photos shared', sub: 'Focused on character & values' },
+            { label: 'Every profile verified', sub: 'Manual review before going live' },
+            { label: 'Wali-respecting', sub: 'Both families consulted before contact' },
           ].map(t => (
             <div key={t.label} className="flex flex-col items-center gap-2">
-              <span className="text-2xl">{t.icon}</span>
               <p className="text-sm font-medium text-white">{t.label}</p>
               <p className="text-xs text-white/40">{t.sub}</p>
             </div>
@@ -437,7 +444,9 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
         <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
           {HOW_IT_WORKS.map(s => (
             <div key={s.n} className="bg-surface-2 rounded-2xl p-6 border border-white/8">
-              <p className="text-gold text-xs font-bold mb-3">{s.n}</p>
+              <div style={{ fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--gold)', opacity: 0.7, marginBottom: 4 }}>
+                Step No. {s.n}
+              </div>
               <p className="font-semibold text-white mb-2">{s.title}</p>
               <p className="text-sm text-white/50 leading-relaxed">{s.body}</p>
             </div>
@@ -454,12 +463,9 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
           </div>
           <div className="grid sm:grid-cols-2 gap-6">
             {VALUES.map(v => (
-              <div key={v.title} className="bg-surface-3 rounded-2xl p-6 border border-white/8 flex gap-5">
-                <span className="text-2xl flex-shrink-0 mt-0.5">{v.icon}</span>
-                <div>
-                  <p className="font-semibold text-white mb-1">{v.title}</p>
-                  <p className="text-sm text-white/50 leading-relaxed">{v.body}</p>
-                </div>
+              <div key={v.title} className="bg-surface-3 rounded-2xl p-6 border border-white/8">
+                <p className="font-semibold text-white mb-1">{v.title}</p>
+                <p className="text-sm text-white/50 leading-relaxed">{v.body}</p>
               </div>
             ))}
           </div>

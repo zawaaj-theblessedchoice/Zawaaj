@@ -648,7 +648,7 @@ function Step3({
       </Field>
       <Field label="Religiosity" required>
         <ChipGroup
-          options={['Practising', 'Moderately practising', 'Learning / growing']}
+          options={['steadfast', 'practising', 'striving']}
           value={form.religiosity}
           onChange={(val) => update({ religiosity: val as string })}
         />

@@ -10,6 +10,7 @@ export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -37,7 +38,9 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="flex justify-center mb-10">
-          <ZawaajLogo size={180} tagline={true} />
+          <div style={{ background: '#1C1A14', borderRadius: 12, padding: 6, display: 'inline-block' }}>
+            <ZawaajLogo size={540} tagline={false} />
+          </div>
         </div>
 
         {/* Card */}
@@ -46,7 +49,7 @@ export default function LoginPage() {
           style={{
             backgroundColor: 'var(--surface-2)',
             borderRadius: 12,
-            border: '0.5px solid rgba(255,255,255,0.07)',
+            border: '1px solid rgba(255,255,255,0.25)',
             borderTop: '1px solid rgba(196,154,16,0.2)',
             boxShadow: '0 16px 48px rgba(0,0,0,0.4)',
           }}
@@ -95,17 +98,42 @@ export default function LoginPage() {
                   Forgot password?
                 </Link>
               </div>
-              <input
-                id="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full px-4 py-3 text-white placeholder-white/30 border border-white/10 focus:outline-none focus:border-[var(--gold)] transition-colors text-sm"
-                style={{ background: 'var(--surface-3)', borderRadius: 10 }}
-              />
+              <div style={{ position: 'relative' }}>
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="current-password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full px-4 py-3 text-white placeholder-white/30 border border-white/10 focus:outline-none focus:border-[var(--gold)] transition-colors text-sm"
+                  style={{ background: 'var(--surface-3)', borderRadius: 10, paddingRight: 44 }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(p => !p)}
+                  style={{
+                    position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
+                    background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center',
+                    color: showPassword ? 'var(--gold)' : 'rgba(255,255,255,0.4)',
+                  }}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/>
+                      <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/>
+                      <line x1="1" y1="1" x2="23" y2="23"/>
+                    </svg>
+                  ) : (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                  )}
+                </button>
+              </div>
             </div>
 
             {error && (

@@ -1,0 +1,918 @@
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import ZawaajLogo from '@/components/ZawaajLogo'
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const SCHOOL_OPTIONS   = ['Hanafi', "Shafi'i", 'Maliki', 'Hanbali', 'General Sunni', 'No preference']
+const RELIGIOSITY_OPTIONS = [
+  { value: 'steadfast',   label: 'Steadfast',   helper: 'Consistently fulfilling religious obligations with structure and commitment' },
+  { value: 'practising',  label: 'Practising',  helper: 'Regularly practising and actively working to maintain and improve' },
+  { value: 'striving',    label: 'Striving',    helper: 'On a sincere journey of growth — actively working to strengthen practice' },
+]
+
+const QURAN_OPTIONS = [
+  { value: 'building_connection',      label: 'Building my connection',     helper: 'I read or listen occasionally' },
+  { value: 'growing_regularly',        label: 'Growing regularly',          helper: 'I engage regularly and am improving my reading' },
+  { value: 'consistent_understanding', label: 'Consistent and learning',    helper: 'I read consistently and am deepening my understanding' },
+  { value: 'deeply_engaged',           label: 'Deeply engaged',             helper: "The Qur'an is central to my daily life" },
+]
+const PRAYER_OPTIONS = [
+  { value: 'yes_regularly',   label: 'Yes, regularly' },
+  { value: 'most_of_time',    label: 'Most of the time' },
+  { value: 'working_on_it',   label: 'Working on it' },
+  { value: 'not_currently',   label: 'Not currently' },
+]
+const EDUCATION_OPTIONS = [
+  'No formal qualifications', 'GCSEs / O-Levels', 'A-Levels', 'Diploma / HND',
+  "Bachelor's degree", "Master's degree", 'PhD / Doctorate', 'Other',
+]
+const MARITAL_OPTIONS = [
+  { value: 'never_married', label: 'Single (never married)' },
+  { value: 'divorced',      label: 'Divorced' },
+  { value: 'widowed',       label: 'Widowed' },
+]
+const RELOCATION_OPTIONS = [
+  { value: 'yes_open',      label: 'Yes, open to relocation' },
+  { value: 'within_uk',     label: 'Within the UK' },
+  { value: 'prefer_local',  label: 'Prefer to stay local' },
+  { value: 'not_open',      label: 'Not open to relocation' },
+]
+const PARTNER_CHILDREN_OPTIONS = [
+  { value: 'yes',             label: 'Yes, open to this' },
+  { value: 'no_preference',   label: 'No preference' },
+  { value: 'prefer_not',      label: 'Would prefer not' },
+]
+const ETHNICITY_OPTIONS = [
+  'British Pakistani', 'British Bangladeshi', 'British Indian', 'British Arab',
+  'Pakistani', 'Bangladeshi', 'Indian', 'Arab', 'Somali', 'Turkish', 'Iranian',
+  'West African', 'East African', 'Malaysian', 'Indonesian', 'White British',
+  'White European', 'Mixed heritage', 'Other',
+]
+const FEMALE_RELATIONSHIP_OPTIONS = [
+  { value: 'mother',                label: 'Mother' },
+  { value: 'grandmother',           label: 'Grandmother' },
+  { value: 'aunt',                  label: 'Aunt' },
+  { value: 'female_guardian',       label: 'Female guardian' },
+  { value: 'sister',                label: 'Sister' },
+  { value: 'other_female_relative', label: 'Other female relative' },
+]
+
+const STEP_TITLES = [
+  'Create your account',
+  'Personal details',
+  'Faith & practice',
+  'Preferences',
+  "Your guardian's contact details",
+  'Terms & confirmation',
+]
+
+// ─── Shared UI ────────────────────────────────────────────────────────────────
+
+function StepDots({ total, current }: { total: number; current: number }) {
+  return (
+    <div style={{ display: 'flex', gap: 6, justifyContent: 'center' }}>
+      {Array.from({ length: total }).map((_, i) => (
+        <div
+          key={i}
+          style={{
+            width: i === current ? 20 : 6,
+            height: 6,
+            borderRadius: 3,
+            background: i === current ? 'var(--gold)' : 'var(--border-default)',
+            transition: 'all 0.2s',
+          }}
+        />
+      ))}
+    </div>
+  )
+}
+
+const inputStyle: React.CSSProperties = {
+  width: '100%',
+  padding: '9px 12px',
+  borderRadius: 8,
+  border: '0.5px solid var(--border-default)',
+  background: 'var(--surface-3)',
+  color: 'var(--text-primary)',
+  fontSize: 13.5,
+  outline: 'none',
+  boxSizing: 'border-box',
+}
+
+const labelStyle: React.CSSProperties = {
+  fontSize: 12,
+  fontWeight: 500,
+  color: 'var(--text-secondary)',
+  marginBottom: 5,
+  display: 'block',
+}
+
+function Field({ label, required, hint, children }: {
+  label: string
+  required?: boolean
+  hint?: string
+  children: React.ReactNode
+}) {
+  return (
+    <div>
+      <label style={labelStyle}>
+        {label}{required && <span style={{ color: 'var(--gold)', marginLeft: 2 }}>*</span>}
+      </label>
+      {children}
+      {hint && (
+        <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: '4px 0 0', lineHeight: 1.4 }}>
+          {hint}
+        </p>
+      )}
+    </div>
+  )
+}
+
+function SectionLabel({ label }: { label: string }) {
+  return (
+    <div
+      style={{
+        fontSize: 10.5,
+        fontWeight: 600,
+        textTransform: 'uppercase' as const,
+        letterSpacing: '0.1em',
+        color: 'var(--text-muted)',
+        borderBottom: '0.5px solid var(--border-default)',
+        paddingBottom: 6,
+        marginBottom: 4,
+        marginTop: 8,
+      }}
+    >
+      {label}
+    </div>
+  )
+}
+
+// ─── Form data ────────────────────────────────────────────────────────────────
+
+interface FormData {
+  // Step 0
+  email:              string
+  password:           string
+  confirmPassword:    string
+  // Step 1 — Personal
+  firstName:          string
+  lastName:           string
+  dateOfBirth:        string
+  gender:             'male' | 'female' | ''
+  height:             string
+  heightUnit:         'cm' | 'ftin'
+  heightCm:           string
+  heightFt:           string
+  heightIn:           string
+  location:           string
+  ethnicity:          string
+  nationality:        string
+  languagesSpoken:    string
+  // Step 2 — Faith
+  schoolOfThought:    string
+  religiosity:        string
+  prayerRegularity:   string
+  wearsHijab:         string   // 'yes' | 'no' | 'sometimes' | ''
+  wearsNiqab:         string   // 'yes' | 'no' | 'sometimes' | ''
+  wearsAbaya:         string   // 'yes' | 'no' | 'sometimes' | ''
+  keepsBeard:         string   // 'yes' | 'no' | ''
+  quranEngagementLevel: string
+  educationLevel:     string
+  educationDetail:    string
+  professionDetail:   string
+  bio:                string
+  // Step 3 — Preferences
+  prefAgeMin:         string
+  prefAgeMax:         string
+  prefLocation:       string
+  prefEthnicity:      string
+  prefSchoolOfThought: string
+  openToRelocation:   string
+  openToPartnersChildren: string
+  maritalStatus:      string
+  hasChildren:        string   // 'yes' | 'no' | ''
+  // Step 4 — Guardian
+  guardianFullName:   string
+  guardianRelationship: string
+  guardianNumber:     string
+  guardianEmail:      string
+  noFemaleContactFlag: boolean
+  fatherExplanation:  string
+  // Step 5 — Terms
+  termsAgreed:        boolean
+  detailsAccurate:    boolean
+  guardianConsents:   boolean
+}
+
+const EMPTY: FormData = {
+  email: '', password: '', confirmPassword: '',
+  firstName: '', lastName: '', dateOfBirth: '', gender: '', height: '',
+  heightUnit: 'cm', heightCm: '', heightFt: '', heightIn: '',
+  location: '', ethnicity: '', nationality: '', languagesSpoken: '',
+  schoolOfThought: '', religiosity: '', prayerRegularity: '', wearsHijab: '',
+  wearsNiqab: '', wearsAbaya: '', quranEngagementLevel: '',
+  keepsBeard: '', educationLevel: '', educationDetail: '', professionDetail: '', bio: '',
+  prefAgeMin: '', prefAgeMax: '', prefLocation: '', prefEthnicity: '',
+  prefSchoolOfThought: '', openToRelocation: '', openToPartnersChildren: '',
+  maritalStatus: '', hasChildren: '',
+  guardianFullName: '', guardianRelationship: '', guardianNumber: '', guardianEmail: '',
+  noFemaleContactFlag: false, fatherExplanation: '',
+  termsAgreed: false, detailsAccurate: false, guardianConsents: false,
+}
+
+const TOTAL_STEPS = 6  // 0–5
+
+// ─── Main ─────────────────────────────────────────────────────────────────────
+
+export default function RegisterChildPage() {
+  const router = useRouter()
+  const [step, setStep] = useState(0)
+  const [form, setForm] = useState<FormData>(EMPTY)
+  const [error, setError] = useState<string | null>(null)
+  const [submitting, setSubmitting] = useState(false)
+
+  function set<K extends keyof FormData>(key: K, value: FormData[K]) {
+    setForm(prev => ({ ...prev, [key]: value }))
+    setError(null)
+  }
+
+  function getHeightCmValue(): string {
+    if (form.heightUnit === 'cm') return form.heightCm
+    const ft = parseFloat(form.heightFt) || 0
+    const inches = parseFloat(form.heightIn) || 0
+    const totalCm = Math.round((ft * 30.48) + (inches * 2.54))
+    return totalCm > 0 ? String(totalCm) : ''
+  }
+
+  function validateStep(): string | null {
+    if (step === 0) {
+      if (!form.email.trim())               return 'Email is required.'
+      if (!/\S+@\S+\.\S+/.test(form.email)) return 'Enter a valid email address.'
+      if (!form.password)                   return 'Password is required.'
+      if (form.password.length < 8)         return 'Password must be at least 8 characters.'
+      if (form.password !== form.confirmPassword) return 'Passwords do not match.'
+    }
+    if (step === 1) {
+      if (!form.firstName.trim())  return 'First name is required.'
+      if (!form.lastName.trim())   return 'Last name is required.'
+      if (!form.dateOfBirth)       return 'Date of birth is required.'
+      if (!form.gender)            return 'Gender is required.'
+      if (!form.location.trim())   return 'City / location is required.'
+    }
+    if (step === 2) {
+      if (!form.schoolOfThought) return 'School of thought is required.'
+    }
+    if (step === 4) {
+      if (!form.guardianFullName.trim())  return 'Her full name is required.'
+      if (!form.guardianRelationship)     return 'Her relationship is required.'
+      if (!form.guardianNumber.trim())    return 'Her contact number is required.'
+      if (form.noFemaleContactFlag && !form.fatherExplanation.trim())
+        return 'Please provide an explanation.'
+    }
+    if (step === 5) {
+      if (!form.termsAgreed)     return 'You must agree to the Terms of Use.'
+      if (!form.detailsAccurate) return 'Please confirm that all details are accurate.'
+      if (!form.guardianConsents) return "Please confirm your guardian's consent."
+    }
+    return null
+  }
+
+  function handleNext() {
+    const err = validateStep()
+    if (err) { setError(err); return }
+    setError(null)
+    setStep(s => s + 1)
+  }
+
+  async function handleSubmit() {
+    const err = validateStep()
+    if (err) { setError(err); return }
+    setSubmitting(true)
+    setError(null)
+
+    const wearsHijabBool = form.gender === 'female'
+      ? (form.wearsHijab === 'yes' ? true : form.wearsHijab === 'no' ? false : null)
+      : null
+    const keepsBeardBool = form.gender === 'male'
+      ? (form.keepsBeard === 'yes' ? true : form.keepsBeard === 'no' ? false : null)
+      : null
+    const hasChildrenBool = form.hasChildren === 'yes' ? true
+      : form.hasChildren === 'no' ? false : null
+    const languages = form.languagesSpoken.trim()
+      ? form.languagesSpoken.split(',').map(s => s.trim()).filter(Boolean)
+      : []
+
+    const heightCmValue = getHeightCmValue()
+
+    const res = await fetch('/api/register/family', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        path:                    'child',
+        email:                   form.email,
+        password:                form.password,
+        contactFullName:         form.guardianFullName,
+        contactRelationship:     form.guardianRelationship,
+        contactNumber:           form.guardianNumber,
+        contactEmail:            form.guardianEmail || form.email,
+        noFemaleContactFlag:     form.noFemaleContactFlag,
+        fatherExplanation:       form.fatherExplanation || undefined,
+        termsAgreed:             true,
+        profile: {
+          firstName:             form.firstName,
+          lastName:              form.lastName,
+          dateOfBirth:           form.dateOfBirth,
+          gender:                form.gender,
+          height:                heightCmValue || undefined,
+          location:              form.location,
+          ethnicity:             form.ethnicity || undefined,
+          nationality:           form.nationality || undefined,
+          languagesSpoken:       languages.length > 0 ? languages : undefined,
+          educationLevel:        form.educationLevel  || undefined,
+          educationDetail:       form.educationDetail || undefined,
+          professionDetail:      form.professionDetail || undefined,
+          schoolOfThought:       form.schoolOfThought,
+          religiosity:           form.religiosity     || undefined,
+          prayerRegularity:      form.prayerRegularity || undefined,
+          wearsHijab:            wearsHijabBool,
+          wearsNiqab:            form.gender === 'female' ? (form.wearsNiqab || undefined) : undefined,
+          wearsAbaya:            form.gender === 'female' ? (form.wearsAbaya || undefined) : undefined,
+          quranEngagementLevel:  form.quranEngagementLevel || undefined,
+          keepsBeard:            keepsBeardBool,
+          bio:                   form.bio || undefined,
+          prefAgeMin:            form.prefAgeMin ? parseInt(form.prefAgeMin, 10) : undefined,
+          prefAgeMax:            form.prefAgeMax ? parseInt(form.prefAgeMax, 10) : undefined,
+          prefLocation:          form.prefLocation    || undefined,
+          prefEthnicity:         form.prefEthnicity   || undefined,
+          prefSchoolOfThought:   form.prefSchoolOfThought || undefined,
+          openToRelocation:      form.openToRelocation || undefined,
+          openToPartnersChildren: form.openToPartnersChildren || undefined,
+          maritalStatus:         form.maritalStatus   || undefined,
+          hasChildren:           hasChildrenBool,
+        },
+      }),
+    })
+
+    const json = await res.json().catch(() => ({}))
+
+    if (!res.ok) {
+      setError(
+        json.error === 'email_exists'
+          ? 'An account with this email already exists. Try signing in instead.'
+          : json.message ?? json.error ?? 'Something went wrong. Please try again.'
+      )
+      setSubmitting(false)
+      return
+    }
+
+    router.push('/register/pending?path=child')
+  }
+
+  return (
+    <main
+      style={{
+        minHeight: '100vh',
+        background: 'var(--surface)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '24px 16px',
+      }}
+    >
+      <div
+        style={{
+          width: '100%',
+          maxWidth: 520,
+          background: 'var(--surface-2)',
+          border: '0.5px solid var(--border-default)',
+          borderTop: '1px solid rgba(196,154,16,0.25)',
+          borderRadius: 12,
+          padding: '36px 32px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 20,
+          boxShadow: '0 16px 48px rgba(0,0,0,0.4)',
+        }}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
+          <ZawaajLogo size={52} tagline={false} />
+          <StepDots total={TOTAL_STEPS} current={step} />
+          <div style={{ textAlign: 'center' }}>
+            <h2 style={{ fontSize: 17, fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 4px' }}>
+              {STEP_TITLES[step]}
+            </h2>
+            <p style={{ fontSize: 11.5, color: 'var(--text-muted)', margin: 0 }}>
+              Step {step + 1} of {TOTAL_STEPS}
+            </p>
+          </div>
+        </div>
+
+        {/* ── Step 0: Account ───────────────────────────────────────────── */}
+        {step === 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <Field label="Email address" required>
+              <input type="email" placeholder="your@email.com" value={form.email}
+                onChange={e => set('email', e.target.value)} style={inputStyle} autoComplete="email" />
+            </Field>
+            <Field label="Password" required>
+              <input type="password" placeholder="At least 8 characters" value={form.password}
+                onChange={e => set('password', e.target.value)} style={inputStyle} autoComplete="new-password" />
+            </Field>
+            <Field label="Confirm password" required>
+              <input type="password" placeholder="Repeat password" value={form.confirmPassword}
+                onChange={e => set('confirmPassword', e.target.value)} style={inputStyle} autoComplete="new-password" />
+            </Field>
+          </div>
+        )}
+
+        {/* ── Step 1: Personal details ──────────────────────────────────── */}
+        {step === 1 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <p style={{ fontSize: 12.5, color: 'var(--text-muted)', margin: 0, lineHeight: 1.5 }}>
+              This is your profile — the information other families will see. Fields marked * are required.
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <Field label="First name" required>
+                <input type="text" value={form.firstName}
+                  onChange={e => set('firstName', e.target.value)} style={inputStyle} />
+              </Field>
+              <Field label="Last name" required hint="Your name is kept private — only initials are shown to other members.">
+                <input type="text" value={form.lastName}
+                  onChange={e => set('lastName', e.target.value)} style={inputStyle} />
+              </Field>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <Field label="Date of birth" required>
+                <input type="date" value={form.dateOfBirth}
+                  onChange={e => set('dateOfBirth', e.target.value)} style={inputStyle} />
+              </Field>
+              <Field label="Gender" required>
+                <select value={form.gender} onChange={e => set('gender', e.target.value as 'male' | 'female' | '')}
+                  style={{ ...inputStyle, cursor: 'pointer' }}>
+                  <option value="">Select…</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                </select>
+              </Field>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div>
+                <label style={labelStyle}>Height</label>
+                {/* Unit toggle */}
+                <div style={{ display: 'flex', gap: 0, marginBottom: 8, borderRadius: 8, overflow: 'hidden', border: '0.5px solid var(--border-default)', width: 'fit-content' }}>
+                  {(['cm', 'ftin'] as const).map(unit => (
+                    <button
+                      key={unit}
+                      type="button"
+                      onClick={() => set('heightUnit', unit)}
+                      style={{
+                        padding: '5px 12px', fontSize: 12, border: 'none', cursor: 'pointer',
+                        background: form.heightUnit === unit ? 'var(--gold)' : 'var(--surface-3)',
+                        color: form.heightUnit === unit ? '#fff' : 'var(--text-primary)',
+                        fontWeight: form.heightUnit === unit ? 600 : 400,
+                      }}
+                    >
+                      {unit === 'cm' ? 'cm' : 'ft & in'}
+                    </button>
+                  ))}
+                </div>
+                {form.heightUnit === 'cm' ? (
+                  <input
+                    type="number"
+                    placeholder="e.g. 170"
+                    value={form.heightCm}
+                    onChange={e => set('heightCm', e.target.value)}
+                    style={{ ...inputStyle, width: '100%' }}
+                  />
+                ) : (
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <input type="number" placeholder="ft" value={form.heightFt}
+                      onChange={e => set('heightFt', e.target.value)}
+                      style={{ ...inputStyle, width: 70, boxSizing: 'border-box' }} />
+                    <input type="number" placeholder="in" value={form.heightIn}
+                      onChange={e => set('heightIn', e.target.value)}
+                      style={{ ...inputStyle, width: 70, boxSizing: 'border-box' }} min={0} max={11} />
+                  </div>
+                )}
+              </div>
+              <Field label="City / location" required>
+                <input type="text" placeholder="e.g. London" value={form.location}
+                  onChange={e => set('location', e.target.value)} style={inputStyle} />
+              </Field>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <Field label="Ethnicity">
+                <select value={form.ethnicity} onChange={e => set('ethnicity', e.target.value)}
+                  style={{ ...inputStyle, cursor: 'pointer' }}>
+                  <option value="">Select…</option>
+                  {ETHNICITY_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
+                </select>
+              </Field>
+              <Field label="Nationality">
+                <input type="text" placeholder="e.g. British" value={form.nationality}
+                  onChange={e => set('nationality', e.target.value)} style={inputStyle} />
+              </Field>
+            </div>
+            <Field label="Languages spoken" hint="Comma-separated, e.g. English, Urdu, Arabic">
+              <input type="text" placeholder="e.g. English, Urdu" value={form.languagesSpoken}
+                onChange={e => set('languagesSpoken', e.target.value)} style={inputStyle} />
+            </Field>
+            <SectionLabel label="Status" />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <Field label="Marital status">
+                <select value={form.maritalStatus} onChange={e => set('maritalStatus', e.target.value)}
+                  style={{ ...inputStyle, cursor: 'pointer' }}>
+                  <option value="">Select…</option>
+                  {MARITAL_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+              </Field>
+              <Field label="Currently has children">
+                <select value={form.hasChildren} onChange={e => set('hasChildren', e.target.value)}
+                  style={{ ...inputStyle, cursor: 'pointer' }}>
+                  <option value="">Select…</option>
+                  <option value="no">No</option>
+                  <option value="yes">Yes</option>
+                </select>
+              </Field>
+            </div>
+          </div>
+        )}
+
+        {/* ── Step 2: Faith & education ─────────────────────────────────── */}
+        {step === 2 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <SectionLabel label="Education & career" />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <Field label="Highest education level">
+                <select value={form.educationLevel} onChange={e => set('educationLevel', e.target.value)}
+                  style={{ ...inputStyle, cursor: 'pointer' }}>
+                  <option value="">Select…</option>
+                  {EDUCATION_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
+                </select>
+              </Field>
+              <Field label="Field of study / detail">
+                <input type="text" placeholder="e.g. Computer Science" value={form.educationDetail}
+                  onChange={e => set('educationDetail', e.target.value)} style={inputStyle} />
+              </Field>
+            </div>
+            <Field label="Profession / occupation">
+              <input type="text" placeholder="e.g. Software Engineer" value={form.professionDetail}
+                onChange={e => set('professionDetail', e.target.value)} style={inputStyle} />
+            </Field>
+
+            <SectionLabel label="Faith & practice" />
+            <Field label="School of thought" required>
+              <select value={form.schoolOfThought} onChange={e => set('schoolOfThought', e.target.value)}
+                style={{ ...inputStyle, cursor: 'pointer' }}>
+                <option value="">Select…</option>
+                {SCHOOL_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
+              </select>
+            </Field>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div>
+                <label style={labelStyle}>Religiosity level</label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {RELIGIOSITY_OPTIONS.map(o => (
+                    <button
+                      key={o.value}
+                      type="button"
+                      onClick={() => set('religiosity', o.value)}
+                      style={{
+                        padding: '8px 10px', borderRadius: 8, textAlign: 'left', cursor: 'pointer',
+                        border: `0.5px solid ${form.religiosity === o.value ? 'var(--gold)' : 'var(--border-default)'}`,
+                        background: form.religiosity === o.value ? 'rgba(184,150,12,0.08)' : 'var(--surface-3)',
+                        color: 'var(--text-primary)',
+                      }}
+                    >
+                      <div style={{ fontSize: 13, fontWeight: form.religiosity === o.value ? 600 : 400 }}>{o.label}</div>
+                      <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2, lineHeight: 1.4 }}>{o.helper}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <Field label="Prays five times daily">
+                <select value={form.prayerRegularity} onChange={e => set('prayerRegularity', e.target.value)}
+                  style={{ ...inputStyle, cursor: 'pointer' }}>
+                  <option value="">Select…</option>
+                  {PRAYER_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+              </Field>
+            </div>
+            {form.gender === 'female' && (
+              <div>
+                <h3 style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4, marginTop: 4 }}>Modesty practice</h3>
+                <p style={{ fontSize: 11.5, color: 'var(--text-muted)', marginBottom: 12, lineHeight: 1.4 }}>Optional — this information is only shown to potential matches</p>
+
+                {/* Hijab */}
+                <div style={{ marginBottom: 14 }}>
+                  <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)', display: 'block', marginBottom: 2 }}>Hijab</label>
+                  <p style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 0, marginBottom: 8, lineHeight: 1.4 }}>Headscarf covering the hair</p>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    {[{val: 'yes', label: 'Yes'}, {val: 'no', label: 'No'}].map(opt => (
+                      <button key={opt.val} type="button"
+                        onClick={() => set('wearsHijab', opt.val)}
+                        style={{ padding: '6px 16px', borderRadius: 8, border: `0.5px solid ${form.wearsHijab === opt.val ? 'var(--gold)' : 'var(--border-default)'}`, background: form.wearsHijab === opt.val ? 'rgba(184,150,12,0.1)' : 'var(--surface-3)', color: form.wearsHijab === opt.val ? 'var(--gold)' : 'var(--text-primary)', cursor: 'pointer', fontSize: 13 }}>
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Niqab */}
+                <div style={{ marginBottom: 14 }}>
+                  <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)', display: 'block', marginBottom: 2 }}>Niqab</label>
+                  <p style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 0, marginBottom: 8, lineHeight: 1.4 }}>Face veil covering the face</p>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    {['Yes', 'No', 'Sometimes'].map(opt => (
+                      <button key={opt} type="button"
+                        onClick={() => set('wearsNiqab', opt.toLowerCase())}
+                        style={{ padding: '6px 16px', borderRadius: 8, border: `0.5px solid ${form.wearsNiqab === opt.toLowerCase() ? 'var(--gold)' : 'var(--border-default)'}`, background: form.wearsNiqab === opt.toLowerCase() ? 'rgba(184,150,12,0.1)' : 'var(--surface-3)', color: form.wearsNiqab === opt.toLowerCase() ? 'var(--gold)' : 'var(--text-primary)', cursor: 'pointer', fontSize: 13 }}>
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Abaya */}
+                <div style={{ marginBottom: 4 }}>
+                  <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)', display: 'block', marginBottom: 2 }}>Abaya</label>
+                  <p style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 0, marginBottom: 8, lineHeight: 1.4 }}>Loose outer garment covering the body</p>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    {['Yes', 'No', 'Sometimes'].map(opt => (
+                      <button key={opt} type="button"
+                        onClick={() => set('wearsAbaya', opt.toLowerCase())}
+                        style={{ padding: '6px 16px', borderRadius: 8, border: `0.5px solid ${form.wearsAbaya === opt.toLowerCase() ? 'var(--gold)' : 'var(--border-default)'}`, background: form.wearsAbaya === opt.toLowerCase() ? 'rgba(184,150,12,0.1)' : 'var(--surface-3)', color: form.wearsAbaya === opt.toLowerCase() ? 'var(--gold)' : 'var(--text-primary)', cursor: 'pointer', fontSize: 13 }}>
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+            {form.gender === 'male' && (
+              <Field label="Keeps beard">
+                <select value={form.keepsBeard} onChange={e => set('keepsBeard', e.target.value)}
+                  style={{ ...inputStyle, cursor: 'pointer' }}>
+                  <option value="">Select…</option>
+                  <option value="yes">Yes</option>
+                  <option value="no">No</option>
+                </select>
+              </Field>
+            )}
+            <div>
+              <label style={labelStyle}>Which best describes your current relationship with the Qur&apos;an?</label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {QURAN_OPTIONS.map(o => (
+                  <button
+                    key={o.value}
+                    type="button"
+                    onClick={() => set('quranEngagementLevel', o.value)}
+                    style={{
+                      padding: '8px 10px', borderRadius: 8, textAlign: 'left', cursor: 'pointer',
+                      border: `0.5px solid ${form.quranEngagementLevel === o.value ? 'var(--gold)' : 'var(--border-default)'}`,
+                      background: form.quranEngagementLevel === o.value ? 'rgba(184,150,12,0.08)' : 'var(--surface-3)',
+                      color: 'var(--text-primary)',
+                    }}
+                  >
+                    <div style={{ fontSize: 13, fontWeight: form.quranEngagementLevel === o.value ? 600 : 400 }}>{o.label}</div>
+                    <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2, lineHeight: 1.4 }}>{o.helper}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+            <Field label="About — character, values, and what you are looking for"
+              hint="80–200 words. This is what other families will read about you.">
+              <textarea value={form.bio} onChange={e => set('bio', e.target.value)}
+                placeholder="Write a short description…" rows={5}
+                style={{ ...inputStyle, resize: 'vertical' }} />
+            </Field>
+          </div>
+        )}
+
+        {/* ── Step 3: Preferences ───────────────────────────────────────── */}
+        {step === 3 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <p style={{ fontSize: 12.5, color: 'var(--text-muted)', margin: 0, lineHeight: 1.5 }}>
+              These preferences help us recommend suitable profiles. All fields are optional.
+            </p>
+            <SectionLabel label="Age preference" />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <Field label="Min age">
+                <input type="number" placeholder="e.g. 22" value={form.prefAgeMin} min={18} max={80}
+                  onChange={e => set('prefAgeMin', e.target.value)} style={inputStyle} />
+              </Field>
+              <Field label="Max age">
+                <input type="number" placeholder="e.g. 35" value={form.prefAgeMax} min={18} max={80}
+                  onChange={e => set('prefAgeMax', e.target.value)} style={inputStyle} />
+              </Field>
+            </div>
+            <SectionLabel label="Location & background" />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <Field label="Preferred location">
+                <input type="text" placeholder="e.g. London" value={form.prefLocation}
+                  onChange={e => set('prefLocation', e.target.value)} style={inputStyle} />
+              </Field>
+              <Field label="Preferred ethnicity">
+                <select value={form.prefEthnicity} onChange={e => set('prefEthnicity', e.target.value)}
+                  style={{ ...inputStyle, cursor: 'pointer' }}>
+                  <option value="">Open / no preference</option>
+                  {ETHNICITY_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
+                </select>
+              </Field>
+            </div>
+            <Field label="Preferred school of thought">
+              <select value={form.prefSchoolOfThought} onChange={e => set('prefSchoolOfThought', e.target.value)}
+                style={{ ...inputStyle, cursor: 'pointer' }}>
+                <option value="">Open / no preference</option>
+                {SCHOOL_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
+              </select>
+            </Field>
+            <SectionLabel label="Lifestyle" />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <Field label="Open to relocation">
+                <select value={form.openToRelocation} onChange={e => set('openToRelocation', e.target.value)}
+                  style={{ ...inputStyle, cursor: 'pointer' }}>
+                  <option value="">Select…</option>
+                  {RELOCATION_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+              </Field>
+              <Field label="Open to partner's children">
+                <select value={form.openToPartnersChildren} onChange={e => set('openToPartnersChildren', e.target.value)}
+                  style={{ ...inputStyle, cursor: 'pointer' }}>
+                  <option value="">Select…</option>
+                  {PARTNER_CHILDREN_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+              </Field>
+            </div>
+          </div>
+        )}
+
+        {/* ── Step 4: Guardian details ──────────────────────────────────── */}
+        {step === 4 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div
+              style={{
+                padding: '12px 14px',
+                borderRadius: 8,
+                background: 'rgba(184,150,12,0.06)',
+                border: '0.5px solid rgba(184,150,12,0.25)',
+                fontSize: 12.5,
+                color: 'var(--text-secondary)',
+                lineHeight: 1.6,
+              }}
+            >
+              Zawaaj requires a female family member to be the point of contact for introductions. Her details will be used by our team when connecting families — they will never be visible to other members until a mutual match is confirmed and our team verifies the contact.
+            </div>
+            <Field label="Her full name" required>
+              <input type="text" placeholder="e.g. Fatima Hussain" value={form.guardianFullName}
+                onChange={e => set('guardianFullName', e.target.value)} style={inputStyle} />
+            </Field>
+            <Field label="Her relationship to you" required>
+              <select value={form.guardianRelationship} onChange={e => set('guardianRelationship', e.target.value)}
+                style={{ ...inputStyle, cursor: 'pointer' }}>
+                <option value="">Select…</option>
+                {FEMALE_RELATIONSHIP_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
+            </Field>
+            <Field label="Her contact number (WhatsApp preferred)" required>
+              <input type="tel" placeholder="e.g. 07700 900000" value={form.guardianNumber}
+                onChange={e => set('guardianNumber', e.target.value)} style={inputStyle} />
+            </Field>
+            <Field label="Her email address" hint="Optional — if provided, she will receive an invitation to link her account.">
+              <input type="email" placeholder="Optional" value={form.guardianEmail}
+                onChange={e => set('guardianEmail', e.target.value)} style={inputStyle} />
+            </Field>
+
+            <label
+              style={{
+                display: 'flex', gap: 10, alignItems: 'flex-start', cursor: 'pointer',
+                padding: '12px 14px', borderRadius: 8,
+                background: form.noFemaleContactFlag ? 'rgba(184,150,12,0.06)' : 'var(--surface-3)',
+                border: `0.5px solid ${form.noFemaleContactFlag ? 'rgba(184,150,12,0.35)' : 'var(--border-default)'}`,
+                marginTop: 4,
+              }}
+            >
+              <input type="checkbox" checked={form.noFemaleContactFlag}
+                onChange={e => set('noFemaleContactFlag', e.target.checked)}
+                style={{ marginTop: 2, flexShrink: 0 }} />
+              <span style={{ fontSize: 12.5, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                My mother / female guardian is not available — I am unable to provide a female contact at this time.
+              </span>
+            </label>
+
+            {form.noFemaleContactFlag && (
+              <Field label="Please explain" required>
+                <textarea value={form.fatherExplanation} onChange={e => set('fatherExplanation', e.target.value)}
+                  placeholder="This is seen by admin only." rows={3}
+                  style={{ ...inputStyle, resize: 'vertical' }} />
+              </Field>
+            )}
+          </div>
+        )}
+
+        {/* ── Step 5: Terms ─────────────────────────────────────────────── */}
+        {step === 5 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div
+              style={{
+                padding: '14px 16px', borderRadius: 8,
+                background: 'var(--surface-3)',
+                border: '0.5px solid var(--border-default)',
+                fontSize: 12.5, color: 'var(--text-muted)', lineHeight: 1.6,
+              }}
+            >
+              Your profile will be submitted for review. Our team will be in touch within 1–2 working days insha&apos;Allah. Your profile will only be visible to other families once approved.
+            </div>
+            <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', cursor: 'pointer' }}>
+              <input type="checkbox" checked={form.termsAgreed}
+                onChange={e => set('termsAgreed', e.target.checked)}
+                style={{ marginTop: 3, flexShrink: 0 }} />
+              <span style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                I agree to the{' '}
+                <a href="/terms" target="_blank" style={{ color: 'var(--gold)' }}>Terms of Use and Privacy Policy</a>
+              </span>
+            </label>
+            <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', cursor: 'pointer' }}>
+              <input type="checkbox" checked={form.detailsAccurate}
+                onChange={e => set('detailsAccurate', e.target.checked)}
+                style={{ marginTop: 3, flexShrink: 0 }} />
+              <span style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                I confirm my contact details and my guardian's details are accurate
+              </span>
+            </label>
+            <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', cursor: 'pointer' }}>
+              <input type="checkbox" checked={form.guardianConsents}
+                onChange={e => set('guardianConsents', e.target.checked)}
+                style={{ marginTop: 3, flexShrink: 0 }} />
+              <span style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                My guardian consents to being contacted by the Zawaaj team when an introduction is being facilitated
+              </span>
+            </label>
+          </div>
+        )}
+
+        {/* ── Error ─────────────────────────────────────────────────────── */}
+        {error && (
+          <div
+            style={{
+              padding: '10px 14px', borderRadius: 8,
+              background: 'rgba(248,113,113,0.08)',
+              border: '0.5px solid rgba(248,113,113,0.3)',
+              fontSize: 13, color: 'var(--status-error)',
+            }}
+          >
+            {error}
+          </div>
+        )}
+
+        {/* ── Navigation ────────────────────────────────────────────────── */}
+        <div style={{ display: 'flex', gap: 10 }}>
+          {step > 0 && (
+            <button onClick={() => { setStep(s => s - 1); setError(null) }}
+              style={{
+                flex: 1, padding: '10px 0', borderRadius: 8,
+                border: '0.5px solid var(--border-default)',
+                background: 'var(--surface-3)',
+                color: 'var(--text-secondary)', fontSize: 13.5, cursor: 'pointer',
+              }}
+            >
+              Back
+            </button>
+          )}
+          {step < TOTAL_STEPS - 1 ? (
+            <button onClick={handleNext}
+              style={{
+                flex: 1, padding: '10px 0', borderRadius: 8, border: 'none',
+                background: 'var(--gold)', color: 'var(--surface)',
+                fontSize: 13.5, fontWeight: 600, cursor: 'pointer',
+              }}
+            >
+              Continue →
+            </button>
+          ) : (
+            <button onClick={handleSubmit} disabled={submitting}
+              style={{
+                flex: 1, padding: '10px 0', borderRadius: 8, border: 'none',
+                background: submitting ? 'var(--surface-3)' : 'var(--gold)',
+                color: submitting ? 'var(--text-muted)' : 'var(--surface)',
+                fontSize: 13.5, fontWeight: 600,
+                cursor: submitting ? 'not-allowed' : 'pointer',
+              }}
+            >
+              {submitting ? 'Submitting…' : 'Submit my profile →'}
+            </button>
+          )}
+        </div>
+
+        <p style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center', margin: 0 }}>
+          Already have an account?{' '}
+          <a href="/login" style={{ color: 'var(--gold)', textDecoration: 'none' }}>Sign in</a>
+        </p>
+      </div>
+    </main>
+  )
+}

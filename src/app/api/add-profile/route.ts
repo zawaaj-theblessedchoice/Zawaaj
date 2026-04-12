@@ -34,7 +34,7 @@ export async function POST(request: Request): Promise<Response> {
       height?: string
       livingSituation?: string
       ethnicity?: string
-      languagesSpoken?: string
+      languagesSpoken?: string[]
       profession?: string
       educationLevel?: string
       institution?: string
@@ -134,7 +134,7 @@ export async function POST(request: Request): Promise<Response> {
         height: body.height || null,
         living_situation,
         ethnicity: body.ethnicity || null,
-        languages_spoken: body.languagesSpoken?.trim() || null,
+        languages_spoken: body.languagesSpoken?.length ? body.languagesSpoken : null,
         profession_detail: body.profession?.trim() || null,
         education_level,
         education_detail: body.institution?.trim() || null,
