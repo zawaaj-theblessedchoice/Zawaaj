@@ -227,39 +227,18 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
   return (
     <div className="min-h-screen" data-theme="dark" style={{ background: 'var(--surface)', color: 'var(--text-primary)' }}>
 
-      {/* ── Nav ── 3-column grid: [CTA left] [links centred] [sign-in right] */}
+      {/* ── Nav ── logo left | links centre | CTA right */}
       <nav className="sticky top-0 z-50 border-b border-white/8 bg-surface/90 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-5 h-16 grid grid-cols-2 md:grid-cols-3 items-center">
 
-          {/* Left — logo + primary CTA */}
-          <div className="flex items-center gap-4">
+          {/* Left — logo only */}
+          <div className="flex items-center">
             <Link href="/" style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
-              <img
-                src="/zawaaj-wordmark.png"
-                alt="Zawaaj"
-                style={{ height: 28, width: 'auto' }}
-              />
+              <img src="/zawaaj-wordmark.png" alt="Zawaaj" style={{ height: 28, width: 'auto' }} />
             </Link>
-            {isLoggedIn ? (
-              <Link href="/browse" className="text-sm font-semibold px-4 py-2 rounded-xl bg-gold text-black hover:bg-[var(--gold-hover)] transition-colors">
-                Browse profiles →
-              </Link>
-            ) : (
-              <Link
-                href="/signup"
-                className="text-sm font-semibold px-5 py-2 rounded-xl transition-colors"
-                style={{
-                  background: 'var(--gold)',
-                  color: '#000',
-                  letterSpacing: '-0.01em',
-                }}
-              >
-                Create profile
-              </Link>
-            )}
           </div>
 
-          {/* Centre — navigation links */}
+          {/* Centre — navigation links (desktop) */}
           <div className="hidden md:flex items-center justify-center gap-7 text-sm text-white/60">
             <a href="#how-it-works" className="hover:text-white transition-colors">How it works</a>
             <a href="#values" className="hover:text-white transition-colors">Our values</a>
@@ -267,12 +246,43 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
             <a href="#faq" className="hover:text-white transition-colors">FAQ</a>
           </div>
 
-          {/* Mobile — hamburger button */}
-          <div className="flex items-center justify-end gap-2 md:hidden">
+          {/* Right — primary action (desktop) + hamburger (mobile) */}
+          <div className="flex items-center justify-end gap-3">
+            {/* Desktop CTAs */}
+            {isLoggedIn ? (
+              <Link
+                href="/browse"
+                className="hidden md:inline-flex text-sm font-semibold px-5 py-2 rounded-xl transition-colors"
+                style={{ background: 'var(--gold)', color: '#000' }}
+              >
+                Browse profiles →
+              </Link>
+            ) : (
+              <div className="hidden md:flex items-center gap-2">
+                <Link
+                  href="/login"
+                  className="text-sm font-medium px-4 py-2 rounded-xl transition-colors"
+                  style={{ color: 'rgba(255,255,255,0.7)', border: '1px solid rgba(255,255,255,0.12)' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = '#fff'; (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(255,255,255,0.3)' }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(255,255,255,0.7)'; (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(255,255,255,0.12)' }}
+                >
+                  Sign in
+                </Link>
+                <Link
+                  href="/signup"
+                  className="text-sm font-semibold px-5 py-2 rounded-xl transition-colors"
+                  style={{ background: 'var(--gold)', color: '#000' }}
+                >
+                  Create profile
+                </Link>
+              </div>
+            )}
+
+            {/* Mobile hamburger */}
             <button
               onClick={() => setMenuOpen(o => !o)}
               aria-label="Menu"
-              className="p-2 rounded-lg"
+              className="md:hidden p-2 rounded-lg"
               style={{ color: 'rgba(255,255,255,0.7)', background: 'none', border: 'none', cursor: 'pointer' }}
             >
               {menuOpen ? (
@@ -285,19 +295,6 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
                 </svg>
               )}
             </button>
-          </div>
-
-          {/* Right — sign in (desktop only) */}
-          <div className="hidden md:flex items-center justify-end">
-            {!isLoggedIn && (
-              <Link
-                href="/login"
-                className="text-sm font-medium px-5 py-2 rounded-xl border transition-colors hover:text-white hover:bg-white/5"
-                style={{ borderColor: 'rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.7)' }}
-              >
-                Sign in
-              </Link>
-            )}
           </div>
 
         </div>
@@ -313,22 +310,28 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
               { href: '#membership', label: 'Membership' },
               { href: '#faq', label: 'FAQ' },
             ].map(link => (
-              <a
-                key={link.href}
-                href={link.href}
-                onClick={() => setMenuOpen(false)}
-                className="px-5 py-3 text-sm text-white/70 hover:text-white hover:bg-white/5 transition-colors"
-              >
+              <a key={link.href} href={link.href} onClick={() => setMenuOpen(false)}
+                className="px-5 py-3 text-sm text-white/70 hover:text-white hover:bg-white/5 transition-colors">
                 {link.label}
               </a>
             ))}
-            {!isLoggedIn && (
-              <a
-                href="/login"
-                onClick={() => setMenuOpen(false)}
-                className="px-5 py-3 text-sm text-white/70 hover:text-white hover:bg-white/5 transition-colors border-t border-white/10"
-              >
-                Sign in
+            {!isLoggedIn ? (
+              <>
+                <a href="/login" onClick={() => setMenuOpen(false)}
+                  className="px-5 py-3 text-sm text-white/70 hover:text-white hover:bg-white/5 transition-colors border-t border-white/10">
+                  Sign in
+                </a>
+                <a href="/signup" onClick={() => setMenuOpen(false)}
+                  className="mx-5 mt-2 mb-3 py-3 text-sm font-semibold text-center rounded-xl transition-colors"
+                  style={{ background: 'var(--gold)', color: '#000' }}>
+                  Create profile
+                </a>
+              </>
+            ) : (
+              <a href="/browse" onClick={() => setMenuOpen(false)}
+                className="mx-5 mt-2 mb-3 py-3 text-sm font-semibold text-center rounded-xl transition-colors"
+                style={{ background: 'var(--gold)', color: '#000' }}>
+                Browse profiles →
               </a>
             )}
           </div>
@@ -337,9 +340,9 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
 
       {/* ── Hero ── */}
       <section className="max-w-4xl mx-auto px-4 md:px-5 pt-10 pb-12 md:pt-16 md:pb-20 text-center">
-        {/* Full brand logo — image already contains ZAWAAJ + THE BLESSED CHOICE text */}
+        {/* Arabic calligraphy logo — doubled from 220 to 440 */}
         <div className="flex justify-center mb-8">
-          <ZawaajLogo height={220} />
+          <ZawaajLogo height={440} />
         </div>
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-gold/30 bg-gold/8 text-gold text-xs font-medium mb-8">
           Private · Family-mediated · Every profile reviewed
@@ -348,9 +351,10 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
           A blessed path to<br />
           <span style={{ color: 'var(--gold)' }}>your spouse</span>
         </h1>
-        <p className="text-lg text-white/60 max-w-2xl mx-auto leading-relaxed mb-10">
-          Zawaaj is a family-first matrimonial platform. Mothers connect with mothers.
-          Every introduction is admin-verified, dignified, and private.
+        <p className="text-lg text-white/60 max-w-xl mx-auto leading-relaxed mb-10">
+          Zawaaj is a private, family-aligned matrimonial platform.<br className="hidden sm:block" />
+          Every introduction is structured, verified, and handled with dignity.<br className="hidden sm:block" />
+          No casual chatting. No time-wasting.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           {isLoggedIn ? (
@@ -368,9 +372,8 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
             </>
           )}
         </div>
-        {/* Increased opacity so the caption is legible against the dark bg */}
-        <p className="mt-6 text-sm text-white/50 tracking-wide">
-          Private · Family-mediated · Every profile reviewed
+        <p className="mt-6 text-sm tracking-wide" style={{ color: 'rgba(255,255,255,0.38)' }}>
+          Private · Structured · Family-mediated introductions for those serious about marriage
         </p>
       </section>
 
