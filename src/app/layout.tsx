@@ -19,30 +19,22 @@ const amiri = Amiri({
 });
 
 export const metadata: Metadata = {
-  title: "Zawaaj",
-  description: "Find your perfect match on Zawaaj — a private, invite-only Muslim matrimonial platform.",
+  title: "Zawaaj — The Blessed Choice",
+  description: "A private Muslim matrimonial platform. Family-first, admin-mediated introductions. Mothers connect with mothers. Free to join.",
   metadataBase: new URL("https://www.zawaaj.uk"),
   openGraph: {
-    title: "Zawaaj",
-    description: "Find your perfect match on Zawaaj — a private, invite-only Muslim matrimonial platform.",
-    url: "https://www.zawaaj.uk",
-    siteName: "Zawaaj",
-    images: [
-      {
-        url: "https://www.zawaaj.uk/opengraph-image",
-        width: 1200,
-        height: 630,
-        alt: "Zawaaj — Private Muslim Matrimonial",
-      },
-    ],
-    type: "website",
-    locale: "en_GB",
+    title: 'Zawaaj — The Blessed Choice',
+    description: 'A private Muslim matrimonial platform. Family-first, admin-mediated introductions. Mothers connect with mothers. Free to join.',
+    url: 'https://www.zawaaj.uk',
+    siteName: 'Zawaaj',
+    images: [{ url: 'https://www.zawaaj.uk/og-image.jpg', width: 1200, height: 630 }],
+    type: 'website',
   },
   twitter: {
-    card: "summary_large_image",
-    title: "Zawaaj",
-    description: "Find your perfect match on Zawaaj — a private, invite-only Muslim matrimonial platform.",
-    images: ["https://www.zawaaj.uk/opengraph-image"],
+    card: 'summary_large_image',
+    title: 'Zawaaj — The Blessed Choice',
+    description: 'A private Muslim matrimonial platform. Family-first, admin-mediated introductions. Mothers connect with mothers. Free to join.',
+    images: ['https://www.zawaaj.uk/og-image.jpg'],
   },
 };
 

@@ -2,9 +2,9 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import AvatarInitials from '@/components/AvatarInitials'
+import ZawaajLogo from '@/components/ZawaajLogo'
 
 interface ManagedProfile {
   id: string
@@ -314,14 +314,7 @@ export default function Sidebar({
           background: 'linear-gradient(180deg, rgba(196,154,16,0.06) 0%, transparent 100%)',
         }}
       >
-        <Image
-          src="/Zawaaj Logo for Webapp.jpg"
-          alt="Zawaaj – The Blessed Choice"
-          width={168}
-          height={44}
-          style={{ height: 44, width: 'auto', maxWidth: '100%', display: 'block' }}
-          priority
-        />
+        <ZawaajLogo height={44} width={176} style={{ maxWidth: '100%' }} />
       </Link>
 
       {/* Nav sections */}

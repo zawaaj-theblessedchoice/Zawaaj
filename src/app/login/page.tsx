@@ -37,10 +37,8 @@ export default function LoginPage() {
     <main data-theme="dark" className="min-h-screen flex items-center justify-center px-4" style={{ background: 'var(--surface)' }}>
       <div className="w-full max-w-md">
         {/* Logo */}
-        <div className="flex justify-center mb-10">
-          <div style={{ background: '#1C1A14', borderRadius: 12, padding: 6, display: 'inline-block' }}>
-            <ZawaajLogo size={540} tagline={false} />
-          </div>
+        <div className="flex justify-center mb-8">
+          <ZawaajLogo height={80} width={320} />
         </div>
 
         {/* Card */}

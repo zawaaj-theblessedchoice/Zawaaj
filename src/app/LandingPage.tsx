@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import ZawaajLogo from '@/components/ZawaajLogo'
 import { PLAN_CONFIG, PLAN_PRICES, PLAN_LABELS } from '@/lib/plan-config'
 
@@ -231,16 +230,7 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
           {/* Left — logo + primary CTA */}
           <div className="flex items-center gap-4">
             <Link href="/" style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
-              <div style={{ background: '#1C1A14', borderRadius: 12, padding: 6, display: 'inline-block' }}>
-                <Image
-                  src="/Zawaaj Logo for Webapp.jpg"
-                  alt="Zawaaj – The Blessed Choice"
-                  width={176}
-                  height={44}
-                  style={{ height: 44, width: 'auto', display: 'block' }}
-                  priority
-                />
-              </div>
+              <ZawaajLogo height={44} width={176} />
             </Link>
             {isLoggedIn ? (
               <Link href="/browse" className="text-sm font-semibold px-4 py-2 rounded-xl bg-gold text-black hover:bg-[var(--gold-hover)] transition-colors">
@@ -341,19 +331,10 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
       <section className="max-w-4xl mx-auto px-4 md:px-5 pt-10 pb-12 md:pt-16 md:pb-20 text-center">
         {/* Full brand logo — image already contains ZAWAAJ + THE BLESSED CHOICE text */}
         <div className="flex justify-center mb-8">
-          <div style={{ background: '#1C1A14', borderRadius: 12, padding: 6, display: 'inline-block' }}>
-            <Image
-              src="/Zawaaj Logo for Webapp.jpg"
-              alt="Zawaaj – The Blessed Choice"
-              width={880}
-              height={220}
-              style={{ height: 220, width: 'auto', display: 'block' }}
-              priority
-            />
-          </div>
+          <ZawaajLogo height={220} width={880} />
         </div>
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-gold/30 bg-gold/8 text-gold text-xs font-medium mb-8">
-          Invite-only · Admin-mediated · Halal by design
+          Private · Family-mediated · Every profile reviewed
         </div>
         <h1 className="text-[2rem] sm:text-5xl md:text-6xl font-bold text-white leading-tight tracking-tight mb-6">
           A blessed path to<br />
@@ -585,7 +566,7 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
       <footer className="bg-surface border-t border-white/8">
         <div className="max-w-5xl mx-auto px-4 md:px-5 py-12 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex flex-col items-center md:items-start gap-2">
-            <ZawaajLogo size={44} tagline={false} />
+            <ZawaajLogo height={44} width={176} />
             <p className="text-xs text-white/30">© {new Date().getFullYear()} Zawaaj. All rights reserved.</p>
           </div>
           <div className="flex flex-wrap justify-center md:justify-start gap-x-8 gap-y-2 text-sm text-white/40 mx-auto md:mx-0">
