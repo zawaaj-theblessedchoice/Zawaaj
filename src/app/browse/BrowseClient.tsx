@@ -235,43 +235,28 @@ function ProfileCard({
         </button>
       </div>
 
-      {/* Avatar col (mobile: side-by-side) */}
+      {/* Avatar col — circle only, age+location beneath */}
       <div className="profile-card-avatar-col">
-        {/* Avatar + Name */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 6 }}>
           <AvatarInitials
             initials={profile.display_initials}
             gender={profile.gender}
             size="sm"
           />
-          <div style={{ minWidth: 0 }}>
+          {ageLine && (
             <div
               style={{
-                fontSize: 13.5,
-                fontWeight: 500,
-                color: 'var(--text-primary)',
+                fontSize: 11.5,
+                color: 'var(--text-secondary)',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
+                maxWidth: 110,
               }}
             >
-              {displayName}
+              {ageLine}
             </div>
-            {ageLine && (
-              <div
-                style={{
-                  fontSize: 11.5,
-                  color: 'var(--text-secondary)',
-                  marginTop: 1,
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {ageLine}
-              </div>
-            )}
-          </div>
+          )}
         </div>
       </div>
 

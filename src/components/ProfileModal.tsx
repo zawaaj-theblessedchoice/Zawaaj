@@ -596,15 +596,17 @@ export default function ProfileModal({
               <FieldRow label="School of thought" value={profile.school_of_thought} />
               <FieldRow label="Ethnicity" value={profile.ethnicity} />
 
-              {/* ── Full details — Plus / Premium only ───────────────────── */}
+              {/* ── Profession & Education — visible to all tiers ────────── */}
+              <FieldRow label="Profession" value={profile.profession_detail} />
+              <FieldRow label="Education" value={profile.education_level} />
+
+              {/* ── Full details — Premium only ───────────────────────────── */}
               {!hasFullProfile && !isOwnProfile ? (
                 <>
                   <SectionDivider />
                   {/* Blurred preview rows to hint at hidden content */}
                   <div style={{ position: 'relative', userSelect: 'none' }}>
                     <div style={{ filter: 'blur(4px)', opacity: 0.4, pointerEvents: 'none' }}>
-                      <FieldRow label="Profession" value="Doctor · NHS Trust" />
-                      <FieldRow label="Education" value="Postgraduate" />
                       <FieldRow label="Marital status" value="Never married" />
                       <FieldRow label="Living situation" value="Independent" />
                       <FieldRow label="Religiosity" value="Practising" />
@@ -636,7 +638,7 @@ export default function ProfileModal({
                           Full profile details
                         </p>
                         <p style={{ fontSize: 11.5, color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: 12 }}>
-                          Profession, education, faith depth, bio and lifestyle — visible on Zawaaj Plus.
+                          Faith depth, lifestyle, bio and more — available on Zawaaj Premium.
                         </p>
                         <button
                           onClick={() => setShowUpgrade(true)}
@@ -652,7 +654,7 @@ export default function ProfileModal({
                             cursor: 'pointer',
                           }}
                         >
-                          Upgrade to Plus →
+                          Upgrade to Premium →
                         </button>
                       </div>
                     </div>
@@ -660,8 +662,6 @@ export default function ProfileModal({
                 </>
               ) : (
                 <>
-                  <FieldRow label="Profession" value={profile.profession_detail} />
-                  <FieldRow label="Education" value={profile.education_level} />
                   <FieldRow label="Languages" value={profile.languages_spoken?.join(', ') ?? null} />
                   <FieldRow label="Nationality" value={profile.nationality} />
                   <FieldRow

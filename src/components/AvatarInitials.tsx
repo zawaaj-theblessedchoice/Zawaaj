@@ -1,21 +1,18 @@
 interface AvatarInitialsProps {
   initials: string
-  gender: string | null
+  gender: string | null   // kept for API compatibility — no longer affects colour
   size?: 'sm' | 'md' | 'lg' | 'xl'
   goldBorder?: boolean
 }
 
 export default function AvatarInitials({
   initials,
-  gender,
   size = 'md',
   goldBorder = false,
 }: AvatarInitialsProps) {
-  const isFemale = gender === 'female'
-
-  // Dark-theme avatar colours — gender-distinct, readable on dark surfaces
-  const bg    = isFemale ? 'var(--avatar-female-bg)' : 'var(--avatar-male-bg)'
-  const color = isFemale ? 'var(--avatar-female-text)' : 'var(--avatar-male-text)'
+  // Gold palette — matches the active sidebar tab treatment across light and dark themes
+  const bg    = 'rgba(184, 150, 12, 0.13)'
+  const color = 'var(--gold)'
 
   const sizeClass =
     size === 'sm' ? 'w-[42px] h-[42px] text-xs' :
@@ -24,8 +21,8 @@ export default function AvatarInitials({
     'w-12 h-12 text-sm'
 
   const borderStyle = goldBorder
-    ? { border: '1.5px solid rgba(184, 150, 12, 0.6)' }
-    : {}
+    ? { border: '1.5px solid rgba(184, 150, 12, 0.5)' }
+    : { border: '1px solid rgba(184, 150, 12, 0.2)' }
 
   return (
     <div
