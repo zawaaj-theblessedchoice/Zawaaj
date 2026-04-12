@@ -31,10 +31,10 @@ export async function POST(
       return NextResponse.json({ error: 'No active profile found' }, { status: 400 })
     }
 
-    // 3. Load the request
+    // 3. Load the request (target_profile_id needed for notification)
     const { data: req, error: reqError } = await supabase
       .from('zawaaj_introduction_requests')
-      .select('id, requesting_profile_id, status')
+      .select('id, requesting_profile_id, target_profile_id, status')
       .eq('id', id)
       .single()
 
@@ -64,6 +64,15 @@ export async function POST(
     if (updateError) {
       return NextResponse.json({ error: 'Failed to withdraw request' }, { status: 500 })
     }
+
+    // Notify recipient — in-app only
+    await supabaseAdmin.from('zawaaj_notifications').insert({
+      profile_id: req.target_profile_id,
+      type: 'request_withdrawn',
+      title: 'Interest withdrawn',
+      body: 'An interest you received has been withdrawn.',
+      action_url: '/introductions',
+    })
 
     return NextResponse.json({ success: true })
   } catch (err) {

@@ -20,7 +20,7 @@ interface UpgradeModalProps {
 // ─── Plan data (compact — 5 key rows) ────────────────────────────────────────
 
 const KEY_ROWS = [
-  { feature: 'Monthly requests',    free: '2',    plus: '5',          premium: '10' },
+  { feature: 'Monthly expressions', free: '5',    plus: '15',         premium: 'Unlimited' },
   { feature: 'Profile boost',       free: '—',    plus: '1× / month', premium: 'Weekly' },
   { feature: 'Full profile detail', free: 'Basic', plus: '✓',         premium: '✓' },
   { feature: 'See who viewed you',  free: '—',    plus: '—',          premium: '✓' },
@@ -28,7 +28,7 @@ const KEY_ROWS = [
 ]
 
 const TRIGGER_COPY: Record<UpgradeTrigger, { icon: string; heading: string; sub: string }> = {
-  intro_limit:     { icon: '✉️', heading: 'Monthly limit reached', sub: 'Upgrade to send more introduction requests this month.' },
+  intro_limit:     { icon: '✉️', heading: 'Monthly limit reached', sub: 'Upgrade to express more interest this month.' },
   who_viewed:      { icon: '👁',  heading: 'See who viewed your profile', sub: 'Upgrade to Premium to see exactly who opened your profile, with timestamps.' },
   boost:           { icon: '🚀', heading: 'Boost your profile', sub: 'Upgrade to Plus or Premium to push your profile to the top of browse results.' },
   locked_profile:  { icon: '🔒', heading: 'Unlock full profile details', sub: 'Upgrade to Plus to see the complete bio, faith depth, and lifestyle notes.' },
@@ -42,7 +42,7 @@ export default function UpgradeModal({ trigger, onClose }: UpgradeModalProps) {
   const copy = TRIGGER_COPY[trigger]
 
   const plans = [
-    { key: 'free', name: 'Community Access', monthly: 0,  annual: 0,  highlight: false, col: 0 },
+    { key: 'free', name: 'Voluntary',         monthly: 0,  annual: 0,  highlight: false, col: 0 },
     { key: 'plus',      name: 'Plus',      monthly: 9,  annual: 7,  highlight: trigger === 'intro_limit' || trigger === 'boost' || trigger === 'locked_profile', col: 1 },
     { key: 'premium',   name: 'Premium',   monthly: 19, annual: 15, highlight: trigger === 'who_viewed' || trigger === 'premium_match', col: 2 },
   ]

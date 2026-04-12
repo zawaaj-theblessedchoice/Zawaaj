@@ -19,16 +19,19 @@ const SECTIONS: Array<{
       { feature: 'Discover profiles', desc: 'Browse all approved profiles with filters and sorting', free: true, plus: true, premium: true },
       { feature: 'Shortlist profiles', desc: 'Save profiles privately to revisit before requesting', free: true, plus: true, premium: true },
       { feature: 'Compatibility highlights', desc: 'Auto-generated match points vs your preferences', free: true, plus: true, premium: true },
-      { feature: 'Full profile detail', desc: 'Extended bio, faith depth, lifestyle notes', free: 'Summary only', plus: true, premium: true },
+      { feature: 'Full profile detail', desc: 'Extended bio, faith depth, lifestyle notes — on received interests', free: 'Summary only', plus: true, premium: true },
       { feature: 'New profile alerts', desc: 'Notified when matching profiles are listed', free: false, plus: true, premium: true },
     ],
   },
   {
     title: 'Introductions',
     rows: [
-      { feature: 'Monthly requests', desc: 'Introduction requests per calendar month', free: '2', plus: '5', premium: '10' },
-      { feature: 'Mutual match notifications', desc: 'Alert when mutual interest confirmed within 30 days', free: true, plus: true, premium: true },
+      { feature: 'Monthly interest expressions / profile', desc: 'Interest expressions per profile per calendar month', free: '5', plus: '15', premium: 'Unlimited' },
+      { feature: 'Candidate profiles', desc: 'Number of candidate profiles per family account', free: 'Up to 2', plus: 'Up to 4', premium: 'Up to 4' },
+      { feature: 'Mutual match notifications', desc: 'Alert when mutual interest confirmed', free: true, plus: true, premium: true },
       { feature: 'Admin-facilitated introduction', desc: 'Admin personally shares contact details on confirmation', free: true, plus: true, premium: true },
+      { feature: 'Dedicated manager', desc: 'Named manager assigned to your family account', free: false, plus: false, premium: true },
+      { feature: 'Manager follow-up after introduction', desc: 'Manager checks in after introductions are made', free: false, plus: false, premium: true },
       { feature: 'Concierge matching', desc: 'Admin proactively suggests compatible profiles', free: false, plus: false, premium: true },
     ],
   },
@@ -62,7 +65,7 @@ export default function PricingPage() {
   const [annual, setAnnual] = useState(false)
 
   const plans = [
-    { name: 'Free', monthly: 0, annual: 0, highlight: false, ctaLabel: 'Get started', cta: '/signup' },
+    { name: 'Voluntary', monthly: 0, annual: 0, highlight: false, ctaLabel: 'Get started', cta: '/signup' },
     { name: 'Zawaaj Plus', monthly: 9, annual: 7, highlight: true, ctaLabel: 'Get Plus', cta: '/signup' },
     { name: 'Zawaaj Premium', monthly: 19, annual: 15, highlight: false, ctaLabel: 'Get Premium', cta: '/signup' },
   ]

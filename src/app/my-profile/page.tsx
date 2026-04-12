@@ -6,6 +6,8 @@ import { createClient } from '@/lib/supabase/client'
 import Sidebar from '@/components/Sidebar'
 import AvatarInitials from '@/components/AvatarInitials'
 import UpgradeModal from '@/components/UpgradeModal'
+import { getPlanConfig } from '@/lib/plan-config'
+import type { Plan } from '@/lib/plan-config'
 
 interface Profile {
   id: string
@@ -30,7 +32,7 @@ interface Profile {
   keeps_beard: boolean | null
   marital_status: string | null
   has_children: boolean | null
-  languages_spoken: string | null
+  languages_spoken: string[] | null
   living_situation: string | null
   open_to_relocation: string | null
   open_to_partners_children: string | null
@@ -136,6 +138,39 @@ function EditField({ label, value, onChange, placeholder }: { label: string; val
   )
 }
 
+const LANGUAGE_OPTIONS = [
+  'English', 'Arabic', 'Urdu', 'Bengali / Sylheti', 'Punjabi',
+  'Somali', 'Turkish', 'French', 'Gujarati', 'Pashto / Dari',
+  'Persian / Farsi', 'Tamil', 'Swahili', 'Albanian', 'Polish', 'Other',
+]
+
+function EditChips({ label, selected, onChange }: { label: string; selected: string[]; onChange: (v: string[]) => void }) {
+  function toggle(opt: string) {
+    onChange(selected.includes(opt) ? selected.filter(s => s !== opt) : [...selected, opt])
+  }
+  return (
+    <div>
+      <div style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: 7 }}>{label}</div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+        {LANGUAGE_OPTIONS.map(opt => {
+          const active = selected.includes(opt)
+          return (
+            <button key={opt} onClick={() => toggle(opt)} type="button" style={{
+              padding: '4px 10px', borderRadius: 20, fontSize: 11.5, cursor: 'pointer',
+              border: active ? '0.5px solid var(--border-gold)' : '0.5px solid var(--border-default)',
+              background: active ? 'var(--gold-muted)' : 'var(--surface-3)',
+              color: active ? 'var(--gold)' : 'var(--text-secondary)',
+              transition: 'all 0.15s',
+            }}>
+              {opt}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 function EditSelect({ label, value, onChange, options }: { label: string; value: string; onChange: (v: string) => void; options: { value: string; label: string }[] }) {
   return (
     <div>
@@ -174,7 +209,7 @@ export default function MyProfilePage() {
     // Personal & lifestyle
     location: '',
     height: '',
-    languagesSpoken: '',
+    languagesSpoken: [] as string[],
     livingSituation: '',
     openToRelocation: '',
     openToPartnersChildren: '',
@@ -269,7 +304,7 @@ export default function MyProfilePage() {
           .from('zawaaj_introduction_requests')
           .select('id', { count: 'exact', head: true })
           .eq('requesting_profile_id', active.id)
-          .in('status', ['pending', 'mutual']),
+          .in('status', ['pending', 'accepted']),
       ])
       setShortlistCount(slResult.count ?? 0)
       setIntroRequestsCount(irCountResult.count ?? 0)
@@ -293,7 +328,7 @@ export default function MyProfilePage() {
     setEditForm({
       location: profile.location ?? '',
       height: profile.height ?? '',
-      languagesSpoken: profile.languages_spoken ?? '',
+      languagesSpoken: profile.languages_spoken ?? [],
       livingSituation: profile.living_situation ?? '',
       openToRelocation: profile.open_to_relocation ?? '',
       openToPartnersChildren: profile.open_to_partners_children ?? '',
@@ -330,7 +365,7 @@ export default function MyProfilePage() {
     const { error } = await supabase.from('zawaaj_profiles').update({
       location: editForm.location || null,
       height: editForm.height || null,
-      languages_spoken: editForm.languagesSpoken || null,
+      languages_spoken: editForm.languagesSpoken.length > 0 ? editForm.languagesSpoken : null,
       living_situation: editForm.livingSituation || null,
       open_to_relocation: editForm.openToRelocation || null,
       open_to_partners_children: editForm.openToPartnersChildren || null,
@@ -359,7 +394,7 @@ export default function MyProfilePage() {
       ...profile,
       location: editForm.location || null,
       height: editForm.height || null,
-      languages_spoken: editForm.languagesSpoken || null,
+      languages_spoken: editForm.languagesSpoken.length > 0 ? editForm.languagesSpoken : null,
       living_situation: editForm.livingSituation || null,
       open_to_relocation: editForm.openToRelocation || null,
       open_to_partners_children: editForm.openToPartnersChildren || null,
@@ -499,7 +534,7 @@ export default function MyProfilePage() {
             <FieldRow label="Has children" value={profile.has_children === true ? 'Yes' : profile.has_children === false ? 'No' : null} />
             <FieldRow label="Height" value={profile.height} />
             <FieldRow label="Living situation" value={displayValue({ independent: 'Independent', with_family: 'With family', shared: 'Shared accommodation' }, profile.living_situation)} />
-            <FieldRow label="Languages" value={profile.languages_spoken} />
+            <FieldRow label="Languages" value={profile.languages_spoken?.join(', ') ?? null} />
             <FieldRow label="Open to relocation" value={profile.open_to_relocation} />
             <FieldRow label="Open to partner's children" value={profile.open_to_partners_children} />
             <FieldRow label="Polygamy openness" value={profile.polygamy_openness} />
@@ -599,12 +634,12 @@ export default function MyProfilePage() {
         <div style={{ background: 'var(--surface-2)', border: '0.5px solid var(--border-default)', borderRadius: 13, padding: 24, marginBottom: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
             <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)' }}>Who viewed your profile</div>
-            {plan === 'premium' && (
+            {getPlanConfig(plan as Plan).viewTracking && (
               <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Last 30 days</span>
             )}
           </div>
 
-          {plan !== 'premium' ? (
+          {!getPlanConfig(plan as Plan).viewTracking ? (
             /* Locked teaser */
             <div>
               {/* Blurred ghost rows */}
@@ -654,28 +689,30 @@ export default function MyProfilePage() {
           )}
         </div>
 
-        {/* Sent introduction requests */}
+        {/* Sent interests */}
         <div style={{ background: 'var(--surface-2)', border: '0.5px solid var(--border-default)', borderRadius: 13, padding: 24 }}>
-          <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)', marginBottom: 16 }}>Introduction requests sent</div>
+          <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)', marginBottom: 16 }}>Interests sent</div>
           {introRequests.length === 0 ? (
-            <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>No introduction requests sent yet.</p>
+            <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>No interests sent yet.</p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {introRequests.map(r => {
                 const days = daysUntil(r.expires_at)
-                const badge = r.status === 'mutual'
-                  ? { bg: 'var(--gold-muted)', text: 'var(--gold-light)', label: 'Mutual' }
-                  : r.status === 'facilitated'
-                  ? { bg: 'rgba(74,222,128,0.12)', text: 'var(--status-success)', label: 'Facilitated' }
+                const badge = r.status === 'accepted'
+                  ? { bg: 'var(--gold-muted)', text: 'var(--gold-light)', label: 'Accepted — team notified' }
+                  : r.status === 'declined'
+                  ? { bg: 'var(--surface-3)', text: 'var(--text-muted)', label: 'Not progressed' }
                   : r.status === 'expired'
                   ? { bg: 'var(--surface-3)', text: 'var(--text-muted)', label: 'Expired' }
-                  : { bg: 'var(--surface-3)', text: 'var(--text-secondary)', label: 'Pending' }
+                  : r.status === 'withdrawn'
+                  ? { bg: 'var(--surface-3)', text: 'var(--text-muted)', label: 'Withdrawn' }
+                  : { bg: 'var(--surface-3)', text: 'var(--text-secondary)', label: "Awaiting family's response" }
                 return (
                   <div key={r.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--surface-3)', borderRadius: 9, border: '0.5px solid var(--border-default)' }}>
                     <div>
                       <div style={{ fontSize: 12.5, color: 'var(--text-primary)', marginBottom: 2 }}>Sent {formatDate(r.created_at)}</div>
                       {r.status === 'pending' && days > 0 && (
-                        <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Expires in {days} day{days !== 1 ? 's' : ''}</div>
+                        <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Response expected within {days} day{days !== 1 ? 's' : ''}</div>
                       )}
                     </div>
                     <span style={{ fontSize: 11, fontWeight: 500, padding: '3px 10px', borderRadius: 999, background: badge.bg, color: badge.text }}>
@@ -723,7 +760,7 @@ export default function MyProfilePage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                   <EditField label="Location" placeholder="e.g. London, UK" value={editForm.location} onChange={v => setEditForm(f => ({ ...f, location: v }))} />
                   <EditField label="Height" placeholder="e.g. 5'8&quot;" value={editForm.height} onChange={v => setEditForm(f => ({ ...f, height: v }))} />
-                  <EditField label="Languages spoken" placeholder="e.g. English, Urdu, Arabic" value={editForm.languagesSpoken} onChange={v => setEditForm(f => ({ ...f, languagesSpoken: v }))} />
+                  <EditChips label="Languages spoken" selected={editForm.languagesSpoken} onChange={v => setEditForm(f => ({ ...f, languagesSpoken: v }))} />
                   <EditSelect label="Living situation" value={editForm.livingSituation} onChange={v => setEditForm(f => ({ ...f, livingSituation: v }))} options={[
                     { value: '', label: 'Not specified' },
                     { value: 'independent', label: 'Living independently' },

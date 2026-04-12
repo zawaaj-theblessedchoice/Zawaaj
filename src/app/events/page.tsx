@@ -243,7 +243,7 @@ export default function EventsPage() {
 
           const [slRes, irRes] = await Promise.all([
             supabase.from('zawaaj_saved_profiles').select('id', { count: 'exact', head: true }).eq('profile_id', active.id),
-            supabase.from('zawaaj_introduction_requests').select('id', { count: 'exact', head: true }).eq('requesting_profile_id', active.id).in('status', ['pending', 'mutual']),
+            supabase.from('zawaaj_introduction_requests').select('id', { count: 'exact', head: true }).eq('requesting_profile_id', active.id).in('status', ['pending', 'accepted']),
           ])
           setShortlistCount(slRes.count ?? 0)
           setIntroCount(irRes.count ?? 0)

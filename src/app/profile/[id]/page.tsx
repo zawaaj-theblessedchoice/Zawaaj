@@ -6,6 +6,8 @@ import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Sidebar from '@/components/Sidebar'
 import AvatarInitials from '@/components/AvatarInitials'
+import { getPlanConfig } from '@/lib/plan-config'
+import type { Plan } from '@/lib/plan-config'
 
 interface Profile {
   id: string
@@ -27,7 +29,7 @@ interface Profile {
   keeps_beard: boolean | null
   marital_status: string | null
   has_children: boolean | null
-  languages_spoken: string | null
+  languages_spoken: string[] | null
   living_situation: string | null
   open_to_relocation: string | null
   pref_age_min: number | null
@@ -102,9 +104,11 @@ function SectionLabel({ children }: { children: string }) {
 function RequestIntroductionButton({
   profile,
   activeProfile,
+  monthlyLimit,
 }: {
   profile: Profile
   activeProfile: ActiveProfile
+  monthlyLimit: number
 }) {
   const supabase = createClient()
   const [buttonState, setButtonState] = useState<ButtonState>('available')
@@ -124,7 +128,7 @@ function RequestIntroductionButton({
         setLoading(false)
         return
       }
-      if (activeProfile.interests_this_month >= 5) {
+      if (activeProfile.interests_this_month >= monthlyLimit) {
         setButtonState('limit_reached')
         setLoading(false)
         return
@@ -134,14 +138,14 @@ function RequestIntroductionButton({
         .select('id')
         .eq('requesting_profile_id', activeProfile.id)
         .eq('target_profile_id', profile.id)
-        .in('status', ['pending', 'mutual', 'facilitated'])
+        .in('status', ['pending', 'accepted'])
         .maybeSingle()
 
       setButtonState(existing ? 'already_requested' : 'available')
       setLoading(false)
     }
     determineState()
-  }, [activeProfile, profile]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [activeProfile, profile, monthlyLimit]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleRequest() {
     setLoading(true)
@@ -172,22 +176,22 @@ function RequestIntroductionButton({
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       {buttonState === 'not_approved' && (
         <div style={{ padding: '10px 14px', borderRadius: 9, background: 'var(--surface-3)', border: '0.5px solid var(--border-default)', fontSize: 13, color: 'var(--text-muted)', textAlign: 'center' }}>
-          Your profile must be approved before you can send introduction requests
+          Your profile must be approved before you can express interest
         </div>
       )}
       {buttonState === 'limit_reached' && (
         <div style={{ padding: '10px 14px', borderRadius: 9, background: 'var(--surface-3)', border: '0.5px solid var(--border-default)', fontSize: 13, color: 'var(--text-muted)', textAlign: 'center' }}>
-          Monthly limit reached (5/5) — resets on the 1st
+          Monthly limit reached ({monthlyLimit}/{monthlyLimit === Infinity ? '∞' : monthlyLimit}) — resets on the 1st
         </div>
       )}
       {buttonState === 'already_requested' && !success && (
         <div style={{ padding: '10px 14px', borderRadius: 9, background: 'var(--surface-3)', border: '0.5px solid var(--border-default)', fontSize: 13, color: 'var(--text-secondary)', textAlign: 'center' }}>
-          Introduction request already sent
+          Interest already sent
         </div>
       )}
       {success && (
         <div style={{ padding: '10px 14px', borderRadius: 9, background: 'rgba(74,222,128,0.08)', border: '0.5px solid rgba(74,222,128,0.25)', fontSize: 13, color: 'var(--status-success)', textAlign: 'center' }}>
-          Introduction request sent — our team will be in touch with both families.
+          Interest sent — our team will be in touch with both families.
         </div>
       )}
       {buttonState === 'available' && (
@@ -207,7 +211,7 @@ function RequestIntroductionButton({
             transition: 'opacity 0.15s',
           }}
         >
-          {loading ? 'Checking…' : 'Request introduction'}
+          {loading ? 'Checking…' : 'Express interest'}
         </button>
       )}
       {error && (
@@ -232,6 +236,7 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
   const [activeProfileId, setActiveProfileId] = useState<string | undefined>(undefined)
   const [shortlistCount, setShortlistCount] = useState(0)
   const [introRequestsCount, setIntroRequestsCount] = useState(0)
+  const [monthlyLimit, setMonthlyLimit] = useState(5)
   const [notFound, setNotFound] = useState(false)
   const [loading, setLoading] = useState(true)
 
@@ -281,7 +286,7 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
             status: p.status,
           })))
 
-          const [slResult, irCountResult] = await Promise.all([
+          const [slResult, irCountResult, subRow] = await Promise.all([
             supabase
               .from('zawaaj_saved_profiles')
               .select('id', { count: 'exact', head: true })
@@ -290,10 +295,18 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
               .from('zawaaj_introduction_requests')
               .select('id', { count: 'exact', head: true })
               .eq('requesting_profile_id', active.id)
-              .in('status', ['pending', 'mutual']),
+              .in('status', ['pending', 'accepted']),
+            supabase
+              .from('zawaaj_subscriptions')
+              .select('plan')
+              .eq('user_id', user.id)
+              .eq('status', 'active')
+              .maybeSingle(),
           ])
           setShortlistCount(slResult.count ?? 0)
           setIntroRequestsCount(irCountResult.count ?? 0)
+          const userPlan = ((subRow.data as { plan?: string } | null)?.plan ?? 'free') as Plan
+          setMonthlyLimit(getPlanConfig(userPlan).monthlyLimit)
         }
       }
 
@@ -402,7 +415,7 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
               <FieldRow label="Has children" value={profile.has_children === true ? 'Yes' : profile.has_children === false ? 'No' : null} />
               <FieldRow label="Height" value={profile.height} />
               <FieldRow label="Living situation" value={displayValue(LIVING_MAP, profile.living_situation)} />
-              <FieldRow label="Languages" value={profile.languages_spoken} />
+              <FieldRow label="Languages" value={profile.languages_spoken?.join(', ') ?? null} />
               <FieldRow label="Open to relocation" value={profile.open_to_relocation} />
             </div>
 
@@ -471,7 +484,7 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
 
           {/* Request introduction */}
           {activeProfile && (
-            <RequestIntroductionButton profile={profile} activeProfile={activeProfile} />
+            <RequestIntroductionButton profile={profile} activeProfile={activeProfile} monthlyLimit={monthlyLimit} />
           )}
         </div>
       </main>

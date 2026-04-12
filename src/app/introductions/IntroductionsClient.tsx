@@ -4,20 +4,13 @@ import { useState } from 'react'
 import Link from 'next/link'
 import Sidebar from '@/components/Sidebar'
 import AvatarInitials from '@/components/AvatarInitials'
+import { getPlanConfig } from '@/lib/plan-config'
+import type { Plan } from '@/lib/plan-config'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type IntroStatus =
-  | 'pending'
-  | 'responded_positive'
-  | 'responded_negative'
-  | 'mutual_confirmed'
-  | 'admin_pending'
-  | 'admin_assigned'
-  | 'admin_in_progress'
-  | 'admin_completed'
-  | 'expired'
-  | 'withdrawn'
+// Family Model v2 — 5-value status enum (Section 5)
+export type IntroStatus = 'pending' | 'accepted' | 'declined' | 'expired' | 'withdrawn'
 
 interface TargetProfile {
   id: string
@@ -40,6 +33,7 @@ interface RequesterProfile {
   age_display: string | null
   location: string | null
   profession_detail: string | null
+  no_female_contact_flag?: boolean | null
 }
 
 interface IntroRequest {
@@ -51,6 +45,7 @@ interface IntroRequest {
   mutual_at: string | null
   admin_notes: string | null
   target: TargetProfile | null
+  assigned_manager_name?: string | null
 }
 
 interface ReceivedRequest {
@@ -59,6 +54,7 @@ interface ReceivedRequest {
   status: IntroStatus
   created_at: string
   expires_at: string | null
+  response_deadline: string | null
   requester: RequesterProfile | null
 }
 
@@ -90,17 +86,10 @@ interface IntroductionsClientProps {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const ACTIVE_LIMITS: Record<string, number | null> = { free: 1, plus: 2, premium: null }
+// 'accepted' = our team will facilitate; shown in the Matches tab from sender's view
+const MATCH_STATUSES: IntroStatus[] = ['accepted']
 
-const MATCH_STATUSES: IntroStatus[] = [
-  'mutual_confirmed',
-  'admin_pending',
-  'admin_assigned',
-  'admin_in_progress',
-  'admin_completed',
-]
-
-const PAST_STATUSES: IntroStatus[] = ['responded_negative', 'expired', 'withdrawn']
+const PAST_STATUSES: IntroStatus[] = ['declined', 'expired', 'withdrawn']
 
 // ─── Status badge config ──────────────────────────────────────────────────────
 
@@ -115,43 +104,18 @@ const STATUS_CONFIG: Record<IntroStatus, BadgeConfig> = {
   pending: {
     bg: 'rgba(251,191,36,0.12)',
     text: 'var(--status-warning)',
-    label: 'Awaiting response',
+    label: "Awaiting family's response",
   },
-  responded_positive: {
+  accepted: {
     bg: 'rgba(184,150,12,0.14)',
     text: 'var(--gold)',
-    label: 'Awaiting confirmation',
+    label: 'Accepted — team notified',
+    pulse: true,
   },
-  responded_negative: {
+  declined: {
     bg: 'var(--surface-3)',
     text: 'var(--text-muted)',
     label: 'Not progressed',
-  },
-  mutual_confirmed: {
-    bg: 'rgba(184,150,12,0.14)',
-    text: 'var(--gold)',
-    label: 'Mutual interest',
-    pulse: true,
-  },
-  admin_pending: {
-    bg: 'rgba(96,165,250,0.12)',
-    text: 'var(--status-info)',
-    label: 'Admin notified',
-  },
-  admin_assigned: {
-    bg: 'rgba(96,165,250,0.12)',
-    text: 'var(--status-info)',
-    label: 'Manager assigned',
-  },
-  admin_in_progress: {
-    bg: 'rgba(96,165,250,0.12)',
-    text: 'var(--status-info)',
-    label: 'Introduction in progress',
-  },
-  admin_completed: {
-    bg: 'rgba(74,222,128,0.12)',
-    text: 'var(--status-success)',
-    label: 'Introduction complete',
   },
   expired: {
     bg: 'var(--surface-3)',
@@ -241,7 +205,7 @@ function SentRequestCard({ req }: { req: IntroRequest }) {
   const [withdrawing, setWithdrawing] = useState(false)
 
   async function handleWithdraw() {
-    if (!confirm('Withdraw this introduction request?')) return
+    if (!confirm('Withdraw this interest?')) return
     setWithdrawing(true)
     try {
       const res = await fetch(`/api/introduction-requests/${req.id}/withdraw`, { method: 'POST' })
@@ -268,7 +232,7 @@ function SentRequestCard({ req }: { req: IntroRequest }) {
     <div
       style={{
         background: 'var(--surface-2)',
-        border: `0.5px solid ${req.status === 'mutual_confirmed' ? 'var(--border-gold)' : 'var(--border-default)'}`,
+        border: `0.5px solid ${req.status === 'accepted' ? 'var(--border-gold)' : 'var(--border-default)'}`,
         borderRadius: 13,
         padding: '16px 18px',
         display: 'flex',
@@ -334,7 +298,7 @@ function SentRequestCard({ req }: { req: IntroRequest }) {
 
         {req.status === 'pending' && isExpiringSoon && (
           <div style={{ marginTop: 6, fontSize: 11, color: 'var(--status-warning)' }}>
-            Expires in {days} {days === 1 ? 'day' : 'days'}
+            Response expected within {days} {days === 1 ? 'day' : 'days'}
           </div>
         )}
 
@@ -368,23 +332,9 @@ function SentRequestCard({ req }: { req: IntroRequest }) {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span
-            style={{
-              fontSize: 9,
-              fontWeight: 600,
-              textTransform: 'uppercase',
-              letterSpacing: '0.1em',
-              color: 'var(--text-muted)',
-              padding: '2px 6px',
-              border: '0.5px solid var(--border-default)',
-              borderRadius: 4,
-            }}
-          >
-            Sent
-          </span>
           <StatusBadge status={req.status} />
         </div>
-        <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{formatDate(req.created_at)}</div>
+        <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Sent {formatDate(req.created_at)}</div>
       </div>
     </div>
   )
@@ -411,29 +361,43 @@ function ReceivedRequestCard({
 
   const isPast = PAST_STATUSES.includes(req.status)
   const isPending = req.status === 'pending'
-  const isFreeUser = plan === 'free'
+  const planConfig = getPlanConfig((plan ?? 'free') as Plan)
+  const isFreeUser = !planConfig.canUseTemplates
+  // 7-day response deadline — shown prominently on pending received requests
+  const deadlineDays = daysLeft(req.response_deadline ?? req.expires_at)
 
-  // Simple respond state (free users)
+  // ── Free user state ────────────────────────────────────────────────────────
   const [simpleSubmitting, setSimpleSubmitting] = useState<'accept' | 'decline' | null>(null)
   const [simpleError, setSimpleError] = useState<string | null>(null)
 
-  // Modal state (plus/premium users)
-  const [modalOpen, setModalOpen] = useState(false)
-  const [modalTab, setModalTab] = useState<'positive' | 'decline'>('positive')
+  // ── Plus/Premium grouped response state ────────────────────────────────────
+  type ResponseGroup = 'proceed' | 'needtime' | 'decline'
+  const [expandedGroup, setExpandedGroup] = useState<ResponseGroup | null>(null)
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null)
-  const [modalSubmitting, setModalSubmitting] = useState(false)
-  const [modalError, setModalError] = useState<string | null>(null)
+  const [templateSubmitting, setTemplateSubmitting] = useState(false)
+  const [templateError, setTemplateError] = useState<string | null>(null)
 
-  const positiveTemplates = responseTemplates
-    .filter(t => t.tone === 'positive')
-    .sort((a, b) => a.display_order - b.display_order)
+  // Group templates by display_order (fixed seeded data: 1-5 = proceed, 6-7 = needtime, 8-10 = decline)
+  const SHORT_LABELS: Record<number, string> = {
+    1: 'Request meeting', 2: 'Suggest event', 3: 'Request call',
+    4: 'Involve family', 5: 'Request more info',
+    6: 'Need more time', 7: 'Revisit later',
+    8: 'Respectful decline', 9: 'Not in position', 10: 'Do not proceed',
+  }
+  const proceedTemplates  = responseTemplates.filter(t => t.tone === 'positive' && t.display_order <= 5).sort((a, b) => a.display_order - b.display_order)
+  const needtimeTemplates = responseTemplates.filter(t => t.tone === 'positive' && t.display_order >= 6).sort((a, b) => a.display_order - b.display_order)
+  const declineTemplates  = responseTemplates.filter(t => t.tone === 'decline').sort((a, b) => a.display_order - b.display_order)
 
-  const declineTemplates = responseTemplates
-    .filter(t => t.tone === 'decline')
-    .sort((a, b) => a.display_order - b.display_order)
-
-  const visibleTemplates = modalTab === 'positive' ? positiveTemplates : declineTemplates
+  const groupTemplates: Record<ResponseGroup, typeof responseTemplates> = {
+    proceed: proceedTemplates, needtime: needtimeTemplates, decline: declineTemplates,
+  }
   const selectedTemplate = responseTemplates.find(t => t.id === selectedTemplateId) ?? null
+
+  function toggleGroup(g: ResponseGroup) {
+    setExpandedGroup(prev => prev === g ? null : g)
+    setSelectedTemplateId(null)
+    setTemplateError(null)
+  }
 
   async function handleSimpleRespond(action: 'accept' | 'decline') {
     setSimpleSubmitting(action)
@@ -455,29 +419,10 @@ function ReceivedRequestCard({
     }
   }
 
-  function openModal() {
-    setModalOpen(true)
-    setModalTab('positive')
-    setSelectedTemplateId(null)
-    setModalError(null)
-  }
-
-  function closeModal() {
-    if (modalSubmitting) return
-    setModalOpen(false)
-    setSelectedTemplateId(null)
-    setModalError(null)
-  }
-
-  function handleModalTabChange(tab: 'positive' | 'decline') {
-    setModalTab(tab)
-    setSelectedTemplateId(null)
-  }
-
-  async function handleModalConfirm() {
+  async function handleTemplateConfirm() {
     if (!selectedTemplate) return
-    setModalSubmitting(true)
-    setModalError(null)
+    setTemplateSubmitting(true)
+    setTemplateError(null)
     try {
       const res = await fetch(`/api/introduction-requests/${req.id}/respond`, {
         method: 'POST',
@@ -490,8 +435,8 @@ function ReceivedRequestCard({
       }
       window.location.reload()
     } catch (err) {
-      setModalError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
-      setModalSubmitting(false)
+      setTemplateError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
+      setTemplateSubmitting(false)
     }
   }
 
@@ -555,24 +500,39 @@ function ReceivedRequestCard({
             </div>
           )}
 
+          {/* Male guardian flag note */}
+          {requester?.no_female_contact_flag === true && (
+            <div
+              style={{
+                marginTop: 6,
+                fontSize: 11,
+                color: 'var(--text-muted)',
+                padding: '4px 8px',
+                borderRadius: 5,
+                background: 'rgba(255,255,255,0.04)',
+                border: '0.5px solid rgba(255,255,255,0.1)',
+                display: 'inline-block',
+              }}
+            >
+              Note: this family&apos;s primary contact is a male guardian.
+            </div>
+          )}
+
           {/* Response UI */}
           {isPending && (
             <div style={{ marginTop: 8 }}>
               {isFreeUser ? (
-                // Free users: simple Accept / Decline buttons directly on card
+                // ── Free: simple Accept / Decline ──────────────────────────
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   <div style={{ display: 'flex', gap: 8 }}>
                     <button
                       onClick={() => handleSimpleRespond('accept')}
                       disabled={simpleSubmitting !== null}
                       style={{
-                        padding: '5px 14px',
-                        borderRadius: 7,
-                        border: 'none',
+                        padding: '5px 14px', borderRadius: 7, border: 'none',
                         background: simpleSubmitting !== null ? 'var(--surface-3)' : 'var(--gold)',
                         color: simpleSubmitting !== null ? 'var(--text-muted)' : 'var(--surface)',
-                        fontSize: 12,
-                        fontWeight: 600,
+                        fontSize: 12, fontWeight: 600,
                         cursor: simpleSubmitting !== null ? 'not-allowed' : 'pointer',
                       }}
                     >
@@ -582,40 +542,109 @@ function ReceivedRequestCard({
                       onClick={() => handleSimpleRespond('decline')}
                       disabled={simpleSubmitting !== null}
                       style={{
-                        padding: '5px 14px',
-                        borderRadius: 7,
-                        border: '0.5px solid var(--border-default)',
-                        background: 'transparent',
+                        padding: '5px 14px', borderRadius: 7,
+                        border: '0.5px solid var(--border-default)', background: 'transparent',
                         color: simpleSubmitting !== null ? 'var(--text-muted)' : 'var(--text-secondary)',
-                        fontSize: 12,
-                        fontWeight: 500,
+                        fontSize: 12, fontWeight: 500,
                         cursor: simpleSubmitting !== null ? 'not-allowed' : 'pointer',
                       }}
                     >
                       {simpleSubmitting === 'decline' ? 'Declining…' : 'Decline'}
                     </button>
                   </div>
-                  {simpleError && (
-                    <div style={{ fontSize: 11, color: 'var(--status-error)' }}>{simpleError}</div>
-                  )}
+                  {simpleError && <div style={{ fontSize: 11, color: 'var(--status-error)' }}>{simpleError}</div>}
                 </div>
               ) : (
-                // Plus/Premium: "Respond" button opens template modal
-                <button
-                  onClick={openModal}
-                  style={{
-                    padding: '5px 14px',
-                    borderRadius: 7,
-                    border: 'none',
-                    background: 'var(--gold)',
-                    color: 'var(--surface)',
-                    fontSize: 12,
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                  }}
-                >
-                  Respond
-                </button>
+                // ── Plus/Premium: grouped response buttons ─────────────────
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
+                  {/* Primary group buttons */}
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    {(
+                      [
+                        { key: 'proceed' as const,  label: 'Proceed',    accent: 'var(--gold)',          accentBg: 'rgba(184,150,12,0.12)' },
+                        { key: 'needtime' as const, label: 'Need time',  accent: 'var(--text-secondary)', accentBg: 'var(--surface-3)' },
+                        { key: 'decline' as const,  label: 'Decline',    accent: 'var(--status-error)',   accentBg: 'rgba(239,68,68,0.07)' },
+                      ] as { key: ResponseGroup; label: string; accent: string; accentBg: string }[]
+                    ).map(({ key, label, accent, accentBg }) => (
+                      <button
+                        key={key}
+                        onClick={() => toggleGroup(key)}
+                        style={{
+                          padding: '5px 13px', borderRadius: 7, fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                          border: expandedGroup === key ? `1.5px solid ${accent}` : '0.5px solid var(--border-default)',
+                          background: expandedGroup === key ? accentBg : 'transparent',
+                          color: expandedGroup === key ? accent : 'var(--text-secondary)',
+                          transition: 'all 0.15s',
+                        }}
+                      >
+                        {label} {expandedGroup === key ? '▲' : '▼'}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Expanded template group */}
+                  {expandedGroup !== null && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      {groupTemplates[expandedGroup].map(t => {
+                        const isSelected = selectedTemplateId === t.id
+                        const isDecline = t.tone === 'decline'
+                        return (
+                          <button
+                            key={t.id}
+                            onClick={() => setSelectedTemplateId(isSelected ? null : t.id)}
+                            style={{
+                              textAlign: 'left', borderRadius: 8, padding: '8px 12px',
+                              border: isSelected
+                                ? `1.5px solid ${isDecline ? 'var(--status-error)' : 'var(--gold)'}`
+                                : '0.5px solid var(--border-default)',
+                              background: isSelected
+                                ? (isDecline ? 'rgba(239,68,68,0.06)' : 'rgba(184,150,12,0.08)')
+                                : 'var(--surface-3)',
+                              cursor: 'pointer', transition: 'all 0.13s',
+                            }}
+                          >
+                            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 2 }}>
+                              {SHORT_LABELS[t.display_order] ?? `Option ${t.display_order}`}
+                            </div>
+                            <div style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                              {t.text}
+                            </div>
+                          </button>
+                        )
+                      })}
+
+                      {/* Confirm button — appears once a template is selected */}
+                      {selectedTemplateId && (
+                        <div style={{ marginTop: 4, display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <button
+                            onClick={handleTemplateConfirm}
+                            disabled={templateSubmitting}
+                            style={{
+                              padding: '6px 18px', borderRadius: 7, border: 'none',
+                              background: expandedGroup === 'decline' ? 'var(--status-error)' : 'var(--gold)',
+                              color: 'var(--surface)', fontSize: 12, fontWeight: 600,
+                              cursor: templateSubmitting ? 'not-allowed' : 'pointer',
+                              opacity: templateSubmitting ? 0.6 : 1,
+                            }}
+                          >
+                            {templateSubmitting ? 'Sending…' : 'Confirm response'}
+                          </button>
+                          <button
+                            onClick={() => setSelectedTemplateId(null)}
+                            disabled={templateSubmitting}
+                            style={{
+                              background: 'none', border: 'none', fontSize: 12,
+                              color: 'var(--text-muted)', cursor: 'pointer', textDecoration: 'underline',
+                            }}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      )}
+                      {templateError && <div style={{ fontSize: 11, color: 'var(--status-error)' }}>{templateError}</div>}
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           )}
@@ -647,219 +676,15 @@ function ReceivedRequestCard({
             </span>
             <StatusBadge status={req.status} />
           </div>
+          {isPending && deadlineDays !== null && (
+            <div style={{ fontSize: 11, color: deadlineDays <= 2 ? 'var(--status-warning)' : 'var(--text-muted)' }}>
+              {deadlineDays === 0 ? 'Expires today' : `${deadlineDays} day${deadlineDays !== 1 ? 's' : ''} to respond`}
+            </div>
+          )}
           <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{formatDate(req.created_at)}</div>
         </div>
       </div>
 
-      {/* Template modal (plus/premium only) */}
-      {modalOpen && (
-        <div
-          onClick={closeModal}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 200,
-            background: 'rgba(0,0,0,0.7)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 16,
-          }}
-        >
-          <div
-            onClick={e => e.stopPropagation()}
-            style={{
-              background: 'var(--surface-2)',
-              borderRadius: 16,
-              padding: 24,
-              width: '100%',
-              maxWidth: 480,
-              boxShadow: '0 8px 40px rgba(0,0,0,0.5)',
-              border: '0.5px solid var(--border-default)',
-            }}
-          >
-            <div style={{ marginBottom: 20 }}>
-              <h2
-                style={{
-                  fontSize: 16,
-                  fontWeight: 700,
-                  color: 'var(--text-primary)',
-                  margin: '0 0 4px',
-                }}
-              >
-                Respond to introduction request
-              </h2>
-              <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: 0 }}>
-                Select a response to send to {displayName}.
-              </p>
-            </div>
-
-            {/* Tone tabs */}
-            <div
-              style={{
-                display: 'flex',
-                gap: 8,
-                marginBottom: 16,
-                borderBottom: '1px solid var(--border-default)',
-                paddingBottom: 12,
-              }}
-            >
-              <button
-                onClick={() => handleModalTabChange('positive')}
-                style={{
-                  padding: '6px 16px',
-                  borderRadius: 8,
-                  border:
-                    modalTab === 'positive'
-                      ? '1.5px solid var(--gold)'
-                      : '1px solid var(--border-default)',
-                  background:
-                    modalTab === 'positive' ? 'rgba(184,150,12,0.12)' : 'transparent',
-                  color: modalTab === 'positive' ? 'var(--gold)' : 'var(--text-secondary)',
-                  fontSize: 12,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
-              >
-                Accept
-              </button>
-              <button
-                onClick={() => handleModalTabChange('decline')}
-                style={{
-                  padding: '6px 16px',
-                  borderRadius: 8,
-                  border:
-                    modalTab === 'decline'
-                      ? '1.5px solid var(--status-error)'
-                      : '1px solid var(--border-default)',
-                  background:
-                    modalTab === 'decline' ? 'rgba(239,68,68,0.08)' : 'transparent',
-                  color: modalTab === 'decline' ? 'var(--status-error)' : 'var(--text-secondary)',
-                  fontSize: 12,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
-              >
-                Decline
-              </button>
-            </div>
-
-            {/* Template list */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
-              {visibleTemplates.length === 0 && (
-                <p
-                  style={{
-                    fontSize: 12,
-                    color: 'var(--text-muted)',
-                    textAlign: 'center',
-                    padding: '16px 0',
-                  }}
-                >
-                  No templates available.
-                </p>
-              )}
-              {visibleTemplates.map(template => {
-                const isSelected = selectedTemplateId === template.id
-                return (
-                  <button
-                    key={template.id}
-                    onClick={() => setSelectedTemplateId(template.id)}
-                    style={{
-                      background: isSelected
-                        ? modalTab === 'positive'
-                          ? 'rgba(184,150,12,0.1)'
-                          : 'rgba(239,68,68,0.07)'
-                        : 'var(--surface-3)',
-                      border: isSelected
-                        ? modalTab === 'positive'
-                          ? '1.5px solid var(--gold)'
-                          : '1.5px solid var(--status-error)'
-                        : '1px solid var(--border-default)',
-                      borderRadius: 10,
-                      padding: '10px 14px',
-                      textAlign: 'left',
-                      color: 'var(--text-primary)',
-                      fontSize: 13,
-                      lineHeight: 1.5,
-                      cursor: 'pointer',
-                      width: '100%',
-                    }}
-                  >
-                    {template.text}
-                  </button>
-                )
-              })}
-            </div>
-
-            {modalError && (
-              <div
-                style={{
-                  marginBottom: 14,
-                  padding: '8px 12px',
-                  borderRadius: 8,
-                  background: 'rgba(239,68,68,0.08)',
-                  border: '1px solid var(--status-error)',
-                  color: 'var(--status-error)',
-                  fontSize: 12,
-                }}
-              >
-                {modalError}
-              </div>
-            )}
-
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
-            >
-              <button
-                onClick={closeModal}
-                disabled={modalSubmitting}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: 'var(--text-muted)',
-                  fontSize: 13,
-                  cursor: modalSubmitting ? 'not-allowed' : 'pointer',
-                  padding: '6px 0',
-                  textDecoration: 'underline',
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleModalConfirm}
-                disabled={!selectedTemplateId || modalSubmitting}
-                style={{
-                  padding: '8px 22px',
-                  borderRadius: 8,
-                  border: 'none',
-                  background:
-                    !selectedTemplateId || modalSubmitting
-                      ? 'var(--surface-3)'
-                      : modalTab === 'positive'
-                        ? 'var(--gold)'
-                        : 'var(--status-error)',
-                  color:
-                    !selectedTemplateId || modalSubmitting
-                      ? 'var(--text-muted)'
-                      : modalTab === 'positive'
-                        ? 'var(--surface)'
-                        : '#fff',
-                  fontSize: 13,
-                  fontWeight: 600,
-                  cursor: !selectedTemplateId || modalSubmitting ? 'not-allowed' : 'pointer',
-                  transition: 'background 0.15s',
-                }}
-              >
-                {modalSubmitting ? 'Sending…' : 'Confirm response'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   )
 }
@@ -872,10 +697,8 @@ function MatchCard({ req }: { req: IntroRequest }) {
     ? buildDisplayName(target.first_name, target.last_name, target.display_initials)
     : '—'
 
-  const isCompleted = req.status === 'admin_completed'
-  const helpText = isCompleted
-    ? 'Your introduction has been facilitated. We hope it goes well.'
-    : 'Our admin team is coordinating your introduction. You will hear from us soon.'
+  // v2: 'accepted' = family accepted, team will facilitate
+  const helpText = 'Your interest has been accepted. Our team is coordinating the introduction — you will hear from us soon.'
 
   return (
     <div
@@ -933,12 +756,24 @@ function MatchCard({ req }: { req: IntroRequest }) {
           style={{
             marginTop: 10,
             fontSize: 12,
-            color: isCompleted ? 'var(--status-success)' : 'var(--text-secondary)',
+            color: 'var(--text-secondary)',
             lineHeight: 1.6,
           }}
         >
           {helpText}
         </div>
+
+        {req.assigned_manager_name && (
+          <div
+            style={{
+              marginTop: 4,
+              fontSize: 11,
+              color: 'var(--text-muted)',
+            }}
+          >
+            Handled by {req.assigned_manager_name}
+          </div>
+        )}
       </div>
 
       <div
@@ -1052,7 +887,8 @@ export default function IntroductionsClient({
 
   // Active requests = pending sent (awaiting their response)
   const activePendingCount = requests.filter(r => r.status === 'pending').length
-  const activeLimit = ACTIVE_LIMITS[plan] ?? null
+  const activePlanConfig = getPlanConfig((plan ?? 'free') as Plan)
+  const activeLimit = activePlanConfig.activeLimit === Infinity ? null : activePlanConfig.activeLimit
   const limitReached = activeLimit !== null && activePendingCount >= activeLimit
 
   // Sent tab partitions
@@ -1072,7 +908,8 @@ export default function IntroductionsClient({
   const matchesCount = matchRequests.length
 
   // Sidebar mutual count
-  const mutualCount = requests.filter(r => r.status === 'mutual_confirmed').length
+  // Count accepted requests (mutual interest) for sidebar badge
+  const mutualCount = requests.filter(r => r.status === 'accepted').length
 
   const hasAnything = requests.length > 0 || receivedRequests.length > 0
 
@@ -1108,7 +945,7 @@ export default function IntroductionsClient({
             Introductions
           </h1>
           <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '0 0 18px' }}>
-            Respond to received requests, track your sent requests, and view mutual matches.
+            Respond to introductions and track your progress here.
           </p>
 
           {/* Active request counter */}
@@ -1123,20 +960,21 @@ export default function IntroductionsClient({
               border: `0.5px solid ${limitReached ? 'var(--status-error)' : 'var(--border-default)'}`,
             }}
           >
-            <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Active requests:</span>
             <span
               style={{
-                fontSize: 13,
-                fontWeight: 600,
-                color: limitReached ? 'var(--status-error)' : 'var(--text-primary)',
+                fontSize: 12,
+                fontWeight: limitReached ? 500 : 400,
+                color: limitReached ? 'var(--status-error)' : 'var(--text-muted)',
               }}
             >
-              {activePendingCount}
-              {activeLimit !== null ? ` / ${activeLimit}` : ''}
+              {activePendingCount === 0
+                ? 'No active introductions awaiting a response'
+                : `You have ${activePendingCount} active introduction${activePendingCount !== 1 ? 's' : ''} awaiting a response`}
+              {activeLimit !== null ? ` (limit: ${activeLimit})` : ''}
             </span>
             {limitReached && (
               <span style={{ fontSize: 11, color: 'var(--status-error)', fontWeight: 500 }}>
-                Limit reached — wait for a response or withdraw a request
+                — withdraw a request to send another
               </span>
             )}
           </div>
@@ -1202,7 +1040,20 @@ export default function IntroductionsClient({
           <div>
             {activeReceived.length === 0 && pastReceived.length === 0 && (
               <div style={{ fontSize: 13, color: 'var(--text-muted)', padding: '16px 0' }}>
-                No received requests yet.
+                <div>You don&apos;t have any introductions to respond to yet. When someone expresses interest, it will appear here.</div>
+                <Link
+                  href="/browse"
+                  style={{
+                    display: 'inline-block',
+                    marginTop: 10,
+                    fontSize: 12,
+                    color: 'var(--gold)',
+                    textDecoration: 'none',
+                    fontWeight: 500,
+                  }}
+                >
+                  Browse profiles →
+                </Link>
               </div>
             )}
 

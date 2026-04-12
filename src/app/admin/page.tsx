@@ -50,7 +50,7 @@ interface Profile {
   marital_status: string | null
   has_children: boolean | null
   living_situation: string | null
-  languages_spoken: string | null
+  languages_spoken: string[] | null
   religiosity: string | null
   prayer_regularity: string | null
   wears_hijab: boolean | null
@@ -1011,7 +1011,7 @@ function QueueTab({ profiles, onRefresh, currentUserId }: { profiles: Profile[];
                       Background
                     </p>
                     <DetailRow label="Ethnicity" value={p.ethnicity} />
-                    <DetailRow label="Languages" value={p.languages_spoken} />
+                    <DetailRow label="Languages" value={p.languages_spoken?.join(', ') ?? null} />
                     <DetailRow label="Profession" value={p.profession_detail ?? p.profession_sector} />
                     <DetailRow label="Education Level" value={p.education_level} />
                     <DetailRow label="Institution" value={p.education_detail} />
@@ -1267,7 +1267,7 @@ function MutualTab({ matches, onRefresh, profiles }: { matches: Match[]; onRefre
   const [dismissId, setDismissId] = useState<string | null>(null)
   const [showManualMatch, setShowManualMatch] = useState(false)
 
-  const relevant = matches.filter(m => ['awaiting_admin', 'admin_reviewing'].includes(m.status))
+  const relevant = matches.filter(m => m.status === 'awaiting_admin')
 
   async function dismiss(id: string) {
     await supabase.from('zawaaj_matches').update({ status: 'dismissed' }).eq('id', id)
@@ -2498,7 +2498,7 @@ export default function AdminPage() {
 
   // Counts for badges
   const pendingCount = profiles.filter(p => p.status === 'pending').length
-  const mutualCount = matches.filter(m => ['awaiting_admin', 'admin_reviewing'].includes(m.status)).length
+  const mutualCount = matches.filter(m => m.status === 'awaiting_admin').length
   const introducedCount = matches.filter(m => ['introduced', 'nikah', 'no_longer_proceeding', 'dismissed'].includes(m.status)).length
   const withdrawnCount = profiles.filter(p => p.status === 'withdrawn').length
   const unlinkedCount = profiles.filter(p => p.user_id === null && p.status === 'approved').length
@@ -2603,6 +2603,8 @@ export default function AdminPage() {
         <div className="flex flex-wrap gap-3 mb-6">
           {[
             { href: '/admin/introductions', icon: '✉️', label: 'All Introductions', sub: 'View & facilitate requests' },
+            { href: '/admin/matches', icon: '🤝', label: 'Match Queue', sub: 'Verify contacts & coordinate introductions' },
+            { href: '/admin/managers', icon: '👥', label: 'Managers', sub: 'Appoint & configure scoped managers' },
             { href: '/admin/subscriptions', icon: '💳', label: 'Subscriptions', sub: 'MRR, plans & overrides' },
             { href: '/admin/concierge', icon: '✦', label: 'Concierge Queue', sub: 'Suggest matches to Premium members' },
             { href: '/admin/help', icon: '?', label: 'Admin Help', sub: 'Roles, workflow & responsibilities' },

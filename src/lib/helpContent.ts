@@ -71,7 +71,7 @@ export const CATEGORIES: HelpCategory[] = [
   {
     id: 'membership',
     title: 'Membership & billing',
-    description: 'Community Access, Plus, and Premium plans — billing, upgrading, and what each tier includes.',
+    description: 'Voluntary, Plus, and Premium plans — billing, upgrading, and what each tier includes.',
     icon: 'star',
     articleCount: 6,
   },
@@ -159,7 +159,7 @@ export const ARTICLES: HelpArticle[] = [
         type: 'step',
         number: 4,
         title: 'Request an introduction',
-        body: 'When you find someone you feel is worth exploring, you can send an introduction request. How many you can send per month depends on your membership tier (Community Access members get 2, Plus members get 5, Premium members get 10). The request is private — the other member does not see your name, only that someone has expressed interest.',
+        body: 'When you find someone you feel is worth exploring, you can express interest. How many expressions you can send per month depends on your membership tier (Voluntary members get 5, Plus members get 15, Premium members have no limit). The request is private — the other family does not see your name, only that someone has expressed interest.',
       },
       {
         type: 'step',
@@ -737,7 +737,7 @@ export const ARTICLES: HelpArticle[] = [
       },
       {
         type: 'p',
-        text: 'Community Access members respond using simple Accept or Decline buttons. Plus and Premium members respond using a formal templated message — all templates begin with Assalamu alaikum. If the response is positive, mutual interest is confirmed and the admin team is notified automatically.',
+        text: 'When a family receives an interest, they are invited to respond. If the response is positive, a match is confirmed immediately and the admin team is notified automatically.',
       },
       {
         type: 'h2',
@@ -797,7 +797,7 @@ export const ARTICLES: HelpArticle[] = [
       {
         type: 'callout',
         title: 'Monthly request limits apply',
-        body: 'Community Access members can send 2 requests per month, Plus members 5, and Premium members 10. Use them thoughtfully — the counter resets on the first of each month.',
+        body: 'Voluntary members can send 5 interest expressions per month, Plus members 15, and Premium members have no monthly limit. Use them thoughtfully — the counter resets on the first of each month.',
       },
       {
         type: 'p',
@@ -824,9 +824,9 @@ export const ARTICLES: HelpArticle[] = [
       {
         type: 'ul',
         items: [
-          'Community Access: 2 requests per month',
-          'Zawaaj Plus: 5 requests per month',
-          'Zawaaj Premium: 10 requests per month',
+          'Voluntary: 5 interest expressions per month',
+          'Zawaaj Plus: 15 interest expressions per month',
+          'Zawaaj Premium: no monthly limit',
           'The counter resets on the 1st of each month',
           'Pending requests that expire do not restore your allowance',
           'Requests you withdraw do not restore your allowance either',
@@ -835,7 +835,7 @@ export const ARTICLES: HelpArticle[] = [
       {
         type: 'callout',
         title: 'Active request limits',
-        body: 'In addition to your monthly allowance, there is a cap on how many requests can be pending at once: Community Access members can have 1 active pending request at a time, Plus members 2, and Premium members have no limit on active pending requests.',
+        body: 'In addition to your monthly allowance, there is a cap on how many interest expressions can be pending at once: Voluntary members can have 1 active pending interest at a time, Plus members 2, and Premium members have no limit.',
       },
       {
         type: 'h2',
@@ -862,7 +862,7 @@ export const ARTICLES: HelpArticle[] = [
     blocks: [
       {
         type: 'p',
-        text: 'Mutual interest is confirmed when you and another member have both positively responded to each other\'s introduction request. The response may be a simple Accept (Community Access) or a formal Assalamu alaikum template (Plus and Premium). Either way, both sides have independently said yes — and that is genuinely significant.',
+        text: 'A match is confirmed when one family expresses interest and the other family accepts. When the receiving family accepts, the match is created immediately — and that is genuinely significant.',
       },
       {
         type: 'h2',
@@ -1747,7 +1747,7 @@ export const ARTICLES: HelpArticle[] = [
   // ─── membership ──────────────────────────────────────────────────────────────
   {
     slug: 'plans-overview',
-    title: 'Plans overview — Community Access, Plus, and Premium',
+    title: 'Plans overview — Voluntary, Plus, and Premium',
     deck: 'Zawaaj offers three membership tiers. Here is what each one includes and how to decide which is right for you.',
     category: 'membership',
     readTime: 3,
@@ -1755,15 +1755,15 @@ export const ARTICLES: HelpArticle[] = [
     blocks: [
       {
         type: 'p',
-        text: 'Zawaaj offers a free Community Access tier alongside two paid plans. All members go through the same admin-facilitated introduction process — the tier you choose affects how many introductions you can send and which features are available to you.',
+        text: 'Zawaaj offers a free Voluntary tier alongside two paid plans. All members go through the same admin-facilitated introduction process — the tier you choose affects how many interest expressions you can send per month and which features are available to you.',
       },
       {
         type: 'h2',
-        text: 'Community Access (free)',
+        text: 'Voluntary (free)',
       },
       {
         type: 'p',
-        text: 'Community Access is free with no credit card required. You can browse approved profiles, shortlist people, and send up to 2 introduction requests per month. When responding to requests, you use simple Accept or Decline buttons — no templated responses. You will see a summary view of profiles — full profile details are available on Plus and above.',
+        text: 'Voluntary is free with no credit card required. You can browse approved profiles, shortlist people, and send up to 5 interest expressions per month. You will see a summary view of profiles — full profile details are available on Plus and above.',
       },
       {
         type: 'h2',
@@ -1771,7 +1771,7 @@ export const ARTICLES: HelpArticle[] = [
       },
       {
         type: 'p',
-        text: 'Plus gives you 5 introduction requests per month, full profile details for every member, and a monthly profile boost. Plus and Premium members respond to requests using 10 formal Assalamu alaikum templates, giving responses a more considered, Islamic tone. It is ideal for members who are actively searching and want a meaningful step up from the free tier.',
+        text: 'Plus gives you 15 interest expressions per month, full profile details for every member, and a monthly profile boost. It is ideal for families who are actively searching and want a meaningful step up from the free tier.',
       },
       {
         type: 'h2',
@@ -1779,12 +1779,12 @@ export const ARTICLES: HelpArticle[] = [
       },
       {
         type: 'p',
-        text: 'Premium gives you 10 introduction requests per month, weekly profile boosts, concierge matching (our team proactively suggests profiles for you), and the ability to see who has viewed your profile. It is for members who want the most from the platform.',
+        text: 'Premium gives you unlimited interest expressions per month, a dedicated manager, weekly profile boosts, concierge matching (our team proactively suggests profiles for you), and the ability to see who has viewed your profile. It is for families who want the full service.',
       },
       {
         type: 'callout',
         title: 'No tier is better at finding a match',
-        body: 'A thoughtful, sincere Community Access member will often find a match before a Premium member who sends requests carelessly. The tier you choose affects your features, not your chances.',
+        body: 'A thoughtful, sincere Voluntary member will often find a match before a Premium member who sends interest expressions carelessly. The tier you choose affects your features, not your chances.',
       },
     ],
   },
@@ -1907,21 +1907,21 @@ export const ARTICLES: HelpArticle[] = [
       },
       {
         type: 'p',
-        text: 'After cancellation, your account reverts to Community Access automatically. No further charges will be made.',
+        text: 'After cancellation, your account reverts to the Voluntary tier automatically. No further charges will be made.',
       },
     ],
   },
   {
     slug: 'voluntary-contribution-explained',
-    title: 'Why Community Access is free',
-    deck: 'The Community Access tier is genuinely free. Here is our thinking behind it.',
+    title: 'Why the Voluntary tier is free',
+    deck: 'The Voluntary tier is genuinely free. Here is our thinking behind it.',
     category: 'membership',
     readTime: 2,
     related: ['plans-overview', 'upgrading-your-plan', 'billing-faq'],
     blocks: [
       {
         type: 'p',
-        text: 'We believe that cost should never be a barrier to finding a spouse. Community Access gives every approved member the ability to browse, shortlist, and send introduction requests at no cost. It is not a trial or a stripped-down taster — it is a genuine tier.',
+        text: 'We believe that cost should never be a barrier to finding a spouse. The Voluntary tier gives every approved family the ability to browse, shortlist, and express interest at no cost. It is not a trial or a stripped-down taster — it is a genuine tier.',
       },
       {
         type: 'h2',
@@ -1934,7 +1934,7 @@ export const ARTICLES: HelpArticle[] = [
       {
         type: 'callout',
         title: 'Supporting the platform',
-        body: 'Paid memberships help keep Zawaaj running for everyone, including the Community Access members who cannot or choose not to pay. If the platform has been useful to you, upgrading is one way to give back.',
+        body: 'Paid memberships help keep Zawaaj running for everyone, including families on the Voluntary tier who cannot or choose not to pay. If the platform has been useful to you, upgrading is one way to give back.',
       },
     ],
   },

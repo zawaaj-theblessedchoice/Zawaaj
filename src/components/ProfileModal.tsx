@@ -7,6 +7,8 @@ import CompatibilityBar from '@/components/CompatibilityBar'
 import Toast from '@/components/Toast'
 import UpgradeModal from '@/components/UpgradeModal'
 import { scoreCompatibility } from '@/lib/compatibility'
+import { getPlanConfig } from '@/lib/plan-config'
+import type { Plan } from '@/lib/plan-config'
 
 export interface ProfileRecord {
   id: string
@@ -21,7 +23,7 @@ export interface ProfileRecord {
   education_level: string | null
   school_of_thought: string | null
   ethnicity: string | null
-  languages_spoken: string | null
+  languages_spoken: string[] | null
   nationality: string | null
   marital_status: string | null
   has_children: boolean | null
@@ -51,7 +53,7 @@ interface ProfileModalProps {
   viewerProfile: ProfileRecord | null
   isSaved: boolean
   onToggleSave: (profileId: string) => void
-  introStatus: 'none' | 'requested' | 'mutual' | 'limit_reached'
+  introStatus: 'none' | 'pending' | 'accepted' | 'declined' | 'expired' | 'limit_reached'
   onRequestIntro: (profileId: string) => void
   monthlyUsed: number
   /** Member's current plan — controls locked sections */
@@ -167,9 +169,11 @@ export default function ProfileModal({
   const [bioExpanded, setBioExpanded] = useState(false)
   const [showUpgrade, setShowUpgrade] = useState(false)
 
-  const isFree = plan === 'free'
-  const PLAN_MONTHLY_LIMITS = { free: 2, plus: 5, premium: 10 } as const
-  const monthlyLimit = PLAN_MONTHLY_LIMITS[plan as keyof typeof PLAN_MONTHLY_LIMITS] ?? 2
+  const planConfig = getPlanConfig((plan ?? 'free') as Plan)
+  const monthlyLimit = planConfig.monthlyLimit
+  // Derived flags — driven by config, not plan name
+  const hasFullProfile = planConfig.fullProfile
+  const hasTemplates = planConfig.canUseTemplates
 
   const isOpen = profile !== null
 
@@ -271,7 +275,7 @@ export default function ProfileModal({
                   {/* Intro button */}
                   {!isOwnProfile && (
                     <>
-                      {introStatus === 'mutual' && (
+                      {introStatus === 'accepted' && (
                         <button
                           disabled
                           style={{
@@ -285,10 +289,10 @@ export default function ProfileModal({
                             opacity: 0.85,
                           }}
                         >
-                          Mutual interest — admin will be in touch
+                          Interest accepted — our team will be in touch
                         </button>
                       )}
-                      {introStatus === 'requested' && (
+                      {introStatus === 'pending' && (
                         <button
                           disabled
                           style={{
@@ -301,14 +305,46 @@ export default function ProfileModal({
                             cursor: 'default',
                           }}
                         >
-                          Introduction requested ✓
+                          Interest sent ✓
+                        </button>
+                      )}
+                      {introStatus === 'declined' && (
+                        <button
+                          disabled
+                          style={{
+                            padding: '7px 14px',
+                            borderRadius: 8,
+                            fontSize: 12,
+                            background: 'var(--surface-3)',
+                            border: '0.5px solid var(--border-default)',
+                            color: 'var(--text-muted)',
+                            cursor: 'default',
+                          }}
+                        >
+                          This family has respectfully responded
+                        </button>
+                      )}
+                      {introStatus === 'expired' && (
+                        <button
+                          disabled
+                          style={{
+                            padding: '7px 14px',
+                            borderRadius: 8,
+                            fontSize: 12,
+                            background: 'var(--surface-3)',
+                            border: '0.5px solid var(--border-default)',
+                            color: 'var(--text-muted)',
+                            cursor: 'default',
+                          }}
+                        >
+                          Interest expired
                         </button>
                       )}
                       {introStatus === 'limit_reached' && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-start' }}>
                           <button
                             disabled
-                            title="You have used all your monthly introduction requests"
+                            title="Monthly interest limit reached"
                             style={{
                               padding: '7px 14px',
                               borderRadius: 8,
@@ -321,7 +357,7 @@ export default function ProfileModal({
                           >
                             Monthly limit reached
                           </button>
-                          {isFree && (
+                          {!hasTemplates && (
                             <button
                               onClick={() => setShowUpgrade(true)}
                               style={{
@@ -356,7 +392,7 @@ export default function ProfileModal({
                             ((e.currentTarget as HTMLButtonElement).style.opacity = '1')
                           }
                         >
-                          Request introduction
+                          Express interest
                         </button>
                       )}
                     </>
@@ -448,7 +484,7 @@ export default function ProfileModal({
                     fontWeight: 500,
                   }}
                 >
-                  Send an introduction request to {profile.first_name ?? displayName}?
+                  Express interest in {profile.first_name ?? displayName}?
                 </div>
                 <div
                   style={{
@@ -458,8 +494,8 @@ export default function ProfileModal({
                     lineHeight: 1.5,
                   }}
                 >
-                  The admin will be notified privately. This uses 1 of your{' '}
-                  {monthlyLimit - monthlyUsed} remaining monthly requests.
+                  The other family will be notified privately. This uses 1 of your{' '}
+                  {monthlyLimit - monthlyUsed} remaining monthly interest expressions.
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button
@@ -563,7 +599,7 @@ export default function ProfileModal({
               <FieldRow label="Ethnicity" value={profile.ethnicity} />
 
               {/* ── Full details — Plus / Premium only ───────────────────── */}
-              {isFree && !isOwnProfile ? (
+              {!hasFullProfile && !isOwnProfile ? (
                 <>
                   <SectionDivider />
                   {/* Blurred preview rows to hint at hidden content */}
@@ -628,7 +664,7 @@ export default function ProfileModal({
                 <>
                   <FieldRow label="Profession" value={profile.profession_detail} />
                   <FieldRow label="Education" value={profile.education_level} />
-                  <FieldRow label="Languages" value={profile.languages_spoken} />
+                  <FieldRow label="Languages" value={profile.languages_spoken?.join(', ') ?? null} />
                   <FieldRow label="Nationality" value={profile.nationality} />
                   <FieldRow
                     label="Marital status"
@@ -737,6 +773,44 @@ export default function ProfileModal({
                 </>
               )}
             </div>
+
+            {/* ── Contact information ──────────────────────────────────────── */}
+            {!isOwnProfile && (
+              <div
+                style={{
+                  margin: '20px 20px 0',
+                  padding: '12px 14px',
+                  borderRadius: 8,
+                  background: 'var(--surface-3)',
+                  border: '0.5px solid var(--border-default)',
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                    color: 'var(--text-muted)',
+                    marginBottom: 6,
+                  }}
+                >
+                  Contact information
+                </div>
+                <div
+                  style={{
+                    fontSize: 12,
+                    color: 'var(--text-muted)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                  }}
+                >
+                  <span style={{ fontSize: 14, opacity: 0.5 }}>🔒</span>
+                  Our team will share contact details after verification
+                </div>
+              </div>
+            )}
 
             {/* ── Privacy note ─────────────────────────────────────────────── */}
             <div

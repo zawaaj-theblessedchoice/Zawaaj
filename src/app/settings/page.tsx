@@ -5,6 +5,7 @@ import { usePathname, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import Sidebar from '@/components/Sidebar'
+import { PLAN_LABELS, PLAN_PRICES, PLAN_CONFIG } from '@/lib/plan-config'
 
 type Plan = 'free' | 'plus' | 'premium'
 type Tab = 'membership' | 'account' | 'privacy'
@@ -15,18 +16,6 @@ interface Subscription {
   status: string
   current_period_end: string | null
   cancel_at_period_end: boolean
-}
-
-const PLAN_LABELS: Record<Plan, string> = {
-  free:    'Community Access',
-  plus:      'Zawaaj Plus',
-  premium:   'Zawaaj Premium',
-}
-
-const PLAN_PRICES: Record<Plan, { monthly: number; annual: number }> = {
-  free:    { monthly: 0,  annual: 0 },
-  plus:      { monthly: 9,  annual: 7 },
-  premium:   { monthly: 19, annual: 15 },
 }
 
 const PLAN_COLORS: Record<Plan, string> = {
@@ -41,15 +30,22 @@ const PLAN_TEXT: Record<Plan, string> = {
   premium:   'var(--gold-light)',
 }
 
+function limitLabel(n: number): string {
+  return n === Infinity ? 'Unlimited' : String(n)
+}
+
 const COMPARISON_ROWS = [
-  { feature: 'Monthly introduction requests', free: '2', plus: '5', premium: '10' },
-  { feature: 'Profile boost',                 free: '—', plus: '1× / month', premium: 'Weekly' },
-  { feature: 'Spotlight listing',             free: '—', plus: '—', premium: '1× / month' },
-  { feature: 'Full profile details',          free: 'Summary', plus: '✓', premium: '✓' },
-  { feature: 'New profile alerts',            free: '—', plus: '✓', premium: '✓' },
-  { feature: 'See who viewed you',            free: '—', plus: '—', premium: '✓' },
-  { feature: 'Concierge matching',            free: '—', plus: '—', premium: '✓' },
-  { feature: 'Email support',                 free: 'Standard', plus: 'Priority', premium: 'Priority' },
+  { feature: 'Monthly interest expressions', free: limitLabel(PLAN_CONFIG.free.monthlyLimit),    plus: limitLabel(PLAN_CONFIG.plus.monthlyLimit),    premium: limitLabel(PLAN_CONFIG.premium.monthlyLimit) },
+  { feature: 'Candidate profiles',           free: 'Up to 2',                                    plus: 'Up to 4',                                    premium: 'Up to 4' },
+  { feature: 'Profile boost',                free: '—',                                           plus: '1× / month',                                 premium: 'Weekly' },
+  { feature: 'Spotlight listing',            free: '—',                                           plus: '—',                                          premium: '1× / month' },
+  { feature: 'Full profile details',         free: 'Summary',                                     plus: '✓',                                          premium: '✓' },
+  { feature: 'New profile alerts',           free: '—',                                           plus: PLAN_CONFIG.plus.digestEmail ? '✓' : '—',     premium: PLAN_CONFIG.premium.digestEmail ? '✓' : '—' },
+  { feature: 'See who viewed you',           free: '—',                                           plus: '—',                                          premium: PLAN_CONFIG.premium.viewTracking ? '✓' : '—' },
+  { feature: 'Dedicated manager',            free: '—',                                           plus: '—',                                          premium: PLAN_CONFIG.premium.concierge ? '✓' : '—' },
+  { feature: 'Manager follow-up',            free: '—',                                           plus: '—',                                          premium: PLAN_CONFIG.premium.concierge ? '✓' : '—' },
+  { feature: 'Concierge matching',           free: '—',                                           plus: '—',                                          premium: PLAN_CONFIG.premium.concierge ? '✓' : '—' },
+  { feature: 'Email support',                free: 'Standard',                                    plus: 'Priority',                                   premium: 'Priority' },
 ]
 
 function PlanBadge({ plan }: { plan: Plan }) {

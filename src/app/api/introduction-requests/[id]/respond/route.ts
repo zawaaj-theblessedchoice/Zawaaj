@@ -1,18 +1,16 @@
 // POST /api/introduction-requests/[id]/respond
 //
-// Spec: zawaaj_master_brief.md §6 (Response System) + §3 (Introduction Flow)
+// Family Model v2 — Section 5 response logic:
+//   Accept: status → 'accepted', is_mutual = true, responded_at = now()
+//           A sending the interest is A's consent. B accepting is sufficient — match is created immediately.
+//           INSERT zawaaj_matches (status='pending_verification'), notify both families + admin.
+//           No reverse-interest check — there is no second step.
 //
-// Plan gating (ENFORCED IN BACKEND — not UI only):
-//   Free:          body must contain { action: 'accept' | 'decline' }
-//                  No templates. Simple binary choice.
-//   Plus/Premium:  body must contain { template_id: string }
-//                  Template must exist and have plan_required = 'plus'.
+//   Decline: status → 'declined', responded_at = now()
+//            Notify sender sensitively; no email
 //
-// Status transitions on positive response:
-//   pending → mutual_confirmed → admin_pending (all in one write)
-//
-// Status transition on negative response:
-//   pending → responded_negative
+// Template responses (Plus/Premium) are recorded against the interest row.
+// The template body is NOT communicated to the sender — only the outcome (accepted/declined).
 
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
@@ -52,7 +50,7 @@ export async function POST(
       return NextResponse.json({ error: 'No active profile found' }, { status: 400 })
     }
 
-    // ── 3. Load the introduction request ──────────────────────────────────────
+    // ── 3. Load the interest row ──────────────────────────────────────────────
     const { data: req, error: reqError } = await supabase
       .from('zawaaj_introduction_requests')
       .select('id, requesting_profile_id, target_profile_id, status, visible_at')
@@ -102,26 +100,16 @@ export async function POST(
 
     let isPositive: boolean
     let responseText: string
-    let responseTone: 'positive' | 'decline'
 
     if (isFree) {
-      // Free tier: simple accept/decline only
-      if (!isFreeBody(body)) {
+      if (!isFreeBody(body) || (body.action !== 'accept' && body.action !== 'decline')) {
         return NextResponse.json(
-          { error: 'Free members must send { action: "accept" | "decline" }' },
-          { status: 400 }
-        )
-      }
-      if (body.action !== 'accept' && body.action !== 'decline') {
-        return NextResponse.json(
-          { error: 'action must be "accept" or "decline"' },
+          { error: 'Send { action: "accept" | "decline" }' },
           { status: 400 }
         )
       }
       isPositive = body.action === 'accept'
       responseText = isPositive ? 'Accepted' : 'Declined'
-      responseTone = isPositive ? 'positive' : 'decline'
-
     } else {
       // Plus / Premium: template required
       if (isFreeBody(body)) {
@@ -131,51 +119,42 @@ export async function POST(
         )
       }
       if (!body.template_id || typeof body.template_id !== 'string') {
-        return NextResponse.json(
-          { error: 'template_id is required' },
-          { status: 400 }
-        )
+        return NextResponse.json({ error: 'template_id is required' }, { status: 400 })
       }
 
       const { data: template, error: templateError } = await supabase
         .from('zawaaj_response_templates')
-        .select('id, tone, text, plan_required, is_active')
+        .select('id, tone, direction, text, body, is_active, plan_required')
         .eq('id', body.template_id)
         .single()
 
       if (templateError || !template || !template.is_active) {
-        return NextResponse.json(
-          { error: 'Template not found or unavailable' },
-          { status: 404 }
-        )
+        return NextResponse.json({ error: 'Template not found or unavailable' }, { status: 404 })
       }
 
-      // Enforce premium-only templates
       if (template.plan_required === 'premium' && userPlan !== 'premium') {
-        return NextResponse.json(
-          { error: 'This template requires a Premium membership' },
-          { status: 403 }
-        )
+        return NextResponse.json({ error: 'This template requires a Premium membership' }, { status: 403 })
       }
 
-      isPositive = (template.tone as string) === 'positive'
-      responseText = template.text as string
-      responseTone = template.tone as 'positive' | 'decline'
+      // v2: 'direction' column = 'accept' | 'decline'; fall back to legacy 'tone' column
+      const direction = (template.direction as string | null) ?? (template.tone as string | null)
+      isPositive = direction === 'accept' || direction === 'positive'
+      responseText = (template.body as string | null) ?? (template.text as string | null) ?? ''
     }
 
     // ── 9. Write the response ─────────────────────────────────────────────────
     const now = new Date().toISOString()
 
     if (isPositive) {
-      // positive: mutual_confirmed → admin_pending in one write
+      // B accepts → match is confirmed immediately. A sending the interest was A's consent.
+      // Mark interest accepted + is_mutual = true in one update.
       const { error: updateError } = await supabaseAdmin
         .from('zawaaj_introduction_requests')
         .update({
-          status: 'admin_pending',
-          response_tone: responseTone,
-          response_text: responseText,
+          status: 'accepted',
+          is_mutual: true,
           responded_at: now,
-          mutual_at: now,
+          response_text: responseText,
         })
         .eq('id', requestId)
 
@@ -183,57 +162,53 @@ export async function POST(
         return NextResponse.json({ error: 'Failed to record response' }, { status: 500 })
       }
 
-      // Create match row for admin dashboard
+      // Create the match row immediately
       const { error: matchError } = await supabaseAdmin
         .from('zawaaj_matches')
         .insert({
-          profile_a_id: req.requesting_profile_id,
-          profile_b_id: activeProfileId,
+          profile_a_id: req.requesting_profile_id,  // A = original sender
+          profile_b_id: activeProfileId,             // B = acceptor
           mutual_date: now,
-          status: 'awaiting_admin',
-          family_a_consented: false,
-          family_b_consented: false,
+          status: 'pending_verification',
+          admin_notified_date: now,
         })
 
       if (matchError) {
         console.error('[respond] match row creation failed:', matchError.message)
       }
 
-      // Notify both parties
+      // Notify both families
       await supabaseAdmin.from('zawaaj_notifications').insert([
         {
           profile_id: req.requesting_profile_id,
-          type: 'request_mutual',
-          title: 'Mutual interest confirmed',
-          body: 'Your introduction request has been accepted. The admin team has been notified and will be in touch shortly.',
+          type: 'match_pending_verification',
+          event_type: 'match_pending_verification',
+          title: 'Your interest was accepted — our team has been notified',
+          body: 'The other family has accepted your interest. Our team will be in touch shortly to facilitate.',
           action_url: '/introductions',
+          related_interest_id: requestId,
         },
         {
           profile_id: activeProfileId,
-          type: 'request_mutual',
-          title: 'Introduction accepted',
-          body: 'You have accepted an introduction request. The admin team will be in touch to facilitate.',
+          type: 'match_pending_verification',
+          event_type: 'match_pending_verification',
+          title: 'Introduction accepted — our team has been notified',
+          body: 'You have accepted this introduction. Our team will be in touch shortly to facilitate.',
           action_url: '/introductions',
+          related_interest_id: requestId,
         },
-      ])
-
-      // Analytics
-      await supabaseAdmin.from('zawaaj_analytics').insert([
-        { event_type: 'responded_positive', profile_id: activeProfileId, request_id: requestId, plan: userPlan },
-        { event_type: 'mutual_confirmed',   profile_id: req.requesting_profile_id, request_id: requestId, plan: userPlan },
       ])
 
       return NextResponse.json({ success: true, mutual: true })
 
     } else {
-      // negative: pending → responded_negative
+      // Decline: pending → declined
       const { error: updateError } = await supabaseAdmin
         .from('zawaaj_introduction_requests')
         .update({
-          status: 'responded_negative',
-          response_tone: responseTone,
-          response_text: responseText,
+          status: 'declined',
           responded_at: now,
+          response_text: responseText,
         })
         .eq('id', requestId)
 
@@ -241,21 +216,15 @@ export async function POST(
         return NextResponse.json({ error: 'Failed to record response' }, { status: 500 })
       }
 
-      // Notify sender — sensitively worded (spec: "same admin care regardless of plan")
+      // Notify sender — sensitively worded; no email needed per spec
       await supabaseAdmin.from('zawaaj_notifications').insert({
         profile_id: req.requesting_profile_id,
-        type: 'request_declined',
+        type: 'interest_declined',
+        event_type: 'interest_declined',
         title: 'Introduction request not progressed',
-        body: 'The member has chosen not to proceed at this time. This is a normal part of the process — keep going.',
+        body: 'A family has respectfully responded to your interest. This is a normal part of the process — keep going.',
         action_url: '/introductions',
-      })
-
-      // Analytics
-      await supabaseAdmin.from('zawaaj_analytics').insert({
-        event_type: 'responded_negative',
-        profile_id: activeProfileId,
-        request_id: requestId,
-        plan: userPlan,
+        related_interest_id: requestId,
       })
 
       return NextResponse.json({ success: true, mutual: false })

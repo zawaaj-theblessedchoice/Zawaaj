@@ -3,15 +3,16 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import ZawaajLogo from '@/components/ZawaajLogo'
+import { PLAN_CONFIG, PLAN_PRICES, PLAN_LABELS } from '@/lib/plan-config'
 
-// ─── Plan data ────────────────────────────────────────────────────────────────
+// ─── Plan data — limits derived from central PLAN_CONFIG ─────────────────────
 
 const PLANS = [
   {
     key: 'free',
-    name: 'Community Access',
-    monthly: 0,
-    annual: 0,
+    name: PLAN_LABELS.free,
+    monthly: PLAN_PRICES.free.monthly,
+    annual: PLAN_PRICES.free.annual,
     description: 'Everything you need to find your match, with full admin support.',
     cta: 'Create profile',
     ctaHref: '/signup',
@@ -19,7 +20,7 @@ const PLANS = [
     features: [
       'Browse all approved profiles',
       'Shortlist profiles privately',
-      '5 introduction requests / month',
+      `${PLAN_CONFIG.free.monthlyLimit} interest expressions / month`,
       'Admin-facilitated introductions',
       'Mutual match notifications',
       'Community events (selected)',
@@ -27,17 +28,17 @@ const PLANS = [
   },
   {
     key: 'plus',
-    name: 'Zawaaj Plus',
-    monthly: 9,
-    annual: 7,
+    name: PLAN_LABELS.plus,
+    monthly: PLAN_PRICES.plus.monthly,
+    annual: PLAN_PRICES.plus.annual,
     description: 'More requests, priority support, and greater visibility.',
     cta: 'Get Plus',
     ctaHref: '/signup',
     highlight: true,
     features: [
-      'Everything in Community Access',
-      '15 introduction requests / month',
-      '1 profile boost / month',
+      `Everything in ${PLAN_LABELS.free}`,
+      `${PLAN_CONFIG.plus.monthlyLimit} interest expressions / month`,
+      `${PLAN_CONFIG.plus.boosts} profile boost / month`,
       'Full profile details unlocked',
       'New profile alerts',
       'Priority email support',
@@ -46,18 +47,18 @@ const PLANS = [
   },
   {
     key: 'premium',
-    name: 'Zawaaj Premium',
-    monthly: 19,
-    annual: 15,
+    name: PLAN_LABELS.premium,
+    monthly: PLAN_PRICES.premium.monthly,
+    annual: PLAN_PRICES.premium.annual,
     description: 'Unlimited introductions, concierge matching, and full visibility.',
     cta: 'Get Premium',
     ctaHref: '/signup',
     highlight: false,
     features: [
-      'Everything in Plus',
-      'Unlimited introduction requests',
+      `Everything in ${PLAN_LABELS.plus}`,
+      `${limitLabel(PLAN_CONFIG.premium.monthlyLimit)} interest expressions / month`,
       'Weekly profile boosts',
-      '1 spotlight listing / month',
+      `${PLAN_CONFIG.premium.spotlight} spotlight listing / month`,
       'Concierge matching by admin',
       'See who viewed your profile',
       'Full activity history',
@@ -65,19 +66,23 @@ const PLANS = [
   },
 ]
 
+function limitLabel(n: number): string {
+  return n === Infinity ? 'Unlimited' : String(n)
+}
+
 const COMPACT_COMPARISON = [
-  { feature: 'Introduction requests / month', free: '2', plus: '5', premium: '10' },
-  { feature: 'Profile boost', free: '—', plus: '1× / month', premium: 'Weekly' },
-  { feature: 'Concierge matching', free: '—', plus: '—', premium: '✓' },
-  { feature: 'See who viewed you', free: '—', plus: '—', premium: '✓' },
-  { feature: 'Full profile details', free: 'Summary', plus: '✓', premium: '✓' },
+  { feature: 'Interest expressions / month', free: limitLabel(PLAN_CONFIG.free.monthlyLimit), plus: limitLabel(PLAN_CONFIG.plus.monthlyLimit), premium: limitLabel(PLAN_CONFIG.premium.monthlyLimit) },
+  { feature: 'Profile boost',                 free: '—',                                   plus: '1× / month',                          premium: 'Weekly' },
+  { feature: 'Concierge matching',            free: '—',                                   plus: '—',                                   premium: PLAN_CONFIG.premium.concierge ? '✓' : '—' },
+  { feature: 'See who viewed you',            free: '—',                                   plus: '—',                                   premium: PLAN_CONFIG.premium.viewTracking ? '✓' : '—' },
+  { feature: 'Full profile details',          free: 'Summary',                             plus: PLAN_CONFIG.plus.fullProfile ? '✓' : '—', premium: '✓' },
 ]
 
 const HOW_IT_WORKS = [
-  { n: '01', title: 'Create your profile', body: 'Answer a short questionnaire about yourself, your faith, and what you\'re looking for.' },
+  { n: '01', title: 'Create your family account', body: 'A parent, guardian, or candidate registers. The primary contact for all introductions is always a mother or female guardian.' },
   { n: '02', title: 'Admin review', body: 'Our team reviews every profile personally before it goes live — keeping the community trusted.' },
-  { n: '03', title: 'Discover profiles', body: 'Browse approved profiles of the opposite gender. Filter by location, background, and values.' },
-  { n: '04', title: 'Send an introduction request', body: 'Express interest in a profile. They won\'t know unless interest is mutual.' },
+  { n: '03', title: 'Express interest', body: 'When a profile feels right, express interest. The other family is notified and invited to respond. No contact details are shared at this stage.' },
+  { n: '04', title: 'Families connected', body: 'When both families accept, our team verifies the contacts and connects the mothers directly. Only then are details shared.' },
   { n: '05', title: 'Mutual match', body: 'When both parties express interest, the admin is notified and facilitates the introduction.' },
   { n: '06', title: 'Admin introduces families', body: 'Contact details are shared only with explicit consent from both families — never directly between members.' },
 ]
@@ -87,6 +92,7 @@ const VALUES = [
   { icon: '🔒', title: 'Privacy first', body: 'Contact details are never shared without explicit verbal consent from both families.' },
   { icon: '🌙', title: 'Faith-centred', body: 'Built for practising Muslims seeking a serious commitment. We respect your values and your wali.' },
   { icon: '👥', title: 'Community trust', body: 'Every profile is manually reviewed. We keep the platform small, safe, and high quality.' },
+  { icon: '👨‍👩‍👧', title: 'Family-first by design', body: 'Every introduction connects families, not just individuals. The mother or female guardian is always the point of contact — keeping the process rooted in respect and Islamic tradition.' },
 ]
 
 const FAQS = [
@@ -112,7 +118,7 @@ const FAQS = [
   },
   {
     q: 'Is there a free option?',
-    a: 'Yes. The Community Access tier gives you full access to browse profiles and send 5 introduction requests per month — completely free. Paid plans add more requests and visibility features.',
+    a: `Yes. The Voluntary tier gives you full access to browse profiles and send ${PLAN_CONFIG.free.monthlyLimit} interest expressions per month — completely free. Paid plans add more expressions and visibility features.`,
   },
 ]
 
@@ -198,45 +204,63 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
   return (
     <div className="min-h-screen" data-theme="dark" style={{ background: 'var(--surface)', color: 'var(--text-primary)' }}>
 
-      {/* ── Nav ── */}
+      {/* ── Nav ── 3-column grid: [CTA left] [links centred] [sign-in right] */}
       <nav className="sticky top-0 z-50 border-b border-white/8 bg-surface/90 backdrop-blur-md">
-        <div className="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between gap-6">
-          <div className="flex items-center gap-2.5">
-            <ZawaajLogo size={36} tagline={false} />
-            <span className="text-lg font-bold tracking-tight" style={{ color: 'var(--gold)', letterSpacing: '-0.02em' }}>
-              Zawaaj
-            </span>
-          </div>
-          <div className="hidden md:flex items-center gap-8 text-sm text-white/60">
-            <a href="#how-it-works" className="hover:text-white transition-colors">How it works</a>
-            <a href="#values" className="hover:text-white transition-colors">Our values</a>
-            <a href="#membership" className="hover:text-white transition-colors">Membership</a>
-            <a href="#faq" className="hover:text-white transition-colors">FAQ</a>
-          </div>
-          <div className="flex items-center gap-3">
+        <div className="max-w-6xl mx-auto px-5 h-16 grid grid-cols-3 items-center">
+
+          {/* Left — primary CTA */}
+          <div className="flex items-center">
             {isLoggedIn ? (
               <Link href="/browse" className="text-sm font-semibold px-4 py-2 rounded-xl bg-gold text-black hover:bg-[var(--gold-hover)] transition-colors">
                 Browse profiles →
               </Link>
             ) : (
-              <>
-                <Link href="/login" className="text-sm text-white/60 hover:text-white px-4 py-2 rounded-xl border border-white/10 hover:bg-white/5 transition-colors">
-                  Sign in
-                </Link>
-                <Link href="/signup" className="text-sm font-semibold px-4 py-2 rounded-xl bg-gold text-black hover:bg-[var(--gold-hover)] transition-colors">
-                  Create profile
-                </Link>
-              </>
+              <Link
+                href="/signup"
+                className="text-sm font-semibold px-5 py-2 rounded-xl transition-colors"
+                style={{
+                  background: 'var(--gold)',
+                  color: '#000',
+                  letterSpacing: '-0.01em',
+                }}
+              >
+                Create profile
+              </Link>
             )}
           </div>
+
+          {/* Centre — navigation links */}
+          <div className="hidden md:flex items-center justify-center gap-7 text-sm text-white/60">
+            <a href="#how-it-works" className="hover:text-white transition-colors">How it works</a>
+            <a href="#values" className="hover:text-white transition-colors">Our values</a>
+            <a href="#membership" className="hover:text-white transition-colors">Membership</a>
+            <a href="#faq" className="hover:text-white transition-colors">FAQ</a>
+          </div>
+          {/* Mobile placeholder so grid stays balanced */}
+          <div className="md:hidden" />
+
+          {/* Right — sign in */}
+          <div className="flex items-center justify-end">
+            {!isLoggedIn && (
+              <Link
+                href="/login"
+                className="text-sm font-medium px-5 py-2 rounded-xl border transition-colors hover:text-white hover:bg-white/5"
+                style={{ borderColor: 'rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.7)' }}
+              >
+                Sign in
+              </Link>
+            )}
+          </div>
+
         </div>
       </nav>
 
       {/* ── Hero ── */}
       <section className="max-w-4xl mx-auto px-5 pt-16 pb-20 text-center">
-        {/* Logo — large, centred, above the badge */}
+        {/* Logo — 3× larger, centred, above the badge. tagline=false because
+            the logo image already contains ZAWAAJ + THE BLESSED CHOICE text */}
         <div className="flex justify-center mb-8">
-          <ZawaajLogo size={110} tagline={true} />
+          <ZawaajLogo size={330} tagline={false} />
         </div>
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-gold/30 bg-gold/8 text-gold text-xs font-medium mb-8">
           🌙 Invite-only · Admin-mediated · Halal by design
@@ -246,8 +270,8 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
           <span style={{ color: 'var(--gold)' }}>your spouse</span>
         </h1>
         <p className="text-lg text-white/60 max-w-2xl mx-auto leading-relaxed mb-10">
-          Zawaaj is a private Muslim matrimonial platform built on trust, privacy, and proper process.
-          Every introduction is admin-mediated. No direct messaging. No photos. Just sincere, halal searching.
+          Zawaaj is a family-first matrimonial platform. Mothers connect with mothers.
+          Every introduction is admin-verified, dignified, and private.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           {isLoggedIn ? (
@@ -259,20 +283,23 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
               <Link href="/signup" className="px-8 py-3.5 rounded-xl text-sm font-semibold bg-gold text-black hover:bg-[var(--gold-hover)] transition-colors">
                 Create your profile →
               </Link>
-              <Link href="/login" className="px-8 py-3.5 rounded-xl text-sm font-medium border border-white/15 text-white hover:bg-white/5 transition-colors">
+              <Link href="/login" className="px-8 py-3.5 rounded-xl text-sm font-medium border border-white/20 text-white/80 hover:text-white hover:bg-white/5 transition-colors">
                 Sign in
               </Link>
             </>
           )}
         </div>
-        <p className="mt-5 text-xs text-white/30">Invite-only platform · All profiles manually reviewed · UK-based</p>
+        {/* Increased opacity so the caption is legible against the dark bg */}
+        <p className="mt-6 text-sm text-white/50 tracking-wide">
+          Invite-only platform · All profiles manually reviewed · UK-based
+        </p>
       </section>
 
       {/* ── Trust bar ── */}
       <section className="border-y border-white/8 bg-surface-2">
         <div className="max-w-5xl mx-auto px-5 py-10 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           {[
-            { icon: '🔐', label: 'No direct messaging', sub: 'Every intro goes through admin' },
+            { icon: '👩‍👩‍👧', label: 'Mother-to-mother introductions', sub: 'Verified by our team' },
             { icon: '👁‍🗨', label: 'No photos shared', sub: 'Focused on character & values' },
             { icon: '✅', label: 'Every profile verified', sub: 'Manual review before going live' },
             { icon: '🤲', label: 'Wali-respecting', sub: 'Both families consulted before contact' },
@@ -357,7 +384,7 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
         <div className="bg-surface-2 rounded-2xl border border-white/10 overflow-hidden">
           <div className="grid grid-cols-4 text-xs font-semibold text-white/40 uppercase tracking-wide px-6 py-3 bg-surface-3 border-b border-white/8">
             <span className="col-span-1">Feature</span>
-            <span className="text-center">Free</span>
+            <span className="text-center">Voluntary</span>
             <span className="text-center">Plus</span>
             <span className="text-center">Premium</span>
           </div>

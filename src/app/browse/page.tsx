@@ -2,7 +2,11 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import BrowseClient from './BrowseClient'
 import type { ProfileRecord } from '@/components/ProfileModal'
-import type { Plan } from '@/lib/plans'
+import type { FilterState } from '@/lib/filter-types'
+import { getPlanConfig } from '@/lib/plan-config'
+import type { Plan } from '@/lib/plan-config'
+
+const FILTER_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000 // 7 days
 
 export default async function BrowsePage({
   searchParams,
@@ -143,23 +147,25 @@ export default async function BrowsePage({
   // 6. Get existing browse state (before upserting)
   const { data: existingBrowseState } = await supabase
     .from('zawaaj_browse_state')
-    .select('last_browsed_at')
+    .select('last_browsed_at, filters_json, filters_updated_at')
     .eq('profile_id', activeProfileId)
     .single()
 
   const lastBrowsedAt: string | null = existingBrowseState?.last_browsed_at ?? null
 
-  // 7. Get sent intro requests (all non-expired/withdrawn)
+  // 7. Get sent intro requests — include recent declined/expired so we can show
+  //    the 48-hour status label before the card reverts to "Express interest"
   const { data: introRows } = await supabase
     .from('zawaaj_introduction_requests')
-    .select('target_profile_id, status, created_at')
+    .select('target_profile_id, status, created_at, responded_at')
     .eq('requesting_profile_id', activeProfileId)
-    .in('status', ['pending', 'active', 'mutual', 'facilitated'])
+    .in('status', ['pending', 'accepted', 'declined', 'expired'])
 
   const introRequests = (introRows ?? []).map(r => ({
     target_profile_id: r.target_profile_id as string,
     status: r.status as string,
     created_at: r.created_at as string,
+    responded_at: (r.responded_at as string | null) ?? null,
   }))
 
   // 8. Upsert browse_state (update last_browsed_at to now)
@@ -196,14 +202,28 @@ export default async function BrowsePage({
   const plan: Plan = (subData?.plan ?? 'free') as Plan
 
   // Active (pending) introduction request count for this profile
-  const ACTIVE_LIMITS: Record<string, number | null> = { free: 1, plus: 2, premium: null }
   const { count: activeCountRaw } = await supabase
     .from('zawaaj_introduction_requests')
     .select('id', { count: 'exact', head: true })
     .eq('requesting_profile_id', activeProfileId)
     .eq('status', 'pending')
   const activeCount: number = activeCountRaw ?? 0
-  const activeLimit: number | null = ACTIVE_LIMITS[plan] ?? 1
+  const planConfig = getPlanConfig(plan)
+  const activeLimit: number | null = planConfig.activeLimit === Infinity ? null : planConfig.activeLimit
+
+  // Restore persisted filters for Plus/Premium — Free always gets null (no filters)
+  let initialFilters: FilterState | null = null
+  if (
+    planConfig.advancedFilters &&
+    existingBrowseState?.filters_json &&
+    existingBrowseState?.filters_updated_at
+  ) {
+    const ageMs = Date.now() - new Date(existingBrowseState.filters_updated_at as string).getTime()
+    if (ageMs < FILTER_EXPIRY_MS) {
+      initialFilters = existingBrowseState.filters_json as FilterState
+    }
+    // Expired: initialFilters stays null — filters cleared on next Apply
+  }
 
   const typedViewerProfile: ProfileRecord = {
     ...viewerProfile,
@@ -228,6 +248,7 @@ export default async function BrowsePage({
       plan={plan}
       activeCount={activeCount}
       activeLimit={activeLimit}
+      initialFilters={initialFilters}
     />
   )
 }

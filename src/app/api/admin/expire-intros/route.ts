@@ -23,10 +23,38 @@ export async function POST() {
     .update({ status: 'expired' })
     .eq('status', 'pending')
     .lt('expires_at', new Date().toISOString())
-    .select('id')
+    .select('id, requesting_profile_id, target_profile_id')
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  // ─── Notify both parties for every expired request ────────────────────────
+  if (data && data.length > 0) {
+    const notifications = data.flatMap(r => [
+      {
+        profile_id: r.requesting_profile_id,
+        type: 'request_expired',
+        title: 'Interest expired',
+        body: 'An interest you sent has expired — no response was received.',
+        action_url: '/introductions',
+      },
+      {
+        profile_id: r.target_profile_id,
+        type: 'request_expired',
+        title: 'Interest expired',
+        body: 'An interest you received has expired.',
+        action_url: '/introductions',
+      },
+    ])
+
+    const { error: notifyError } = await supabaseAdmin
+      .from('zawaaj_notifications')
+      .insert(notifications)
+
+    if (notifyError) {
+      console.error('[expire-intros] Failed to insert notifications:', notifyError.message)
+    }
   }
 
   return NextResponse.json({ expired: data?.length ?? 0 })

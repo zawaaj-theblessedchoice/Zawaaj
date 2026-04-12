@@ -60,13 +60,13 @@ export async function POST(req: NextRequest) {
     .from('zawaaj_introduction_requests')
     .update({ status: 'expired' })
     .eq('requesting_profile_id', profile_id)
-    .in('status', ['pending', 'mutual'])
+    .in('status', ['pending', 'accepted'])
 
   await supabaseAdmin
     .from('zawaaj_introduction_requests')
     .update({ status: 'expired' })
     .eq('target_profile_id', profile_id)
-    .in('status', ['pending', 'mutual'])
+    .in('status', ['pending', 'accepted'])
 
   // 4. Ban at Supabase Auth layer (blocks login)
   if (user_id) {

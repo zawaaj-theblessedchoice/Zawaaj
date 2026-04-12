@@ -28,7 +28,7 @@ interface AddProfileForm {
   height: string
   livingSituation: string
   ethnicity: string
-  languagesSpoken: string
+  languagesSpoken: string[]
   profession: string
   educationLevel: string
   institution: string
@@ -108,6 +108,12 @@ const EDUCATION_OPTIONS = [
   'Other',
 ]
 
+const LANGUAGE_OPTIONS = [
+  'English', 'Arabic', 'Urdu', 'Bengali / Sylheti', 'Punjabi',
+  'Somali', 'Turkish', 'French', 'Gujarati', 'Pashto / Dari',
+  'Persian / Farsi', 'Tamil', 'Swahili', 'Albanian', 'Polish', 'Other',
+]
+
 const HEIGHT_OPTIONS: string[] = (() => {
   const out: string[] = []
   for (let feet = 4; feet <= 6; feet++) {
@@ -133,7 +139,7 @@ const INITIAL_FORM: AddProfileForm = {
   height: '',
   livingSituation: '',
   ethnicity: '',
-  languagesSpoken: '',
+  languagesSpoken: [] as string[],
   profession: '',
   educationLevel: '',
   institution: '',
@@ -590,11 +596,11 @@ function Step2({
         </div>
       </Field>
       <Field label="Languages spoken">
-        <StyledInput
-          type="text"
-          placeholder="e.g. English, Urdu, Arabic"
+        <ChipGroup
+          options={LANGUAGE_OPTIONS}
           value={form.languagesSpoken}
-          onChange={(e) => update({ languagesSpoken: e.target.value })}
+          onChange={(val) => update({ languagesSpoken: val as string[] })}
+          multi
         />
       </Field>
       <Field label="Profession">
@@ -848,7 +854,7 @@ function Step7({
 
       <ReviewSection title="Background" stepIndex={1} onEdit={onEdit}>
         <ReviewRow label="Ethnicity" value={form.ethnicity || null} />
-        <ReviewRow label="Languages" value={form.languagesSpoken || null} />
+        <ReviewRow label="Languages" value={form.languagesSpoken.length > 0 ? form.languagesSpoken.join(', ') : null} />
         <ReviewRow label="Profession" value={form.profession || null} />
         <ReviewRow label="Education" value={form.educationLevel || null} />
         <ReviewRow label="Institution" value={form.institution || null} />
@@ -973,7 +979,7 @@ export default function AddProfilePage() {
 
       const [slRes, irRes] = await Promise.all([
         supabase.from('zawaaj_saved_profiles').select('id', { count: 'exact', head: true }).eq('profile_id', active.id),
-        supabase.from('zawaaj_introduction_requests').select('id', { count: 'exact', head: true }).eq('requesting_profile_id', active.id).in('status', ['pending', 'mutual']),
+        supabase.from('zawaaj_introduction_requests').select('id', { count: 'exact', head: true }).eq('requesting_profile_id', active.id).in('status', ['pending', 'accepted']),
       ])
       setShortlistCount(slRes.count ?? 0)
       setIntroCount(irRes.count ?? 0)

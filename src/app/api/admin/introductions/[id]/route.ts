@@ -140,6 +140,21 @@ export async function PATCH(
         return NextResponse.json({ error: 'Failed to assign manager' }, { status: 500 })
       }
 
+      // Notify the assigned manager — in-app only
+      const { error: notifyError } = await supabaseAdmin
+        .from('zawaaj_notifications')
+        .insert({
+          profile_id: manager_profile_id,
+          type: 'manager_assigned',
+          title: 'Introduction assigned to you',
+          body: 'A new introduction has been assigned to you. Visit the introductions dashboard to get started.',
+          action_url: '/admin/introductions',
+        })
+
+      if (notifyError) {
+        console.error('[admin/introductions] Failed to notify manager:', notifyError.message)
+      }
+
       return NextResponse.json({ success: true })
     }
 
