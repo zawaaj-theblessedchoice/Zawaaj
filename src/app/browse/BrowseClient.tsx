@@ -177,33 +177,63 @@ function ProfileCard({
         />
       )}
 
-      {/* Heart button */}
-      <button
-        onClick={e => {
-          e.stopPropagation()
-          onToggleSave()
-        }}
-        aria-label={isSaved ? 'Remove from shortlist' : 'Save to shortlist'}
-        style={{
-          position: 'absolute',
-          top: 10,
-          right: 10,
-          background: 'none',
-          border: 'none',
-          color: 'var(--gold)',
-          opacity: isSaved ? 1 : 0.25,
-          fontSize: 14,
-          cursor: 'pointer',
-          padding: 2,
-          transition: 'opacity 0.15s',
-        }}
-        onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.opacity = '1')}
-        onMouseLeave={e =>
-          ((e.currentTarget as HTMLButtonElement).style.opacity = isSaved ? '1' : '0.25')
-        }
-      >
-        {isSaved ? '♥' : '♡'}
-      </button>
+      {/* Action buttons — share + shortlist */}
+      <div style={{ position: 'absolute', top: 10, right: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+        {/* Share button */}
+        <button
+          onClick={e => {
+            e.stopPropagation()
+            const url = `${window.location.origin}/profile/${profile.id}`
+            if (navigator.share) {
+              navigator.share({ title: 'Zawaaj profile', url }).catch(() => {})
+            } else {
+              navigator.clipboard.writeText(url).then(() => {
+                const btn = e.currentTarget as HTMLButtonElement
+                const prev = btn.style.opacity
+                btn.style.opacity = '1'
+                setTimeout(() => { btn.style.opacity = prev }, 1200)
+              }).catch(() => {})
+            }
+          }}
+          aria-label="Share profile"
+          style={{
+            background: 'none', border: 'none',
+            color: 'var(--text-muted)', opacity: 0.4,
+            cursor: 'pointer', padding: 2,
+            display: 'flex', alignItems: 'center',
+            transition: 'opacity 0.15s',
+          }}
+          onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.opacity = '1')}
+          onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.opacity = '0.4')}
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+          </svg>
+        </button>
+
+        {/* Heart / shortlist button */}
+        <button
+          onClick={e => {
+            e.stopPropagation()
+            onToggleSave()
+          }}
+          aria-label={isSaved ? 'Remove from shortlist' : 'Save to shortlist'}
+          style={{
+            background: 'none', border: 'none',
+            color: 'var(--gold)',
+            opacity: isSaved ? 1 : 0.25,
+            fontSize: 14, cursor: 'pointer', padding: 2,
+            transition: 'opacity 0.15s',
+          }}
+          onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.opacity = '1')}
+          onMouseLeave={e =>
+            ((e.currentTarget as HTMLButtonElement).style.opacity = isSaved ? '1' : '0.25')
+          }
+        >
+          {isSaved ? '♥' : '♡'}
+        </button>
+      </div>
 
       {/* Avatar col (mobile: side-by-side) */}
       <div className="profile-card-avatar-col">

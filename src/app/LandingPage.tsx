@@ -234,7 +234,11 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
           {/* Left — logo + primary CTA */}
           <div className="flex items-center gap-4">
             <Link href="/" style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
-              <ZawaajLogo height={44} />
+              <img
+                src="/zawaaj-wordmark.png"
+                alt="Zawaaj"
+                style={{ height: 28, width: 'auto' }}
+              />
             </Link>
             {isLoggedIn ? (
               <Link href="/browse" className="text-sm font-semibold px-4 py-2 rounded-xl bg-gold text-black hover:bg-[var(--gold-hover)] transition-colors">
