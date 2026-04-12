@@ -1,6 +1,6 @@
 'use client'
 
-import { ProfileRow } from '@/lib/admin/operationsQueries'
+import { ProfileRow, isContactComplete } from '@/lib/admin/operationsQueries'
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 
@@ -329,6 +329,15 @@ export function OperationsTable({
                     {/* Status badge */}
                     <td style={{ padding: '10px 12px' }}>
                       <StatusBadge status={p.status} />
+                      {!isContactComplete(p.family_account) && (
+                        <span style={{
+                          fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 99,
+                          background: 'rgba(234,179,8,0.15)', color: '#ca8a04',
+                          whiteSpace: 'nowrap',
+                        }}>
+                          Incomplete
+                        </span>
+                      )}
                     </td>
 
                     {/* Flags */}
@@ -371,21 +380,29 @@ export function OperationsTable({
                       <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                         {p.status === 'pending' && (
                           <>
-                            <button
-                              onClick={() => onApprove(p.id)}
-                              style={{
-                                padding: '4px 10px',
-                                borderRadius: 6,
-                                fontSize: 12,
-                                fontWeight: 500,
-                                background: 'rgba(74,222,128,0.1)',
-                                border: '1px solid var(--status-success)',
-                                color: 'var(--status-success)',
-                                cursor: 'pointer',
-                              }}
-                            >
-                              ✓
-                            </button>
+                            {(() => {
+                              const contactOk = isContactComplete(p.family_account)
+                              return (
+                                <button
+                                  onClick={() => contactOk && onApprove(p.id)}
+                                  disabled={!contactOk}
+                                  title={!contactOk ? 'Cannot approve — primary contact details incomplete.' : undefined}
+                                  style={{
+                                    padding: '4px 10px',
+                                    borderRadius: 6,
+                                    fontSize: 12,
+                                    fontWeight: 500,
+                                    background: contactOk ? 'rgba(74,222,128,0.1)' : 'rgba(255,255,255,0.04)',
+                                    border: `1px solid ${contactOk ? 'var(--status-success)' : 'var(--admin-border)'}`,
+                                    color: contactOk ? 'var(--status-success)' : 'var(--admin-muted)',
+                                    cursor: contactOk ? 'pointer' : 'not-allowed',
+                                    opacity: contactOk ? 1 : 0.5,
+                                  }}
+                                >
+                                  ✓
+                                </button>
+                              )
+                            })()}
                             <button
                               onClick={() => onReject(p.id)}
                               style={{

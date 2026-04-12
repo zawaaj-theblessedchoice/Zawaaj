@@ -2,6 +2,39 @@ import { createClient } from '@/lib/supabase/client'
 
 type SupabaseClient = ReturnType<typeof createClient>
 
+// ─── Family account types ─────────────────────────────────────────────────────
+
+export interface ZawaajFamilyAccount {
+  id: string
+  contact_full_name: string
+  contact_relationship: string
+  contact_number: string
+  contact_email: string
+  female_contact_name: string | null
+  female_contact_number: string | null
+  no_female_contact_flag: boolean
+  status: string
+}
+
+/** Returns true only if all required contact fields are non-empty. */
+export function isContactComplete(account: ZawaajFamilyAccount | null | undefined): boolean {
+  if (!account) return true // no family account linked — not a blocking condition
+  const base =
+    account.contact_full_name?.trim() !== '' &&
+    account.contact_relationship?.trim() !== '' &&
+    account.contact_number?.trim() !== '' &&
+    account.contact_email?.trim() !== ''
+  if (!base) return false
+  const isMale = ['father', 'male_guardian'].includes(account.contact_relationship)
+  if (isMale && !account.no_female_contact_flag) {
+    return (
+      (account.female_contact_name?.trim() ?? '') !== '' &&
+      (account.female_contact_number?.trim() ?? '') !== ''
+    )
+  }
+  return true
+}
+
 export interface ProfileRow {
   id: string
   display_initials: string
@@ -22,6 +55,7 @@ export interface ProfileRow {
   approved_date: string | null
   created_at: string | null
   is_admin: boolean
+  family_account: ZawaajFamilyAccount | null
 }
 
 export interface ProfileFilters {
@@ -44,7 +78,7 @@ const PAGE_SIZE = 50
 export async function fetchMetrics(supabase: SupabaseClient): Promise<Metrics> {
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
 
-  const [pending, flagged, intros, approved, introduced] = await Promise.all([
+  const [pending, flagged, intros, approved, introduced, incompleteAccounts] = await Promise.all([
     supabase.from('zawaaj_profiles').select('id', { count: 'exact', head: true })
       .eq('status', 'pending').eq('is_admin', false),
     supabase.from('zawaaj_profiles').select('id', { count: 'exact', head: true })
@@ -55,11 +89,14 @@ export async function fetchMetrics(supabase: SupabaseClient): Promise<Metrics> {
       .eq('status', 'approved').eq('is_admin', false),
     supabase.from('zawaaj_matches').select('id', { count: 'exact', head: true })
       .eq('status', 'introduced').gte('introduced_date', sevenDaysAgo),
+    supabase.from('zawaaj_family_accounts').select('id', { count: 'exact', head: true })
+      .neq('status', 'suspended')
+      .or('contact_full_name.eq.,contact_number.eq.,contact_email.eq.,contact_relationship.eq.'),
   ])
 
   return {
     pendingReview: pending.count ?? 0,
-    needsAction: flagged.count ?? 0,
+    needsAction: (flagged.count ?? 0) + (incompleteAccounts.count ?? 0),
     introductionsActive: intros.count ?? 0,
     approvedMembers: approved.count ?? 0,
     introducedThisWeek: introduced.count ?? 0,
@@ -74,7 +111,7 @@ export async function fetchProfiles(
   let q = supabase
     .from('zawaaj_profiles')
     .select(
-      'id,display_initials,first_name,last_name,gender,age_display,location,status,school_of_thought,religiosity,profession_sector,guardian_name,contact_number,admin_notes,duplicate_flag,submitted_date,approved_date,created_at,is_admin',
+      'id,display_initials,first_name,last_name,gender,age_display,location,status,school_of_thought,religiosity,profession_sector,guardian_name,contact_number,admin_notes,duplicate_flag,submitted_date,approved_date,created_at,is_admin,family_account:zawaaj_family_accounts(id,contact_full_name,contact_relationship,contact_number,contact_email,female_contact_name,female_contact_number,no_female_contact_flag,status)',
       { count: 'exact' }
     )
     .eq('is_admin', false)
@@ -98,7 +135,7 @@ export async function fetchProfiles(
 
   const { data, count, error } = await q
   if (error) throw error
-  return { data: (data ?? []) as ProfileRow[], count: count ?? 0 }
+  return { data: (data ?? []) as unknown as ProfileRow[], count: count ?? 0 }
 }
 
 export async function approveProfile(supabase: SupabaseClient, profileId: string): Promise<void> {
@@ -143,7 +180,7 @@ export async function fetchSuggestedMatches(
   const { data } = await supabase
     .from('zawaaj_profiles')
     .select(
-      'id,display_initials,first_name,last_name,gender,age_display,location,status,school_of_thought,religiosity,profession_sector,guardian_name,contact_number,admin_notes,duplicate_flag,submitted_date,approved_date,created_at,is_admin'
+      'id,display_initials,first_name,last_name,gender,age_display,location,status,school_of_thought,religiosity,profession_sector,guardian_name,contact_number,admin_notes,duplicate_flag,submitted_date,approved_date,created_at,is_admin,family_account:zawaaj_family_accounts(id,contact_full_name,contact_relationship,contact_number,contact_email,female_contact_name,female_contact_number,no_female_contact_flag,status)'
     )
     .eq('status', 'approved')
     .eq('gender', oppositeGender)
@@ -151,7 +188,7 @@ export async function fetchSuggestedMatches(
     .not('id', 'in', `(${Array.from(excludeIds).join(',')})`)
     .limit(5)
 
-  return (data ?? []) as ProfileRow[]
+  return (data ?? []) as unknown as ProfileRow[]
 }
 
 export async function createIntroductionRequest(

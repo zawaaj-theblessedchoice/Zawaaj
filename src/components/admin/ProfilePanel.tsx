@@ -1,6 +1,6 @@
 'use client'
 
-import { ProfileRow, updateAdminNotes } from '@/lib/admin/operationsQueries'
+import { ProfileRow, updateAdminNotes, isContactComplete } from '@/lib/admin/operationsQueries'
 import { createClient } from '@/lib/supabase/client'
 import { useState } from 'react'
 import Link from 'next/link'
@@ -275,21 +275,34 @@ export function ProfilePanel({
       >
         {profile.status === 'pending' && (
           <>
-            <button
-              onClick={() => onApprove(profile.id)}
-              style={{
-                padding: '10px',
-                borderRadius: 8,
-                fontSize: 14,
-                fontWeight: 600,
-                background: 'rgba(74,222,128,0.1)',
-                border: '1px solid var(--status-success)',
-                color: 'var(--status-success)',
-                cursor: 'pointer',
-              }}
-            >
-              ✓ Approve
-            </button>
+            {(() => {
+              const contactOk = isContactComplete(profile.family_account)
+              return (
+                <button
+                  onClick={() => contactOk && onApprove(profile.id)}
+                  disabled={!contactOk}
+                  title={!contactOk ? 'Cannot approve — primary contact details incomplete.' : undefined}
+                  style={{
+                    padding: '10px',
+                    borderRadius: 8,
+                    fontSize: 14,
+                    fontWeight: 600,
+                    background: contactOk ? 'rgba(74,222,128,0.1)' : 'rgba(255,255,255,0.05)',
+                    border: `1px solid ${contactOk ? 'var(--status-success)' : 'var(--admin-border)'}`,
+                    color: contactOk ? 'var(--status-success)' : 'var(--admin-muted)',
+                    cursor: contactOk ? 'pointer' : 'not-allowed',
+                    opacity: contactOk ? 1 : 0.6,
+                  }}
+                >
+                  {contactOk ? '✓ Approve' : '⊘ Approve'}
+                </button>
+              )
+            })()}
+            {!isContactComplete(profile.family_account) && (
+              <p style={{ fontSize: 11, color: '#ca8a04', marginTop: 4, lineHeight: 1.4 }}>
+                ⚠ Primary contact details are incomplete. Update the family account before approving.
+              </p>
+            )}
             <button
               onClick={() => onReject(profile.id)}
               style={{

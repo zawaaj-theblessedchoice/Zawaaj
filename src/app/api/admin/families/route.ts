@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { validateFamilyAccount } from '@/lib/zawaaj/validateFamilyAccount'
 
 async function getAdminUser() {
   const supabase = await createClient()
@@ -28,11 +29,18 @@ export async function POST(request: Request): Promise<Response> {
     plan, registration_path, terms_agreed,
   } = body
 
-  if (!contact_full_name || !contact_relationship || !contact_number || !contact_email) {
-    return NextResponse.json(
-      { error: 'contact_full_name, contact_relationship, contact_number, and contact_email are required.' },
-      { status: 400 }
-    )
+  const contactValidation = validateFamilyAccount({
+    contact_full_name:    contact_full_name    ?? '',
+    contact_relationship: contact_relationship ?? '',
+    contact_number:       contact_number       ?? '',
+    contact_email:        contact_email        ?? '',
+    female_contact_name:  female_contact_name  ?? null,
+    female_contact_number: female_contact_number ?? null,
+    father_explanation:   father_explanation   ?? null,
+    no_female_contact_flag: no_female_contact_flag ?? false,
+  })
+  if (!contactValidation.valid) {
+    return NextResponse.json({ error: 'validation_error', errors: contactValidation.errors }, { status: 400 })
   }
 
   const { data: family, error } = await supabaseAdmin

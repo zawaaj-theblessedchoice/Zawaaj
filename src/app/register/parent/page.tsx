@@ -69,17 +69,24 @@ const labelStyle: React.CSSProperties = {
   display: 'block',
 }
 
-function Field({ label, required, children }: {
+function Field({ label, required, error, fieldId, children }: {
   label: string
   required?: boolean
+  error?: string
+  fieldId?: string
   children: React.ReactNode
 }) {
   return (
-    <div>
+    <div id={fieldId}>
       <label style={labelStyle}>
         {label}{required && <span style={{ color: 'var(--gold)', marginLeft: 2 }}>*</span>}
       </label>
       {children}
+      {error && (
+        <p style={{ fontSize: 12, color: 'var(--status-error, #f87171)', margin: '4px 0 0', lineHeight: 1.4 }}>
+          {error}
+        </p>
+      )}
     </div>
   )
 }
@@ -122,6 +129,7 @@ export default function RegisterParentPage() {
   const [step, setStep] = useState(0)
   const [form, setForm] = useState<FormData>(EMPTY)
   const [error, setError] = useState<string | null>(null)
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [submitting, setSubmitting] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -136,50 +144,78 @@ export default function RegisterParentPage() {
     setError(null)
   }
 
-  function validateStep(): string | null {
+  function clearFieldError(fieldKey: string) {
+    setFieldErrors(prev => {
+      if (!prev[fieldKey]) return prev
+      const next = { ...prev }
+      delete next[fieldKey]
+      return next
+    })
+  }
+
+  function validateStep(): boolean {
+    const errs: Record<string, string> = {}
+
     if (step === 0) {
-      if (!form.email.trim())          return 'Email is required.'
-      if (!/\S+@\S+\.\S+/.test(form.email)) return 'Enter a valid email address.'
-      if (!form.password)              return 'Password is required.'
-      if (form.password.length < 8)   return 'Password must be at least 8 characters.'
-      if (form.password !== form.confirmPassword) return 'Passwords do not match.'
+      if (!form.email.trim())               errs.email = 'Email is required.'
+      else if (!/\S+@\S+\.\S+/.test(form.email)) errs.email = 'Enter a valid email address.'
+      if (!form.password)                   errs.password = 'Password is required.'
+      else if (form.password.length < 8)    errs.password = 'Password must be at least 8 characters.'
+      if (form.password && form.password !== form.confirmPassword)
+        errs.confirmPassword = 'Passwords do not match.'
     }
+
     if (step === 1) {
-      if (!form.contactFullName.trim())     return 'Your full name is required.'
-      if (!form.contactRelationship)        return 'Please select your relationship to the candidate(s).'
-      if (!form.contactNumber.trim())       return 'Your contact number is required.'
-      if (!form.contactEmail.trim())        return 'Your email is required.'
-      if (!/\S+@\S+\.\S+/.test(form.contactEmail)) return 'Enter a valid contact email.'
+      if (!form.contactFullName.trim())
+        errs.contact_full_name = 'Please enter the full name of the primary contact'
+      if (!form.contactRelationship)
+        errs.contact_relationship = 'Please select a relationship'
+      if (!form.contactNumber.trim())
+        errs.contact_number = 'Please enter a contact number'
+      if (!form.contactEmail.trim() || !/\S+@\S+\.\S+/.test(form.contactEmail))
+        errs.contact_email = 'Please enter a valid email address'
     }
-    // Step 2 only shown for male contacts
-    if (step === 2 && isMale && !form.noFemaleContactFlag) {
-      if (!form.femaleContactName.trim())   return "Female contact's full name is required."
-      if (!form.femaleContactNumber.trim()) return "Female contact's number is required."
-      if (!form.femaleContactRelationship)  return 'Please select her relationship.'
-      if (!form.fatherExplanation.trim())   return 'Please explain why the mother is not the primary contact.'
+
+    if (step === 2 && isMale) {
+      if (!form.noFemaleContactFlag) {
+        if (!form.femaleContactName.trim())
+          errs.female_contact_name = 'Please enter the name of the female contact'
+        if (!form.femaleContactNumber.trim())
+          errs.female_contact_number = "Please enter the female contact's number"
+        if (!form.femaleContactRelationship)
+          errs.female_contact_relationship = 'Please select her relationship'
+      }
+      if (!form.fatherExplanation.trim())
+        errs.father_explanation = 'Please explain why no female contact is available'
     }
-    if (step === 2 && isMale && form.noFemaleContactFlag) {
-      if (!form.fatherExplanation.trim())   return 'Please provide an explanation.'
-    }
-    // Terms step (last step: index 2 for female, index 3 for male)
+
     const termsStep = isMale ? 3 : 2
     if (step === termsStep) {
-      if (!form.termsAgreed)     return 'You must agree to the Terms of Use.'
-      if (!form.detailsAccurate) return 'Please confirm that all details are accurate.'
+      if (!form.termsAgreed)     errs.termsAgreed = 'You must agree to the Terms of Use.'
+      if (!form.detailsAccurate) errs.detailsAccurate = 'Please confirm that all details are accurate.'
     }
-    return null
+
+    setFieldErrors(errs)
+
+    if (Object.keys(errs).length > 0) {
+      // Scroll to the first field with an error
+      const firstKey = Object.keys(errs)[0]
+      const el = document.getElementById(`field-${firstKey}`)
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      return false
+    }
+    return true
   }
 
   function handleNext() {
-    const err = validateStep()
-    if (err) { setError(err); return }
+    if (!validateStep()) return
+    setFieldErrors({})
     setError(null)
     setStep(s => s + 1)
   }
 
   async function handleSubmit() {
-    const err = validateStep()
-    if (err) { setError(err); return }
+    if (!validateStep()) return
     setSubmitting(true)
     setError(null)
 
@@ -206,11 +242,19 @@ export default function RegisterParentPage() {
     const json = await res.json().catch(() => ({}))
 
     if (!res.ok) {
-      setError(
-        json.error === 'email_exists'
-          ? 'An account with this email already exists. Try signing in instead.'
-          : json.message ?? json.error ?? 'Something went wrong. Please try again.'
-      )
+      if (json.error === 'validation_error' && json.errors) {
+        setFieldErrors(json.errors as Record<string, string>)
+        // Scroll to first error
+        const firstKey = Object.keys(json.errors)[0]
+        const el = document.getElementById(`field-${firstKey}`)
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      } else {
+        setError(
+          json.error === 'email_exists'
+            ? 'An account with this email already exists. Try signing in instead.'
+            : json.message ?? json.error ?? 'Something went wrong. Please try again.'
+        )
+      }
       setSubmitting(false)
       return
     }
@@ -326,21 +370,21 @@ export default function RegisterParentPage() {
                 These details will be used by our team when facilitating introductions. They are never shared with other families until a verified match is confirmed.
               </p>
             </div>
-            <Field label="Your full name" required>
+            <Field label="Your full name" required fieldId="field-contact_full_name" error={fieldErrors.contact_full_name}>
               <input
                 type="text"
                 placeholder="e.g. Fatima Ahmed"
                 value={form.contactFullName}
-                onChange={e => set('contactFullName', e.target.value)}
-                style={inputStyle}
+                onChange={e => { set('contactFullName', e.target.value); clearFieldError('contact_full_name') }}
+                style={{ ...inputStyle, borderColor: fieldErrors.contact_full_name ? 'var(--status-error, #f87171)' : undefined }}
                 autoComplete="name"
               />
             </Field>
-            <Field label="Your relationship to the candidate(s)" required>
+            <Field label="Your relationship to the candidate(s)" required fieldId="field-contact_relationship" error={fieldErrors.contact_relationship}>
               <select
                 value={form.contactRelationship}
-                onChange={e => set('contactRelationship', e.target.value)}
-                style={{ ...inputStyle, cursor: 'pointer' }}
+                onChange={e => { set('contactRelationship', e.target.value); clearFieldError('contact_relationship') }}
+                style={{ ...inputStyle, cursor: 'pointer', borderColor: fieldErrors.contact_relationship ? 'var(--status-error, #f87171)' : undefined }}
               >
                 <option value="">Select relationship…</option>
                 {PRIMARY_RELATIONSHIP_OPTIONS.map(o => (
@@ -348,23 +392,23 @@ export default function RegisterParentPage() {
                 ))}
               </select>
             </Field>
-            <Field label="Your contact number (WhatsApp preferred)" required>
+            <Field label="Your contact number (WhatsApp preferred)" required fieldId="field-contact_number" error={fieldErrors.contact_number}>
               <input
                 type="tel"
                 placeholder="e.g. 07700 900000"
                 value={form.contactNumber}
-                onChange={e => set('contactNumber', e.target.value)}
-                style={inputStyle}
+                onChange={e => { set('contactNumber', e.target.value); clearFieldError('contact_number') }}
+                style={{ ...inputStyle, borderColor: fieldErrors.contact_number ? 'var(--status-error, #f87171)' : undefined }}
                 autoComplete="tel"
               />
             </Field>
-            <Field label="Your email address" required>
+            <Field label="Your email address" required fieldId="field-contact_email" error={fieldErrors.contact_email}>
               <input
                 type="email"
                 placeholder="your@email.com"
                 value={form.contactEmail}
-                onChange={e => set('contactEmail', e.target.value)}
-                style={inputStyle}
+                onChange={e => { set('contactEmail', e.target.value); clearFieldError('contact_email') }}
+                style={{ ...inputStyle, borderColor: fieldErrors.contact_email ? 'var(--status-error, #f87171)' : undefined }}
                 autoComplete="email"
               />
             </Field>
@@ -385,20 +429,20 @@ export default function RegisterParentPage() {
 
             {!form.noFemaleContactFlag && (
               <>
-                <Field label="Her full name" required>
+                <Field label="Her full name" required fieldId="field-female_contact_name" error={fieldErrors.female_contact_name}>
                   <input
                     type="text"
                     placeholder="e.g. Aisha Ahmed"
                     value={form.femaleContactName}
-                    onChange={e => set('femaleContactName', e.target.value)}
-                    style={inputStyle}
+                    onChange={e => { set('femaleContactName', e.target.value); clearFieldError('female_contact_name') }}
+                    style={{ ...inputStyle, borderColor: fieldErrors.female_contact_name ? 'var(--status-error, #f87171)' : undefined }}
                   />
                 </Field>
-                <Field label="Her relationship to the candidate(s)" required>
+                <Field label="Her relationship to the candidate(s)" required fieldId="field-female_contact_relationship" error={fieldErrors.female_contact_relationship}>
                   <select
                     value={form.femaleContactRelationship}
-                    onChange={e => set('femaleContactRelationship', e.target.value)}
-                    style={{ ...inputStyle, cursor: 'pointer' }}
+                    onChange={e => { set('femaleContactRelationship', e.target.value); clearFieldError('female_contact_relationship') }}
+                    style={{ ...inputStyle, cursor: 'pointer', borderColor: fieldErrors.female_contact_relationship ? 'var(--status-error, #f87171)' : undefined }}
                   >
                     <option value="">Select relationship…</option>
                     {FEMALE_RELATIONSHIP_OPTIONS.map(o => (
@@ -406,22 +450,22 @@ export default function RegisterParentPage() {
                     ))}
                   </select>
                 </Field>
-                <Field label="Her contact number (WhatsApp preferred)" required>
+                <Field label="Her contact number (WhatsApp preferred)" required fieldId="field-female_contact_number" error={fieldErrors.female_contact_number}>
                   <input
                     type="tel"
                     placeholder="e.g. 07700 900001"
                     value={form.femaleContactNumber}
-                    onChange={e => set('femaleContactNumber', e.target.value)}
-                    style={inputStyle}
+                    onChange={e => { set('femaleContactNumber', e.target.value); clearFieldError('female_contact_number') }}
+                    style={{ ...inputStyle, borderColor: fieldErrors.female_contact_number ? 'var(--status-error, #f87171)' : undefined }}
                   />
                 </Field>
-                <Field label="Please explain why the mother is not the primary contact" required>
+                <Field label="Please explain why the mother is not the primary contact" required fieldId="field-father_explanation" error={fieldErrors.father_explanation}>
                   <textarea
                     placeholder="This is seen by admin only and will never be shared with other families."
                     value={form.fatherExplanation}
-                    onChange={e => set('fatherExplanation', e.target.value)}
+                    onChange={e => { set('fatherExplanation', e.target.value); clearFieldError('father_explanation') }}
                     rows={3}
-                    style={{ ...inputStyle, resize: 'vertical' }}
+                    style={{ ...inputStyle, resize: 'vertical', borderColor: fieldErrors.father_explanation ? 'var(--status-error, #f87171)' : undefined }}
                   />
                 </Field>
               </>
@@ -455,13 +499,13 @@ export default function RegisterParentPage() {
             </label>
 
             {form.noFemaleContactFlag && (
-              <Field label="Please explain" required>
+              <Field label="Please explain" required fieldId="field-father_explanation" error={fieldErrors.father_explanation}>
                 <textarea
                   placeholder="This is seen by admin only."
                   value={form.fatherExplanation}
-                  onChange={e => set('fatherExplanation', e.target.value)}
+                  onChange={e => { set('fatherExplanation', e.target.value); clearFieldError('father_explanation') }}
                   rows={3}
-                  style={{ ...inputStyle, resize: 'vertical' }}
+                  style={{ ...inputStyle, resize: 'vertical', borderColor: fieldErrors.father_explanation ? 'var(--status-error, #f87171)' : undefined }}
                 />
               </Field>
             )}

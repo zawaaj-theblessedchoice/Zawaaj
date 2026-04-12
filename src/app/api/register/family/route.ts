@@ -11,6 +11,7 @@
 
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { validateFamilyAccount } from '@/lib/zawaaj/validateFamilyAccount'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -85,26 +86,22 @@ export async function POST(request: Request): Promise<Response> {
     if (!email || !password)
       return NextResponse.json({ error: 'Email and password are required.' }, { status: 400 })
 
-    if (!contactFullName || !contactRelationship || !contactNumber || !contactEmail)
-      return NextResponse.json({ error: 'All primary contact details are required.' }, { status: 400 })
-
     if (!termsAgreed)
       return NextResponse.json({ error: 'Terms must be agreed to.' }, { status: 400 })
 
-    const isMaleContact = ['father', 'male_guardian'].includes(contactRelationship)
-    if (isMaleContact && !noFemaleContactFlag) {
-      if (!femaleContactName || !femaleContactNumber) {
-        return NextResponse.json(
-          { error: 'A female contact name and number are required when the primary contact is male.' },
-          { status: 400 }
-        )
-      }
-    }
-    if (noFemaleContactFlag && !fatherExplanation?.trim()) {
-      return NextResponse.json(
-        { error: 'An explanation is required when no female contact is available.' },
-        { status: 400 }
-      )
+    // Shared validator — returns per-field errors so the client can highlight fields
+    const contactValidation = validateFamilyAccount({
+      contact_full_name:    contactFullName    ?? '',
+      contact_relationship: contactRelationship ?? '',
+      contact_number:       contactNumber      ?? '',
+      contact_email:        contactEmail       ?? '',
+      female_contact_name:  femaleContactName  ?? null,
+      female_contact_number: femaleContactNumber ?? null,
+      father_explanation:   fatherExplanation  ?? null,
+      no_female_contact_flag: noFemaleContactFlag ?? false,
+    })
+    if (!contactValidation.valid) {
+      return NextResponse.json({ error: 'validation_error', errors: contactValidation.errors }, { status: 400 })
     }
 
     if (path === 'child') {
