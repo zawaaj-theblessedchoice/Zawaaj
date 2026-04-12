@@ -218,40 +218,41 @@ export default function ImportPage() {
   const canRun = preview !== null && !testRun && preview.validCount > 0 && runResult === null
 
   return (
-    <div className="min-h-screen bg-surface text-white">
+    <div className="min-h-screen bg-surface" style={{ color: 'var(--admin-text)' }}>
       {/* Header */}
-      <div className="border-b border-white/10 px-6 py-4 flex items-center gap-4">
+      <div className="px-6 py-4 flex items-center gap-4" style={{ borderBottom: '1px solid var(--admin-border)' }}>
         <Link
           href="/admin"
-          className="text-sm text-white/50 hover:text-white/80 transition-colors flex items-center gap-1"
+          className="text-sm transition-colors flex items-center gap-1"
+          style={{ color: 'var(--admin-muted)' }}
         >
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="shrink-0">
             <path d="M9 11L5 7L9 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
           Admin
         </Link>
-        <span className="text-white/20">/</span>
-        <span className="text-sm text-white/80">Member Import</span>
+        <span style={{ color: 'var(--admin-muted)', opacity: 0.4 }}>/</span>
+        <span className="text-sm" style={{ color: 'var(--admin-text)' }}>Member Import</span>
       </div>
 
       <div className="max-w-4xl mx-auto px-6 py-8 space-y-8">
         {/* Title */}
         <div>
-          <h1 className="text-2xl font-semibold text-white">Member Import</h1>
-          <p className="text-sm text-white/50 mt-1">
+          <h1 className="text-2xl font-semibold" style={{ color: 'var(--admin-text)' }}>Member Import</h1>
+          <p className="text-sm mt-1" style={{ color: 'var(--admin-muted)' }}>
             Upload a CSV to create member accounts in bulk. Each valid row creates an auth user,
             profile, settings and a voluntary subscription, then sends a password-reset email.
           </p>
         </div>
 
         {/* ── Step 1: Download template ── */}
-        <section className="bg-surface-2 border border-white/10 rounded-2xl p-6">
+        <section className="bg-surface-2 rounded-2xl p-6" style={{ border: '1px solid var(--admin-border)' }}>
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
-              <h2 className="text-base font-semibold text-white mb-1">
+              <h2 className="text-base font-semibold mb-1" style={{ color: 'var(--admin-text)' }}>
                 <span className="text-gold mr-2">1.</span>Download CSV template
               </h2>
-              <p className="text-sm text-white/50">
+              <p className="text-sm" style={{ color: 'var(--admin-muted)' }}>
                 Use this template as a starting point. Do not change the header row.
               </p>
             </div>
@@ -267,34 +268,35 @@ export default function ImportPage() {
           </div>
 
           {/* Header preview */}
-          <div className="mt-4 overflow-x-auto rounded-xl border border-white/8">
-            <div className="p-3 text-[11px] font-mono text-white/40 whitespace-nowrap">
+          <div className="mt-4 overflow-x-auto rounded-xl" style={{ border: '1px solid var(--admin-border)' }}>
+            <div className="p-3 text-[11px] font-mono whitespace-nowrap" style={{ color: 'var(--admin-muted)' }}>
               {CSV_HEADERS}
             </div>
           </div>
         </section>
 
         {/* ── Step 2: Upload & Preview ── */}
-        <section className="bg-surface-2 border border-white/10 rounded-2xl p-6 space-y-5">
+        <section className="bg-surface-2 rounded-2xl p-6 space-y-5" style={{ border: '1px solid var(--admin-border)' }}>
           <div>
-            <h2 className="text-base font-semibold text-white mb-1">
+            <h2 className="text-base font-semibold mb-1" style={{ color: 'var(--admin-text)' }}>
               <span className="text-gold mr-2">2.</span>Upload and preview
             </h2>
-            <p className="text-sm text-white/50">Select your filled CSV, then preview to validate rows before importing.</p>
+            <p className="text-sm" style={{ color: 'var(--admin-muted)' }}>Select your filled CSV, then preview to validate rows before importing.</p>
           </div>
 
           {/* File input */}
           <div>
-            <label className="block text-xs text-white/60 mb-2">CSV file (max 5 MB)</label>
+            <label className="block text-xs mb-2" style={{ color: 'var(--admin-muted)' }}>CSV file (max 5 MB)</label>
             <input
               ref={fileRef}
               type="file"
               accept=".csv"
               onChange={handleFileChange}
-              className="block w-full text-sm text-white/70
+              className="block w-full text-sm
                 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0
                 file:text-sm file:font-medium file:bg-gold/15 file:text-gold
                 hover:file:bg-gold/25 file:transition-colors file:cursor-pointer cursor-pointer"
+              style={{ color: 'var(--admin-muted)' }}
             />
             {fileError && <p className="mt-2 text-xs text-error">{fileError}</p>}
           </div>
@@ -311,7 +313,7 @@ export default function ImportPage() {
               }}
               className="w-4 h-4 accent-gold cursor-pointer"
             />
-            <span className="text-sm text-white/80">
+            <span className="text-sm" style={{ color: 'var(--admin-text)' }}>
               Test run — preview only, do not create accounts
             </span>
           </label>
@@ -346,32 +348,32 @@ export default function ImportPage() {
               {/* Summary */}
               <div className="flex items-center gap-3 text-sm">
                 <span className="text-success font-medium">{preview.validCount} valid</span>
-                <span className="text-white/30">·</span>
+                <span style={{ color: 'var(--admin-muted)' }}>·</span>
                 <span className="text-error font-medium">{preview.errorCount} errors</span>
-                {fileName && <span className="text-white/30 text-xs ml-auto">{fileName}</span>}
+                {fileName && <span className="text-xs ml-auto" style={{ color: 'var(--admin-muted)' }}>{fileName}</span>}
               </div>
 
               {/* Table */}
-              <div className="overflow-x-auto rounded-xl border border-white/10">
+              <div className="overflow-x-auto rounded-xl" style={{ border: '1px solid var(--admin-border)' }}>
                 <table className="w-full text-xs">
                   <thead>
-                    <tr className="border-b border-white/10 bg-white/[0.03]">
-                      <th className="text-left text-white/40 font-medium px-4 py-3 w-14">Row</th>
-                      <th className="text-left text-white/40 font-medium px-4 py-3">Email</th>
-                      <th className="text-left text-white/40 font-medium px-4 py-3">Name</th>
-                      <th className="text-left text-white/40 font-medium px-4 py-3 w-20">Gender</th>
-                      <th className="text-left text-white/40 font-medium px-4 py-3 w-24">Status</th>
-                      <th className="text-left text-white/40 font-medium px-4 py-3">Validation</th>
+                    <tr style={{ borderBottom: '1px solid var(--admin-border)', background: 'var(--admin-border)' }}>
+                      <th className="text-left font-medium px-4 py-3 w-14" style={{ color: 'var(--admin-muted)' }}>Row</th>
+                      <th className="text-left font-medium px-4 py-3" style={{ color: 'var(--admin-muted)' }}>Email</th>
+                      <th className="text-left font-medium px-4 py-3" style={{ color: 'var(--admin-muted)' }}>Name</th>
+                      <th className="text-left font-medium px-4 py-3 w-20" style={{ color: 'var(--admin-muted)' }}>Gender</th>
+                      <th className="text-left font-medium px-4 py-3 w-24" style={{ color: 'var(--admin-muted)' }}>Status</th>
+                      <th className="text-left font-medium px-4 py-3" style={{ color: 'var(--admin-muted)' }}>Validation</th>
                     </tr>
                   </thead>
                   <tbody>
                     {preview.rows.map(r => (
-                      <tr key={r.row} className="border-b border-white/6 last:border-0 hover:bg-white/[0.02] transition-colors">
-                        <td className="px-4 py-2.5 text-white/30">{r.row}</td>
-                        <td className="px-4 py-2.5 text-white/80 font-mono">{r.email || '—'}</td>
-                        <td className="px-4 py-2.5 text-white/70">{r.name}</td>
-                        <td className="px-4 py-2.5 text-white/60 capitalize">{r.gender}</td>
-                        <td className="px-4 py-2.5 text-white/60 capitalize">{r.status}</td>
+                      <tr key={r.row} className="border-b last:border-0 transition-colors" style={{ borderColor: 'var(--admin-border)' }}>
+                        <td className="px-4 py-2.5" style={{ color: 'var(--admin-muted)' }}>{r.row}</td>
+                        <td className="px-4 py-2.5 font-mono" style={{ color: 'var(--admin-text)' }}>{r.email || '—'}</td>
+                        <td className="px-4 py-2.5" style={{ color: 'var(--admin-text)' }}>{r.name}</td>
+                        <td className="px-4 py-2.5 capitalize" style={{ color: 'var(--admin-muted)' }}>{r.gender}</td>
+                        <td className="px-4 py-2.5 capitalize" style={{ color: 'var(--admin-muted)' }}>{r.status}</td>
                         <td className="px-4 py-2.5">
                           {r.valid ? (
                             <span className="text-success">&#10003; valid</span>
@@ -390,13 +392,13 @@ export default function ImportPage() {
 
         {/* ── Step 3: Confirm real import ── */}
         {canRun && (
-          <section className="bg-surface-2 border border-white/10 rounded-2xl p-6 space-y-4">
+          <section className="bg-surface-2 rounded-2xl p-6 space-y-4" style={{ border: '1px solid var(--admin-border)' }}>
             <div>
-              <h2 className="text-base font-semibold text-white mb-1">
+              <h2 className="text-base font-semibold mb-1" style={{ color: 'var(--admin-text)' }}>
                 <span className="text-gold mr-2">3.</span>Run import
               </h2>
-              <p className="text-sm text-white/50">
-                This will create <strong className="text-white/80">{preview?.validCount}</strong> auth user account{preview?.validCount !== 1 ? 's' : ''} and send each a password-reset email.
+              <p className="text-sm" style={{ color: 'var(--admin-muted)' }}>
+                This will create <strong style={{ color: 'var(--admin-text)' }}>{preview?.validCount}</strong> auth user account{preview?.validCount !== 1 ? 's' : ''} and send each a password-reset email.
                 This action cannot be undone.
               </p>
             </div>
@@ -432,33 +434,37 @@ export default function ImportPage() {
             <h2 className="text-base font-semibold text-success mb-3">Import complete</h2>
             <div className="flex items-center gap-6 text-sm">
               <div>
-                <span className="text-white/40 text-xs block mb-0.5">Accounts created</span>
+                <span className="text-xs block mb-0.5" style={{ color: 'var(--admin-muted)' }}>Accounts created</span>
                 <span className="text-success font-semibold text-lg">{runResult.success}</span>
               </div>
               <div>
-                <span className="text-white/40 text-xs block mb-0.5">Errors</span>
-                <span className={`font-semibold text-lg ${runResult.errors > 0 ? 'text-error' : 'text-white/30'}`}>{runResult.errors}</span>
+                <span className="text-xs block mb-0.5" style={{ color: 'var(--admin-muted)' }}>Errors</span>
+                <span className={`font-semibold text-lg ${runResult.errors > 0 ? 'text-error' : ''}`}
+                  style={runResult.errors === 0 ? { color: 'var(--admin-muted)' } : undefined}>
+                  {runResult.errors}
+                </span>
               </div>
               <div className="ml-auto">
-                <span className="text-white/40 text-xs block mb-0.5">Batch ID</span>
-                <span className="font-mono text-xs text-white/50">{runResult.batchId}</span>
+                <span className="text-xs block mb-0.5" style={{ color: 'var(--admin-muted)' }}>Batch ID</span>
+                <span className="font-mono text-xs" style={{ color: 'var(--admin-muted)' }}>{runResult.batchId}</span>
               </div>
             </div>
-            <p className="mt-3 text-xs text-white/40">
+            <p className="mt-3 text-xs" style={{ color: 'var(--admin-muted)' }}>
               Each imported member has been sent a password-reset email so they can set their password and log in.
             </p>
           </section>
         )}
 
         {/* ── Step 4: Import history ── */}
-        <section className="bg-surface-2 border border-white/10 rounded-2xl p-6 space-y-4">
+        <section className="bg-surface-2 rounded-2xl p-6 space-y-4" style={{ border: '1px solid var(--admin-border)' }}>
           <div className="flex items-center justify-between">
-            <h2 className="text-base font-semibold text-white">
+            <h2 className="text-base font-semibold" style={{ color: 'var(--admin-text)' }}>
               <span className="text-gold mr-2">4.</span>Import history
             </h2>
             <button
               onClick={loadHistory}
-              className="text-xs text-white/40 hover:text-white/70 transition-colors"
+              className="text-xs transition-colors"
+              style={{ color: 'var(--admin-muted)' }}
             >
               Refresh
             </button>
@@ -469,37 +475,39 @@ export default function ImportPage() {
           )}
 
           {historyLoading ? (
-            <p className="text-sm text-white/30">Loading…</p>
+            <p className="text-sm" style={{ color: 'var(--admin-muted)' }}>Loading…</p>
           ) : batches.length === 0 ? (
-            <p className="text-sm text-white/30">No imports yet.</p>
+            <p className="text-sm" style={{ color: 'var(--admin-muted)' }}>No imports yet.</p>
           ) : (
-            <div className="overflow-x-auto rounded-xl border border-white/10">
+            <div className="overflow-x-auto rounded-xl" style={{ border: '1px solid var(--admin-border)' }}>
               <table className="w-full text-xs">
                 <thead>
-                  <tr className="border-b border-white/10 bg-white/[0.03]">
-                    <th className="text-left text-white/40 font-medium px-4 py-3">Date</th>
-                    <th className="text-left text-white/40 font-medium px-4 py-3">File</th>
-                    <th className="text-left text-white/40 font-medium px-4 py-3 w-16">Rows</th>
-                    <th className="text-left text-white/40 font-medium px-4 py-3 w-20">Success</th>
-                    <th className="text-left text-white/40 font-medium px-4 py-3 w-16">Errors</th>
-                    <th className="text-left text-white/40 font-medium px-4 py-3 w-20">Mode</th>
-                    <th className="text-left text-white/40 font-medium px-4 py-3 w-24">Status</th>
+                  <tr style={{ borderBottom: '1px solid var(--admin-border)', background: 'var(--admin-border)' }}>
+                    <th className="text-left font-medium px-4 py-3" style={{ color: 'var(--admin-muted)' }}>Date</th>
+                    <th className="text-left font-medium px-4 py-3" style={{ color: 'var(--admin-muted)' }}>File</th>
+                    <th className="text-left font-medium px-4 py-3 w-16" style={{ color: 'var(--admin-muted)' }}>Rows</th>
+                    <th className="text-left font-medium px-4 py-3 w-20" style={{ color: 'var(--admin-muted)' }}>Success</th>
+                    <th className="text-left font-medium px-4 py-3 w-16" style={{ color: 'var(--admin-muted)' }}>Errors</th>
+                    <th className="text-left font-medium px-4 py-3 w-20" style={{ color: 'var(--admin-muted)' }}>Mode</th>
+                    <th className="text-left font-medium px-4 py-3 w-24" style={{ color: 'var(--admin-muted)' }}>Status</th>
                   </tr>
                 </thead>
                 <tbody>
                   {batches.map(b => (
-                    <tr key={b.id} className="border-b border-white/6 last:border-0 hover:bg-white/[0.02] transition-colors">
-                      <td className="px-4 py-2.5 text-white/60 whitespace-nowrap">{fmtDate(b.created_at)}</td>
-                      <td className="px-4 py-2.5 text-white/70 font-mono truncate max-w-[160px]">{b.filename ?? '—'}</td>
-                      <td className="px-4 py-2.5 text-white/60">{b.row_count ?? '—'}</td>
+                    <tr key={b.id} className="border-b last:border-0 transition-colors" style={{ borderColor: 'var(--admin-border)' }}>
+                      <td className="px-4 py-2.5 whitespace-nowrap" style={{ color: 'var(--admin-muted)' }}>{fmtDate(b.created_at)}</td>
+                      <td className="px-4 py-2.5 font-mono truncate max-w-[160px]" style={{ color: 'var(--admin-text)' }}>{b.filename ?? '—'}</td>
+                      <td className="px-4 py-2.5" style={{ color: 'var(--admin-muted)' }}>{b.row_count ?? '—'}</td>
                       <td className="px-4 py-2.5 text-success">{b.success_count ?? '—'}</td>
                       <td className="px-4 py-2.5">
-                        <span className={(b.error_count ?? 0) > 0 ? 'text-error' : 'text-white/30'}>
+                        <span className={(b.error_count ?? 0) > 0 ? 'text-error' : ''}
+                          style={(b.error_count ?? 0) === 0 ? { color: 'var(--admin-muted)' } : undefined}>
                           {b.error_count ?? '—'}
                         </span>
                       </td>
                       <td className="px-4 py-2.5">
-                        <span className={`text-xs px-1.5 py-0.5 rounded-full ${b.is_test_run ? 'bg-blue-500/15 text-blue-400' : 'bg-white/8 text-white/40'}`}>
+                        <span className={`text-xs px-1.5 py-0.5 rounded-full ${b.is_test_run ? 'bg-blue-500/15 text-blue-400' : ''}`}
+                          style={!b.is_test_run ? { background: 'var(--admin-border)', color: 'var(--admin-muted)' } : undefined}>
                           {b.is_test_run ? 'test' : 'live'}
                         </span>
                       </td>

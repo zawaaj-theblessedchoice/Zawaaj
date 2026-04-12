@@ -468,20 +468,20 @@ function ProfileEditModal({ profile, onClose, onSave, onDeleteProfile, onDeleteA
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 flex items-start justify-center py-8 px-4">
       <div className="bg-surface-2 rounded-2xl w-full max-w-2xl shadow-2xl">
-        <div className="flex items-center justify-between p-6 border-b border-white/10">
-          <h2 className="text-lg font-semibold text-white">Edit Profile — {profile.display_initials}</h2>
-          <button onClick={onClose} className="text-white/30 hover:text-white text-2xl leading-none">&times;</button>
+        <div className="flex items-center justify-between p-6" style={{ borderBottom: '1px solid var(--admin-border)' }}>
+          <h2 className="text-lg font-semibold" style={{ color: 'var(--admin-text)' }}>Edit Profile — {profile.display_initials}</h2>
+          <button onClick={onClose} className="text-2xl leading-none" style={{ color: 'var(--admin-muted)' }}>&times;</button>
         </div>
         <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
           {error && <p className="text-red-600 text-sm">{error}</p>}
 
           <div className="grid grid-cols-2 gap-4">
             <label className="block">
-              <span className="text-xs text-white/60 mb-1 block">Display Initials</span>
+              <span className="text-xs mb-1 block" style={{ color: 'var(--admin-muted)' }}>Display Initials</span>
               <input className="field" value={form.display_initials ?? ''} onChange={e => set('display_initials', e.target.value)} />
             </label>
             <label className="block">
-              <span className="text-xs text-white/60 mb-1 block">Gender</span>
+              <span className="text-xs mb-1 block" style={{ color: 'var(--admin-muted)' }}>Gender</span>
               <select className="field" value={form.gender ?? ''} onChange={e => set('gender', e.target.value)}>
                 <option value="">—</option>
                 <option value="male">Male</option>
@@ -489,64 +489,64 @@ function ProfileEditModal({ profile, onClose, onSave, onDeleteProfile, onDeleteA
               </select>
             </label>
             <label className="block">
-              <span className="text-xs text-white/60 mb-1 block">Age Display</span>
+              <span className="text-xs mb-1 block" style={{ color: 'var(--admin-muted)' }}>Age Display</span>
               <input className="field" value={form.age_display ?? ''} onChange={e => set('age_display', e.target.value)} />
             </label>
             <label className="block">
-              <span className="text-xs text-white/60 mb-1 block">Height</span>
+              <span className="text-xs mb-1 block" style={{ color: 'var(--admin-muted)' }}>Height</span>
               <input className="field" value={form.height ?? ''} onChange={e => set('height', e.target.value)} />
             </label>
             <label className="block">
-              <span className="text-xs text-white/60 mb-1 block">Ethnicity</span>
+              <span className="text-xs mb-1 block" style={{ color: 'var(--admin-muted)' }}>Ethnicity</span>
               <input className="field" value={form.ethnicity ?? ''} onChange={e => set('ethnicity', e.target.value)} />
             </label>
             <label className="block">
-              <span className="text-xs text-white/60 mb-1 block">School of Thought</span>
+              <span className="text-xs mb-1 block" style={{ color: 'var(--admin-muted)' }}>School of Thought</span>
               <input className="field" value={form.school_of_thought ?? ''} onChange={e => set('school_of_thought', e.target.value)} />
             </label>
             <label className="block">
-              <span className="text-xs text-white/60 mb-1 block">Education Level</span>
+              <span className="text-xs mb-1 block" style={{ color: 'var(--admin-muted)' }}>Education Level</span>
               <input className="field" value={form.education_level ?? ''} onChange={e => set('education_level', e.target.value)} />
             </label>
             <label className="block">
-              <span className="text-xs text-white/60 mb-1 block">Education Detail</span>
+              <span className="text-xs mb-1 block" style={{ color: 'var(--admin-muted)' }}>Education Detail</span>
               <input className="field" value={form.education_detail ?? ''} onChange={e => set('education_detail', e.target.value)} />
             </label>
             <label className="block">
-              <span className="text-xs text-white/60 mb-1 block">Profession Sector</span>
+              <span className="text-xs mb-1 block" style={{ color: 'var(--admin-muted)' }}>Profession Sector</span>
               <input className="field" value={form.profession_sector ?? ''} onChange={e => set('profession_sector', e.target.value)} />
             </label>
             <label className="block">
-              <span className="text-xs text-white/60 mb-1 block">Profession Detail</span>
+              <span className="text-xs mb-1 block" style={{ color: 'var(--admin-muted)' }}>Profession Detail</span>
               <input className="field" value={form.profession_detail ?? ''} onChange={e => set('profession_detail', e.target.value)} />
             </label>
             <label className="block col-span-2">
-              <span className="text-xs text-white/60 mb-1 block">Location</span>
+              <span className="text-xs mb-1 block" style={{ color: 'var(--admin-muted)' }}>Location</span>
               <input className="field" value={form.location ?? ''} onChange={e => set('location', e.target.value)} />
             </label>
           </div>
 
-          <div className="border-t border-white/10 pt-4">
-            <p className="text-xs font-semibold text-white/50 uppercase tracking-wider mb-3">Admin-only Fields</p>
+          <div className="pt-4" style={{ borderTop: '1px solid var(--admin-border)' }}>
+            <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--admin-muted)' }}>Admin-only Fields</p>
             <div className="grid grid-cols-2 gap-4">
               <label className="block">
-                <span className="text-xs text-white/60 mb-1 block">Contact Number</span>
+                <span className="text-xs mb-1 block" style={{ color: 'var(--admin-muted)' }}>Contact Number</span>
                 <input className="field" value={form.contact_number ?? ''} onChange={e => set('contact_number', e.target.value)} />
               </label>
               <label className="block">
-                <span className="text-xs text-white/60 mb-1 block">Guardian Name</span>
+                <span className="text-xs mb-1 block" style={{ color: 'var(--admin-muted)' }}>Guardian Name</span>
                 <input className="field" value={form.guardian_name ?? ''} onChange={e => set('guardian_name', e.target.value)} />
               </label>
               <label className="block">
-                <span className="text-xs text-white/60 mb-1 block">Legacy Ref</span>
+                <span className="text-xs mb-1 block" style={{ color: 'var(--admin-muted)' }}>Legacy Ref</span>
                 <input className="field" value={form.legacy_ref ?? ''} onChange={e => set('legacy_ref', e.target.value)} />
               </label>
               <label className="block">
-                <span className="text-xs text-white/60 mb-1 block">Imported Email</span>
+                <span className="text-xs mb-1 block" style={{ color: 'var(--admin-muted)' }}>Imported Email</span>
                 <input className="field" value={form.imported_email ?? ''} onChange={e => set('imported_email', e.target.value)} />
               </label>
               <label className="block">
-                <span className="text-xs text-white/60 mb-1 block">Status</span>
+                <span className="text-xs mb-1 block" style={{ color: 'var(--admin-muted)' }}>Status</span>
                 <select className="field" value={form.status ?? ''} onChange={e => set('status', e.target.value as ProfileStatus)}>
                   {(['pending','approved','paused','rejected','withdrawn','suspended','introduced'] as ProfileStatus[]).map(s => (
                     <option key={s} value={s}>{s}</option>
@@ -555,17 +555,17 @@ function ProfileEditModal({ profile, onClose, onSave, onDeleteProfile, onDeleteA
               </label>
             </div>
             <label className="block mt-4">
-              <span className="text-xs text-white/60 mb-1 block">Admin Comments (visible notes)</span>
+              <span className="text-xs mb-1 block" style={{ color: 'var(--admin-muted)' }}>Admin Comments (visible notes)</span>
               <textarea className="field resize-none" rows={3} value={form.admin_comments ?? ''} onChange={e => set('admin_comments', e.target.value)} />
             </label>
             <label className="block mt-4">
-              <span className="text-xs text-white/60 mb-1 block">Admin Notes (private)</span>
+              <span className="text-xs mb-1 block" style={{ color: 'var(--admin-muted)' }}>Admin Notes (private)</span>
               <textarea className="field resize-none" rows={3} value={form.admin_notes ?? ''} onChange={e => set('admin_notes', e.target.value)} />
             </label>
           </div>
         </div>
         {/* Footer: destructive left, save/cancel right */}
-        <div className="flex items-center justify-between gap-3 p-6 border-t border-white/10">
+        <div className="flex items-center justify-between gap-3 p-6" style={{ borderTop: '1px solid var(--admin-border)' }}>
           {/* Destructive actions */}
           <div className="flex gap-2">
             {onDeleteProfile && (
@@ -590,7 +590,7 @@ function ProfileEditModal({ profile, onClose, onSave, onDeleteProfile, onDeleteA
           </div>
           {/* Save / cancel */}
           <div className="flex gap-3">
-            <button onClick={onClose} className="px-5 py-2.5 rounded-xl text-sm border border-white/10 text-white hover:bg-white/5">Cancel</button>
+            <button onClick={onClose} className="px-5 py-2.5 rounded-xl text-sm hover:bg-white/5" style={{ border: '1px solid var(--admin-border)', color: 'var(--admin-text)' }}>Cancel</button>
             <button onClick={save} disabled={saving} className="px-5 py-2.5 rounded-xl text-sm font-medium bg-surface-2 text-gold hover:bg-surface-3 disabled:opacity-50">
               {saving ? 'Saving…' : 'Save Changes'}
             </button>
@@ -609,21 +609,21 @@ function ContactPopup({ profile, onClose }: { profile: Profile; onClose: () => v
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div className="bg-surface-2 rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl">
         <div className="flex justify-between items-start mb-4">
-          <h3 className="font-semibold text-white">Contact — {profile.display_initials}</h3>
-          <button onClick={onClose} className="text-white/30 hover:text-white text-xl leading-none">&times;</button>
+          <h3 className="font-semibold" style={{ color: 'var(--admin-text)' }}>Contact — {profile.display_initials}</h3>
+          <button onClick={onClose} className="text-xl leading-none" style={{ color: 'var(--admin-muted)' }}>&times;</button>
         </div>
         <dl className="space-y-3 text-sm">
           <div>
-            <dt className="text-white/40 text-xs">Phone</dt>
-            <dd className="font-medium text-white">{profile.contact_number ?? '—'}</dd>
+            <dt className="text-xs" style={{ color: 'var(--admin-muted)' }}>Phone</dt>
+            <dd className="font-medium" style={{ color: 'var(--admin-text)' }}>{profile.contact_number ?? '—'}</dd>
           </div>
           <div>
-            <dt className="text-white/40 text-xs">Guardian</dt>
-            <dd className="font-medium text-white">{profile.guardian_name ?? '—'}</dd>
+            <dt className="text-xs" style={{ color: 'var(--admin-muted)' }}>Guardian</dt>
+            <dd className="font-medium" style={{ color: 'var(--admin-text)' }}>{profile.guardian_name ?? '—'}</dd>
           </div>
           <div>
-            <dt className="text-white/40 text-xs">Email</dt>
-            <dd className="font-medium text-white">{profile.imported_email ?? '—'}</dd>
+            <dt className="text-xs" style={{ color: 'var(--admin-muted)' }}>Email</dt>
+            <dd className="font-medium" style={{ color: 'var(--admin-text)' }}>{profile.imported_email ?? '—'}</dd>
           </div>
         </dl>
         {digits && (
@@ -678,9 +678,9 @@ function FacilitateModal({ match, onClose, onDone }: {
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 flex items-start justify-center py-8 px-4">
       <div className="bg-surface-2 rounded-2xl w-full max-w-xl shadow-2xl">
-        <div className="flex items-center justify-between p-6 border-b border-white/10">
-          <h2 className="text-lg font-semibold text-white">Facilitate Introduction</h2>
-          <button onClick={onClose} className="text-white/30 hover:text-white text-2xl leading-none">&times;</button>
+        <div className="flex items-center justify-between p-6" style={{ borderBottom: '1px solid var(--admin-border)' }}>
+          <h2 className="text-lg font-semibold" style={{ color: 'var(--admin-text)' }}>Facilitate Introduction</h2>
+          <button onClick={onClose} className="text-2xl leading-none" style={{ color: 'var(--admin-muted)' }}>&times;</button>
         </div>
 
         <div className="p-6 space-y-6">
@@ -690,18 +690,18 @@ function FacilitateModal({ match, onClose, onDone }: {
           </div>
 
           {/* Family A */}
-          <div className="border border-white/10 rounded-xl p-4 space-y-3">
+          <div className="rounded-xl p-4 space-y-3" style={{ border: '1px solid var(--admin-border)' }}>
             <div className="flex items-center gap-3">
               <Avatar initials={pA?.display_initials ?? '?'} gender={pA?.gender ?? null} size={40} />
               <div>
-                <p className="font-semibold text-white">Family A — {pA?.display_initials}</p>
-                <p className="text-xs text-white/50">{pA?.legacy_ref}</p>
+                <p className="font-semibold" style={{ color: 'var(--admin-text)' }}>Family A — {pA?.display_initials}</p>
+                <p className="text-xs" style={{ color: 'var(--admin-muted)' }}>{pA?.legacy_ref}</p>
               </div>
             </div>
             <dl className="space-y-1 text-sm">
-              <div className="flex gap-2"><dt className="text-white/40 w-20">Phone:</dt><dd>{pA?.contact_number ?? '—'}</dd></div>
-              <div className="flex gap-2"><dt className="text-white/40 w-20">Guardian:</dt><dd>{pA?.guardian_name ?? '—'}</dd></div>
-              <div className="flex gap-2"><dt className="text-white/40 w-20">Email:</dt><dd>{pA?.imported_email ?? '—'}</dd></div>
+              <div className="flex gap-2"><dt className="w-20" style={{ color: 'var(--admin-muted)' }}>Phone:</dt><dd style={{ color: 'var(--admin-text)' }}>{pA?.contact_number ?? '—'}</dd></div>
+              <div className="flex gap-2"><dt className="w-20" style={{ color: 'var(--admin-muted)' }}>Guardian:</dt><dd style={{ color: 'var(--admin-text)' }}>{pA?.guardian_name ?? '—'}</dd></div>
+              <div className="flex gap-2"><dt className="w-20" style={{ color: 'var(--admin-muted)' }}>Email:</dt><dd style={{ color: 'var(--admin-text)' }}>{pA?.imported_email ?? '—'}</dd></div>
             </dl>
             <div className="flex items-center gap-3">
               {digitsA && (
@@ -713,24 +713,24 @@ function FacilitateModal({ match, onClose, onDone }: {
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={consentA} onChange={e => toggleConsent('a', e.target.checked)}
                   className="w-4 h-4 accent-gold" />
-                <span className="text-sm text-white">Family A verbally confirmed consent</span>
+                <span className="text-sm" style={{ color: 'var(--admin-text)' }}>Family A verbally confirmed consent</span>
               </label>
             </div>
           </div>
 
           {/* Family B */}
-          <div className="border border-white/10 rounded-xl p-4 space-y-3">
+          <div className="rounded-xl p-4 space-y-3" style={{ border: '1px solid var(--admin-border)' }}>
             <div className="flex items-center gap-3">
               <Avatar initials={pB?.display_initials ?? '?'} gender={pB?.gender ?? null} size={40} />
               <div>
-                <p className="font-semibold text-white">Family B — {pB?.display_initials}</p>
-                <p className="text-xs text-white/50">{pB?.legacy_ref}</p>
+                <p className="font-semibold" style={{ color: 'var(--admin-text)' }}>Family B — {pB?.display_initials}</p>
+                <p className="text-xs" style={{ color: 'var(--admin-muted)' }}>{pB?.legacy_ref}</p>
               </div>
             </div>
             <dl className="space-y-1 text-sm">
-              <div className="flex gap-2"><dt className="text-white/40 w-20">Phone:</dt><dd>{pB?.contact_number ?? '—'}</dd></div>
-              <div className="flex gap-2"><dt className="text-white/40 w-20">Guardian:</dt><dd>{pB?.guardian_name ?? '—'}</dd></div>
-              <div className="flex gap-2"><dt className="text-white/40 w-20">Email:</dt><dd>{pB?.imported_email ?? '—'}</dd></div>
+              <div className="flex gap-2"><dt className="w-20" style={{ color: 'var(--admin-muted)' }}>Phone:</dt><dd style={{ color: 'var(--admin-text)' }}>{pB?.contact_number ?? '—'}</dd></div>
+              <div className="flex gap-2"><dt className="w-20" style={{ color: 'var(--admin-muted)' }}>Guardian:</dt><dd style={{ color: 'var(--admin-text)' }}>{pB?.guardian_name ?? '—'}</dd></div>
+              <div className="flex gap-2"><dt className="w-20" style={{ color: 'var(--admin-muted)' }}>Email:</dt><dd style={{ color: 'var(--admin-text)' }}>{pB?.imported_email ?? '—'}</dd></div>
             </dl>
             <div className="flex items-center gap-3">
               {digitsB && (
@@ -742,14 +742,14 @@ function FacilitateModal({ match, onClose, onDone }: {
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={consentB} onChange={e => toggleConsent('b', e.target.checked)}
                   className="w-4 h-4 accent-gold" />
-                <span className="text-sm text-white">Family B verbally confirmed consent</span>
+                <span className="text-sm" style={{ color: 'var(--admin-text)' }}>Family B verbally confirmed consent</span>
               </label>
             </div>
           </div>
         </div>
 
-        <div className="flex justify-end gap-3 p-6 border-t border-white/10">
-          <button onClick={onClose} className="px-5 py-2.5 rounded-xl text-sm border border-white/10 text-white hover:bg-white/5">Close</button>
+        <div className="flex justify-end gap-3 p-6" style={{ borderTop: '1px solid var(--admin-border)' }}>
+          <button onClick={onClose} className="px-5 py-2.5 rounded-xl text-sm hover:bg-white/5" style={{ border: '1px solid var(--admin-border)', color: 'var(--admin-text)' }}>Close</button>
           <button
             onClick={markIntroduced}
             disabled={!consentA || !consentB || saving}
@@ -841,7 +841,7 @@ function QueueTab({ profiles, onRefresh, currentUserId }: { profiles: Profile[];
   }
 
   if (pending.length === 0)
-    return <p className="text-white/30 py-16 text-center text-sm">No applications pending review.</p>
+    return <p className="py-16 text-center text-sm" style={{ color: 'var(--admin-muted)' }}>No applications pending review.</p>
 
   return (
     <>
@@ -864,20 +864,20 @@ function QueueTab({ profiles, onRefresh, currentUserId }: { profiles: Profile[];
       )}
       <div className="space-y-3">
         {pending.map(p => (
-          <div key={p.id} className="bg-surface-2 rounded-2xl p-5 border border-white/10">
+          <div key={p.id} className="bg-surface-2 rounded-2xl p-5" style={{ border: '1px solid var(--admin-border)' }}>
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex gap-4 flex-1 min-w-0">
                 <Avatar initials={p.display_initials} gender={p.gender} size={48} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-semibold text-white">{p.display_initials}</span>
+                    <span className="font-semibold" style={{ color: 'var(--admin-text)' }}>{p.display_initials}</span>
                     {(p.first_name || p.last_name) && (
-                      <span className="text-white/60 text-sm">
+                      <span className="text-sm" style={{ color: 'var(--admin-muted)' }}>
                         {[p.first_name, p.last_name].filter(Boolean).join(' ')}
                       </span>
                     )}
                     {p.legacy_ref && (
-                      <span className="px-2 py-0.5 rounded-full bg-white/10 text-xs text-white/60 border border-white/10">
+                      <span className="px-2 py-0.5 rounded-full text-xs" style={{ background: 'var(--surface-3)', color: 'var(--admin-muted)', border: '1px solid var(--admin-border)' }}>
                         {p.legacy_ref}
                       </span>
                     )}
@@ -887,7 +887,7 @@ function QueueTab({ profiles, onRefresh, currentUserId }: { profiles: Profile[];
                       </span>
                     )}
                   </div>
-                  <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1.5 text-sm text-white/60">
+                  <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1.5 text-sm" style={{ color: 'var(--admin-muted)' }}>
                     {p.gender && <span className="capitalize">{p.gender}</span>}
                     {p.age_display && <span>{p.age_display}</span>}
                     {p.location && <span>{p.location}</span>}
@@ -902,7 +902,7 @@ function QueueTab({ profiles, onRefresh, currentUserId }: { profiles: Profile[];
                       {p.contact_number}{p.guardian_name ? ` · ${p.guardian_name}` : ''}
                     </p>
                   )}
-                  <p className="text-xs text-white/40 mt-1">Submitted {daysAgo(p.submitted_date)}</p>
+                  <p className="text-xs mt-1" style={{ color: 'var(--admin-muted)' }}>Submitted {daysAgo(p.submitted_date)}</p>
                   {p.admin_comments && (
                     <div className="mt-2 bg-gold-muted border border-gold/30 rounded-lg px-3 py-2 text-xs text-yellow-400">
                       <span className="font-medium">Admin note:</span> {p.admin_comments}
@@ -918,7 +918,7 @@ function QueueTab({ profiles, onRefresh, currentUserId }: { profiles: Profile[];
               </div>
               <div className="flex flex-col gap-2 flex-shrink-0 sm:w-28">
                 <button onClick={() => setEditProfile(p)}
-                  className="px-3 py-2 rounded-xl text-xs font-medium border border-white/10 text-white hover:bg-white/5">
+                  className="px-3 py-2 rounded-xl text-xs font-medium hover:bg-white/5" style={{ border: '1px solid var(--admin-border)', color: 'var(--admin-text)' }}>
                   Edit
                 </button>
                 <button onClick={() => setConfirmAction({ id: p.id, type: 'approve' })}
@@ -938,7 +938,7 @@ function QueueTab({ profiles, onRefresh, currentUserId }: { profiles: Profile[];
                       Confirm Reject
                     </button>
                     <button onClick={() => setShowRejectInput(null)}
-                      className="w-full px-3 py-1.5 rounded-lg text-xs border border-white/10 text-white/60 hover:bg-white/5">
+                      className="w-full px-3 py-1.5 rounded-lg text-xs hover:bg-white/5" style={{ border: '1px solid var(--admin-border)', color: 'var(--admin-muted)' }}>
                       Cancel
                     </button>
                   </div>
@@ -1142,23 +1142,23 @@ function ManualMatchModal({ profiles, onClose, onDone }: {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70">
-      <div className="bg-surface-2 rounded-2xl border border-white/10 w-full max-w-2xl overflow-hidden">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
-          <h2 className="text-base font-semibold text-white">Create Manual Match</h2>
-          <button onClick={onClose} className="text-white/40 hover:text-white text-xl leading-none">✕</button>
+      <div className="bg-surface-2 rounded-2xl w-full max-w-2xl overflow-hidden" style={{ border: '1px solid var(--admin-border)' }}>
+        <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid var(--admin-border)' }}>
+          <h2 className="text-base font-semibold" style={{ color: 'var(--admin-text)' }}>Create Manual Match</h2>
+          <button onClick={onClose} className="text-xl leading-none" style={{ color: 'var(--admin-muted)' }}>✕</button>
         </div>
         <div className="p-6 grid sm:grid-cols-2 gap-6">
           {/* Profile A */}
           <div className="space-y-2">
-            <p className="text-xs font-medium text-white/50 uppercase tracking-wide">Profile A</p>
+            <p className="text-xs font-medium uppercase tracking-wide" style={{ color: 'var(--admin-muted)' }}>Profile A</p>
             {profileA ? (
-              <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
+              <div className="flex items-center gap-3 p-3 rounded-xl" style={{ background: 'var(--surface-3)', border: '1px solid var(--admin-border)' }}>
                 <Avatar initials={profileA.display_initials} gender={profileA.gender} size={36} />
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-white text-sm">{profileA.display_initials}</p>
-                  <p className="text-xs text-white/40">{[profileA.first_name, profileA.last_name].filter(Boolean).join(' ')}</p>
+                  <p className="font-medium text-sm" style={{ color: 'var(--admin-text)' }}>{profileA.display_initials}</p>
+                  <p className="text-xs" style={{ color: 'var(--admin-muted)' }}>{[profileA.first_name, profileA.last_name].filter(Boolean).join(' ')}</p>
                 </div>
-                <button onClick={() => { setProfileA(null); setSearchA('') }} className="text-white/30 hover:text-white text-xs">✕</button>
+                <button onClick={() => { setProfileA(null); setSearchA('') }} className="text-xs" style={{ color: 'var(--admin-muted)' }}>✕</button>
               </div>
             ) : (
               <>
@@ -1169,16 +1169,16 @@ function ManualMatchModal({ profiles, onClose, onDone }: {
                   className="field w-full text-sm"
                 />
                 {searchA && (
-                  <div className="rounded-xl border border-white/10 overflow-hidden max-h-48 overflow-y-auto">
+                  <div className="rounded-xl overflow-hidden max-h-48 overflow-y-auto" style={{ border: '1px solid var(--admin-border)' }}>
                     {listA.length === 0 ? (
-                      <p className="text-white/30 text-xs p-3">No results</p>
+                      <p className="text-xs p-3" style={{ color: 'var(--admin-muted)' }}>No results</p>
                     ) : listA.map(p => (
                       <button key={p.id} onClick={() => { setProfileA(p); setSearchA('') }}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-white/5 text-left border-b border-white/5 last:border-0">
+                        className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-white/5 text-left" style={{ borderBottom: '1px solid var(--admin-border)' }}>
                         <Avatar initials={p.display_initials} gender={p.gender} size={28} />
                         <div>
-                          <p className="text-sm text-white">{p.display_initials} {p.first_name && <span className="text-white/50">{p.first_name} {p.last_name}</span>}</p>
-                          <p className="text-xs text-white/30">{p.legacy_ref} · {p.gender} · {p.age_display}</p>
+                          <p className="text-sm" style={{ color: 'var(--admin-text)' }}>{p.display_initials} {p.first_name && <span style={{ color: 'var(--admin-muted)' }}>{p.first_name} {p.last_name}</span>}</p>
+                          <p className="text-xs" style={{ color: 'var(--admin-muted)' }}>{p.legacy_ref} · {p.gender} · {p.age_display}</p>
                         </div>
                       </button>
                     ))}
@@ -1190,17 +1190,17 @@ function ManualMatchModal({ profiles, onClose, onDone }: {
 
           {/* Profile B */}
           <div className="space-y-2">
-            <p className="text-xs font-medium text-white/50 uppercase tracking-wide">
-              Profile B {profileA && <span className="normal-case text-white/30">({profileA.gender === 'male' ? 'female' : profileA.gender === 'female' ? 'male' : 'opposite gender'})</span>}
+            <p className="text-xs font-medium uppercase tracking-wide" style={{ color: 'var(--admin-muted)' }}>
+              Profile B {profileA && <span className="normal-case" style={{ color: 'var(--admin-muted)' }}>({profileA.gender === 'male' ? 'female' : profileA.gender === 'female' ? 'male' : 'opposite gender'})</span>}
             </p>
             {profileB ? (
-              <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
+              <div className="flex items-center gap-3 p-3 rounded-xl" style={{ background: 'var(--surface-3)', border: '1px solid var(--admin-border)' }}>
                 <Avatar initials={profileB.display_initials} gender={profileB.gender} size={36} />
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-white text-sm">{profileB.display_initials}</p>
-                  <p className="text-xs text-white/40">{[profileB.first_name, profileB.last_name].filter(Boolean).join(' ')}</p>
+                  <p className="font-medium text-sm" style={{ color: 'var(--admin-text)' }}>{profileB.display_initials}</p>
+                  <p className="text-xs" style={{ color: 'var(--admin-muted)' }}>{[profileB.first_name, profileB.last_name].filter(Boolean).join(' ')}</p>
                 </div>
-                <button onClick={() => { setProfileB(null); setSearchB('') }} className="text-white/30 hover:text-white text-xs">✕</button>
+                <button onClick={() => { setProfileB(null); setSearchB('') }} className="text-xs" style={{ color: 'var(--admin-muted)' }}>✕</button>
               </div>
             ) : (
               <>
@@ -1212,16 +1212,16 @@ function ManualMatchModal({ profiles, onClose, onDone }: {
                   className="field w-full text-sm disabled:opacity-40"
                 />
                 {searchB && profileA && (
-                  <div className="rounded-xl border border-white/10 overflow-hidden max-h-48 overflow-y-auto">
+                  <div className="rounded-xl overflow-hidden max-h-48 overflow-y-auto" style={{ border: '1px solid var(--admin-border)' }}>
                     {listB.length === 0 ? (
-                      <p className="text-white/30 text-xs p-3">No results</p>
+                      <p className="text-xs p-3" style={{ color: 'var(--admin-muted)' }}>No results</p>
                     ) : listB.map(p => (
                       <button key={p.id} onClick={() => { setProfileB(p); setSearchB('') }}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-white/5 text-left border-b border-white/5 last:border-0">
+                        className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-white/5 text-left" style={{ borderBottom: '1px solid var(--admin-border)' }}>
                         <Avatar initials={p.display_initials} gender={p.gender} size={28} />
                         <div>
-                          <p className="text-sm text-white">{p.display_initials} {p.first_name && <span className="text-white/50">{p.first_name} {p.last_name}</span>}</p>
-                          <p className="text-xs text-white/30">{p.legacy_ref} · {p.gender} · {p.age_display}</p>
+                          <p className="text-sm" style={{ color: 'var(--admin-text)' }}>{p.display_initials} {p.first_name && <span style={{ color: 'var(--admin-muted)' }}>{p.first_name} {p.last_name}</span>}</p>
+                          <p className="text-xs" style={{ color: 'var(--admin-muted)' }}>{p.legacy_ref} · {p.gender} · {p.age_display}</p>
                         </div>
                       </button>
                     ))}
@@ -1244,7 +1244,7 @@ function ManualMatchModal({ profiles, onClose, onDone }: {
         )}
 
         <div className="flex justify-end gap-3 px-6 pb-6">
-          <button onClick={onClose} className="px-5 py-2.5 rounded-xl text-sm border border-white/10 text-white hover:bg-white/5">Cancel</button>
+          <button onClick={onClose} className="px-5 py-2.5 rounded-xl text-sm hover:bg-white/5" style={{ border: '1px solid var(--admin-border)', color: 'var(--admin-text)' }}>Cancel</button>
           <button
             onClick={createMatch}
             disabled={!profileA || !profileB || saving}
@@ -1291,7 +1291,7 @@ function MutualTab({ matches, onRefresh, profiles }: { matches: Match[]; onRefre
 
       {/* Header row */}
       <div className="flex items-center justify-between mb-4">
-        <p className="text-sm text-white/50">
+        <p className="text-sm" style={{ color: 'var(--admin-muted)' }}>
           {relevant.length === 0 ? 'No mutual matches awaiting review.' : `${relevant.length} awaiting review`}
         </p>
         <button
@@ -1307,15 +1307,15 @@ function MutualTab({ matches, onRefresh, profiles }: { matches: Match[]; onRefre
           const pA = m.profile_a
           const pB = m.profile_b
           return (
-            <div key={m.id} className="bg-surface-2 rounded-2xl border border-white/10 overflow-hidden">
+            <div key={m.id} className="bg-surface-2 rounded-2xl overflow-hidden" style={{ border: '1px solid var(--admin-border)' }}>
               <div className="grid sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-border-default">
                 {/* Profile A */}
                 <div className="p-5 flex gap-4">
                   <Avatar initials={pA?.display_initials ?? '?'} gender={pA?.gender ?? null} size={44} />
                   <div>
-                    <p className="font-semibold text-white">{pA?.display_initials ?? 'Unknown'}</p>
-                    {pA?.legacy_ref && <p className="text-xs text-white/40">{pA.legacy_ref}</p>}
-                    <div className="mt-1 text-sm text-white/60 space-y-0.5">
+                    <p className="font-semibold" style={{ color: 'var(--admin-text)' }}>{pA?.display_initials ?? 'Unknown'}</p>
+                    {pA?.legacy_ref && <p className="text-xs" style={{ color: 'var(--admin-muted)' }}>{pA.legacy_ref}</p>}
+                    <div className="mt-1 text-sm space-y-0.5" style={{ color: 'var(--admin-muted)' }}>
                       {pA?.age_display && <p>{pA.age_display}</p>}
                       {pA?.location && <p>{pA.location}</p>}
                       {pA?.school_of_thought && <p>{pA.school_of_thought}</p>}
@@ -1326,9 +1326,9 @@ function MutualTab({ matches, onRefresh, profiles }: { matches: Match[]; onRefre
                 <div className="p-5 flex gap-4">
                   <Avatar initials={pB?.display_initials ?? '?'} gender={pB?.gender ?? null} size={44} />
                   <div>
-                    <p className="font-semibold text-white">{pB?.display_initials ?? 'Unknown'}</p>
-                    {pB?.legacy_ref && <p className="text-xs text-white/40">{pB.legacy_ref}</p>}
-                    <div className="mt-1 text-sm text-white/60 space-y-0.5">
+                    <p className="font-semibold" style={{ color: 'var(--admin-text)' }}>{pB?.display_initials ?? 'Unknown'}</p>
+                    {pB?.legacy_ref && <p className="text-xs" style={{ color: 'var(--admin-muted)' }}>{pB.legacy_ref}</p>}
+                    <div className="mt-1 text-sm space-y-0.5" style={{ color: 'var(--admin-muted)' }}>
                       {pB?.age_display && <p>{pB.age_display}</p>}
                       {pB?.location && <p>{pB.location}</p>}
                       {pB?.school_of_thought && <p>{pB.school_of_thought}</p>}
@@ -1336,16 +1336,16 @@ function MutualTab({ matches, onRefresh, profiles }: { matches: Match[]; onRefre
                   </div>
                 </div>
               </div>
-              <div className="px-5 py-3 bg-surface-3 border-t border-white/10 flex flex-wrap items-center gap-3">
+              <div className="px-5 py-3 bg-surface-3 flex flex-wrap items-center gap-3" style={{ borderTop: '1px solid var(--admin-border)' }}>
                 <StatusBadge status={m.status} />
-                <span className="text-xs text-white/50">Mutual {daysAgo(m.mutual_date)}</span>
+                <span className="text-xs" style={{ color: 'var(--admin-muted)' }}>Mutual {daysAgo(m.mutual_date)}</span>
                 <div className="ml-auto flex flex-wrap gap-2">
                   <button onClick={() => setFacilitateMatch(m)}
                     className="px-3 py-1.5 rounded-lg text-xs font-medium bg-gold text-white hover:bg-gold-hover">
                     Facilitate Introduction
                   </button>
                   <Link href={`/admin/sidebyside/${m.id}`}
-                    className="px-3 py-1.5 rounded-lg text-xs font-medium border border-white/10 text-white hover:bg-surface-2">
+                    className="px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-surface-2" style={{ border: '1px solid var(--admin-border)', color: 'var(--admin-text)' }}>
                     View Side by Side
                   </Link>
                   <button onClick={() => setDismissId(m.id)}
@@ -1377,7 +1377,7 @@ function IntroducedTab({ matches, onRefresh }: { matches: Match[]; onRefresh: ()
   }
 
   if (relevant.length === 0)
-    return <p className="text-white/30 py-16 text-center text-sm">No introduced matches yet.</p>
+    return <p className="py-16 text-center text-sm" style={{ color: 'var(--admin-muted)' }}>No introduced matches yet.</p>
 
   return (
     <div className="space-y-3">
@@ -1385,21 +1385,21 @@ function IntroducedTab({ matches, onRefresh }: { matches: Match[]; onRefresh: ()
         const pA = m.profile_a
         const pB = m.profile_b
         return (
-          <div key={m.id} className="bg-surface-2 rounded-2xl p-5 border border-white/10 flex flex-col sm:flex-row sm:items-center gap-4">
+          <div key={m.id} className="bg-surface-2 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center gap-4" style={{ border: '1px solid var(--admin-border)' }}>
             <div className="flex items-center gap-3 flex-1 min-w-0">
               <div className="flex -space-x-2">
                 <Avatar initials={pA?.display_initials ?? '?'} gender={pA?.gender ?? null} size={36} />
                 <Avatar initials={pB?.display_initials ?? '?'} gender={pB?.gender ?? null} size={36} />
               </div>
               <div className="min-w-0">
-                <p className="font-medium text-white text-sm">
+                <p className="font-medium text-sm" style={{ color: 'var(--admin-text)' }}>
                   {pA?.display_initials ?? '?'} &amp; {pB?.display_initials ?? '?'}
                 </p>
                 <div className="flex flex-wrap gap-2 mt-0.5">
-                  {pA?.legacy_ref && <span className="text-xs text-white/40">{pA.legacy_ref}</span>}
-                  {pB?.legacy_ref && <span className="text-xs text-white/40">{pB.legacy_ref}</span>}
+                  {pA?.legacy_ref && <span className="text-xs" style={{ color: 'var(--admin-muted)' }}>{pA.legacy_ref}</span>}
+                  {pB?.legacy_ref && <span className="text-xs" style={{ color: 'var(--admin-muted)' }}>{pB.legacy_ref}</span>}
                 </div>
-                <p className="text-xs text-white/40 mt-0.5">
+                <p className="text-xs mt-0.5" style={{ color: 'var(--admin-muted)' }}>
                   Introduced {fmtDate(m.introduced_date)}
                 </p>
               </div>
@@ -1582,10 +1582,10 @@ function MembersTab({ profiles, onRefresh, currentUserId }: { profiles: Profile[
           </button>
         ))}
       </div>
-      <div className="overflow-x-auto rounded-2xl border border-white/10">
+      <div className="overflow-x-auto rounded-2xl" style={{ border: '1px solid var(--admin-border)' }}>
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-surface-3 text-white/40 text-left text-xs">
+            <tr className="bg-surface-3 text-left text-xs" style={{ color: 'var(--admin-muted)' }}>
               <th className="px-4 py-3 font-medium">Member</th>
               <th className="px-4 py-3 font-medium">Gender</th>
               <th className="px-4 py-3 font-medium">Age</th>
@@ -1607,13 +1607,13 @@ function MembersTab({ profiles, onRefresh, currentUserId }: { profiles: Profile[
                   <div className="flex items-center gap-2">
                     <Avatar initials={p.display_initials} gender={p.gender} size={32} />
                     <div className="min-w-0">
-                      {fullName && <p className="font-medium text-white text-sm truncate">{fullName}</p>}
-                      <p className="text-xs text-white/50">{p.display_initials}{p.legacy_ref ? ` · ${p.legacy_ref}` : ''}</p>
-                      {p.imported_email && <p className="text-xs text-white/30 truncate">{p.imported_email}</p>}
+                      {fullName && <p className="font-medium text-sm truncate" style={{ color: 'var(--admin-text)' }}>{fullName}</p>}
+                      <p className="text-xs" style={{ color: 'var(--admin-muted)' }}>{p.display_initials}{p.legacy_ref ? ` · ${p.legacy_ref}` : ''}</p>
+                      {p.imported_email && <p className="text-xs truncate" style={{ color: 'var(--admin-muted)' }}>{p.imported_email}</p>}
                       {p.contact_number && (
                         <a href={`tel:${p.contact_number}`} className="text-xs text-gold/70 hover:text-gold">{p.contact_number}</a>
                       )}
-                      {p.guardian_name && <p className="text-xs text-white/40">Guardian: {p.guardian_name}</p>}
+                      {p.guardian_name && <p className="text-xs" style={{ color: 'var(--admin-muted)' }}>Guardian: {p.guardian_name}</p>}
                       {isParentAccount && (
                         <span className="inline-flex items-center gap-1 mt-0.5 px-1.5 py-0.5 rounded text-xs bg-purple-950/60 text-purple-300 border border-purple-700/30">
                           👨‍👩‍👧 {userProfileCount[p.user_id!]} profiles
@@ -1622,25 +1622,25 @@ function MembersTab({ profiles, onRefresh, currentUserId }: { profiles: Profile[
                     </div>
                   </div>
                 </td>
-                <td className="px-4 py-3 text-white/70 capitalize">{p.gender ?? '—'}</td>
-                <td className="px-4 py-3 text-white/70">{p.age_display ?? '—'}</td>
-                <td className="px-4 py-3 text-white/70">{p.location ?? '—'}</td>
-                <td className="px-4 py-3 text-white/70">{p.profession_sector ?? '—'}</td>
+                <td className="px-4 py-3 capitalize" style={{ color: 'var(--admin-muted)' }}>{p.gender ?? '—'}</td>
+                <td className="px-4 py-3" style={{ color: 'var(--admin-muted)' }}>{p.age_display ?? '—'}</td>
+                <td className="px-4 py-3" style={{ color: 'var(--admin-muted)' }}>{p.location ?? '—'}</td>
+                <td className="px-4 py-3" style={{ color: 'var(--admin-muted)' }}>{p.profession_sector ?? '—'}</td>
                 <td className="px-4 py-3">
                   <div className="flex flex-wrap gap-1">
                     <StatusBadge status={p.status} />
                     {p.is_banned && <StatusBadge status="banned" />}
                   </div>
                 </td>
-                <td className="px-4 py-3 text-white/40 text-xs">{fmtDate(p.created_at)}</td>
+                <td className="px-4 py-3 text-xs" style={{ color: 'var(--admin-muted)' }}>{fmtDate(p.created_at)}</td>
                 <td className="px-4 py-3">
                   <div className="flex flex-wrap gap-1">
                     <button onClick={() => setContactProfile(p)}
-                      className="px-2 py-1 rounded text-xs border border-white/10 text-white hover:bg-white/5">
+                      className="px-2 py-1 rounded text-xs hover:bg-white/5" style={{ border: '1px solid var(--admin-border)', color: 'var(--admin-text)' }}>
                       Contact
                     </button>
                     <button onClick={() => setEditProfile(p)}
-                      className="px-2 py-1 rounded text-xs border border-white/10 text-white hover:bg-white/5">
+                      className="px-2 py-1 rounded text-xs hover:bg-white/5" style={{ border: '1px solid var(--admin-border)', color: 'var(--admin-text)' }}>
                       Edit
                     </button>
                     {p.status !== 'approved' && (
@@ -1688,7 +1688,7 @@ function MembersTab({ profiles, onRefresh, currentUserId }: { profiles: Profile[
           </tbody>
         </table>
         {filtered.length === 0 && (
-          <p className="text-center text-white/40 py-10 text-sm">No members found.</p>
+          <p className="text-center py-10 text-sm" style={{ color: 'var(--admin-muted)' }}>No members found.</p>
         )}
       </div>
     </>
@@ -1718,7 +1718,7 @@ function WithdrawnTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh:
   }
 
   if (withdrawn.length === 0)
-    return <p className="text-white/30 py-16 text-center text-sm">No withdrawn profiles.</p>
+    return <p className="py-16 text-center text-sm" style={{ color: 'var(--admin-muted)' }}>No withdrawn profiles.</p>
 
   return (
     <>
@@ -1731,17 +1731,17 @@ function WithdrawnTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh:
       )}
       <div className="space-y-3">
         {withdrawn.map(p => (
-          <div key={p.id} className="bg-surface-2 rounded-2xl p-5 border border-white/10 flex items-center gap-4">
+          <div key={p.id} className="bg-surface-2 rounded-2xl p-5 flex items-center gap-4" style={{ border: '1px solid var(--admin-border)' }}>
             <Avatar initials={p.display_initials} gender={p.gender} size={44} />
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-semibold text-white">{p.display_initials}</span>
-                {p.legacy_ref && <span className="text-xs text-white/40">{p.legacy_ref}</span>}
+                <span className="font-semibold" style={{ color: 'var(--admin-text)' }}>{p.display_initials}</span>
+                {p.legacy_ref && <span className="text-xs" style={{ color: 'var(--admin-muted)' }}>{p.legacy_ref}</span>}
               </div>
               {p.withdrawal_reason && (
-                <p className="text-sm text-white/60 mt-0.5">Reason: {p.withdrawal_reason}</p>
+                <p className="text-sm mt-0.5" style={{ color: 'var(--admin-muted)' }}>Reason: {p.withdrawal_reason}</p>
               )}
-              <p className="text-xs text-white/40 mt-0.5">Withdrawn {daysAgo(p.submitted_date)}</p>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--admin-muted)' }}>Withdrawn {daysAgo(p.submitted_date)}</p>
             </div>
             <div className="flex gap-2 flex-shrink-0">
               <button onClick={() => reinstate(p.id)}
@@ -1808,7 +1808,7 @@ function UnlinkedTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh: 
   if (unlinked.length === 0)
     return (
       <div className="py-16 text-center">
-        <p className="text-white/30 text-sm">All approved profiles are linked to user accounts.</p>
+        <p className="text-sm" style={{ color: 'var(--admin-muted)' }}>All approved profiles are linked to user accounts.</p>
       </div>
     )
 
@@ -1817,8 +1817,8 @@ function UnlinkedTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh: 
       {linkId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="bg-surface-2 rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl">
-            <h3 className="font-semibold text-white mb-2">Link Profile to User</h3>
-            <p className="text-xs text-white/50 mb-3">
+            <h3 className="font-semibold mb-2" style={{ color: 'var(--admin-text)' }}>Link Profile to User</h3>
+            <p className="text-xs mb-3" style={{ color: 'var(--admin-muted)' }}>
               Enter the user&apos;s Supabase Auth UUID. You can find this in the Supabase dashboard under Authentication &gt; Users.
             </p>
             <input
@@ -1830,7 +1830,7 @@ function UnlinkedTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh: 
             {linkError && <p className="text-red-600 text-xs mb-2">{linkError}</p>}
             <div className="flex gap-3 mt-4">
               <button onClick={() => { setLinkId(null); setUserId(''); setLinkError(null) }}
-                className="flex-1 px-4 py-2 rounded-xl text-sm border border-white/10 text-white hover:bg-white/5">
+                className="flex-1 px-4 py-2 rounded-xl text-sm hover:bg-white/5" style={{ border: '1px solid var(--admin-border)', color: 'var(--admin-text)' }}>
                 Cancel
               </button>
               <button onClick={linkProfile} disabled={!userId.trim() || linking}
@@ -1850,18 +1850,18 @@ function UnlinkedTab({ profiles, onRefresh }: { profiles: Profile[]; onRefresh: 
 
       <div className="space-y-3">
         {unlinked.map(p => (
-          <div key={p.id} className="bg-surface-2 rounded-2xl p-5 border border-white/10 flex items-center gap-4">
+          <div key={p.id} className="bg-surface-2 rounded-2xl p-5 flex items-center gap-4" style={{ border: '1px solid var(--admin-border)' }}>
             <Avatar initials={p.display_initials} gender={p.gender} size={44} />
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-semibold text-white">{p.display_initials}</span>
+                <span className="font-semibold" style={{ color: 'var(--admin-text)' }}>{p.display_initials}</span>
                 {p.legacy_ref && (
-                  <span className="px-2 py-0.5 rounded-full bg-white/10 text-xs text-white/60 border border-white/10">
+                  <span className="px-2 py-0.5 rounded-full text-xs" style={{ background: 'var(--surface-3)', color: 'var(--admin-muted)', border: '1px solid var(--admin-border)' }}>
                     {p.legacy_ref}
                   </span>
                 )}
               </div>
-              <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-sm text-white/60">
+              <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-sm" style={{ color: 'var(--admin-muted)' }}>
                 {p.imported_email && <span>{p.imported_email}</span>}
                 {p.contact_number && <span>{p.contact_number}</span>}
                 {p.age_display && <span>{p.age_display}</span>}
@@ -1966,31 +1966,31 @@ function EventsTab({ events, onRefresh }: { events: ZawaajEvent[]; onRefresh: ()
       )}
 
       {/* New Event Form */}
-      <div className="bg-surface-2 rounded-2xl p-5 border border-white/10 mb-6">
-        <h3 className="text-sm font-semibold text-white mb-4">Add New Event</h3>
+      <div className="bg-surface-2 rounded-2xl p-5 mb-6" style={{ border: '1px solid var(--admin-border)' }}>
+        <h3 className="text-sm font-semibold mb-4" style={{ color: 'var(--admin-text)' }}>Add New Event</h3>
         <div className="grid sm:grid-cols-2 gap-3">
           <label className="block">
-            <span className="text-xs text-white/60 mb-1 block">Title *</span>
+            <span className="text-xs mb-1 block" style={{ color: 'var(--admin-muted)' }}>Title *</span>
             <input className="field" value={newForm.title} onChange={e => setNewForm(f => ({ ...f, title: e.target.value }))} />
           </label>
           <label className="block">
-            <span className="text-xs text-white/60 mb-1 block">Date &amp; Time</span>
+            <span className="text-xs mb-1 block" style={{ color: 'var(--admin-muted)' }}>Date &amp; Time</span>
             <input type="datetime-local" className="field" value={newForm.event_date} onChange={e => setNewForm(f => ({ ...f, event_date: e.target.value }))} />
           </label>
           <label className="block">
-            <span className="text-xs text-white/60 mb-1 block">Location</span>
+            <span className="text-xs mb-1 block" style={{ color: 'var(--admin-muted)' }}>Location</span>
             <input className="field" value={newForm.location_text} onChange={e => setNewForm(f => ({ ...f, location_text: e.target.value }))} />
           </label>
           <label className="block">
-            <span className="text-xs text-white/60 mb-1 block">Registration URL</span>
+            <span className="text-xs mb-1 block" style={{ color: 'var(--admin-muted)' }}>Registration URL</span>
             <input type="url" className="field" value={newForm.registration_url} onChange={e => setNewForm(f => ({ ...f, registration_url: e.target.value }))} />
           </label>
           <label className="block sm:col-span-2">
-            <span className="text-xs text-white/60 mb-1 block">Note (optional)</span>
+            <span className="text-xs mb-1 block" style={{ color: 'var(--admin-muted)' }}>Note (optional)</span>
             <input className="field" placeholder="e.g. Hosted by Zawaaj – The Blessed Choice. 11am–1pm." value={newForm.attendance_note} onChange={e => setNewForm(f => ({ ...f, attendance_note: e.target.value }))} />
           </label>
         </div>
-        <p className="text-xs text-white/30 mt-3">Past dates are automatically saved as ended events in history.</p>
+        <p className="text-xs mt-3" style={{ color: 'var(--admin-muted)' }}>Past dates are automatically saved as ended events in history.</p>
         <button onClick={createEvent} disabled={!newForm.title || creating}
           className="mt-4 px-5 py-2.5 rounded-xl text-sm font-medium bg-surface-2 text-gold hover:bg-surface-3 disabled:opacity-50">
           {creating ? 'Creating…' : 'Create Event'}
@@ -1999,24 +1999,24 @@ function EventsTab({ events, onRefresh }: { events: ZawaajEvent[]; onRefresh: ()
 
       {/* Event List */}
       {events.length === 0 && (
-        <p className="text-white/30 py-8 text-center text-sm">No events yet.</p>
+        <p className="py-8 text-center text-sm" style={{ color: 'var(--admin-muted)' }}>No events yet.</p>
       )}
       <div className="space-y-3">
         {events.map(ev => (
-          <div key={ev.id} className="bg-surface-2 rounded-2xl border border-white/10 overflow-hidden">
+          <div key={ev.id} className="bg-surface-2 rounded-2xl overflow-hidden" style={{ border: '1px solid var(--admin-border)' }}>
             <div className="p-5 flex flex-col sm:flex-row sm:items-center gap-3">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-semibold text-white">{ev.title}</span>
+                  <span className="font-semibold" style={{ color: 'var(--admin-text)' }}>{ev.title}</span>
                   <StatusBadge status={ev.status} />
                 </div>
-                <div className="flex flex-wrap gap-x-3 mt-1 text-sm text-white/60">
+                <div className="flex flex-wrap gap-x-3 mt-1 text-sm" style={{ color: 'var(--admin-muted)' }}>
                   {ev.event_date && <span>{fmtDate(ev.event_date)}</span>}
                   {ev.location_text && <span>{ev.location_text}</span>}
                 </div>
               </div>
               <div className="flex flex-wrap gap-2 flex-shrink-0">
-                <label className="flex items-center gap-1.5 text-xs text-white/70 cursor-pointer">
+                <label className="flex items-center gap-1.5 text-xs cursor-pointer" style={{ color: 'var(--admin-muted)' }}>
                   <input
                     type="checkbox"
                     checked={ev.show_in_history}
@@ -2027,13 +2027,13 @@ function EventsTab({ events, onRefresh }: { events: ZawaajEvent[]; onRefresh: ()
                 </label>
                 {ev.status === 'upcoming' && (
                   <button onClick={() => markEnded(ev.id)}
-                    className="px-2.5 py-1 rounded-lg text-xs border border-white/10 text-white/70 hover:bg-white/5">
+                    className="px-2.5 py-1 rounded-lg text-xs hover:bg-white/5" style={{ border: '1px solid var(--admin-border)', color: 'var(--admin-muted)' }}>
                     Mark ended
                   </button>
                 )}
                 {ev.status !== 'archived' && (
                   <button onClick={() => archive(ev.id)}
-                    className="px-2.5 py-1 rounded-lg text-xs border border-white/10 text-white hover:bg-white/5">
+                    className="px-2.5 py-1 rounded-lg text-xs hover:bg-white/5" style={{ border: '1px solid var(--admin-border)', color: 'var(--admin-text)' }}>
                     Archive
                   </button>
                 )}
@@ -2044,9 +2044,9 @@ function EventsTab({ events, onRefresh }: { events: ZawaajEvent[]; onRefresh: ()
               </div>
             </div>
             {/* Core details edit */}
-            <div className="px-5 py-3 border-t border-white/10 bg-surface-3 grid sm:grid-cols-3 gap-3">
+            <div className="px-5 py-3 bg-surface-3 grid sm:grid-cols-3 gap-3" style={{ borderTop: '1px solid var(--admin-border)' }}>
               <div className="flex items-center gap-1.5">
-                <span className="text-xs text-white/40 flex-shrink-0 w-12">Title:</span>
+                <span className="text-xs flex-shrink-0 w-12" style={{ color: 'var(--admin-muted)' }}>Title:</span>
                 <input
                   className="field text-xs py-1 flex-1"
                   defaultValue={ev.title}
@@ -2054,7 +2054,7 @@ function EventsTab({ events, onRefresh }: { events: ZawaajEvent[]; onRefresh: ()
                 />
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="text-xs text-white/40 flex-shrink-0 w-12">Date:</span>
+                <span className="text-xs flex-shrink-0 w-12" style={{ color: 'var(--admin-muted)' }}>Date:</span>
                 <input
                   type="datetime-local"
                   className="field text-xs py-1 flex-1"
@@ -2063,7 +2063,7 @@ function EventsTab({ events, onRefresh }: { events: ZawaajEvent[]; onRefresh: ()
                 />
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="text-xs text-white/40 flex-shrink-0 w-14">Location:</span>
+                <span className="text-xs flex-shrink-0 w-14" style={{ color: 'var(--admin-muted)' }}>Location:</span>
                 <input
                   className="field text-xs py-1 flex-1"
                   defaultValue={ev.location_text ?? ''}
@@ -2076,8 +2076,8 @@ function EventsTab({ events, onRefresh }: { events: ZawaajEvent[]; onRefresh: ()
               </div>
             </div>
             {/* URL edit */}
-            <div className="px-5 py-3 border-t border-white/10 bg-surface-3 flex items-center gap-2">
-              <span className="text-xs text-white/50 flex-shrink-0">Registration URL:</span>
+            <div className="px-5 py-3 bg-surface-3 flex items-center gap-2" style={{ borderTop: '1px solid var(--admin-border)' }}>
+              <span className="text-xs flex-shrink-0" style={{ color: 'var(--admin-muted)' }}>Registration URL:</span>
               <input
                 className="field flex-1 text-xs py-1"
                 defaultValue={ev.registration_url ?? ''}
@@ -2091,8 +2091,8 @@ function EventsTab({ events, onRefresh }: { events: ZawaajEvent[]; onRefresh: ()
             </div>
             {/* Attendance note (only for ended/archived) */}
             {(ev.status === 'ended' || ev.status === 'archived') && (
-              <div className="px-5 py-3 border-t border-white/10 bg-surface-3 flex items-center gap-2">
-                <span className="text-xs text-white/50 flex-shrink-0">Attendance note:</span>
+              <div className="px-5 py-3 bg-surface-3 flex items-center gap-2" style={{ borderTop: '1px solid var(--admin-border)' }}>
+                <span className="text-xs flex-shrink-0" style={{ color: 'var(--admin-muted)' }}>Attendance note:</span>
                 <input
                   className="field flex-1 text-xs py-1"
                   defaultValue={ev.attendance_note ?? ''}
@@ -2156,14 +2156,14 @@ function OrphanedTab() {
     }
   }
 
-  if (loading) return <div className="py-16 text-center text-white/30 text-sm">Loading…</div>
+  if (loading) return <div className="py-16 text-center text-sm" style={{ color: 'var(--admin-muted)' }}>Loading…</div>
   if (fetchError) return <div className="py-16 text-center text-red-400 text-sm">{fetchError}</div>
 
   if (orphaned.length === 0) {
     return (
       <div className="py-16 text-center">
         <div className="text-2xl mb-3">✅</div>
-        <p className="text-white/30 text-sm">No orphaned accounts — every auth user has a linked profile.</p>
+        <p className="text-sm" style={{ color: 'var(--admin-muted)' }}>No orphaned accounts — every auth user has a linked profile.</p>
       </div>
     )
   }
@@ -2179,13 +2179,13 @@ function OrphanedTab() {
 
       <div className="space-y-3">
         {orphaned.map(u => (
-          <div key={u.id} className="bg-surface-2 rounded-2xl p-5 border border-white/10 flex items-center gap-4">
-            <div className="w-10 h-10 rounded-full bg-surface-3 border border-white/10 flex items-center justify-center text-white/30 text-sm flex-shrink-0">
+          <div key={u.id} className="bg-surface-2 rounded-2xl p-5 flex items-center gap-4" style={{ border: '1px solid var(--admin-border)' }}>
+            <div className="w-10 h-10 rounded-full bg-surface-3 flex items-center justify-center text-sm flex-shrink-0" style={{ border: '1px solid var(--admin-border)', color: 'var(--admin-muted)' }}>
               ?
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-sm font-medium text-white truncate">{u.email ?? '(no email)'}</div>
-              <div className="flex flex-wrap gap-x-4 gap-y-0.5 mt-1 text-xs text-white/40">
+              <div className="text-sm font-medium truncate" style={{ color: 'var(--admin-text)' }}>{u.email ?? '(no email)'}</div>
+              <div className="flex flex-wrap gap-x-4 gap-y-0.5 mt-1 text-xs" style={{ color: 'var(--admin-muted)' }}>
                 <span>ID: {u.id.slice(0, 8)}…</span>
                 <span>Created: {new Date(u.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                 {u.last_sign_in_at && (
@@ -2289,8 +2289,8 @@ function ImportTab() {
       <div className="bg-gold-muted border border-gold/30 rounded-2xl p-5 flex items-center gap-5">
         <div className="text-3xl">📥</div>
         <div className="flex-1">
-          <p className="font-semibold text-white mb-1">New: CSV Import Tool</p>
-          <p className="text-sm text-white/50">Upload a CSV, preview validation errors, then run the real import to create member accounts automatically.</p>
+          <p className="font-semibold mb-1" style={{ color: 'var(--admin-text)' }}>New: CSV Import Tool</p>
+          <p className="text-sm" style={{ color: 'var(--admin-muted)' }}>Upload a CSV, preview validation errors, then run the real import to create member accounts automatically.</p>
         </div>
         <Link href="/admin/import"
           className="flex-shrink-0 px-4 py-2.5 rounded-xl text-sm font-semibold bg-gold text-black hover:bg-gold-hover transition-colors">
@@ -2299,8 +2299,8 @@ function ImportTab() {
       </div>
 
       <div>
-        <h2 className="text-lg font-semibold text-white mb-1">SQL Import Reference</h2>
-        <p className="text-white/50 text-sm">
+        <h2 className="text-lg font-semibold mb-1" style={{ color: 'var(--admin-text)' }}>SQL Import Reference</h2>
+        <p className="text-sm" style={{ color: 'var(--admin-muted)' }}>
           Manual SQL import via the Supabase SQL Editor. Profiles with a matching{' '}
           <code className="bg-white/10 px-1 rounded text-xs">imported_email</code>{' '}
           will be automatically linked when that member registers.
@@ -2314,7 +2314,7 @@ function ImportTab() {
             n: 1,
             title: 'Open the SQL Editor',
             body: (
-              <p className="text-sm text-white/50">
+              <p className="text-sm" style={{ color: 'var(--admin-muted)' }}>
                 Go to{' '}
                 <a
                   href="https://supabase.com/dashboard/project/nxytwfbzoxatyupqccba/sql/new"
@@ -2332,16 +2332,16 @@ function ImportTab() {
             title: 'Use INSERT statements',
             body: (
               <div>
-                <p className="text-sm text-white/50 mb-3">
+                <p className="text-sm mb-3" style={{ color: 'var(--admin-muted)' }}>
                   One INSERT per profile row. Copy this example as a starting template:
                 </p>
                 <div className="relative">
-                  <pre className="bg-surface border border-white/10 rounded-xl p-4 text-xs text-white/70 overflow-x-auto whitespace-pre-wrap">
+                  <pre className="bg-surface rounded-xl p-4 text-xs overflow-x-auto whitespace-pre-wrap" style={{ border: '1px solid var(--admin-border)', color: 'var(--admin-muted)' }}>
                     {sqlTemplate}
                   </pre>
                   <button
                     onClick={() => copyToClipboard(sqlTemplate, 'sql')}
-                    className="absolute top-2 right-2 px-2.5 py-1 rounded-lg text-xs bg-white/10 text-white/60 hover:bg-white/20 transition-colors"
+                    className="absolute top-2 right-2 px-2.5 py-1 rounded-lg text-xs hover:bg-white/20 transition-colors" style={{ background: 'var(--surface-3)', color: 'var(--admin-muted)' }}
                   >
                     {copied === 'sql' ? '✓ Copied' : 'Copy'}
                   </button>
@@ -2353,8 +2353,8 @@ function ImportTab() {
             n: 3,
             title: 'Review imported profiles',
             body: (
-              <p className="text-sm text-white/50">
-                After importing, use the <strong className="text-white/70">Members</strong> tab to review
+              <p className="text-sm" style={{ color: 'var(--admin-muted)' }}>
+                After importing, use the <strong style={{ color: 'var(--admin-text)' }}>Members</strong> tab to review
                 each imported profile. Profiles set to{' '}
                 <code className="bg-white/10 px-1 rounded text-xs">approved</code> will be visible
                 immediately when they register and log in.
@@ -2365,7 +2365,7 @@ function ImportTab() {
             n: 4,
             title: 'When members register',
             body: (
-              <p className="text-sm text-white/50">
+              <p className="text-sm" style={{ color: 'var(--admin-muted)' }}>
                 If a registering member&apos;s email matches an{' '}
                 <code className="bg-white/10 px-1 rounded text-xs">imported_email</code>,
                 their account is automatically linked to the imported profile. Their wizard data
@@ -2376,11 +2376,11 @@ function ImportTab() {
           },
         ].map(step => (
           <div key={step.n} className="flex gap-4">
-            <div className="w-7 h-7 rounded-full bg-surface-3 border border-white/10 flex items-center justify-center text-xs font-semibold text-gold flex-shrink-0 mt-0.5">
+            <div className="w-7 h-7 rounded-full bg-surface-3 flex items-center justify-center text-xs font-semibold text-gold flex-shrink-0 mt-0.5" style={{ border: '1px solid var(--admin-border)' }}>
               {step.n}
             </div>
             <div className="flex-1">
-              <div className="text-sm font-medium text-white mb-1.5">{step.title}</div>
+              <div className="text-sm font-medium mb-1.5" style={{ color: 'var(--admin-text)' }}>{step.title}</div>
               {step.body}
             </div>
           </div>
@@ -2389,28 +2389,28 @@ function ImportTab() {
 
       {/* Column reference */}
       <div>
-        <div className="text-xs font-medium uppercase tracking-widest text-white/30 mb-3">Column reference</div>
-        <div className="bg-surface-2 border border-white/10 rounded-xl overflow-hidden">
+        <div className="text-xs font-medium uppercase tracking-widest mb-3" style={{ color: 'var(--admin-muted)' }}>Column reference</div>
+        <div className="bg-surface-2 rounded-xl overflow-hidden" style={{ border: '1px solid var(--admin-border)' }}>
           <table className="w-full text-xs">
             <thead>
-              <tr className="border-b border-white/10">
-                <th className="text-left px-4 py-2.5 text-white/40 font-medium">Column</th>
-                <th className="text-left px-4 py-2.5 text-white/40 font-medium">Required</th>
-                <th className="text-left px-4 py-2.5 text-white/40 font-medium">Notes</th>
+              <tr style={{ borderBottom: '1px solid var(--admin-border)' }}>
+                <th className="text-left px-4 py-2.5 font-medium" style={{ color: 'var(--admin-muted)' }}>Column</th>
+                <th className="text-left px-4 py-2.5 font-medium" style={{ color: 'var(--admin-muted)' }}>Required</th>
+                <th className="text-left px-4 py-2.5 font-medium" style={{ color: 'var(--admin-muted)' }}>Notes</th>
               </tr>
             </thead>
             <tbody>
               {csvColumns.map((c, i) => (
                 <tr key={c.col} className={i % 2 === 0 ? 'bg-white/[0.02]' : ''}>
-                  <td className="px-4 py-2 font-mono text-white/70">{c.col}</td>
+                  <td className="px-4 py-2 font-mono" style={{ color: 'var(--admin-muted)' }}>{c.col}</td>
                   <td className="px-4 py-2">
                     {c.req ? (
                       <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-900/40 text-amber-400">Required</span>
                     ) : (
-                      <span className="text-white/20">—</span>
+                      <span style={{ color: 'var(--admin-muted)' }}>—</span>
                     )}
                   </td>
-                  <td className="px-4 py-2 text-white/40">{c.note}</td>
+                  <td className="px-4 py-2" style={{ color: 'var(--admin-muted)' }}>{c.note}</td>
                 </tr>
               ))}
             </tbody>
@@ -2515,7 +2515,7 @@ export default function AdminPage() {
   if (!accessChecked) {
     return (
       <div className="min-h-screen bg-surface flex items-center justify-center">
-        <p className="text-white/30 text-sm">Checking access…</p>
+        <p className="text-sm" style={{ color: 'var(--admin-muted)' }}>Checking access…</p>
       </div>
     )
   }
@@ -2523,10 +2523,10 @@ export default function AdminPage() {
   if (!isAdmin) {
     return (
       <div className="min-h-screen bg-surface flex flex-col items-center justify-center gap-4">
-        <div className="bg-surface-2 rounded-2xl p-10 border border-white/10 text-center max-w-sm mx-4">
+        <div className="bg-surface-2 rounded-2xl p-10 text-center max-w-sm mx-4" style={{ border: '1px solid var(--admin-border)' }}>
           <p className="text-2xl mb-2">🔒</p>
-          <h1 className="text-xl font-semibold text-white mb-2">Access Denied</h1>
-          <p className="text-white/50 text-sm mb-6">You do not have admin access to this page.</p>
+          <h1 className="text-xl font-semibold mb-2" style={{ color: 'var(--admin-text)' }}>Access Denied</h1>
+          <p className="text-sm mb-6" style={{ color: 'var(--admin-muted)' }}>You do not have admin access to this page.</p>
           <Link href="/browse" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium bg-surface-2 text-gold hover:bg-surface-3">
             Return to Browse
           </Link>
