@@ -105,7 +105,7 @@ const VALUES = [
   {
     title: 'Faith-centred',
     body: 'Built for practising Muslims seeking a serious commitment. We respect your values and your wali.',
-    icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a7 7 0 1 0 0 14A7 7 0 0 0 12 2z" clipPath="url(#c)"/><path d="M17.5 6.5a5 5 0 1 1-7 7" /><path d="M15 8l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" strokeWidth="1.4"/></svg>,
+    icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2c-2 0-3.5 1.8-3.5 3.5H15.5C15.5 3.8 14 2 12 2Z"/><rect x="3.5" y="7" width="3" height="13" rx="0.5"/><path d="M3.5 7c0-1.3 3-1.3 3 0"/><rect x="17.5" y="7" width="3" height="13" rx="0.5"/><path d="M17.5 7c0-1.3 3-1.3 3 0"/><rect x="8.5" y="5.5" width="7" height="14.5" rx="0.5"/><path d="M10 20c0-2 4-2 4 0"/><line x1="2" y1="20" x2="22" y2="20"/></svg>,
   },
   {
     title: 'Community trust',
@@ -142,7 +142,7 @@ const FAQS = [
   },
   {
     q: 'Is there a free option?',
-    a: `Yes. The Voluntary tier gives you full access to browse profiles and send ${PLAN_CONFIG.free.monthlyLimit} interest expressions per month — completely free. Paid plans add more expressions and visibility features.`,
+    a: `Yes. The Community Access tier gives you full access to browse profiles and send ${PLAN_CONFIG.free.monthlyLimit} interest expressions per month — completely free. Our Premium plan adds more expressions and visibility features.`,
   },
 ]
 
@@ -462,8 +462,10 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
         <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
           {HOW_IT_WORKS.map(s => (
             <div key={s.n} className="bg-surface-2 rounded-2xl p-6 border border-white/8">
-              <div style={{ fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 700, marginBottom: 8, textAlign: 'center' }}>
-                Step No. {s.n}
+              <div style={{ marginBottom: 10 }}>
+                <span style={{ fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 700, background: 'rgba(184,150,12,0.12)', border: '1px solid rgba(184,150,12,0.25)', borderRadius: 999, padding: '3px 10px', display: 'inline-block' }}>
+                  Step {s.n}
+                </span>
               </div>
               <p className="font-semibold text-white mb-2">{s.title}</p>
               <p className="text-sm text-white/50 leading-relaxed">{s.body}</p>
@@ -522,25 +524,20 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
           {PLANS.filter(p => !p.hidden).map(p => <PlanCard key={p.key} plan={p} annual={annual} />)}
         </div>
 
-        {/* Compact comparison — hidden on mobile */}
-        <div className="hidden md:block bg-surface-2 rounded-2xl border border-white/10 overflow-hidden max-w-2xl mx-auto">
-          <div className="grid grid-cols-3 text-xs font-semibold text-white/40 uppercase tracking-wide px-6 py-3 bg-surface-3 border-b border-white/8">
+        {/* Compact comparison — visible on all screens */}
+        <div className="bg-surface-2 rounded-2xl border border-white/10 overflow-x-auto max-w-2xl mx-auto">
+          <div className="grid grid-cols-3 text-xs font-semibold text-white/40 uppercase tracking-wide px-6 py-3 bg-surface-3 border-b border-white/8 min-w-[380px]">
             <span className="col-span-1">Feature</span>
-            <span className="text-center">Voluntary</span>
+            <span className="text-center">Community Access</span>
             <span className="text-center">Premium</span>
           </div>
           {COMPACT_COMPARISON.map((row, i) => (
-            <div key={row.feature} className={`grid grid-cols-3 px-6 py-3 text-sm ${i % 2 === 0 ? '' : 'bg-white/2'}`}>
+            <div key={row.feature} className={`grid grid-cols-3 px-6 py-3 text-sm min-w-[380px] ${i % 2 === 0 ? '' : 'bg-white/2'}`}>
               <span className="text-white/60 col-span-1">{row.feature}</span>
               <span className="text-center text-white/50">{row.free}</span>
               <span className="text-center text-gold font-medium">{row.premium}</span>
             </div>
           ))}
-          <div className="px-6 py-3 border-t border-white/8 text-center">
-            <Link href="/pricing" className="text-sm text-gold hover:underline">
-              View full comparison →
-            </Link>
-          </div>
         </div>
       </section>
 
@@ -548,7 +545,7 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
       <section className="bg-surface-2 border-y border-white/8">
         <div className="max-w-4xl mx-auto px-4 md:px-5 py-12 md:py-24">
           <div className="text-center mb-14">
-            <p className="text-xs font-semibold text-gold uppercase tracking-widest mb-3">Stories</p>
+            <p className="text-xs font-semibold text-gold uppercase tracking-widest mb-3">Testimonials</p>
             <h2 className="text-3xl font-bold text-white">From our community</h2>
           </div>
           <div className="grid md:grid-cols-3 gap-5">

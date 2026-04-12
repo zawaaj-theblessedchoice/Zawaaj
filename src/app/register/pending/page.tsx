@@ -78,8 +78,8 @@ function PendingContent() {
           }}
         >
           {isParent
-            ? 'Thank you. Your family account has been submitted for review. Our team will be in touch within 1–2 working days insha\u2019Allah. Once approved you can add profiles for your children and begin the search.'
-            : 'JazakAllahu khairan. Your profile has been submitted for review. Our team will be in touch within 1–2 working days insha\u2019Allah. Your profile will only be visible to other families once approved.'}
+            ? 'JazakAllahu khairan. Your family account has been submitted for review. Our team will be in touch insha\u2019Allah. Once approved you can add profiles for your children and begin the search.'
+            : 'JazakAllahu khairan. Your profile has been submitted for review. Our team will be in touch insha\u2019Allah. Your profile will only be visible to other families once approved.'}
         </p>
       </div>
 

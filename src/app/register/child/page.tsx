@@ -234,6 +234,8 @@ export default function RegisterChildPage() {
   const [form, setForm] = useState<FormData>(EMPTY)
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   function set<K extends keyof FormData>(key: K, value: FormData[K]) {
     setForm(prev => ({ ...prev, [key]: value }))
@@ -419,12 +421,32 @@ export default function RegisterChildPage() {
                 onChange={e => set('email', e.target.value)} style={inputStyle} autoComplete="email" />
             </Field>
             <Field label="Password" required>
-              <input type="password" placeholder="At least 8 characters" value={form.password}
-                onChange={e => set('password', e.target.value)} style={inputStyle} autoComplete="new-password" />
+              <div style={{ position: 'relative' }}>
+                <input type={showPassword ? 'text' : 'password'} placeholder="At least 8 characters" value={form.password}
+                  onChange={e => set('password', e.target.value)} style={{ ...inputStyle, paddingRight: 40 }} autoComplete="new-password" />
+                <button type="button" onClick={() => setShowPassword(p => !p)}
+                  style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: showPassword ? 'var(--gold)' : 'rgba(255,255,255,0.35)', display: 'flex', alignItems: 'center' }}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}>
+                  {showPassword
+                    ? <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                    : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  }
+                </button>
+              </div>
             </Field>
             <Field label="Confirm password" required>
-              <input type="password" placeholder="Repeat password" value={form.confirmPassword}
-                onChange={e => set('confirmPassword', e.target.value)} style={inputStyle} autoComplete="new-password" />
+              <div style={{ position: 'relative' }}>
+                <input type={showConfirmPassword ? 'text' : 'password'} placeholder="Repeat password" value={form.confirmPassword}
+                  onChange={e => set('confirmPassword', e.target.value)} style={{ ...inputStyle, paddingRight: 40 }} autoComplete="new-password" />
+                <button type="button" onClick={() => setShowConfirmPassword(p => !p)}
+                  style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: showConfirmPassword ? 'var(--gold)' : 'rgba(255,255,255,0.35)', display: 'flex', alignItems: 'center' }}
+                  aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}>
+                  {showConfirmPassword
+                    ? <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                    : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  }
+                </button>
+              </div>
             </Field>
           </div>
         )}
@@ -817,15 +839,16 @@ export default function RegisterChildPage() {
         {/* ── Step 5: Terms ─────────────────────────────────────────────── */}
         {step === 5 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <div
-              style={{
-                padding: '14px 16px', borderRadius: 8,
-                background: 'var(--surface-3)',
-                border: '0.5px solid var(--border-default)',
-                fontSize: 12.5, color: 'var(--text-muted)', lineHeight: 1.6,
-              }}
-            >
-              Your profile will be submitted for review. Our team will be in touch within 1–2 working days insha&apos;Allah. Your profile will only be visible to other families once approved.
+            {/* Islamic oath */}
+            <div style={{ padding: '14px 16px', borderRadius: 8, background: 'rgba(184,150,12,0.05)', border: '0.5px solid rgba(184,150,12,0.2)', textAlign: 'center' }}>
+              <p style={{ fontSize: 15, color: 'var(--gold)', fontWeight: 600, margin: '0 0 8px', letterSpacing: '0.03em' }}>بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ</p>
+              <p style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.65, margin: 0 }}>
+                In the name of Allah, the Most Gracious, the Most Merciful.<br />
+                I affirm, with Allah (SWT) as my witness, that all information I have provided is truthful and accurate to the best of my knowledge, that my intentions are honourable, and that I seek to use this platform in good faith and in accordance with Islamic principles.
+              </p>
+            </div>
+            <div style={{ padding: '12px 14px', borderRadius: 8, background: 'var(--surface-3)', border: '0.5px solid var(--border-default)', fontSize: 12.5, color: 'var(--text-muted)', lineHeight: 1.6 }}>
+              Your profile will be submitted for review. Our team will be in touch insha&apos;Allah. Your profile will only be visible to other families once approved.
             </div>
             <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', cursor: 'pointer' }}>
               <input type="checkbox" checked={form.termsAgreed}
@@ -841,7 +864,7 @@ export default function RegisterChildPage() {
                 onChange={e => set('detailsAccurate', e.target.checked)}
                 style={{ marginTop: 3, flexShrink: 0 }} />
               <span style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                I confirm my contact details and my guardian's details are accurate
+                I confirm all details provided are accurate and I make this declaration sincerely before Allah (SWT)
               </span>
             </label>
             <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', cursor: 'pointer' }}>

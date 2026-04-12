@@ -102,7 +102,7 @@ export const INTRO_EXPIRY_DAYS = 7
 // ─── UI labels ────────────────────────────────────────────────────────────────
 
 export const PLAN_LABELS: Record<Plan, string> = {
-  free:    'Voluntary',
+  free:    'Community Access',
   plus:    'Zawaaj Plus',
   premium: 'Zawaaj Premium',
 }

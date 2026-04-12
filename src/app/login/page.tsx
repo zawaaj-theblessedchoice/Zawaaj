@@ -37,23 +37,14 @@ export default function LoginPage() {
     <main data-theme="dark" className="min-h-screen flex items-center justify-center px-4" style={{ background: 'var(--surface)' }}>
       <div className="w-full max-w-md">
 
-        {/* Logo — large, centred, overlapping the top of the card */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', zIndex: 1, marginBottom: -80, marginTop: -40 }}>
-          <div style={{
-            background: 'radial-gradient(ellipse 70% 60% at 50% 60%, rgba(184,150,12,0.20) 0%, transparent 80%)',
-            padding: '0 24px 8px',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: 10,
-          }}>
-            <ZawaajLogo height={320} />
-          </div>
+        {/* Logo — centred above the card */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
+          <ZawaajLogo height={220} />
         </div>
 
         {/* Card */}
         <div
-          className="rounded-xl px-8 pt-24 pb-10"
+          className="rounded-xl px-8 pt-10 pb-10"
           style={{
             backgroundColor: 'var(--surface-2)',
             borderRadius: 16,

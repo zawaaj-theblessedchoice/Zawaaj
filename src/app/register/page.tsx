@@ -22,10 +22,10 @@ export default function RegisterLandingPage() {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: 32,
+          gap: 16,
         }}
       >
-        <ZawaajLogo height={320} />
+        <ZawaajLogo height={220} />
 
         <div style={{ textAlign: 'center' }}>
           <h1
