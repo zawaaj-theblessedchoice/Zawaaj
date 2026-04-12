@@ -220,23 +220,52 @@ export async function POST(req: NextRequest): Promise<Response> {
       const prefAgeMax      = prefAgeMaxRaw !== '' ? parseInt(prefAgeMaxRaw, 10) || null : null
       const now             = new Date().toISOString()
 
-      // ── 1. Create auth user ──────────────────────────────────────────────────
+      // ── 1. Create auth user (or link to existing on retry) ──────────────────
+      let newUserId: string
+      let isNewAuthUser = false
+
       const { data: authUser, error: authErr } = await supabaseAdmin.auth.admin.createUser({
         email,
         email_confirm: true,
       })
 
-      if (authErr || !authUser.user) {
-        results.push({
-          row: rowNum,
-          email,
-          success: false,
-          error: authErr?.message ?? 'Failed to create auth user',
-        })
-        continue
-      }
+      if (authUser?.user) {
+        newUserId    = authUser.user.id
+        isNewAuthUser = true
+      } else {
+        // Detect duplicate-email error and attempt to link to the existing user
+        const isDuplicate =
+          authErr?.message?.toLowerCase().includes('already') ||
+          authErr?.message?.toLowerCase().includes('registered')
 
-      const newUserId = authUser.user.id
+        if (!isDuplicate) {
+          results.push({ row: rowNum, email, success: false, error: authErr?.message ?? 'Failed to create auth user' })
+          continue
+        }
+
+        // Find the pre-existing auth user
+        const { data: { users } } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 })
+        const existingAuthUser = users.find(u => u.email?.toLowerCase() === email.toLowerCase())
+
+        if (!existingAuthUser) {
+          results.push({ row: rowNum, email, success: false, error: 'User already registered but could not be located — please delete from Auth and retry' })
+          continue
+        }
+
+        // Check for an existing profile so we do not create a duplicate
+        const { data: existingProfile } = await supabaseAdmin
+          .from('zawaaj_profiles')
+          .select('id')
+          .eq('user_id', existingAuthUser.id)
+          .maybeSingle()
+
+        if (existingProfile) {
+          results.push({ row: rowNum, email, success: false, error: 'Profile already exists for this email — skipped' })
+          continue
+        }
+
+        newUserId = existingAuthUser.id
+      }
 
       // ── 2. Insert profile ────────────────────────────────────────────────────
       const profilePayload: Record<string, unknown> = {
@@ -288,8 +317,8 @@ export async function POST(req: NextRequest): Promise<Response> {
         .single()
 
       if (profileErr || !profile) {
-        // Roll back auth user so the email is not consumed
-        await supabaseAdmin.auth.admin.deleteUser(newUserId)
+        // Roll back auth user only if we created it — don't delete a pre-existing account
+        if (isNewAuthUser) await supabaseAdmin.auth.admin.deleteUser(newUserId)
         results.push({
           row: rowNum,
           email,
