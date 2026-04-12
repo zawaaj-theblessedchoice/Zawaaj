@@ -79,17 +79,17 @@ const COMPACT_COMPARISON = [
 ]
 
 const HOW_IT_WORKS = [
-  { n: 1, title: 'Create your family account', body: 'A parent, guardian, or candidate registers. The primary contact for all introductions is always a mother or female guardian.' },
-  { n: 2, title: 'Admin review', body: 'Our team reviews every profile personally before it goes live — keeping the community trusted.' },
-  { n: 3, title: 'Express interest', body: 'When a profile feels right, express interest. The other family is notified and invited to respond. No contact details are shared at this stage.' },
-  { n: 4, title: 'Families connected', body: 'When both families accept, our team verifies the contacts and connects the mothers directly. Only then are details shared.' },
-  { n: 5, title: 'Mutual match', body: 'When both parties express interest, the admin is notified and facilitates the introduction.' },
-  { n: 6, title: 'Admin introduces families', body: 'Contact details are shared only with explicit consent from both families — never directly between members.' },
+  { n: 1, title: 'Create your family account', body: 'A parent, guardian, or the candidate themselves registers. The primary point of contact throughout is always a mother or female guardian.' },
+  { n: 2, title: 'Admin review', body: 'Our team personally reviews every profile before it goes live — keeping the platform trusted and the community high quality.' },
+  { n: 3, title: 'Browse & express interest', body: 'When a profile feels right, express interest. One-sided interest remains completely private — the other family is not notified at this stage.' },
+  { n: 4, title: 'Mutual interest', body: 'When both families have independently expressed interest in each other, our admin team is notified.' },
+  { n: 5, title: 'Admin reaches out', body: 'Our team contacts both families separately to introduce the situation and learn whether they\'d like to proceed.' },
+  { n: 6, title: 'Introduction made', body: 'If both families are ready, our admin connects the mothers directly. Contact details are only shared at this final stage.' },
 ]
 
 const VALUES = [
   { title: 'Halal by design', body: 'No direct messaging. No photos. No swiping. Every introduction goes through our admin team.' },
-  { title: 'Privacy first', body: 'Contact details are never shared without explicit verbal consent from both families.' },
+  { title: 'Privacy first', body: 'Contact details are never shared until both families are ready to proceed — coordinated personally by our team.' },
   { title: 'Faith-centred', body: 'Built for practising Muslims seeking a serious commitment. We respect your values and your wali.' },
   { title: 'Community trust', body: 'Every profile is manually reviewed. We keep the platform small, safe, and high quality.' },
   { title: 'Family-first by design', body: 'Every introduction connects families, not just individuals. The mother or female guardian is always the point of contact — keeping the process rooted in respect and Islamic tradition.' },
@@ -98,7 +98,7 @@ const VALUES = [
 const FAQS = [
   {
     q: 'How is Zawaaj different from other matrimonial apps?',
-    a: 'Zawaaj has no direct messaging and no photo sharing between members. Every introduction is mediated by our admin team, with explicit consent from both families before any contact details are exchanged.',
+    a: 'There is no direct messaging and no photo sharing between members. Every introduction is personally coordinated by our admin team — families speak to families, not strangers to strangers.',
   },
   {
     q: 'Who reviews the profiles?',
@@ -106,11 +106,11 @@ const FAQS = [
   },
   {
     q: 'Can I see who expressed interest in me?',
-    a: 'One-sided interest is completely private. You\'ll only be notified if there\'s a mutual match — both parties expressed interest within 30 days.',
+    a: 'One-sided interest is completely private — the other family is never notified. You are only informed when interest is mutual and our team is ready to facilitate.',
   },
   {
     q: 'How does the introduction work?',
-    a: 'When there\'s a mutual match, our admin contacts both families separately, confirms verbal consent, and then shares contact details. No contact is ever made without consent.',
+    a: 'When interest is mutual, our admin team reaches out to both families separately. If both are ready to proceed, we connect the mothers directly and facilitate the introduction personally.',
   },
   {
     q: 'What if I want to pause or withdraw?',
