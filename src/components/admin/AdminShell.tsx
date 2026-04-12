@@ -14,6 +14,17 @@ interface Props {
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 
+function OperationsIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
+      <rect x="1" y="1" width="5" height="3" rx="1" stroke="currentColor" strokeWidth="1.3" />
+      <rect x="1" y="6" width="5" height="3" rx="1" stroke="currentColor" strokeWidth="1.3" />
+      <rect x="1" y="11" width="5" height="2" rx="1" stroke="currentColor" strokeWidth="1.3" />
+      <path d="M8.5 2.5h4M8.5 7.5h4M8.5 12h4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+    </svg>
+  )
+}
+
 function DashboardIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
@@ -105,6 +116,7 @@ const NAV_SECTIONS = [
     label: 'Dashboard',
     items: [
       { href: '/admin',               label: 'Dashboard',     icon: <DashboardIcon />,     superOnly: true  },
+      { href: '/admin/operations',    label: 'Operations',    icon: <OperationsIcon />,    superOnly: true  },
     ],
   },
   {
