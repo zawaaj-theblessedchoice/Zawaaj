@@ -90,6 +90,18 @@ function validateRow(headers: string[], values: string[]): string | null {
   return null
 }
 
+// ─── Normalise religiosity to accepted enum values ───────────────────────────
+
+function normaliseReligiosity(raw: string): string | null {
+  const v = raw.trim().toLowerCase()
+  if (!v) return null
+  if (['steadfast', 'very_practicing', 'very practicing', 'very practising'].includes(v)) return 'steadfast'
+  if (['practising', 'practicing', 'moderately_practising', 'moderately practising', 'moderately practicing'].includes(v)) return 'practising'
+  if (['striving', 'learning', 'still learning / growing', 'still learning'].includes(v)) return 'striving'
+  // cultural / unknown → null (no valid mapping)
+  return null
+}
+
 // ─── Compute display initials from first/last name ────────────────────────────
 
 function computeInitials(first: string, last: string): string {
@@ -286,7 +298,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         education_detail:       institution || null,
         profession_detail:      profession || null,
         location:               location,
-        religiosity:            religiosity || null,
+        religiosity:            religiosity ? normaliseReligiosity(religiosity) : null,
         prayer_regularity:      prayerReg   || null,
         wears_hijab:            gender === 'female' ? wearsHijab : null,
         keeps_beard:            gender === 'male'   ? keepsBeard : null,
