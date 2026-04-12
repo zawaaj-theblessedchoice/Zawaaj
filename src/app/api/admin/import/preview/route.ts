@@ -51,9 +51,24 @@ function parseCSV(text: string): { headers: string[]; rows: string[][] } {
 // ─── Validation helpers ────────────────────────────────────────────────────────
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-const DATE_RE  = /^\d{4}-\d{2}-\d{2}$/
+// Accept YYYY-MM-DD (ISO) or DD/MM/YYYY (UK)
+const DATE_RE_ISO = /^\d{4}-\d{2}-\d{2}$/
+const DATE_RE_UK  = /^\d{2}\/\d{2}\/\d{4}$/
 const VALID_GENDERS  = ['male', 'female']
 const VALID_STATUSES = ['pending', 'approved', 'paused', 'rejected', 'withdrawn', 'suspended', 'introduced']
+
+/** Convert DD/MM/YYYY → YYYY-MM-DD; ISO dates pass through unchanged. */
+function normaliseDOB(dob: string): string {
+  if (DATE_RE_UK.test(dob)) {
+    const [dd, mm, yyyy] = dob.split('/')
+    return `${yyyy}-${mm}-${dd}`
+  }
+  return dob
+}
+
+function isValidDOB(dob: string): boolean {
+  return DATE_RE_ISO.test(dob) || DATE_RE_UK.test(dob)
+}
 
 function validateRow(
   headers: string[],
@@ -76,8 +91,8 @@ function validateRow(
     return `gender must be "male" or "female", got "${gender}"`
   if (status && !VALID_STATUSES.includes(status.toLowerCase()))
     return `invalid status: "${status}"`
-  if (dob && !DATE_RE.test(dob))
-    return `date_of_birth must be YYYY-MM-DD, got "${dob}"`
+  if (dob && !isValidDOB(dob))
+    return `date_of_birth must be YYYY-MM-DD or DD/MM/YYYY, got "${dob}"`
 
   return null
 }
