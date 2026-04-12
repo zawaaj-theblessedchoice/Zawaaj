@@ -29,6 +29,8 @@ export const PLAN_CONFIG = {
     mustHaveFilters:      false,
     // Recommendations — free members see no recommendations
     recommendations:      false,
+    // Family member profiles per account
+    maxFamilyMembers:     1,
   },
   plus: {
     // Section 11: Plus = 15 / month
@@ -49,6 +51,8 @@ export const PLAN_CONFIG = {
     mustHaveFilters:      false,
     // Recommendations — plus members get automated recommendations
     recommendations:      true,
+    // Family member profiles per account
+    maxFamilyMembers:     4,
   },
   premium: {
     // Section 11: Premium = Unlimited
@@ -69,6 +73,8 @@ export const PLAN_CONFIG = {
     mustHaveFilters:      true,
     // Recommendations — premium members get prioritised recommendations
     recommendations:      true,
+    // Family member profiles per account
+    maxFamilyMembers:     4,
   },
 } as const satisfies Record<Plan, {
   monthlyLimit: number
@@ -86,6 +92,7 @@ export const PLAN_CONFIG = {
   advancedFilters: boolean
   mustHaveFilters: boolean
   recommendations: boolean
+  maxFamilyMembers: number
 }>
 
 // ─── Request expiry — applies to all plans ────────────────────────────────────

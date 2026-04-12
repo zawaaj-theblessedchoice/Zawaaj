@@ -27,7 +27,7 @@ const SECTIONS: Array<{
     title: 'Introductions',
     rows: [
       { feature: 'Monthly interest expressions / profile', desc: 'Interest expressions per profile per calendar month', free: '5', plus: '15', premium: 'Unlimited' },
-      { feature: 'Candidate profiles', desc: 'Number of candidate profiles per family account', free: 'Up to 2', plus: 'Up to 4', premium: 'Up to 4' },
+      { feature: 'Candidate profiles', desc: 'Number of candidate profiles per family account', free: '1', plus: 'Up to 4', premium: 'Up to 4' },
       { feature: 'Mutual match notifications', desc: 'Alert when mutual interest confirmed', free: true, plus: true, premium: true },
       { feature: 'Admin-facilitated introduction', desc: 'Admin personally shares contact details on confirmation', free: true, plus: true, premium: true },
       { feature: 'Dedicated manager', desc: 'Named manager assigned to your family account', free: false, plus: false, premium: true },
@@ -66,8 +66,7 @@ export default function PricingPage() {
 
   const plans = [
     { name: 'Voluntary', monthly: 0, annual: 0, highlight: false, ctaLabel: 'Get started', cta: '/signup' },
-    { name: 'Zawaaj Plus', monthly: 9, annual: 7, highlight: true, ctaLabel: 'Get Plus', cta: '/signup' },
-    { name: 'Zawaaj Premium', monthly: 19, annual: 15, highlight: false, ctaLabel: 'Get Premium', cta: '/signup' },
+    { name: 'Zawaaj Premium', monthly: 19, annual: 15, highlight: true, ctaLabel: 'Get Premium', cta: '/signup' },
   ]
 
   return (
@@ -117,7 +116,7 @@ export default function PricingPage() {
         </div>
 
         {/* Price header row */}
-        <div className="grid grid-cols-4 gap-4 mb-2">
+        <div className="grid grid-cols-3 gap-4 mb-2 max-w-2xl mx-auto">
           <div /> {/* feature column spacer */}
           {plans.map(p => {
             const price = annual ? p.annual : p.monthly
@@ -160,19 +159,19 @@ export default function PricingPage() {
         </div>
 
         {/* Full comparison table */}
-        <div className="rounded-2xl border border-white/10 overflow-hidden">
+        <div className="rounded-2xl border border-white/10 overflow-hidden max-w-2xl mx-auto">
           {SECTIONS.map((section, si) => (
             <div key={section.title}>
               {/* Section header */}
-              <div className="grid grid-cols-4 gap-4 px-5 py-3 bg-surface-3 border-t border-white/8">
+              <div className="grid grid-cols-3 gap-4 px-5 py-3 bg-surface-3 border-t border-white/8">
                 <p className="text-xs font-semibold text-white/50 uppercase tracking-wide col-span-1">{section.title}</p>
-                <div className="col-span-3" />
+                <div className="col-span-2" />
               </div>
               {/* Rows */}
               {section.rows.map((row, ri) => (
                 <div
                   key={row.feature}
-                  className={`grid grid-cols-4 gap-4 px-5 py-3.5 items-center ${
+                  className={`grid grid-cols-3 gap-4 px-5 py-3.5 items-center ${
                     si % 2 === 0 && ri % 2 === 0 ? 'bg-surface-2' : 'bg-surface'
                   } border-t border-white/5`}
                 >
@@ -181,7 +180,6 @@ export default function PricingPage() {
                     <p className="text-xs text-white/35 mt-0.5">{row.desc}</p>
                   </div>
                   <div className="text-center"><Cell value={row.free} /></div>
-                  <div className="text-center"><Cell value={row.plus} /></div>
                   <div className="text-center"><Cell value={row.premium} /></div>
                 </div>
               ))}

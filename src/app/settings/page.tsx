@@ -36,7 +36,7 @@ function limitLabel(n: number): string {
 
 const COMPARISON_ROWS = [
   { feature: 'Monthly interest expressions', free: limitLabel(PLAN_CONFIG.free.monthlyLimit),    plus: limitLabel(PLAN_CONFIG.plus.monthlyLimit),    premium: limitLabel(PLAN_CONFIG.premium.monthlyLimit) },
-  { feature: 'Candidate profiles',           free: 'Up to 2',                                    plus: 'Up to 4',                                    premium: 'Up to 4' },
+  { feature: 'Candidate profiles',           free: '1',                                          plus: 'Up to 4',                                    premium: 'Up to 4' },
   { feature: 'Profile boost',                free: '—',                                           plus: '1× / month',                                 premium: 'Weekly' },
   { feature: 'Spotlight listing',            free: '—',                                           plus: '—',                                          premium: '1× / month' },
   { feature: 'Full profile details',         free: 'Summary',                                     plus: '✓',                                          premium: '✓' },
@@ -322,8 +322,8 @@ function SettingsContent() {
                   </div>
 
                   {/* Plan upgrade cards */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
-                    {(['free', 'plus', 'premium'] as const).map(p => {
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
+                    {(['free', 'premium'] as const).map(p => {
                       const price = annual ? PLAN_PRICES[p].annual : PLAN_PRICES[p].monthly
                       const isCurrent = p === currentPlan
                       return (
@@ -376,21 +376,20 @@ function SettingsContent() {
                 <div>
                   <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 12 }}>Full comparison</p>
                   <div style={{ borderRadius: 14, border: '0.5px solid var(--border-default)', overflow: 'hidden' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', background: 'var(--surface-3)', padding: '8px 16px' }}>
-                      {['Feature', 'Free', 'Plus', 'Premium'].map(h => (
+                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', background: 'var(--surface-3)', padding: '8px 16px' }}>
+                      {['Feature', 'Free', 'Premium'].map(h => (
                         <span key={h} style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: h === 'Feature' ? 'left' : 'center' }}>{h}</span>
                       ))}
                     </div>
                     {COMPARISON_ROWS.map((row, i) => (
                       <div key={row.feature} style={{
-                        display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr',
+                        display: 'grid', gridTemplateColumns: '2fr 1fr 1fr',
                         padding: '9px 16px',
                         background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.015)',
                         borderTop: '0.5px solid var(--border-default)',
                       }}>
                         <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{row.feature}</span>
                         <span style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center' }}>{row.free}</span>
-                        <span style={{ fontSize: 12, color: currentPlan === 'plus' ? 'var(--text-primary)' : 'var(--text-secondary)', textAlign: 'center' }}>{row.plus}</span>
                         <span style={{ fontSize: 12, color: currentPlan === 'premium' ? 'var(--gold-light)' : 'var(--text-secondary)', textAlign: 'center', fontWeight: currentPlan === 'premium' ? 500 : 400 }}>{row.premium}</span>
                       </div>
                     ))}

@@ -177,9 +177,7 @@ export default function ProfileModal({
 
   const isOpen = profile !== null
 
-  const displayName = profile
-    ? `${profile.first_name ?? ''} ${profile.last_name ? profile.last_name[0] + '.' : ''}`.trim()
-    : ''
+  const displayName = profile ? profile.display_initials : ''
 
   const age = profile ? calcAge(profile.date_of_birth) : null
 
@@ -484,7 +482,7 @@ export default function ProfileModal({
                     fontWeight: 500,
                   }}
                 >
-                  Express interest in {profile.first_name ?? displayName}?
+                  Express interest in {displayName}?
                 </div>
                 <div
                   style={{

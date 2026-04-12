@@ -42,9 +42,8 @@ export default function UpgradeModal({ trigger, onClose }: UpgradeModalProps) {
   const copy = TRIGGER_COPY[trigger]
 
   const plans = [
-    { key: 'free', name: 'Voluntary',         monthly: 0,  annual: 0,  highlight: false, col: 0 },
-    { key: 'plus',      name: 'Plus',      monthly: 9,  annual: 7,  highlight: trigger === 'intro_limit' || trigger === 'boost' || trigger === 'locked_profile', col: 1 },
-    { key: 'premium',   name: 'Premium',   monthly: 19, annual: 15, highlight: trigger === 'who_viewed' || trigger === 'premium_match', col: 2 },
+    { key: 'free',    name: 'Voluntary', monthly: 0,  annual: 0,  highlight: false, col: 0 },
+    { key: 'premium', name: 'Premium',   monthly: 19, annual: 15, highlight: true,  col: 1 },
   ]
 
   return (
@@ -104,7 +103,7 @@ export default function UpgradeModal({ trigger, onClose }: UpgradeModalProps) {
         </div>
 
         {/* Plan cards */}
-        <div style={{ padding: '14px 16px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+        <div style={{ padding: '14px 16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
           {plans.map(p => {
             const price = annual ? p.annual : p.monthly
             return (
@@ -154,22 +153,21 @@ export default function UpgradeModal({ trigger, onClose }: UpgradeModalProps) {
 
         {/* Key comparison rows */}
         <div style={{ margin: '0 16px', borderRadius: 10, border: '0.5px solid var(--border-default)', overflow: 'hidden' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', background: 'var(--surface-3)', padding: '8px 12px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', background: 'var(--surface-3)', padding: '8px 12px' }}>
             <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Feature</span>
-            {['Free', 'Plus', 'Premium'].map(h => (
+            {['Free', 'Premium'].map(h => (
               <span key={h} style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 500, textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{h}</span>
             ))}
           </div>
           {KEY_ROWS.map((row, i) => (
             <div key={row.feature} style={{
-              display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr',
+              display: 'grid', gridTemplateColumns: '1fr 1fr 1fr',
               padding: '7px 12px',
               background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)',
               borderTop: '0.5px solid var(--border-default)',
             }}>
               <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{row.feature}</span>
               <span style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'center' }}>{row.free}</span>
-              <span style={{ fontSize: 11, color: 'var(--text-primary)', textAlign: 'center' }}>{row.plus}</span>
               <span style={{ fontSize: 11, color: 'var(--gold)', textAlign: 'center', fontWeight: 500 }}>{row.premium}</span>
             </div>
           ))}

@@ -59,7 +59,7 @@ export const RELOCATION_OPTIONS = [
 ] as const
 
 export const PLAN_LIMITS = {
-  voluntary: { monthlyInterests: 5,        maxProfiles: 2 },
+  voluntary: { monthlyInterests: 5,        maxProfiles: 1 },
   plus:      { monthlyInterests: 15,       maxProfiles: 4 },
   premium:   { monthlyInterests: Infinity, maxProfiles: 4 },
 } as const

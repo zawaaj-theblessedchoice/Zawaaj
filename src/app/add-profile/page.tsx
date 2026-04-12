@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Sidebar from '@/components/Sidebar'
+import { getPlanConfig } from '@/lib/plan-config'
+import type { Plan } from '@/lib/plan-config'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -945,6 +947,8 @@ export default function AddProfilePage() {
   const [introCount, setIntroCount] = useState(0)
   const [authChecked, setAuthChecked] = useState(false)
   const [profileCount, setProfileCount] = useState(0)
+  const [blocked, setBlocked] = useState(false)
+  const [currentPlan, setCurrentPlan] = useState<Plan>('free')
 
   const [step, setStep] = useState(0)
   const [form, setForm] = useState<AddProfileForm>(INITIAL_FORM)
@@ -976,6 +980,18 @@ export default function AddProfilePage() {
       setActiveProfileId(activeId)
       setManagedProfiles(profileRows.map(p => ({ id: p.id, display_initials: p.display_initials, first_name: p.first_name, gender: p.gender, status: p.status })))
       setProfileCount(profileRows.length)
+
+      // Fetch subscription to determine plan and check family member limit
+      const { data: subRow } = await supabase
+        .from('zawaaj_subscriptions')
+        .select('plan')
+        .eq('user_id', user.id)
+        .maybeSingle()
+      const plan: Plan = (subRow?.plan as Plan | null) ?? 'free'
+      setCurrentPlan(plan)
+      if (profileRows.length >= getPlanConfig(plan).maxFamilyMembers) {
+        setBlocked(true)
+      }
 
       const [slRes, irRes] = await Promise.all([
         supabase.from('zawaaj_saved_profiles').select('id', { count: 'exact', head: true }).eq('profile_id', active.id),
@@ -1030,6 +1046,39 @@ export default function AddProfilePage() {
         <Sidebar activeRoute="/add-profile" shortlistCount={0} introRequestsCount={0} profile={null} />
         <main style={{ marginLeft: 200, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>Loading…</span>
+        </main>
+      </div>
+    )
+  }
+
+  if (blocked) {
+    const maxAllowed = getPlanConfig(currentPlan).maxFamilyMembers
+    return (
+      <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
+        <Sidebar
+          activeRoute="/add-profile"
+          shortlistCount={shortlistCount}
+          introRequestsCount={introCount}
+          profile={sidebarProfile}
+          managedProfiles={managedProfiles}
+          activeProfileId={activeProfileId}
+        />
+        <main style={{ marginLeft: 200, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ textAlign: 'center', padding: '60px 24px' }}>
+            <div style={{ fontSize: 32, marginBottom: 16 }}>◈</div>
+            <h2 style={{ fontSize: 20, fontWeight: 600, marginBottom: 8, color: 'var(--text-primary)' }}>Profile limit reached</h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 24 }}>
+              Your current plan allows {maxAllowed} family profile{maxAllowed === 1 ? '' : 's'}.
+              Upgrade to Premium to add up to 4 family members.
+            </p>
+            <a href="/settings?tab=plan" style={{
+              display: 'inline-block', padding: '10px 24px', borderRadius: 10,
+              background: 'var(--gold)', color: '#fff', fontWeight: 600, fontSize: 14,
+              textDecoration: 'none',
+            }}>
+              Upgrade to Premium
+            </a>
+          </div>
         </main>
       </div>
     )

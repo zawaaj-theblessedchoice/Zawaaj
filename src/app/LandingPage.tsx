@@ -10,6 +10,7 @@ import { PLAN_CONFIG, PLAN_PRICES, PLAN_LABELS } from '@/lib/plan-config'
 const PLANS = [
   {
     key: 'free',
+    hidden: false,
     name: PLAN_LABELS.free,
     monthly: PLAN_PRICES.free.monthly,
     annual: PLAN_PRICES.free.annual,
@@ -28,6 +29,7 @@ const PLANS = [
   },
   {
     key: 'plus',
+    hidden: true,
     name: PLAN_LABELS.plus,
     monthly: PLAN_PRICES.plus.monthly,
     annual: PLAN_PRICES.plus.annual,
@@ -47,6 +49,7 @@ const PLANS = [
   },
   {
     key: 'premium',
+    hidden: false,
     name: PLAN_LABELS.premium,
     monthly: PLAN_PRICES.premium.monthly,
     annual: PLAN_PRICES.premium.annual,
@@ -72,10 +75,11 @@ function limitLabel(n: number): string {
 
 const COMPACT_COMPARISON = [
   { feature: 'Interest expressions / month', free: limitLabel(PLAN_CONFIG.free.monthlyLimit), plus: limitLabel(PLAN_CONFIG.plus.monthlyLimit), premium: limitLabel(PLAN_CONFIG.premium.monthlyLimit) },
-  { feature: 'Profile boost',                 free: '—',                                   plus: '1× / month',                          premium: 'Weekly' },
-  { feature: 'Concierge matching',            free: '—',                                   plus: '—',                                   premium: PLAN_CONFIG.premium.concierge ? 'Yes' : '—' },
-  { feature: 'See who viewed you',            free: '—',                                   plus: '—',                                   premium: PLAN_CONFIG.premium.viewTracking ? 'Yes' : '—' },
-  { feature: 'Full profile details',          free: 'Summary',                             plus: PLAN_CONFIG.plus.fullProfile ? 'Yes' : '—', premium: 'Yes' },
+  { feature: 'Family profiles',              free: '1',                                    plus: '4',                                   premium: '4' },
+  { feature: 'Profile boost',                free: '—',                                    plus: '1× / month',                          premium: 'Weekly' },
+  { feature: 'Concierge matching',           free: '—',                                    plus: '—',                                   premium: PLAN_CONFIG.premium.concierge ? 'Yes' : '—' },
+  { feature: 'See who viewed you',           free: '—',                                    plus: '—',                                   premium: PLAN_CONFIG.premium.viewTracking ? 'Yes' : '—' },
+  { feature: 'Full profile details',         free: 'Summary',                              plus: PLAN_CONFIG.plus.fullProfile ? 'Yes' : '—', premium: 'Yes' },
 ]
 
 const HOW_IT_WORKS = [
@@ -478,23 +482,21 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
         </div>
 
         {/* Plan cards */}
-        <div className="grid md:grid-cols-3 gap-5 mb-12">
-          {PLANS.map(p => <PlanCard key={p.key} plan={p} annual={annual} />)}
+        <div className="grid md:grid-cols-2 gap-5 mb-12 max-w-2xl mx-auto">
+          {PLANS.filter(p => !p.hidden).map(p => <PlanCard key={p.key} plan={p} annual={annual} />)}
         </div>
 
         {/* Compact comparison — hidden on mobile */}
-        <div className="hidden md:block bg-surface-2 rounded-2xl border border-white/10 overflow-hidden">
-          <div className="grid grid-cols-4 text-xs font-semibold text-white/40 uppercase tracking-wide px-6 py-3 bg-surface-3 border-b border-white/8">
+        <div className="hidden md:block bg-surface-2 rounded-2xl border border-white/10 overflow-hidden max-w-2xl mx-auto">
+          <div className="grid grid-cols-3 text-xs font-semibold text-white/40 uppercase tracking-wide px-6 py-3 bg-surface-3 border-b border-white/8">
             <span className="col-span-1">Feature</span>
             <span className="text-center">Voluntary</span>
-            <span className="text-center">Plus</span>
             <span className="text-center">Premium</span>
           </div>
           {COMPACT_COMPARISON.map((row, i) => (
-            <div key={row.feature} className={`grid grid-cols-4 px-6 py-3 text-sm ${i % 2 === 0 ? '' : 'bg-white/2'}`}>
+            <div key={row.feature} className={`grid grid-cols-3 px-6 py-3 text-sm ${i % 2 === 0 ? '' : 'bg-white/2'}`}>
               <span className="text-white/60 col-span-1">{row.feature}</span>
               <span className="text-center text-white/50">{row.free}</span>
-              <span className="text-center text-white/80">{row.plus}</span>
               <span className="text-center text-gold font-medium">{row.premium}</span>
             </div>
           ))}

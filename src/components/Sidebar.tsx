@@ -593,51 +593,56 @@ export default function Sidebar({
           )}
         </div>
       )}
-      {/* Help centre */}
-      <button
-        onClick={() => window.open('/help', '_blank')}
-        style={{
-          display: 'flex', alignItems: 'center', gap: 8,
-          width: '100%', padding: '10px 20px',
-          background: 'none', border: 'none',
-          borderTop: '0.5px solid var(--border-default)',
-          color: 'var(--text-muted)', fontSize: 12,
-          cursor: 'pointer', textAlign: 'left',
-          transition: 'color 0.15s',
-        }}
-        onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.color = 'var(--text-secondary)')}
-        onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.color = 'var(--text-muted)')}
-      >
-        <HelpIcon />
-        Help centre
-      </button>
+      {/* Help + Sign out — grouped with slight separation */}
+      <div style={{ padding: '8px 10px', borderTop: '0.5px solid var(--border-default)', display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <button
+          onClick={() => window.open('/help', '_blank')}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 9,
+            width: '100%', padding: '9px 10px',
+            background: 'none', border: 'none', borderRadius: 8,
+            color: 'var(--text-secondary)', fontSize: 13,
+            cursor: 'pointer', textAlign: 'left',
+            transition: 'background 0.15s, color 0.15s',
+          }}
+          onMouseEnter={e => {
+            (e.currentTarget as HTMLButtonElement).style.background = 'var(--surface-3)'
+            ;(e.currentTarget as HTMLButtonElement).style.color = 'var(--text-primary)'
+          }}
+          onMouseLeave={e => {
+            (e.currentTarget as HTMLButtonElement).style.background = 'none'
+            ;(e.currentTarget as HTMLButtonElement).style.color = 'var(--text-secondary)'
+          }}
+        >
+          <HelpIcon />
+          Help centre
+        </button>
 
-      {/* Sign out */}
-      <button
-        onClick={handleSignOut}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8,
-          width: '100%',
-          padding: '10px 20px',
-          background: 'none',
-          border: 'none',
-          borderTop: '0.5px solid var(--border-default)',
-          color: 'var(--text-muted)',
-          fontSize: 12,
-          cursor: 'pointer',
-          textAlign: 'left',
-          transition: 'color 0.15s',
-        }}
-        onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.color = 'var(--text-secondary)')}
-        onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.color = 'var(--text-muted)')}
-      >
-        <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ flexShrink: 0 }}>
-          <path d="M5 2H2a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h3M9 9.5l3-3-3-3M12 6.5H5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-        Sign out
-      </button>
+        <button
+          onClick={handleSignOut}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 9,
+            width: '100%', padding: '9px 10px',
+            background: 'none', border: 'none', borderRadius: 8,
+            color: 'var(--text-secondary)', fontSize: 13,
+            cursor: 'pointer', textAlign: 'left',
+            transition: 'background 0.15s, color 0.15s',
+          }}
+          onMouseEnter={e => {
+            (e.currentTarget as HTMLButtonElement).style.background = 'rgba(239,68,68,0.06)'
+            ;(e.currentTarget as HTMLButtonElement).style.color = '#ef4444'
+          }}
+          onMouseLeave={e => {
+            (e.currentTarget as HTMLButtonElement).style.background = 'none'
+            ;(e.currentTarget as HTMLButtonElement).style.color = 'var(--text-secondary)'
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
+            <path d="M5.5 2.5H3a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h2.5M9.5 10l3-3-3-3M12.5 7H5.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          Sign out
+        </button>
+      </div>
     </aside>
   )
 }

@@ -133,9 +133,7 @@ function ProfileCard({
 }: ProfileCardProps) {
   const [hovered, setHovered] = useState(false)
 
-  const displayName =
-    `${profile.first_name ?? ''} ${profile.last_name ? profile.last_name[0] + '.' : ''}`.trim() ||
-    profile.display_initials
+  const displayName = profile.display_initials
 
   const age = calcAge(profile.date_of_birth)
   const ageLine = [age !== null ? `${age}` : profile.age_display, profile.location]
@@ -896,7 +894,7 @@ export default function BrowseClient({
     const supabase = createClient()
     const wasSaved = savedIds.has(profileId)
     const targetProfile = profiles.find(p => p.id === profileId)
-    const name = targetProfile?.first_name ?? 'Profile'
+    const name = targetProfile?.display_initials ?? 'Profile'
 
     if (wasSaved) {
       setSavedIds(prev => {
