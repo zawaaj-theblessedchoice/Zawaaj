@@ -339,9 +339,9 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
       </nav>
 
       {/* ── Hero ── */}
-      <section className="max-w-4xl mx-auto px-4 md:px-5 pt-5 pb-6 md:pt-8 md:pb-10 text-center">
+      <section className="max-w-4xl mx-auto px-4 md:px-5 pt-2 pb-3 md:pt-4 md:pb-5 text-center">
         {/* Arabic calligraphy logo */}
-        <div className="flex justify-center mb-4">
+        <div className="flex justify-center mb-2">
           <ZawaajLogo height={440} />
         </div>
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-gold/30 bg-gold/8 text-gold text-xs font-medium mb-8">
