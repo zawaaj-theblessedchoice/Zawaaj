@@ -16,11 +16,12 @@ export default function ZawaajLogo({
   return (
     <div className="flex flex-col items-center gap-1 select-none">
       <Image
-        src="/logo.png"
+        src="/Zawaaj Logo for Webapp.jpg"
         alt="Zawaaj – The Blessed Choice"
-        width={size}
+        width={size * 4}
         height={size}
         className="object-contain"
+        style={{ width: 'auto', height: size }}
         priority
       />
       {tagline && (

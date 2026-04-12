@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import ZawaajLogo from '@/components/ZawaajLogo'
 import { PLAN_CONFIG, PLAN_PRICES, PLAN_LABELS } from '@/lib/plan-config'
 
@@ -208,8 +209,18 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
       <nav className="sticky top-0 z-50 border-b border-white/8 bg-surface/90 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-5 h-16 grid grid-cols-3 items-center">
 
-          {/* Left — primary CTA */}
-          <div className="flex items-center">
+          {/* Left — logo + primary CTA */}
+          <div className="flex items-center gap-4">
+            <Link href="/" style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+              <Image
+                src="/Zawaaj Logo for Webapp.jpg"
+                alt="Zawaaj – The Blessed Choice"
+                width={176}
+                height={44}
+                style={{ height: 44, width: 'auto', display: 'block' }}
+                priority
+              />
+            </Link>
             {isLoggedIn ? (
               <Link href="/browse" className="text-sm font-semibold px-4 py-2 rounded-xl bg-gold text-black hover:bg-[var(--gold-hover)] transition-colors">
                 Browse profiles →
@@ -257,10 +268,16 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
 
       {/* ── Hero ── */}
       <section className="max-w-4xl mx-auto px-5 pt-16 pb-20 text-center">
-        {/* Logo — 3× larger, centred, above the badge. tagline=false because
-            the logo image already contains ZAWAAJ + THE BLESSED CHOICE text */}
+        {/* Full brand logo — image already contains ZAWAAJ + THE BLESSED CHOICE text */}
         <div className="flex justify-center mb-8">
-          <ZawaajLogo size={330} tagline={false} />
+          <Image
+            src="/Zawaaj Logo for Webapp.jpg"
+            alt="Zawaaj – The Blessed Choice"
+            width={600}
+            height={150}
+            style={{ height: 150, width: 'auto', display: 'block' }}
+            priority
+          />
         </div>
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-gold/30 bg-gold/8 text-gold text-xs font-medium mb-8">
           🌙 Invite-only · Admin-mediated · Halal by design
@@ -293,6 +310,39 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
         <p className="mt-6 text-sm text-white/50 tracking-wide">
           Invite-only platform · All profiles manually reviewed · UK-based
         </p>
+      </section>
+
+      {/* ── Quranic ayah ── */}
+      <section style={{ background: 'rgba(184,150,12,0.04)', borderTop: '0.5px solid rgba(184,150,12,0.12)', borderBottom: '0.5px solid rgba(184,150,12,0.12)' }}>
+        <div className="max-w-3xl mx-auto px-6 py-20 text-center flex flex-col items-center gap-6">
+          {/* Arabic */}
+          <p
+            dir="rtl"
+            lang="ar"
+            style={{
+              fontFamily: 'var(--font-amiri), "Amiri", "Scheherazade New", serif',
+              fontSize: 'clamp(1.35rem, 3vw, 1.95rem)',
+              lineHeight: 2,
+              color: 'var(--gold)',
+              fontWeight: 400,
+              textAlign: 'center',
+              letterSpacing: '0.01em',
+              maxWidth: '44rem',
+            }}
+          >
+            وَمِنْ آيَاتِهِ أَنْ خَلَقَ لَكُم مِّنْ أَنفُسِكُمْ أَزْوَاجًا لِّتَسْكُنُوا إِلَيْهَا وَجَعَلَ بَيْنَكُم مَّوَدَّةً وَرَحْمَةً ۚ إِنَّ فِي ذَٰلِكَ لَآيَاتٍ لِّقَوْمٍ يَتَفَكَّرُونَ
+          </p>
+          {/* Divider */}
+          <div style={{ width: 40, height: 1, background: 'rgba(184,150,12,0.3)', flexShrink: 0 }} />
+          {/* English translation */}
+          <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.65)', lineHeight: 1.8, fontStyle: 'italic', maxWidth: '36rem', fontWeight: 400 }}>
+            &ldquo;And among His signs is that He created for you mates from amongst yourselves, that you may dwell in tranquility with them, and He has put love and mercy between your hearts. Verily in that are signs for those who reflect.&rdquo;
+          </p>
+          {/* Reference */}
+          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.06em', fontWeight: 500 }}>
+            — Quran 30:21
+          </p>
+        </div>
       </section>
 
       {/* ── Trust bar ── */}
@@ -464,7 +514,7 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
       <footer className="bg-surface border-t border-white/8">
         <div className="max-w-5xl mx-auto px-5 py-12 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex flex-col items-center md:items-start gap-2">
-            <ZawaajLogo size={44} tagline={true} />
+            <ZawaajLogo size={44} tagline={false} />
             <p className="text-xs text-white/30">© {new Date().getFullYear()} Zawaaj. All rights reserved.</p>
           </div>
           <div className="flex flex-wrap justify-center gap-x-8 gap-y-2 text-sm text-white/40">
