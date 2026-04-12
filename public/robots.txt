@@ -1,2 +1,30 @@
+# Zawaaj — search engines blocked (private platform)
+# Social media link-preview bots are allowed so shared links show cards
+
+# WhatsApp / Facebook link preview
+User-agent: facebookexternalhit
+Allow: /
+
+# Twitter / X card bot
+User-agent: Twitterbot
+Allow: /
+
+# LinkedIn preview
+User-agent: LinkedInBot
+Allow: /
+
+# Slack unfurl
+User-agent: Slackbot
+Allow: /
+
+# iMessage / Apple
+User-agent: Applebot
+Allow: /
+
+# Telegram
+User-agent: TelegramBot
+Allow: /
+
+# Block all other crawlers (search engines)
 User-agent: *
 Disallow: /
