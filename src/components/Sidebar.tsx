@@ -314,7 +314,11 @@ export default function Sidebar({
           background: 'linear-gradient(180deg, rgba(196,154,16,0.06) 0%, transparent 100%)',
         }}
       >
-        <ZawaajLogo height={44} />
+        <img
+          src="/zawaaj-wordmark.png"
+          alt="Zawaaj"
+          style={{ height: 26, width: 'auto', maxWidth: '100%' }}
+        />
       </Link>
 
       {/* Nav sections */}

@@ -524,8 +524,9 @@ function BrowsingAsBanner({
         style={{
           display: 'inline-flex',
           alignItems: 'center',
-          gap: 8,
-          padding: '6px 10px 6px 8px',
+          gap: 12,
+          padding: '6px 12px 6px 8px',
+          minWidth: 260,
           background: 'var(--surface-2)',
           border: '0.5px solid var(--border-gold)',
           borderRadius: 30,
@@ -534,7 +535,7 @@ function BrowsingAsBanner({
         }}
       >
         <AvatarInitials initials={activeInitials} gender={activeGender} size="sm" />
-        <span>
+        <span style={{ flex: 1 }}>
           <span className="browsing-as-text">Browsing as </span>
           <strong style={{ color: 'var(--text-primary)', fontWeight: 600 }}>
             {activeName}
