@@ -31,8 +31,8 @@ export interface AdminManagersClientProps {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const INPUT_STYLE: React.CSSProperties = {
-  backgroundColor: '#111111',
-  border: '0.5px solid rgba(255,255,255,0.12)',
+  backgroundColor: 'var(--admin-bg)',
+  border: '0.5px solid var(--admin-border)',
   color: 'var(--admin-text)',
   borderRadius: 8,
   padding: '8px 12px',
@@ -104,7 +104,7 @@ function ScopeChips({
           type="button"
           onClick={add}
           className="px-3 py-1.5 rounded-lg text-xs font-medium flex-shrink-0"
-          style={{ backgroundColor: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.7)', border: '0.5px solid rgba(255,255,255,0.12)' }}
+          style={{ backgroundColor: 'var(--admin-border)', color: 'var(--admin-text)', border: '0.5px solid var(--admin-border)' }}
         >
           Add
         </button>
@@ -212,7 +212,7 @@ function AddManagerForm({ onCreated }: AddManagerFormProps) {
   return (
     <div
       className="rounded-xl p-6 flex flex-col gap-5"
-      style={{ backgroundColor: '#1A1A1A', border: '0.5px solid rgba(255,255,255,0.12)' }}
+      style={{ backgroundColor: 'var(--admin-surface)', border: '0.5px solid var(--admin-border)' }}
     >
       <div className="flex items-center justify-between">
         <h3 style={{ fontSize: 15, fontWeight: 600, color: 'var(--admin-text)' }}>Add manager</h3>
@@ -289,7 +289,7 @@ function AddManagerForm({ onCreated }: AddManagerFormProps) {
             type="button"
             onClick={() => { setOpen(false); reset() }}
             className="px-4 py-2 rounded-lg text-sm"
-            style={{ border: '0.5px solid rgba(255,255,255,0.12)', color: 'var(--admin-muted)' }}
+            style={{ border: '0.5px solid var(--admin-border)', color: 'var(--admin-muted)' }}
           >
             Cancel
           </button>
@@ -413,14 +413,14 @@ function ManagerCard({ manager, onUpdate, onRemove }: ManagerCardProps) {
     <div
       className="rounded-xl overflow-hidden"
       style={{
-        border: `0.5px solid ${manager.is_active ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.06)'}`,
+        border: `0.5px solid var(--admin-border)`,
         opacity: manager.is_active ? 1 : 0.6,
       }}
     >
       {/* Card header — always visible */}
       <div
         className="flex items-center gap-4 px-5 py-4"
-        style={{ backgroundColor: '#1A1A1A' }}
+        style={{ backgroundColor: 'var(--admin-surface)' }}
       >
         {/* Avatar */}
         <div
@@ -442,7 +442,7 @@ function ManagerCard({ manager, onUpdate, onRemove }: ManagerCardProps) {
             {!manager.is_active && (
               <span
                 className="px-2 py-0.5 rounded-full text-xs"
-                style={{ backgroundColor: 'rgba(255,255,255,0.05)', color: 'var(--admin-muted)' }}
+                style={{ backgroundColor: 'var(--admin-surface)', border: '0.5px solid var(--admin-border)', color: 'var(--admin-muted)' }}
               >
                 Inactive
               </span>
@@ -479,9 +479,9 @@ function ManagerCard({ manager, onUpdate, onRemove }: ManagerCardProps) {
             disabled={saving}
             className="px-3 py-1.5 rounded-lg text-xs font-medium"
             style={{
-              backgroundColor: manager.is_active ? 'rgba(255,255,255,0.06)' : 'rgba(74,222,128,0.1)',
-              border: `0.5px solid ${manager.is_active ? 'rgba(255,255,255,0.12)' : 'rgba(74,222,128,0.3)'}`,
-              color: manager.is_active ? 'rgba(255,255,255,0.5)' : '#4ade80',
+              backgroundColor: manager.is_active ? 'var(--admin-border)' : 'rgba(74,222,128,0.1)',
+              border: `0.5px solid ${manager.is_active ? 'var(--admin-border)' : 'rgba(74,222,128,0.3)'}`,
+              color: manager.is_active ? 'var(--admin-muted)' : '#4ade80',
               opacity: saving ? 0.6 : 1,
             }}
           >
@@ -490,7 +490,7 @@ function ManagerCard({ manager, onUpdate, onRemove }: ManagerCardProps) {
           <button
             onClick={() => setExpanded(v => !v)}
             className="px-3 py-1.5 rounded-lg text-xs"
-            style={{ border: '0.5px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.6)' }}
+            style={{ border: '0.5px solid var(--admin-border)', color: 'var(--admin-text)' }}
           >
             {expanded ? 'Close' : 'Edit'}
           </button>
@@ -522,7 +522,7 @@ function ManagerCard({ manager, onUpdate, onRemove }: ManagerCardProps) {
         <form
           onSubmit={handleSave}
           className="px-5 py-5 flex flex-col gap-4"
-          style={{ backgroundColor: '#111111', borderTop: '0.5px solid rgba(255,255,255,0.08)' }}
+          style={{ backgroundColor: 'var(--admin-bg)', borderTop: '0.5px solid var(--admin-border)' }}
         >
           <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))' }}>
             <div>
@@ -576,7 +576,7 @@ function ManagerCard({ manager, onUpdate, onRemove }: ManagerCardProps) {
               type="button"
               onClick={() => setExpanded(false)}
               className="px-4 py-2 rounded-lg text-sm"
-              style={{ border: '0.5px solid rgba(255,255,255,0.12)', color: 'var(--admin-muted)' }}
+              style={{ border: '0.5px solid var(--admin-border)', color: 'var(--admin-muted)' }}
             >
               Cancel
             </button>
@@ -604,10 +604,10 @@ export default function AdminManagersClient({ managers: initial }: AdminManagers
   const inactive = managers.filter(m => !m.is_active)
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#111111', color: 'var(--admin-text)' }}>
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--admin-bg)', color: 'var(--admin-text)' }}>
 
       {/* ── Page header ── */}
-      <div className="px-6 pt-8 pb-6 flex items-start justify-between gap-4" style={{ borderBottom: '0.5px solid rgba(255,255,255,0.1)' }}>
+      <div className="px-6 pt-8 pb-6 flex items-start justify-between gap-4" style={{ borderBottom: '0.5px solid var(--admin-border)' }}>
         <div>
           <h1 style={{ fontSize: 22, fontWeight: 600, color: 'var(--admin-text)', marginBottom: 4 }}>
             Managers
@@ -627,7 +627,7 @@ export default function AdminManagersClient({ managers: initial }: AdminManagers
           style={{ backgroundColor: 'rgba(184,150,12,0.07)', border: '0.5px solid rgba(184,150,12,0.2)' }}
         >
           <span style={{ fontSize: 16, flexShrink: 0 }}>ℹ️</span>
-          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', lineHeight: 1.6 }}>
+          <p style={{ fontSize: 13, color: 'var(--admin-muted)', lineHeight: 1.6 }}>
             Matches are auto-assigned to the manager whose scope best matches the profiles&apos; locations and genders.
             Super admin can override the assignment at any time from the Match Queue.
           </p>
@@ -639,7 +639,7 @@ export default function AdminManagersClient({ managers: initial }: AdminManagers
             <h2 style={{ fontSize: 16, fontWeight: 600, color: 'var(--admin-text)' }}>Active</h2>
             <span
               className="px-2 py-0.5 rounded-full text-xs font-medium"
-              style={{ backgroundColor: 'rgba(255,255,255,0.08)', color: 'var(--admin-muted)' }}
+              style={{ backgroundColor: 'var(--admin-border)', color: 'var(--admin-muted)' }}
             >
               {active.length}
             </span>
@@ -648,9 +648,9 @@ export default function AdminManagersClient({ managers: initial }: AdminManagers
           {active.length === 0 ? (
             <div
               className="rounded-xl px-5 py-8 text-center"
-              style={{ backgroundColor: '#1A1A1A', border: '0.5px solid rgba(255,255,255,0.08)' }}
+              style={{ backgroundColor: 'var(--admin-surface)', border: '0.5px solid var(--admin-border)' }}
             >
-              <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.35)' }}>
+              <p style={{ fontSize: 14, color: 'var(--admin-muted)' }}>
                 No active managers. Add one using the button above.
               </p>
             </div>
@@ -675,7 +675,7 @@ export default function AdminManagersClient({ managers: initial }: AdminManagers
               <h2 style={{ fontSize: 16, fontWeight: 600, color: 'var(--admin-muted)' }}>Inactive</h2>
               <span
                 className="px-2 py-0.5 rounded-full text-xs"
-                style={{ backgroundColor: 'rgba(255,255,255,0.05)', color: 'var(--admin-muted)' }}
+                style={{ backgroundColor: 'var(--admin-surface)', border: '0.5px solid var(--admin-border)', color: 'var(--admin-muted)' }}
               >
                 {inactive.length}
               </span>

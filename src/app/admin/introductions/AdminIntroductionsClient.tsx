@@ -138,7 +138,7 @@ function ProfileCell({ profile }: { profile: IntroRequest['requesting_profile'] 
       >
         {profile.display_initials}
       </div>
-      <span className="text-sm text-white/80 truncate">
+      <span className="text-sm truncate" style={{ color: 'var(--admin-text)' }}>
         {profileName(profile)}
       </span>
     </div>
@@ -181,7 +181,8 @@ function AssignManagerDropdown({
       <button
         onClick={() => setOpen(true)}
         disabled={loading}
-        className="px-2.5 py-1 rounded text-xs font-medium border border-white/10 text-white/70 hover:text-white hover:border-white/20 transition-colors disabled:opacity-50"
+        className="px-2.5 py-1 rounded text-xs font-medium transition-colors disabled:opacity-50"
+        style={{ border: '1px solid var(--admin-border)', color: 'var(--admin-text)' }}
       >
         {currentAssignedId ? 'Reassign' : 'Assign manager'}
       </button>
@@ -192,7 +193,8 @@ function AssignManagerDropdown({
     <div className="flex items-center gap-1.5">
       <select
         autoFocus
-        className="bg-[#1a1a1a] border border-white/10 text-white text-xs rounded px-2 py-1 outline-none"
+        className="text-xs rounded px-2 py-1 outline-none"
+        style={{ background: 'var(--admin-surface)', border: '0.5px solid var(--admin-border)', color: 'var(--admin-text)' }}
         defaultValue=""
         onChange={(e) => {
           if (e.target.value) {
@@ -209,7 +211,7 @@ function AssignManagerDropdown({
       </select>
       <button
         onClick={() => setOpen(false)}
-        className="text-white/40 hover:text-white/70 text-xs"
+        className="text-xs" style={{ color: 'var(--admin-muted)' }}
       >
         ✕
       </button>
@@ -235,7 +237,8 @@ function OverrideStatusDropdown({ reqId, currentStatus, loading, onOverride }: O
         const val = e.target.value as ValidStatus
         onOverride(reqId, val)
       }}
-      className="bg-[#1a1a1a] border border-white/10 text-white/60 text-xs rounded px-2 py-1 outline-none disabled:opacity-50"
+      className="text-xs rounded px-2 py-1 outline-none disabled:opacity-50"
+      style={{ background: 'var(--admin-surface)', border: '0.5px solid var(--admin-border)', color: 'var(--admin-muted)' }}
     >
       {VALID_STATUSES.map((s) => (
         <option key={s} value={s}>{statusLabel(s)}</option>
@@ -292,7 +295,7 @@ function RequestRow({
     <>
       <tr
         style={{
-          borderBottom: isLast && !rowError ? 'none' : '0.5px solid rgba(255,255,255,0.06)',
+          borderBottom: isLast && !rowError ? 'none' : '0.5px solid var(--admin-border)',
         }}
       >
         {/* From */}
@@ -311,33 +314,33 @@ function RequestRow({
         </td>
 
         {/* Requested */}
-        <td className="px-4 py-3 text-sm text-white/50 whitespace-nowrap">
+        <td className="px-4 py-3 text-sm whitespace-nowrap" style={{ color: 'var(--admin-muted)' }}>
           {fmtDate(req.created_at)}
         </td>
 
         {/* Mutual at */}
-        <td className="px-4 py-3 text-sm text-white/50 whitespace-nowrap">
+        <td className="px-4 py-3 text-sm whitespace-nowrap" style={{ color: 'var(--admin-muted)' }}>
           {fmtDate(req.mutual_at)}
         </td>
 
         {/* Assigned (super_admin only) */}
         {role === 'super_admin' && (
-          <td className="px-4 py-3 text-sm text-white/50 whitespace-nowrap">
+          <td className="px-4 py-3 text-sm whitespace-nowrap" style={{ color: 'var(--admin-muted)' }}>
             {assignedManager ? (
-              <span className="text-white/70">{managerName(assignedManager)}</span>
+              <span style={{ color: 'var(--admin-text)' }}>{managerName(assignedManager)}</span>
             ) : (
-              <span className="text-white/25">—</span>
+              <span style={{ color: 'var(--admin-muted)', opacity: 0.5 }}>—</span>
             )}
           </td>
         )}
 
         {/* handled_by / handled_at (super_admin only) */}
         {role === 'super_admin' && (
-          <td className="px-4 py-3 text-sm text-white/50 whitespace-nowrap">
+          <td className="px-4 py-3 text-sm whitespace-nowrap" style={{ color: 'var(--admin-muted)' }}>
             {req.handled_at ? (
               <span title={req.handled_by ?? undefined}>{fmtDate(req.handled_at)}</span>
             ) : (
-              <span className="text-white/25">—</span>
+              <span style={{ color: 'var(--admin-muted)', opacity: 0.5 }}>—</span>
             )}
           </td>
         )}
@@ -391,7 +394,8 @@ function RequestRow({
             {/* View profiles link */}
             <Link
               href={`/admin/sidebyside/${req.requesting_profile.id}__${req.target_profile.id}`}
-              className="px-2.5 py-1 rounded text-xs text-white/50 border border-white/10 hover:text-white/80 hover:border-white/20 transition-colors"
+              className="px-2.5 py-1 rounded text-xs transition-colors"
+              style={{ color: 'var(--admin-muted)', border: '1px solid var(--admin-border)' }}
             >
               View profiles
             </Link>
@@ -401,7 +405,7 @@ function RequestRow({
 
       {/* Inline error row */}
       {rowError && (
-        <tr style={{ borderBottom: isLast ? 'none' : '0.5px solid rgba(255,255,255,0.06)' }}>
+        <tr style={{ borderBottom: isLast ? 'none' : '0.5px solid var(--admin-border)' }}>
           <td
             colSpan={role === 'super_admin' ? 8 : 6}
             className="px-4 pb-3 text-xs"
@@ -546,12 +550,12 @@ export default function AdminIntroductionsClient({
   // ─── Render ───────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-[#111111] text-white">
+    <div className="min-h-screen" style={{ background: 'var(--admin-bg)', color: 'var(--admin-text)' }}>
 
       {/* Page header */}
-      <div className="px-6 pt-8 pb-0 border-b border-white/10">
+      <div className="px-6 pt-8 pb-0" style={{ borderBottom: '1px solid var(--admin-border)' }}>
         <div className="flex items-center justify-between mb-5">
-          <h1 className="text-xl font-semibold text-white">Introductions</h1>
+          <h1 className="text-xl font-semibold" style={{ color: 'var(--admin-text)' }}>Introductions</h1>
           {role === 'super_admin' && (
             <span className="text-xs px-2 py-1 rounded-full bg-[#B8960C]/10 text-[#B8960C] border border-[#B8960C]/20">
               Super Admin
@@ -570,8 +574,8 @@ export default function AdminIntroductionsClient({
                 onClick={() => setFilter(key)}
                 className="px-4 py-2 text-sm rounded-t-lg flex items-center gap-2 transition-colors"
                 style={{
-                  backgroundColor: isActive ? '#1a1a1a' : 'transparent',
-                  color: isActive ? '#ffffff' : 'rgba(255,255,255,0.4)',
+                  backgroundColor: isActive ? 'var(--admin-surface)' : 'transparent',
+                  color: isActive ? 'var(--admin-text)' : 'var(--admin-muted)',
                   borderBottom: isActive ? '2px solid #B8960C' : '2px solid transparent',
                   fontWeight: isActive ? 500 : 400,
                 }}
@@ -580,8 +584,8 @@ export default function AdminIntroductionsClient({
                 <span
                   className="rounded-full px-1.5 py-0.5 text-xs min-w-[20px] text-center"
                   style={{
-                    backgroundColor: isActive ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)',
-                    color: isActive ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.3)',
+                    backgroundColor: 'var(--admin-border)',
+                    color: isActive ? 'var(--admin-text)' : 'var(--admin-muted)',
                   }}
                 >
                   {count}
@@ -595,18 +599,19 @@ export default function AdminIntroductionsClient({
       {/* Table */}
       <div className="px-6 py-6">
         {filtered.length === 0 ? (
-          <p className="py-16 text-center text-sm text-white/30">
+          <p className="py-16 text-center text-sm" style={{ color: 'var(--admin-muted)' }}>
             No introduction requests in this category.
           </p>
         ) : (
-          <div className="rounded-xl overflow-hidden border border-white/10">
+          <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--admin-border)' }}>
             <table className="w-full border-collapse">
               <thead>
-                <tr className="bg-[#1a1a1a]">
+                <tr style={{ background: 'var(--admin-surface)' }}>
                   {columns.map((col) => (
                     <th
                       key={col}
-                      className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-white/40 border-b border-white/10 whitespace-nowrap"
+                      className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider whitespace-nowrap"
+                      style={{ color: 'var(--admin-muted)', borderBottom: '1px solid var(--admin-border)' }}
                     >
                       {col}
                     </th>

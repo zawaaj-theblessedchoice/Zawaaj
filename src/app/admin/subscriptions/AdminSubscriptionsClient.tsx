@@ -20,14 +20,14 @@ function profileName(p: SubscriptionRow['profile']): string {
 }
 
 const PLAN_BADGE: Record<string, { bg: string; text: string; label: string }> = {
-  free:      { bg: 'rgba(255,255,255,0.06)', text: 'rgba(255,255,255,0.45)', label: 'Free' },
+  free:      { bg: 'var(--admin-border)', text: 'var(--admin-muted)', label: 'Free' },
   plus:      { bg: 'var(--status-info-bg)',   text: 'var(--status-info)',     label: 'Plus' },
   premium:   { bg: 'var(--gold-muted)',       text: 'var(--gold)',            label: 'Premium' },
 }
 
 const STATUS_BADGE: Record<string, { bg: string; text: string }> = {
   active:    { bg: 'var(--status-success-bg)', text: 'var(--status-success)' },
-  cancelled: { bg: 'rgba(255,255,255,0.06)',   text: 'rgba(255,255,255,0.35)' },
+  cancelled: { bg: 'var(--admin-border)',       text: 'var(--admin-muted)' },
   past_due:  { bg: 'var(--status-error-bg)',   text: 'var(--status-error)' },
   trialing:  { bg: 'var(--status-warning-bg)', text: 'var(--status-warning)' },
 }
@@ -69,8 +69,8 @@ function OverrideModal({
       style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div style={{ background: 'var(--surface-2)', border: '0.5px solid rgba(255,255,255,0.1)', borderRadius: 16, width: '100%', maxWidth: 380, padding: 24 }}>
-        <p className="text-white font-semibold mb-1" style={{ fontSize: 14, color: 'var(--admin-text)', fontWeight: 600, marginBottom: 4 }}>
+      <div style={{ background: 'var(--surface-2)', border: '0.5px solid var(--admin-border)', borderRadius: 16, width: '100%', maxWidth: 380, padding: 24 }}>
+        <p style={{ fontSize: 14, color: 'var(--admin-text)', fontWeight: 600, marginBottom: 4 }}>
           Override plan — {profileName(sub.profile)}
         </p>
         <p style={{ fontSize: 12, color: 'var(--admin-muted)', marginBottom: 20 }}>
@@ -85,8 +85,8 @@ function OverrideModal({
                 key={p}
                 onClick={() => setPlan(p)}
                 style={{
-                  flex: 1, padding: '10px 0', borderRadius: 10, border: plan === p ? '1px solid rgba(184,150,12,0.5)' : '0.5px solid rgba(255,255,255,0.1)',
-                  background: plan === p ? 'rgba(184,150,12,0.08)' : 'rgba(255,255,255,0.04)',
+                  flex: 1, padding: '10px 0', borderRadius: 10, border: plan === p ? '1px solid rgba(184,150,12,0.5)' : '0.5px solid var(--admin-border)',
+                  background: plan === p ? 'rgba(184,150,12,0.08)' : 'var(--admin-surface)',
                   color: b.text, fontSize: 12, fontWeight: 600, cursor: 'pointer',
                 }}
               >
@@ -99,7 +99,7 @@ function OverrideModal({
         {error && <p style={{ fontSize: 12, color: 'var(--status-error)', marginBottom: 12 }}>{error}</p>}
 
         <div style={{ display: 'flex', gap: 8 }}>
-          <button onClick={onClose} style={{ flex: 1, padding: '9px 0', borderRadius: 9, background: 'rgba(255,255,255,0.06)', border: '0.5px solid rgba(255,255,255,0.1)', color: 'var(--admin-muted)', fontSize: 13, cursor: 'pointer' }}>
+          <button onClick={onClose} style={{ flex: 1, padding: '9px 0', borderRadius: 9, background: 'var(--admin-border)', border: '0.5px solid var(--admin-border)', color: 'var(--admin-muted)', fontSize: 13, cursor: 'pointer' }}>
             Cancel
           </button>
           <button onClick={save} disabled={loading || plan === sub.plan} style={{ flex: 2, padding: '9px 0', borderRadius: 9, background: 'var(--gold)', color: 'var(--surface)', fontSize: 13, fontWeight: 600, cursor: loading || plan === sub.plan ? 'not-allowed' : 'pointer', opacity: plan === sub.plan ? 0.5 : 1, border: 'none' }}>
@@ -157,7 +157,7 @@ export default function AdminSubscriptionsClient({ subs: initialSubs }: { subs: 
           { label: 'Estimated MRR', value: `£${estimatedMRR}`, sub: 'Monthly recurring' },
           { label: 'Total members', value: `${subs.length}`, sub: `${activeSubs.length} active` },
         ].map(card => (
-          <div key={card.label} style={{ background: 'var(--surface-2)', border: '0.5px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '16px 20px' }}>
+          <div key={card.label} style={{ background: 'var(--surface-2)', border: '0.5px solid var(--admin-border)', borderRadius: 12, padding: '16px 20px' }}>
             <div style={{ fontSize: 11, color: 'var(--admin-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>{card.label}</div>
             <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--admin-text)', marginBottom: 2 }}>{card.value}</div>
             <div style={{ fontSize: 11, color: 'var(--admin-muted)' }}>{card.sub}</div>
@@ -173,8 +173,8 @@ export default function AdminSubscriptionsClient({ subs: initialSubs }: { subs: 
             onClick={() => setStatusFilter(f)}
             style={{
               padding: '5px 14px', borderRadius: 8, fontSize: 12, fontWeight: 500,
-              background: statusFilter === f ? 'var(--gold)' : 'rgba(255,255,255,0.06)',
-              color: statusFilter === f ? 'var(--surface)' : 'rgba(255,255,255,0.5)',
+              background: statusFilter === f ? 'var(--gold)' : 'var(--admin-border)',
+              color: statusFilter === f ? 'var(--surface)' : 'var(--admin-muted)',
               border: 'none', cursor: 'pointer',
             }}
           >
@@ -188,11 +188,11 @@ export default function AdminSubscriptionsClient({ subs: initialSubs }: { subs: 
       </div>
 
       {/* Table */}
-      <div style={{ background: 'var(--surface-2)', border: '0.5px solid rgba(255,255,255,0.08)', borderRadius: 12, overflow: 'hidden' }}>
+      <div style={{ background: 'var(--surface-2)', border: '0.5px solid var(--admin-border)', borderRadius: 12, overflow: 'hidden' }}>
         {/* Header */}
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1.4fr 1.4fr 1fr', padding: '10px 20px', background: 'rgba(255,255,255,0.03)', borderBottom: '0.5px solid rgba(255,255,255,0.07)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1.4fr 1.4fr 1fr', padding: '10px 20px', background: 'var(--admin-surface)', borderBottom: '0.5px solid var(--admin-border)' }}>
           {['Member', 'Plan', 'Status', 'Since', 'Next renewal', 'Actions'].map(h => (
-            <span key={h} style={{ fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'rgba(255,255,255,0.35)' }}>{h}</span>
+            <span key={h} style={{ fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--admin-muted)' }}>{h}</span>
           ))}
         </div>
 
@@ -210,8 +210,8 @@ export default function AdminSubscriptionsClient({ subs: initialSubs }: { subs: 
                 style={{
                   display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1.4fr 1.4fr 1fr',
                   padding: '13px 20px', alignItems: 'center',
-                  borderTop: i > 0 ? '0.5px solid rgba(255,255,255,0.05)' : undefined,
-                  background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.01)',
+                  borderTop: i > 0 ? '0.5px solid var(--admin-border)' : undefined,
+                  background: 'transparent',
                 }}
               >
                 {/* Member */}
@@ -225,7 +225,7 @@ export default function AdminSubscriptionsClient({ subs: initialSubs }: { subs: 
                   }}>
                     {sub.profile?.display_initials ?? '??'}
                   </div>
-                  <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)' }}>{profileName(sub.profile)}</span>
+                  <span style={{ fontSize: 13, color: 'var(--admin-text)' }}>{profileName(sub.profile)}</span>
                 </div>
 
                 {/* Plan */}
@@ -240,10 +240,10 @@ export default function AdminSubscriptionsClient({ subs: initialSubs }: { subs: 
                 </span>
 
                 {/* Since */}
-                <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)' }}>{fmtDate(sub.created_at)}</span>
+                <span style={{ fontSize: 12, color: 'var(--admin-muted)' }}>{fmtDate(sub.created_at)}</span>
 
                 {/* Next renewal */}
-                <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)' }}>
+                <span style={{ fontSize: 12, color: 'var(--admin-muted)' }}>
                   {sub.cancel_at_period_end ? '—' : fmtDate(sub.current_period_end)}
                 </span>
 
@@ -251,7 +251,7 @@ export default function AdminSubscriptionsClient({ subs: initialSubs }: { subs: 
                 <div style={{ display: 'flex', gap: 6 }}>
                   <button
                     onClick={() => setOverrideSub(sub)}
-                    style={{ padding: '4px 10px', borderRadius: 6, fontSize: 11, background: 'rgba(255,255,255,0.06)', border: '0.5px solid rgba(255,255,255,0.1)', color: 'var(--admin-muted)', cursor: 'pointer' }}
+                    style={{ padding: '4px 10px', borderRadius: 6, fontSize: 11, background: 'var(--admin-border)', border: '0.5px solid var(--admin-border)', color: 'var(--admin-muted)', cursor: 'pointer' }}
                   >
                     Override
                   </button>

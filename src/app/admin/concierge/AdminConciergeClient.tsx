@@ -128,8 +128,8 @@ function SuggestPicker({
               key={c.id}
               style={{
                 display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px',
-                background: suggested ? 'rgba(74,222,128,0.05)' : 'rgba(255,255,255,0.03)',
-                borderRadius: 9, border: `0.5px solid ${suggested ? 'rgba(74,222,128,0.2)' : 'rgba(255,255,255,0.07)'}`,
+                background: suggested ? 'rgba(74,222,128,0.05)' : 'transparent',
+                borderRadius: 9, border: `0.5px solid ${suggested ? 'rgba(74,222,128,0.2)' : 'var(--admin-border)'}`,
               }}
             >
               <div style={{ ...avatarStyle(c.gender), width: 28, height: 28, borderRadius: 7, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9.5, fontWeight: 600 }}>
@@ -212,7 +212,7 @@ export default function AdminConciergeClient({
               <div
                 key={member.id}
                 style={{
-                  background: 'var(--surface-2)', border: `0.5px solid ${isExpanded ? 'var(--gold-border)' : 'rgba(255,255,255,0.08)'}`,
+                  background: 'var(--admin-surface)', border: `0.5px solid ${isExpanded ? 'var(--gold-border)' : 'var(--admin-border)'}`,
                   borderRadius: 14, overflow: 'hidden',
                 }}
               >

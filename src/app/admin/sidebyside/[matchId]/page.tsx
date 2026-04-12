@@ -112,30 +112,30 @@ function ProfileColumn({
 
   function Row({ title, value }: { title: string; value: string | null | undefined }) {
     return value ? (
-      <div className="flex gap-3 py-2.5 border-b border-white/10">
-        <dt className="text-xs text-white/40 w-36 flex-shrink-0 pt-0.5">{title}</dt>
-        <dd className="text-sm text-white break-words">{value}</dd>
+      <div className="flex gap-3 py-2.5" style={{ borderBottom: '1px solid var(--admin-border)' }}>
+        <dt className="text-xs w-36 flex-shrink-0 pt-0.5" style={{ color: 'var(--admin-muted)' }}>{title}</dt>
+        <dd className="text-sm break-words" style={{ color: 'var(--admin-text)' }}>{value}</dd>
       </div>
     ) : null
   }
 
   return (
-    <div className="bg-surface-2 rounded-2xl border border-white/10 overflow-hidden">
+    <div className="bg-surface-2 rounded-2xl overflow-hidden" style={{ border: '1px solid var(--admin-border)' }}>
       {/* Avatar header */}
       <div
         className="px-6 py-8 flex flex-col items-center gap-2"
         style={{ backgroundColor: `${bg}18` }}
       >
         <div
-          className="w-20 h-20 rounded-full flex items-center justify-center text-white font-bold text-2xl"
-          style={{ backgroundColor: bg }}
+          className="w-20 h-20 rounded-full flex items-center justify-center font-bold text-2xl"
+          style={{ backgroundColor: bg, color: 'white' }}
         >
           {profile.display_initials}
         </div>
-        <p className="text-sm font-medium text-white/50">{label}</p>
-        <p className="text-lg font-bold text-white">{profile.display_initials}</p>
+        <p className="text-sm font-medium" style={{ color: 'var(--admin-muted)' }}>{label}</p>
+        <p className="text-lg font-bold" style={{ color: 'var(--admin-text)' }}>{profile.display_initials}</p>
         {profile.legacy_ref && (
-          <span className="px-2.5 py-0.5 rounded-full text-xs border border-white/10 text-white/50 bg-surface-2">
+          <span className="px-2.5 py-0.5 rounded-full text-xs bg-surface-2" style={{ border: '1px solid var(--admin-border)', color: 'var(--admin-muted)' }}>
             {profile.legacy_ref}
           </span>
         )}
@@ -162,10 +162,10 @@ function ProfileColumn({
         {/* Attributes */}
         {profile.attributes && profile.attributes.length > 0 && (
           <div className="mt-4">
-            <p className="text-xs text-white/40 font-medium uppercase tracking-wide mb-2">Attributes</p>
+            <p className="text-xs font-medium uppercase tracking-wide mb-2" style={{ color: 'var(--admin-muted)' }}>Attributes</p>
             <div className="flex flex-wrap gap-1.5">
               {profile.attributes.map(a => (
-                <span key={a} className="px-2.5 py-1 rounded-full text-xs bg-surface-3 border border-white/10 text-white/70">
+                <span key={a} className="px-2.5 py-1 rounded-full text-xs bg-surface-3" style={{ border: '1px solid var(--admin-border)', color: 'var(--admin-text)' }}>
                   {a}
                 </span>
               ))}
@@ -176,10 +176,10 @@ function ProfileColumn({
         {/* Spouse Preferences */}
         {profile.spouse_preferences && profile.spouse_preferences.length > 0 && (
           <div className="mt-4">
-            <p className="text-xs text-white/40 font-medium uppercase tracking-wide mb-2">Spouse Preferences</p>
+            <p className="text-xs font-medium uppercase tracking-wide mb-2" style={{ color: 'var(--admin-muted)' }}>Spouse Preferences</p>
             <div className="flex flex-wrap gap-1.5">
               {profile.spouse_preferences.map(p => (
-                <span key={p} className="px-2.5 py-1 rounded-full text-xs bg-surface-3 text-white/70 border border-white/10">
+                <span key={p} className="px-2.5 py-1 rounded-full text-xs bg-surface-3" style={{ color: 'var(--admin-text)', border: '1px solid var(--admin-border)' }}>
                   {p}
                 </span>
               ))}
@@ -189,20 +189,20 @@ function ProfileColumn({
       </div>
 
       {/* Admin-only contact section */}
-      <div className="border-t border-white/10 bg-surface-3 px-6 py-4">
-        <p className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-3">Contact Details</p>
+      <div className="bg-surface-3 px-6 py-4" style={{ borderTop: '1px solid var(--admin-border)' }}>
+        <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--admin-muted)' }}>Contact Details</p>
         <dl className="space-y-2 text-sm">
           <div className="flex gap-2">
-            <dt className="text-white/50 w-24 flex-shrink-0">Phone:</dt>
-            <dd className="font-medium text-white">{profile.contact_number ?? '—'}</dd>
+            <dt className="w-24 flex-shrink-0" style={{ color: 'var(--admin-muted)' }}>Phone:</dt>
+            <dd className="font-medium" style={{ color: 'var(--admin-text)' }}>{profile.contact_number ?? '—'}</dd>
           </div>
           <div className="flex gap-2">
-            <dt className="text-white/50 w-24 flex-shrink-0">Guardian:</dt>
-            <dd className="font-medium text-white">{profile.guardian_name ?? '—'}</dd>
+            <dt className="w-24 flex-shrink-0" style={{ color: 'var(--admin-muted)' }}>Guardian:</dt>
+            <dd className="font-medium" style={{ color: 'var(--admin-text)' }}>{profile.guardian_name ?? '—'}</dd>
           </div>
           <div className="flex gap-2">
-            <dt className="text-white/50 w-24 flex-shrink-0">Email:</dt>
-            <dd className="font-medium text-white break-all">{profile.imported_email ?? '—'}</dd>
+            <dt className="w-24 flex-shrink-0" style={{ color: 'var(--admin-muted)' }}>Email:</dt>
+            <dd className="font-medium break-all" style={{ color: 'var(--admin-text)' }}>{profile.imported_email ?? '—'}</dd>
           </div>
         </dl>
         {digits && (
@@ -219,24 +219,24 @@ function ProfileColumn({
 
       {/* Admin notes */}
       {(profile.admin_comments || profile.admin_notes) && (
-        <div className="border-t border-white/10 px-6 py-4">
+        <div className="px-6 py-4" style={{ borderTop: '1px solid var(--admin-border)' }}>
           {profile.admin_comments && (
             <div className="mb-3">
-              <p className="text-xs font-medium text-white/40 uppercase tracking-wide mb-1">Admin Comments</p>
-              <p className="text-sm text-white/70">{profile.admin_comments}</p>
+              <p className="text-xs font-medium uppercase tracking-wide mb-1" style={{ color: 'var(--admin-muted)' }}>Admin Comments</p>
+              <p className="text-sm" style={{ color: 'var(--admin-text)' }}>{profile.admin_comments}</p>
             </div>
           )}
           {profile.admin_notes && (
             <div>
-              <p className="text-xs font-medium text-white/40 uppercase tracking-wide mb-1">Admin Notes</p>
-              <p className="text-sm text-white/70">{profile.admin_notes}</p>
+              <p className="text-xs font-medium uppercase tracking-wide mb-1" style={{ color: 'var(--admin-muted)' }}>Admin Notes</p>
+              <p className="text-sm" style={{ color: 'var(--admin-text)' }}>{profile.admin_notes}</p>
             </div>
           )}
         </div>
       )}
 
       {/* Consent checkbox */}
-      <div className="border-t border-white/10 px-6 py-4 bg-surface-2">
+      <div className="px-6 py-4 bg-surface-2" style={{ borderTop: '1px solid var(--admin-border)' }}>
         <label className="flex items-start gap-3 cursor-pointer">
           <input
             type="checkbox"
@@ -244,7 +244,7 @@ function ProfileColumn({
             onChange={e => onConsentChange(e.target.checked)}
             className="w-4 h-4 mt-0.5 accent-gold flex-shrink-0"
           />
-          <span className="text-sm text-white">
+          <span className="text-sm" style={{ color: 'var(--admin-text)' }}>
             {label} has verbally confirmed consent to introduction
           </span>
         </label>
@@ -363,10 +363,10 @@ export default function SideBySidePage({
 
   if (accessDenied) {
     return (
-      <div className="min-h-screen bg-surface flex items-center justify-center" data-theme="dark">
-        <div className="bg-surface-2 rounded-2xl p-10 border border-white/10 text-center max-w-sm mx-4">
+      <div className="min-h-screen bg-surface flex items-center justify-center">
+        <div className="bg-surface-2 rounded-2xl p-10 text-center max-w-sm mx-4" style={{ border: '1px solid var(--admin-border)' }}>
           <p className="text-2xl mb-2">🔒</p>
-          <h1 className="text-xl font-semibold text-white mb-4">Access Denied</h1>
+          <h1 className="text-xl font-semibold mb-4" style={{ color: 'var(--admin-text)' }}>Access Denied</h1>
           <Link href="/admin" className="text-gold text-sm hover:underline">Back to Admin</Link>
         </div>
       </div>
@@ -375,17 +375,17 @@ export default function SideBySidePage({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-surface flex items-center justify-center" data-theme="dark">
-        <p className="text-white/40 text-sm">Loading match…</p>
+      <div className="min-h-screen bg-surface flex items-center justify-center">
+        <p className="text-sm" style={{ color: 'var(--admin-muted)' }}>Loading match…</p>
       </div>
     )
   }
 
   if (!match) {
     return (
-      <div className="min-h-screen bg-surface flex items-center justify-center" data-theme="dark">
+      <div className="min-h-screen bg-surface flex items-center justify-center">
         <div className="text-center">
-          <p className="text-white/60 mb-4">Match not found.</p>
+          <p className="mb-4" style={{ color: 'var(--admin-muted)' }}>Match not found.</p>
           <Link href="/admin" className="text-gold text-sm hover:underline">Back to Admin</Link>
         </div>
       </div>
@@ -395,7 +395,7 @@ export default function SideBySidePage({
   const canIntroduce = consentA && consentB && match.status !== 'introduced'
 
   return (
-    <div className="min-h-screen bg-surface" data-theme="dark">
+    <div className="min-h-screen bg-surface">
       {/* Confirm Dismiss Modal */}
       {confirmDismiss && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
@@ -403,7 +403,7 @@ export default function SideBySidePage({
             <p className="text-white mb-6">Dismiss this match? This cannot be undone.</p>
             <div className="flex gap-3 justify-end">
               <button onClick={() => setConfirmDismiss(false)}
-                className="px-4 py-2 rounded-lg text-sm border border-white/10 text-white hover:bg-surface-3">
+                className="px-4 py-2 rounded-lg text-sm hover:bg-surface-3" style={{ border: '1px solid var(--admin-border)', color: 'var(--admin-text)' }}>
                 Cancel
               </button>
               <button onClick={dismissMatch} disabled={dismissing}
@@ -420,9 +420,9 @@ export default function SideBySidePage({
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <ZawaajLogo size={30} tagline={false} />
-            <span className="text-white/30 text-sm hidden sm:block">Side-by-Side Match View</span>
+            <span className="text-sm hidden sm:block" style={{ color: 'var(--admin-muted)' }}>Side-by-Side Match View</span>
           </div>
-          <Link href="/admin" className="text-white/40 hover:text-white/80 text-xs transition-colors">
+          <Link href="/admin" className="text-xs transition-colors" style={{ color: 'var(--admin-muted)' }}>
             Back to Dashboard
           </Link>
         </div>
@@ -430,24 +430,24 @@ export default function SideBySidePage({
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-6">
         {/* Match Summary Bar */}
-        <div className="bg-surface-2 rounded-2xl p-5 border border-white/10 flex flex-wrap items-center gap-4">
+        <div className="bg-surface-2 rounded-2xl p-5 flex flex-wrap items-center gap-4" style={{ border: '1px solid var(--admin-border)' }}>
           <div>
-            <p className="text-xs text-white/40 uppercase tracking-wide mb-1">Match Status</p>
+            <p className="text-xs uppercase tracking-wide mb-1" style={{ color: 'var(--admin-muted)' }}>Match Status</p>
             <StatusBadge status={match.status} />
           </div>
           <div>
-            <p className="text-xs text-white/40 uppercase tracking-wide mb-1">Mutual Date</p>
-            <p className="text-sm font-medium text-white">{fmtDate(match.mutual_date)} <span className="text-white/40 font-normal">({daysAgo(match.mutual_date)})</span></p>
+            <p className="text-xs uppercase tracking-wide mb-1" style={{ color: 'var(--admin-muted)' }}>Mutual Date</p>
+            <p className="text-sm font-medium" style={{ color: 'var(--admin-text)' }}>{fmtDate(match.mutual_date)} <span className="font-normal" style={{ color: 'var(--admin-muted)' }}>({daysAgo(match.mutual_date)})</span></p>
           </div>
           {match.introduced_date && (
             <div>
-              <p className="text-xs text-white/40 uppercase tracking-wide mb-1">Introduced</p>
-              <p className="text-sm font-medium text-white">{fmtDate(match.introduced_date)}</p>
+              <p className="text-xs uppercase tracking-wide mb-1" style={{ color: 'var(--admin-muted)' }}>Introduced</p>
+              <p className="text-sm font-medium" style={{ color: 'var(--admin-text)' }}>{fmtDate(match.introduced_date)}</p>
             </div>
           )}
           <div>
-            <p className="text-xs text-white/40 uppercase tracking-wide mb-1">Consent</p>
-            <p className="text-sm text-white">
+            <p className="text-xs uppercase tracking-wide mb-1" style={{ color: 'var(--admin-muted)' }}>Consent</p>
+            <p className="text-sm" style={{ color: 'var(--admin-text)' }}>
               <span className={consentA ? 'text-green-400 font-medium' : 'text-red-400'}>
                 Family A {consentA ? '✓' : '✗'}
               </span>
@@ -459,7 +459,8 @@ export default function SideBySidePage({
           </div>
           <div className="ml-auto flex gap-2 flex-wrap">
             <select
-              className="rounded-lg px-3 py-1.5 text-xs border border-white/10 bg-surface-3 text-white outline-none focus:border-gold"
+              className="rounded-lg px-3 py-1.5 text-xs bg-surface-3 outline-none focus:border-gold"
+              style={{ border: '1px solid var(--admin-border)', color: 'var(--admin-text)' }}
               value={outcomeValue}
               onChange={e => updateOutcome(e.target.value)}
             >
@@ -501,8 +502,8 @@ export default function SideBySidePage({
         </div>
 
         {/* Facilitate Introduction Section */}
-        <div className="bg-surface-2 rounded-2xl border border-white/10 p-6">
-          <h2 className="text-base font-semibold text-white mb-4">Facilitate Introduction</h2>
+        <div className="bg-surface-2 rounded-2xl p-6" style={{ border: '1px solid var(--admin-border)' }}>
+          <h2 className="text-base font-semibold mb-4" style={{ color: 'var(--admin-text)' }}>Facilitate Introduction</h2>
 
           {match.status === 'introduced' ? (
             <div className="bg-green-950/40 border border-green-800/40 rounded-xl px-5 py-4">
@@ -511,8 +512,8 @@ export default function SideBySidePage({
               </p>
             </div>
           ) : match.status === 'dismissed' ? (
-            <div className="bg-surface-3 border border-white/10 rounded-xl px-5 py-4">
-              <p className="text-sm text-white/60">This match has been dismissed.</p>
+            <div className="bg-surface-3 rounded-xl px-5 py-4" style={{ border: '1px solid var(--admin-border)' }}>
+              <p className="text-sm" style={{ color: 'var(--admin-muted)' }}>This match has been dismissed.</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -522,23 +523,23 @@ export default function SideBySidePage({
                     <input type="checkbox" checked={consentA} onChange={e => updateConsent('a', e.target.checked)}
                       className="w-4 h-4 mt-0.5 accent-gold flex-shrink-0" />
                     <div>
-                      <p className="text-sm font-medium text-white">Family A consent confirmed</p>
-                      <p className="text-xs text-white/50 mt-0.5">Verbal confirmation received from {profileA?.display_initials ?? 'Family A'}</p>
+                      <p className="text-sm font-medium" style={{ color: 'var(--admin-text)' }}>Family A consent confirmed</p>
+                      <p className="text-xs mt-0.5" style={{ color: 'var(--admin-muted)' }}>Verbal confirmation received from {profileA?.display_initials ?? 'Family A'}</p>
                     </div>
                   </label>
                   <label className="flex items-start gap-3 bg-surface-3 rounded-xl p-4 cursor-pointer">
                     <input type="checkbox" checked={consentB} onChange={e => updateConsent('b', e.target.checked)}
                       className="w-4 h-4 mt-0.5 accent-gold flex-shrink-0" />
                     <div>
-                      <p className="text-sm font-medium text-white">Family B consent confirmed</p>
-                      <p className="text-xs text-white/50 mt-0.5">Verbal confirmation received from {profileB?.display_initials ?? 'Family B'}</p>
+                      <p className="text-sm font-medium" style={{ color: 'var(--admin-text)' }}>Family B consent confirmed</p>
+                      <p className="text-xs mt-0.5" style={{ color: 'var(--admin-muted)' }}>Verbal confirmation received from {profileB?.display_initials ?? 'Family B'}</p>
                     </div>
                   </label>
                 </div>
               </div>
 
               {!canIntroduce && (
-                <p className="text-xs text-white/50">
+                <p className="text-xs" style={{ color: 'var(--admin-muted)' }}>
                   Both families must verbally confirm consent before marking as introduced.
                 </p>
               )}
@@ -563,10 +564,11 @@ export default function SideBySidePage({
         </div>
 
         {/* Admin Notes */}
-        <div className="bg-surface-2 rounded-2xl border border-white/10 p-6">
-          <h2 className="text-base font-semibold text-white mb-4">Admin Notes</h2>
+        <div className="bg-surface-2 rounded-2xl p-6" style={{ border: '1px solid var(--admin-border)' }}>
+          <h2 className="text-base font-semibold mb-4" style={{ color: 'var(--admin-text)' }}>Admin Notes</h2>
           <textarea
-            className="w-full rounded-xl px-4 py-3 text-sm border border-white/10 bg-surface-3 text-white outline-none focus:border-gold resize-none transition-colors"
+            className="w-full rounded-xl px-4 py-3 text-sm bg-surface-3 outline-none focus:border-gold resize-none transition-colors"
+            style={{ border: '1px solid var(--admin-border)', color: 'var(--admin-text)' }}
             rows={4}
             placeholder="Private notes about this match…"
             value={adminNotesValue}
@@ -586,7 +588,7 @@ export default function SideBySidePage({
 
         {/* Back link */}
         <div className="pb-4">
-          <Link href="/admin" className="text-sm text-white/50 hover:text-white transition-colors">
+          <Link href="/admin" className="text-sm transition-colors" style={{ color: 'var(--admin-muted)' }}>
             ← Back to Admin Dashboard
           </Link>
         </div>

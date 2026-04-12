@@ -65,12 +65,12 @@ function StatusBadge({ status }: { status: string }) {
     pending:   { bg: 'var(--status-warning-bg)',  text: 'var(--status-warning)' },
     approved:  { bg: 'var(--status-success-bg)',  text: 'var(--status-success)' },
     rejected:  { bg: 'var(--status-error-bg)',    text: 'var(--status-error)' },
-    withdrawn: { bg: 'var(--border-default)',     text: 'rgba(255,255,255,0.45)' },
+    withdrawn: { bg: 'var(--border-default)',     text: 'var(--admin-muted)' },
     suspended: { bg: 'var(--status-warning-bg)',  text: 'var(--status-warning)' },
     introduced:{ bg: 'var(--status-info-bg)',     text: 'var(--status-info)' },
     paused:    { bg: 'var(--status-warning-bg)',  text: 'var(--status-warning)' },
   }
-  const s = map[status] ?? { bg: 'var(--border-default)', text: 'rgba(255,255,255,0.45)' }
+  const s = map[status] ?? { bg: 'var(--border-default)', text: 'var(--admin-muted)' }
   return (
     <span
       className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize"
@@ -243,10 +243,10 @@ export default function ProfileEditPage({
 
   if (accessDenied) {
     return (
-      <div className="min-h-screen bg-surface flex items-center justify-center" data-theme="dark">
-        <div className="bg-surface-2 rounded-2xl p-10 border border-white/10 text-center max-w-sm mx-4">
+      <div className="min-h-screen bg-surface flex items-center justify-center">
+        <div className="bg-surface-2 rounded-2xl p-10 text-center max-w-sm mx-4" style={{ border: '1px solid var(--admin-border)' }}>
           <p className="text-2xl mb-2">🔒</p>
-          <h1 className="text-xl font-semibold text-white mb-2">Access Denied</h1>
+          <h1 className="text-xl font-semibold mb-2" style={{ color: 'var(--admin-text)' }}>Access Denied</h1>
           <Link href="/admin" className="text-gold text-sm hover:underline">Back to Admin</Link>
         </div>
       </div>
@@ -255,17 +255,17 @@ export default function ProfileEditPage({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-surface flex items-center justify-center" data-theme="dark">
-        <p className="text-white/40 text-sm">Loading profile…</p>
+      <div className="min-h-screen bg-surface flex items-center justify-center">
+        <p className="text-sm" style={{ color: 'var(--admin-muted)' }}>Loading profile…</p>
       </div>
     )
   }
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-surface flex items-center justify-center" data-theme="dark">
+      <div className="min-h-screen bg-surface flex items-center justify-center">
         <div className="text-center">
-          <p className="text-white/60 mb-4">Profile not found.</p>
+          <p className="mb-4" style={{ color: 'var(--admin-muted)' }}>Profile not found.</p>
           <Link href="/admin" className="text-gold text-sm hover:underline">Back to Admin</Link>
         </div>
       </div>
@@ -435,7 +435,7 @@ export default function ProfileEditPage({
                       className="px-3 py-1.5 rounded-full text-xs font-medium border transition-colors"
                       style={{
                         backgroundColor: selected ? 'var(--surface-4)' : 'transparent',
-                        color: selected ? 'var(--gold)' : 'rgba(255,255,255,0.6)',
+                        color: selected ? 'var(--gold)' : 'var(--admin-muted)',
                         borderColor: selected ? 'var(--border-gold)' : 'var(--border-default)',
                       }}
                     >
@@ -477,7 +477,7 @@ export default function ProfileEditPage({
                       className="px-3 py-1.5 rounded-full text-xs font-medium border transition-colors"
                       style={{
                         backgroundColor: selected ? 'var(--surface-4)' : 'transparent',
-                        color: selected ? 'var(--gold)' : 'rgba(255,255,255,0.6)',
+                        color: selected ? 'var(--gold)' : 'var(--admin-muted)',
                         borderColor: selected ? 'var(--border-gold)' : 'var(--border-default)',
                       }}
                     >
@@ -601,9 +601,9 @@ export default function ProfileEditPage({
           border-radius: 0.625rem;
           padding: 0.5rem 0.75rem;
           font-size: 0.875rem;
-          border: 1px solid rgba(255,255,255,0.12);
-          background: var(--surface);
-          color: rgba(255,255,255,0.9);
+          border: 1px solid var(--admin-border);
+          background: var(--admin-surface);
+          color: var(--admin-text);
           outline: none;
           transition: border-color 0.15s;
         }

@@ -143,9 +143,9 @@ function DetailRow({ label, value }: { label: string; value: string | boolean | 
   if (value === null || value === undefined || value === '') return null
   const display = typeof value === 'boolean' ? (value ? 'Yes' : 'No') : String(value)
   return (
-    <div style={{ display: 'flex', gap: 8, padding: '5px 0', borderBottom: '0.5px solid rgba(255,255,255,0.06)' }}>
-      <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', width: 130, flexShrink: 0, textTransform: 'uppercase', letterSpacing: '0.06em', paddingTop: 1 }}>{label}</span>
-      <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)', flex: 1 }}>{display}</span>
+    <div style={{ display: 'flex', gap: 8, padding: '5px 0', borderBottom: '0.5px solid var(--admin-border)' }}>
+      <span style={{ fontSize: 11, color: 'var(--admin-muted)', width: 130, flexShrink: 0, textTransform: 'uppercase', letterSpacing: '0.06em', paddingTop: 1 }}>{label}</span>
+      <span style={{ fontSize: 12, color: 'var(--admin-text)', flex: 1 }}>{display}</span>
     </div>
   )
 }
@@ -157,7 +157,7 @@ function StatusBadge({ status }: { status: string }) {
     pending:              { bg: 'var(--status-warning-bg)',  text: 'var(--status-warning)' },
     approved:             { bg: 'var(--status-success-bg)',  text: 'var(--status-success)' },
     rejected:             { bg: 'var(--status-error-bg)',    text: 'var(--status-error)' },
-    withdrawn:            { bg: 'var(--border-default)',     text: 'rgba(255,255,255,0.45)' },
+    withdrawn:            { bg: 'var(--border-default)',     text: 'var(--admin-muted)' },
     suspended:            { bg: 'var(--status-error-bg)',    text: 'var(--status-error)' },
     introduced:           { bg: 'var(--status-info-bg)',     text: 'var(--status-info)' },
     paused:               { bg: 'var(--status-warning-bg)',  text: 'var(--status-warning)' },
@@ -165,14 +165,14 @@ function StatusBadge({ status }: { status: string }) {
     admin_reviewing:      { bg: 'var(--status-warning-bg)',  text: 'var(--status-warning)' },
     nikah:                { bg: 'var(--status-success-bg)',  text: 'var(--status-success)' },
     no_longer_proceeding: { bg: 'var(--status-error-bg)',    text: 'var(--status-error)' },
-    dismissed:            { bg: 'var(--border-default)',     text: 'rgba(255,255,255,0.45)' },
+    dismissed:            { bg: 'var(--border-default)',     text: 'var(--admin-muted)' },
     in_discussion:        { bg: 'var(--status-info-bg)',     text: 'var(--status-info)' },
     upcoming:             { bg: 'var(--status-success-bg)',  text: 'var(--status-success)' },
     ended:                { bg: 'var(--status-warning-bg)',  text: 'var(--status-warning)' },
-    archived:             { bg: 'var(--border-default)',     text: 'rgba(255,255,255,0.45)' },
+    archived:             { bg: 'var(--border-default)',     text: 'var(--admin-muted)' },
     banned:               { bg: 'var(--status-error-bg)',    text: 'var(--status-error)' },
   }
-  const s = map[status] ?? { bg: 'var(--border-default)', text: 'rgba(255,255,255,0.45)' }
+  const s = map[status] ?? { bg: 'var(--border-default)', text: 'var(--admin-muted)' }
   return (
     <span
       className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize"
@@ -199,11 +199,11 @@ function Confirm({
 }: { message: string; onConfirm: () => void; onCancel: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-surface-2 rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl">
-        <p className="text-white mb-6">{message}</p>
+      <div className="bg-surface-2 rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl" style={{ background: 'var(--admin-surface)', border: '1px solid var(--admin-border)' }}>
+        <p style={{ color: 'var(--admin-text)', marginBottom: 24 }}>{message}</p>
         <div className="flex gap-3 justify-end">
-          <button onClick={onCancel} className="px-4 py-2 rounded-lg text-sm border border-white/10 text-white hover:bg-white/5">Cancel</button>
-          <button onClick={onConfirm} className="px-4 py-2 rounded-lg text-sm bg-surface-2 text-white hover:bg-surface-3">Confirm</button>
+          <button onClick={onCancel} className="px-4 py-2 rounded-lg text-sm hover:bg-white/5" style={{ border: '1px solid var(--admin-border)', color: 'var(--admin-text)' }}>Cancel</button>
+          <button onClick={onConfirm} className="px-4 py-2 rounded-lg text-sm bg-surface-2 hover:bg-surface-3" style={{ color: 'var(--admin-text)' }}>Confirm</button>
         </div>
       </div>
     </div>
@@ -265,16 +265,16 @@ function BanModal({ profile, onClose, onDone }: {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70">
-      <div className="bg-surface-2 rounded-2xl border border-white/10 w-full max-w-lg overflow-hidden">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+      <div className="bg-surface-2 rounded-2xl w-full max-w-lg overflow-hidden" style={{ border: '1px solid var(--admin-border)' }}>
+        <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid var(--admin-border)' }}>
           <h2 className="text-base font-semibold text-red-400">Ban Member — {profile.display_initials}</h2>
-          <button onClick={onClose} className="text-white/40 hover:text-white text-xl leading-none">✕</button>
+          <button onClick={onClose} className="text-xl leading-none" style={{ color: 'var(--admin-muted)' }}>✕</button>
         </div>
         <div className="p-6 space-y-5">
           {err && <p className="text-sm text-red-400 bg-red-950/30 rounded-lg px-3 py-2">{err}</p>}
 
           <div>
-            <p className="text-xs font-medium text-white/50 mb-2 uppercase tracking-wide">Reason (required)</p>
+            <p className="text-xs font-medium mb-2 uppercase tracking-wide" style={{ color: 'var(--admin-muted)' }}>Reason (required)</p>
             <div className="space-y-2">
               {BAN_REASONS.map(r => (
                 <label key={r.value} className="flex items-center gap-3 cursor-pointer group">
@@ -282,14 +282,14 @@ function BanModal({ profile, onClose, onDone }: {
                     checked={reason === r.value}
                     onChange={() => setReason(r.value)}
                     className="accent-red-500" />
-                  <span className="text-sm text-white/70 group-hover:text-white">{r.label}</span>
+                  <span className="text-sm" style={{ color: 'var(--admin-text)' }}>{r.label}</span>
                 </label>
               ))}
             </div>
           </div>
 
           <div>
-            <p className="text-xs font-medium text-white/50 mb-2 uppercase tracking-wide">Admin notes (private — never shown to member)</p>
+            <p className="text-xs font-medium mb-2 uppercase tracking-wide" style={{ color: 'var(--admin-muted)' }}>Admin notes (private — never shown to member)</p>
             <textarea
               value={notes}
               onChange={e => setNotes(e.target.value)}
@@ -300,21 +300,21 @@ function BanModal({ profile, onClose, onDone }: {
           </div>
 
           <div>
-            <p className="text-xs font-medium text-white/50 mb-2 uppercase tracking-wide">Duration</p>
+            <p className="text-xs font-medium mb-2 uppercase tracking-wide" style={{ color: 'var(--admin-muted)' }}>Duration</p>
             <div className="flex gap-4">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="radio" name="severity" value="permanent"
                   checked={severity === 'permanent'}
                   onChange={() => setSeverity('permanent')}
                   className="accent-red-500" />
-                <span className="text-sm text-white">Permanent</span>
+                <span className="text-sm" style={{ color: 'var(--admin-text)' }}>Permanent</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="radio" name="severity" value="temporary"
                   checked={severity === 'temporary'}
                   onChange={() => setSeverity('temporary')}
                   className="accent-red-500" />
-                <span className="text-sm text-white">Temporary</span>
+                <span className="text-sm" style={{ color: 'var(--admin-text)' }}>Temporary</span>
               </label>
             </div>
             {severity === 'temporary' && (
@@ -334,7 +334,7 @@ function BanModal({ profile, onClose, onDone }: {
         </div>
 
         <div className="flex justify-end gap-3 px-6 pb-6">
-          <button onClick={onClose} className="px-5 py-2.5 rounded-xl text-sm border border-white/10 text-white hover:bg-white/5">Cancel</button>
+          <button onClick={onClose} className="px-5 py-2.5 rounded-xl text-sm hover:bg-white/5" style={{ border: '1px solid var(--admin-border)', color: 'var(--admin-text)' }}>Cancel</button>
           <button
             onClick={confirmBan}
             disabled={saving || !reason}
@@ -379,15 +379,15 @@ function LiftBanModal({ profile, onClose, onDone }: {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70">
-      <div className="bg-surface-2 rounded-2xl border border-white/10 w-full max-w-md overflow-hidden">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
-          <h2 className="text-base font-semibold text-white">Lift Ban — {profile.display_initials}</h2>
-          <button onClick={onClose} className="text-white/40 hover:text-white text-xl leading-none">✕</button>
+      <div className="bg-surface-2 rounded-2xl w-full max-w-md overflow-hidden" style={{ border: '1px solid var(--admin-border)' }}>
+        <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid var(--admin-border)' }}>
+          <h2 className="text-base font-semibold" style={{ color: 'var(--admin-text)' }}>Lift Ban — {profile.display_initials}</h2>
+          <button onClick={onClose} className="text-xl leading-none" style={{ color: 'var(--admin-muted)' }}>✕</button>
         </div>
         <div className="p-6 space-y-4">
           {err && <p className="text-sm text-red-400">{err}</p>}
           <div>
-            <p className="text-xs font-medium text-white/50 mb-2 uppercase tracking-wide">Reason for lifting ban (required)</p>
+            <p className="text-xs font-medium mb-2 uppercase tracking-wide" style={{ color: 'var(--admin-muted)' }}>Reason for lifting ban (required)</p>
             <textarea
               value={liftReason}
               onChange={e => setLiftReason(e.target.value)}
@@ -396,10 +396,10 @@ function LiftBanModal({ profile, onClose, onDone }: {
               className="field w-full text-sm resize-none"
             />
           </div>
-          <p className="text-xs text-white/40">Their profile will be relisted if it was previously approved. Login will be re-enabled.</p>
+          <p className="text-xs" style={{ color: 'var(--admin-muted)' }}>Their profile will be relisted if it was previously approved. Login will be re-enabled.</p>
         </div>
         <div className="flex justify-end gap-3 px-6 pb-6">
-          <button onClick={onClose} className="px-5 py-2.5 rounded-xl text-sm border border-white/10 text-white hover:bg-white/5">Cancel</button>
+          <button onClick={onClose} className="px-5 py-2.5 rounded-xl text-sm hover:bg-white/5" style={{ border: '1px solid var(--admin-border)', color: 'var(--admin-text)' }}>Cancel</button>
           <button
             onClick={confirmLift}
             disabled={saving || !liftReason.trim()}
@@ -956,7 +956,7 @@ function QueueTab({ profiles, onRefresh, currentUserId }: { profiles: Profile[];
               <div style={{
                 marginTop: 12,
                 paddingTop: 16,
-                borderTop: '0.5px solid rgba(255,255,255,0.1)',
+                borderTop: '0.5px solid var(--admin-border)',
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
                 gap: '0 32px',
@@ -965,7 +965,7 @@ function QueueTab({ profiles, onRefresh, currentUserId }: { profiles: Profile[];
                 <div>
                   {/* Personal */}
                   <div style={{ marginBottom: 16 }}>
-                    <p style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', marginBottom: 4 }}>
+                    <p style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--admin-muted)', marginBottom: 4 }}>
                       Personal
                     </p>
                     <DetailRow label="First Name" value={p.first_name} />
@@ -994,10 +994,10 @@ function QueueTab({ profiles, onRefresh, currentUserId }: { profiles: Profile[];
                   {/* About */}
                   {p.bio && (
                     <div style={{ marginBottom: 16 }}>
-                      <p style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', marginBottom: 4 }}>
+                      <p style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--admin-muted)', marginBottom: 4 }}>
                         About
                       </p>
-                      <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', lineHeight: 1.6 }}>{p.bio}</p>
+                      <p style={{ fontSize: 12, color: 'var(--admin-text)', lineHeight: 1.6 }}>{p.bio}</p>
                     </div>
                   )}
                 </div>
@@ -1006,7 +1006,7 @@ function QueueTab({ profiles, onRefresh, currentUserId }: { profiles: Profile[];
                 <div>
                   {/* Background */}
                   <div style={{ marginBottom: 16 }}>
-                    <p style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', marginBottom: 4 }}>
+                    <p style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--admin-muted)', marginBottom: 4 }}>
                       Background
                     </p>
                     <DetailRow label="Ethnicity" value={p.ethnicity} />
@@ -1018,7 +1018,7 @@ function QueueTab({ profiles, onRefresh, currentUserId }: { profiles: Profile[];
 
                   {/* Faith & Practice */}
                   <div style={{ marginBottom: 16 }}>
-                    <p style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', marginBottom: 4 }}>
+                    <p style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--admin-muted)', marginBottom: 4 }}>
                       Faith &amp; Practice
                     </p>
                     <DetailRow label="School of Thought" value={p.school_of_thought} />
@@ -1030,7 +1030,7 @@ function QueueTab({ profiles, onRefresh, currentUserId }: { profiles: Profile[];
 
                   {/* Lifestyle */}
                   <div style={{ marginBottom: 16 }}>
-                    <p style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', marginBottom: 4 }}>
+                    <p style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--admin-muted)', marginBottom: 4 }}>
                       Lifestyle
                     </p>
                     <DetailRow label="Open to Relocation" value={p.open_to_relocation} />
@@ -1040,7 +1040,7 @@ function QueueTab({ profiles, onRefresh, currentUserId }: { profiles: Profile[];
 
                   {/* Preferences */}
                   <div style={{ marginBottom: 16 }}>
-                    <p style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', marginBottom: 4 }}>
+                    <p style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--admin-muted)', marginBottom: 4 }}>
                       Preferences
                     </p>
                     <DetailRow label="Pref Age Min" value={p.pref_age_min} />
@@ -1055,7 +1055,7 @@ function QueueTab({ profiles, onRefresh, currentUserId }: { profiles: Profile[];
                   {/* Admin Notes */}
                   {(p.admin_comments || p.admin_notes) && (
                     <div style={{ marginBottom: 16 }}>
-                      <p style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', marginBottom: 4 }}>
+                      <p style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--admin-muted)', marginBottom: 4 }}>
                         Admin Notes
                       </p>
                       <DetailRow label="Admin Comments" value={p.admin_comments} />
@@ -1573,8 +1573,8 @@ function MembersTab({ profiles, onRefresh, currentUserId }: { profiles: Profile[
               border: '1px solid',
               transition: 'all 0.15s',
               background: statusFilter === s ? 'var(--gold)' : 'transparent',
-              color: statusFilter === s ? 'var(--surface)' : 'rgba(255,255,255,0.5)',
-              borderColor: statusFilter === s ? 'var(--gold)' : 'rgba(255,255,255,0.15)',
+              color: statusFilter === s ? 'var(--surface)' : 'var(--admin-muted)',
+              borderColor: statusFilter === s ? 'var(--gold)' : 'var(--admin-border)',
               fontWeight: statusFilter === s ? 600 : 400,
             }}
           >
@@ -2514,7 +2514,7 @@ export default function AdminPage() {
 
   if (!accessChecked) {
     return (
-      <div className="min-h-screen bg-surface flex items-center justify-center" data-theme="dark">
+      <div className="min-h-screen bg-surface flex items-center justify-center">
         <p className="text-white/30 text-sm">Checking access…</p>
       </div>
     )
@@ -2522,7 +2522,7 @@ export default function AdminPage() {
 
   if (!isAdmin) {
     return (
-      <div className="min-h-screen bg-surface flex flex-col items-center justify-center gap-4" data-theme="dark">
+      <div className="min-h-screen bg-surface flex flex-col items-center justify-center gap-4">
         <div className="bg-surface-2 rounded-2xl p-10 border border-white/10 text-center max-w-sm mx-4">
           <p className="text-2xl mb-2">🔒</p>
           <h1 className="text-xl font-semibold text-white mb-2">Access Denied</h1>
@@ -2540,13 +2540,13 @@ export default function AdminPage() {
   const approvedCount = profiles.filter(p => p.status === 'approved').length
 
   return (
-    <div className="min-h-screen bg-surface" data-theme="dark">
+    <div className="min-h-screen bg-surface">
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         {/* Title */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-white">Admin Dashboard</h1>
-          <p className="text-white/40 text-sm mt-1">Manage applications, matches and members.</p>
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--admin-text)' }}>Admin Dashboard</h1>
+          <p className="text-sm mt-1" style={{ color: 'var(--admin-muted)' }}>Manage applications, matches and members.</p>
         </div>
 
         {/* Stats Row — each card navigates to the relevant tab */}
@@ -2563,10 +2563,10 @@ export default function AdminPage() {
               key={stat.label}
               onClick={() => setTab(stat.tab)}
               className="bg-surface-2 rounded-2xl p-4 text-left hover:bg-surface-3 transition-colors w-full"
-              style={{ border: `1px solid rgba(255,255,255,0.08)`, borderLeft: `3px solid ${stat.accent}` }}
+              style={{ border: `1px solid var(--admin-border)`, borderLeft: `3px solid ${stat.accent}` }}
             >
-              <p className="text-2xl font-bold text-white">{stat.value}</p>
-              <p className="text-xs text-white/50 mt-0.5">{stat.label}</p>
+              <p className="text-2xl font-bold" style={{ color: 'var(--admin-text)' }}>{stat.value}</p>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--admin-muted)' }}>{stat.label}</p>
             </button>
           ))}
         </div>
@@ -2579,26 +2579,25 @@ export default function AdminPage() {
             { href: '/admin/managers', icon: '👥', label: 'Managers', sub: 'Appoint & configure scoped managers' },
             { href: '/admin/subscriptions', icon: '💳', label: 'Subscriptions', sub: 'MRR, plans & overrides' },
             { href: '/admin/concierge', icon: '✦', label: 'Concierge Queue', sub: 'Suggest matches to Premium members' },
-            { href: '/admin/help', icon: '?', label: 'Admin Help', sub: 'Roles, workflow & responsibilities' },
           ].map(link => (
             <Link
               key={link.href}
               href={link.href}
               className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-surface-3 transition-colors"
-              style={{ background: 'var(--surface-2)', border: '0.5px solid rgba(255,255,255,0.1)', textDecoration: 'none', minWidth: 200 }}
+              style={{ background: 'var(--admin-surface)', border: '0.5px solid var(--admin-border)', textDecoration: 'none', minWidth: 200 }}
             >
               <span style={{ fontSize: 18 }}>{link.icon}</span>
               <div>
-                <div style={{ fontSize: 13, fontWeight: 500, color: 'white' }}>{link.label}</div>
-                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>{link.sub}</div>
+                <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--admin-text)' }}>{link.label}</div>
+                <div style={{ fontSize: 11, color: 'var(--admin-muted)' }}>{link.sub}</div>
               </div>
-              <span style={{ marginLeft: 'auto', color: 'rgba(255,255,255,0.25)', fontSize: 12 }}>→</span>
+              <span style={{ marginLeft: 'auto', color: 'var(--admin-muted)', fontSize: 12 }}>→</span>
             </Link>
           ))}
         </div>
 
         {/* Tab Bar */}
-        <div className="flex flex-wrap gap-1 mb-6 bg-surface-2 rounded-2xl p-1.5 border border-white/10 w-fit">
+        <div className="flex flex-wrap gap-1 mb-6 bg-surface-2 rounded-2xl p-1.5 w-fit" style={{ border: '1px solid var(--admin-border)' }}>
           {tabs.map(({ key, label, badge }) => (
             <button
               key={key}
@@ -2606,7 +2605,7 @@ export default function AdminPage() {
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-colors"
               style={{
                 backgroundColor: tab === key ? 'var(--surface-2)' : 'transparent',
-                color: tab === key ? 'var(--gold)' : 'rgba(255,255,255,0.5)',
+                color: tab === key ? 'var(--gold)' : 'var(--admin-muted)',
               }}
             >
               {label}
@@ -2627,7 +2626,7 @@ export default function AdminPage() {
 
         {/* Tab Content */}
         {loading ? (
-          <div className="flex items-center justify-center h-48 text-white/40 text-sm">
+          <div className="flex items-center justify-center h-48 text-sm" style={{ color: 'var(--admin-muted)' }}>
             Loading…
           </div>
         ) : (
@@ -2650,9 +2649,9 @@ export default function AdminPage() {
           border-radius: 0.625rem;
           padding: 0.5rem 0.75rem;
           font-size: 0.875rem;
-          border: 1px solid rgba(255,255,255,0.12);
+          border: 1px solid var(--admin-border);
           background: var(--surface);
-          color: rgba(255,255,255,0.9);
+          color: var(--admin-text);
           outline: none;
           transition: border-color 0.15s;
         }
@@ -2661,7 +2660,7 @@ export default function AdminPage() {
         }
         .field option {
           background: var(--surface-2);
-          color: rgba(255,255,255,0.9);
+          color: var(--admin-text);
         }
       `}</style>
     </div>

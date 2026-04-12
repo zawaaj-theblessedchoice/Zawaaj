@@ -64,7 +64,7 @@ function StatusPill({ status }: { status: string | null }) {
     complete:   { bg: 'var(--status-success-bg)',  text: 'var(--status-success)' },
     failed:     { bg: 'var(--status-error-bg)',    text: 'var(--status-error)' },
   }
-  const s = map[status ?? ''] ?? { bg: 'rgba(255,255,255,0.08)', text: 'rgba(255,255,255,0.45)' }
+  const s = map[status ?? ''] ?? { bg: 'var(--admin-border)', text: 'var(--admin-muted)' }
   return (
     <span
       className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize"
@@ -522,9 +522,9 @@ export default function ImportPage() {
           border-radius: 0.625rem;
           padding: 0.5rem 0.75rem;
           font-size: 0.875rem;
-          border: 1px solid rgba(255,255,255,0.12);
-          background: var(--surface);
-          color: rgba(255,255,255,0.9);
+          border: 1px solid var(--admin-border);
+          background: var(--admin-surface);
+          color: var(--admin-text);
           outline: none;
           transition: border-color 0.15s;
         }

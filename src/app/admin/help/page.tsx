@@ -13,14 +13,14 @@ export default async function AdminHelpPage() {
   const isSuperAdmin = role === 'super_admin'
 
   return (
-    <div className="min-h-screen bg-[#111111] text-white">
+    <div className="min-h-screen" style={{ background: 'var(--admin-bg)', color: 'var(--admin-text)' }}>
 
       <div className="max-w-2xl mx-auto px-6 py-10 space-y-10">
 
         {/* Page title */}
         <div>
-          <h1 className="text-2xl font-semibold text-white mb-1">Admin Help</h1>
-          <p className="text-sm text-white/40">
+          <h1 className="text-2xl font-semibold mb-1" style={{ color: 'var(--admin-text)' }}>Admin Help</h1>
+          <p className="text-sm" style={{ color: 'var(--admin-muted)' }}>
             How roles, workflows, and responsibilities work on Zawaaj.
           </p>
         </div>
@@ -56,7 +56,7 @@ export default async function AdminHelpPage() {
 
         {/* ── 2. Introduction Workflow ── */}
         <Section title="Introduction workflow">
-          <p className="text-sm text-white/50 mb-5">
+          <p className="text-sm mb-5" style={{ color: 'var(--admin-muted)' }}>
             Every introduction request follows this path from first expression of interest to facilitation.
           </p>
 
@@ -70,15 +70,15 @@ export default async function AdminHelpPage() {
                   {i + 1}
                 </div>
                 <div>
-                  <div className="text-sm font-medium text-white/80">{step.label}</div>
-                  <div className="text-xs text-white/40 mt-0.5">{step.description}</div>
+                  <div className="text-sm font-medium" style={{ color: 'var(--admin-text)' }}>{step.label}</div>
+                  <div className="text-xs mt-0.5" style={{ color: 'var(--admin-muted)' }}>{step.description}</div>
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="mt-6 p-4 rounded-xl bg-white/[0.03] border border-white/[0.07] text-sm text-white/50 leading-relaxed">
-            Admin involvement begins at <span className="text-white/70">admin_pending</span>. Everything before that is handled between the members.
+          <div className="mt-6 p-4 rounded-xl leading-relaxed" style={{ background: 'var(--admin-surface)', border: '1px solid var(--admin-border)', fontSize: 14, color: 'var(--admin-muted)' }}>
+            Admin involvement begins at <span style={{ color: 'var(--admin-text)' }}>admin_pending</span>. Everything before that is handled between the members.
           </div>
         </Section>
 
@@ -93,8 +93,8 @@ export default async function AdminHelpPage() {
                 'Promote trusted members to the Manager role via the Managers page',
                 'Ensure every member receives the same care regardless of their plan',
               ].map(item => (
-                <li key={item} className="flex items-start gap-2.5 text-sm text-white/60">
-                  <span className="text-[#B8960C] mt-0.5 flex-shrink-0">✓</span>
+                <li key={item} className="flex items-start gap-2.5 text-sm" style={{ color: 'var(--admin-muted)' }}>
+                  <span className="mt-0.5 flex-shrink-0" style={{ color: '#B8960C' }}>✓</span>
                   {item}
                 </li>
               ))}
@@ -108,8 +108,8 @@ export default async function AdminHelpPage() {
                 'Mark as "Complete" only after both parties have been introduced',
                 'Contact a Super Admin if you need to escalate or are unsure how to proceed',
               ].map(item => (
-                <li key={item} className="flex items-start gap-2.5 text-sm text-white/60">
-                  <span className="text-[#60a5fa] mt-0.5 flex-shrink-0">✓</span>
+                <li key={item} className="flex items-start gap-2.5 text-sm" style={{ color: 'var(--admin-muted)' }}>
+                  <span className="mt-0.5 flex-shrink-0" style={{ color: '#60a5fa' }}>✓</span>
                   {item}
                 </li>
               ))}
@@ -119,9 +119,9 @@ export default async function AdminHelpPage() {
 
         {/* ── 4. Status Glossary ── */}
         <Section title="Status meanings">
-          <div className="divide-y divide-white/[0.06]">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
             {STATUS_GLOSSARY.map(({ status, label, meaning }) => (
-              <div key={status} className="py-3 flex items-start gap-4">
+              <div key={status} className="py-3 flex items-start gap-4" style={{ borderBottom: '1px solid var(--admin-border)' }}>
                 <span
                   className="text-[11px] font-mono px-2 py-0.5 rounded flex-shrink-0 mt-0.5"
                   style={{
@@ -131,7 +131,7 @@ export default async function AdminHelpPage() {
                 >
                   {label}
                 </span>
-                <span className="text-sm text-white/50">{meaning}</span>
+                <span className="text-sm" style={{ color: 'var(--admin-muted)' }}>{meaning}</span>
               </div>
             ))}
           </div>
@@ -147,8 +147,8 @@ export default async function AdminHelpPage() {
               'Never mark a request as complete before the introduction has actually happened.',
               'If in doubt, escalate to a Super Admin rather than making assumptions.',
             ].map(rule => (
-              <li key={rule} className="flex items-start gap-2.5 text-sm text-white/60">
-                <span className="text-white/20 flex-shrink-0 mt-0.5">—</span>
+              <li key={rule} className="flex items-start gap-2.5 text-sm" style={{ color: 'var(--admin-muted)' }}>
+                <span className="flex-shrink-0 mt-0.5" style={{ color: 'var(--admin-muted)' }}>—</span>
                 {rule}
               </li>
             ))}
@@ -165,10 +165,10 @@ export default async function AdminHelpPage() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>
-      <h2 className="text-xs font-semibold uppercase tracking-widest text-white/30 mb-4">
+      <h2 className="text-xs font-semibold uppercase tracking-widest mb-4" style={{ color: 'var(--admin-muted)' }}>
         {title}
       </h2>
-      <div className="bg-[#1a1a1a] rounded-xl border border-white/[0.07] p-5">
+      <div className="rounded-xl p-5" style={{ background: 'var(--admin-surface)', border: '1px solid var(--admin-border)' }}>
         {children}
       </div>
     </section>
@@ -189,7 +189,7 @@ function RoleCard({
   return (
     <div className="mb-4 last:mb-0">
       <div className="flex items-center gap-2 mb-2">
-        <span className="text-sm font-semibold text-white">{title}</span>
+        <span className="text-sm font-semibold" style={{ color: 'var(--admin-text)' }}>{title}</span>
         <span
           className="text-[10px] font-medium px-2 py-0.5 rounded-full"
           style={{ background: badgeColor + '22', color: badgeColor, border: `1px solid ${badgeColor}44` }}
@@ -199,13 +199,13 @@ function RoleCard({
       </div>
       <ul className="space-y-1.5 pl-1">
         {items.map(item => (
-          <li key={item} className="text-sm text-white/50 flex items-start gap-2">
+          <li key={item} className="text-sm flex items-start gap-2" style={{ color: 'var(--admin-muted)' }}>
             <span style={{ color: badgeColor }} className="flex-shrink-0 mt-0.5">·</span>
             {item}
           </li>
         ))}
       </ul>
-      <div className="mt-3 border-b border-white/[0.06]" />
+      <div className="mt-3" style={{ borderBottom: '1px solid var(--admin-border)' }} />
     </div>
   )
 }

@@ -136,8 +136,8 @@ function ContactBlock({
 
   return (
     <div style={{
-      background: '#111',
-      border: '0.5px solid rgba(255,255,255,0.08)',
+      background: 'var(--admin-bg)',
+      border: '0.5px solid var(--admin-border)',
       borderRadius: 10,
       padding: '12px 14px',
       flex: 1,
@@ -145,7 +145,7 @@ function ContactBlock({
     }}>
       {/* Family label + verification badge */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-        <span style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.35)' }}>
+        <span style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--admin-muted)' }}>
           Family {label} · {profileName(profile)}
         </span>
         {verified ? (
@@ -171,7 +171,7 @@ function ContactBlock({
 
           {/* Female fallback (shown if male contact) */}
           {isMale && (
-            <div style={{ marginBottom: 6, paddingTop: 6, borderTop: '0.5px solid rgba(255,255,255,0.06)' }}>
+            <div style={{ marginBottom: 6, paddingTop: 6, borderTop: '0.5px solid var(--admin-border)' }}>
               <div style={{ fontSize: 11, color: 'var(--admin-muted)', marginBottom: 2 }}>Female contact</div>
               {fa.no_female_contact_flag ? (
                 <div style={{ fontSize: 11.5, color: '#f87171' }}>
@@ -206,9 +206,9 @@ function ContactBlock({
           disabled={verifying}
           style={{
             padding: '4px 12px', borderRadius: 6, fontSize: 11, fontWeight: 600,
-            background: verifying ? 'rgba(255,255,255,0.05)' : 'rgba(74,222,128,0.15)',
+            background: verifying ? 'var(--admin-border)' : 'rgba(74,222,128,0.15)',
             border: '0.5px solid rgba(74,222,128,0.3)',
-            color: verifying ? 'rgba(255,255,255,0.3)' : '#4ade80',
+            color: verifying ? 'var(--admin-muted)' : '#4ade80',
             cursor: verifying ? 'not-allowed' : 'pointer',
           }}
         >
@@ -315,8 +315,8 @@ function MatchCard({
 
   return (
     <div style={{
-      background: '#1a1a1a',
-      border: '0.5px solid rgba(255,255,255,0.08)',
+      background: 'var(--admin-surface)',
+      border: '0.5px solid var(--admin-border)',
       borderRadius: 14,
       padding: '18px 20px',
       marginBottom: 14,
@@ -337,7 +337,7 @@ function MatchCard({
             </div>
           </div>
 
-          <span style={{ fontSize: 16, color: 'rgba(255,255,255,0.2)' }}>↔</span>
+          <span style={{ fontSize: 16, color: 'var(--admin-muted)' }}>↔</span>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <AvatarInitials initials={match.profile_b.display_initials} gender={match.profile_b.gender} size="sm" />
@@ -353,7 +353,7 @@ function MatchCard({
         </div>
 
         {/* Meta */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, fontSize: 11, color: 'var(--admin-muted)' }}>
           <span>Matched: {formatDate(match.mutual_date)}</span>
           {isShared && <span style={{ color: '#4ade80' }}>Contacts shared: {formatDate(match.contacts_shared_at)}</span>}
           {match.followup_due_at && <span>Follow-up due: {formatDate(match.followup_due_at)}</span>}
@@ -407,9 +407,9 @@ function MatchCard({
             title={!bothVerified ? 'Both contacts must be verified first' : undefined}
             style={{
               padding: '6px 16px', borderRadius: 7, fontSize: 12, fontWeight: 600,
-              background: bothVerified && !sharing ? '#B8960C' : 'rgba(255,255,255,0.04)',
-              border: `0.5px solid ${bothVerified ? '#B8960C' : 'rgba(255,255,255,0.08)'}`,
-              color: bothVerified && !sharing ? '#111' : 'rgba(255,255,255,0.3)',
+              background: bothVerified && !sharing ? '#B8960C' : 'var(--admin-surface)',
+              border: `0.5px solid ${bothVerified ? '#B8960C' : 'var(--admin-border)'}`,
+              color: bothVerified && !sharing ? '#111' : 'var(--admin-muted)',
               cursor: bothVerified && !sharing ? 'pointer' : 'not-allowed',
             }}
           >
@@ -425,8 +425,8 @@ function MatchCard({
             disabled={assigning}
             style={{
               padding: '5px 10px', borderRadius: 7, fontSize: 11,
-              background: '#111', border: '0.5px solid rgba(255,255,255,0.12)',
-              color: 'rgba(255,255,255,0.6)', cursor: 'pointer',
+              background: 'var(--admin-bg)', border: '0.5px solid var(--admin-border)',
+              color: 'var(--admin-text)', cursor: 'pointer',
             }}
           >
             <option value="">Unassigned</option>
@@ -441,7 +441,7 @@ function MatchCard({
           href={`/admin/sidebyside/${match.id}`}
           style={{
             padding: '5px 12px', borderRadius: 7, fontSize: 11,
-            background: 'transparent', border: '0.5px solid rgba(255,255,255,0.12)',
+            background: 'transparent', border: '0.5px solid var(--admin-border)',
             color: 'var(--admin-muted)', textDecoration: 'none',
           }}
         >
@@ -451,7 +451,7 @@ function MatchCard({
 
       {/* Follow-up notes */}
       {(match.status === 'contacts_shared' || match.status === 'in_follow_up') && (
-        <div style={{ marginTop: 14, borderTop: '0.5px solid rgba(255,255,255,0.06)', paddingTop: 12 }}>
+        <div style={{ marginTop: 14, borderTop: '0.5px solid var(--admin-border)', paddingTop: 12 }}>
           <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--admin-muted)', marginBottom: 6 }}>
             Follow-up notes
           </div>
@@ -462,7 +462,7 @@ function MatchCard({
             rows={2}
             style={{
               width: '100%', padding: '8px 10px', borderRadius: 7,
-              background: '#111', border: '0.5px solid rgba(255,255,255,0.10)',
+              background: 'var(--admin-bg)', border: '0.5px solid var(--admin-border)',
               color: 'var(--admin-text)', fontSize: 12, resize: 'vertical', boxSizing: 'border-box',
             }}
           />
@@ -511,7 +511,7 @@ export default function AdminMatchesClient({
   const visibleMatches = matches.filter(m => m.status === activeTab)
 
   return (
-    <div style={{ minHeight: '100vh', background: '#111111', color: 'var(--admin-text)' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--admin-bg)', color: 'var(--admin-text)' }}>
 
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '28px 24px 80px' }}>
         <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 6 }}>Match Queue</h1>
@@ -530,9 +530,9 @@ export default function AdminMatchesClient({
                 onClick={() => setActiveTab(tab.id)}
                 style={{
                   padding: '6px 14px', borderRadius: 999, fontSize: 12.5, cursor: 'pointer',
-                  border: active ? '1.5px solid #B8960C' : '0.5px solid rgba(255,255,255,0.12)',
+                  border: active ? '1.5px solid #B8960C' : '0.5px solid var(--admin-border)',
                   background: active ? 'rgba(184,150,12,0.10)' : 'transparent',
-                  color: active ? '#B8960C' : 'rgba(255,255,255,0.5)',
+                  color: active ? '#B8960C' : 'var(--admin-muted)',
                   fontWeight: active ? 600 : 400,
                   transition: 'all 0.15s',
                   display: 'inline-flex', alignItems: 'center', gap: 6,
@@ -543,8 +543,8 @@ export default function AdminMatchesClient({
                   <span style={{
                     minWidth: 18, height: 18, borderRadius: 999, padding: '0 5px',
                     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                    background: active ? '#B8960C' : 'rgba(255,255,255,0.08)',
-                    color: active ? '#111' : 'rgba(255,255,255,0.4)',
+                    background: active ? '#B8960C' : 'var(--admin-border)',
+                    color: active ? '#111' : 'var(--admin-muted)',
                     fontSize: 10, fontWeight: 700,
                   }}>
                     {count}
@@ -559,7 +559,7 @@ export default function AdminMatchesClient({
         {visibleMatches.length === 0 ? (
           <div style={{
             textAlign: 'center', padding: '60px 0',
-            color: 'rgba(255,255,255,0.25)', fontSize: 13,
+            color: 'var(--admin-muted)', fontSize: 13,
           }}>
             No matches in this stage.
           </div>
