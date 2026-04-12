@@ -11,11 +11,11 @@ const PROTECTED_PATHS = ['/directory', '/browse', '/profile', '/my-profile', '/e
 // Require authentication AND admin role (checked server-side in page/layout)
 const ADMIN_PATHS     = ['/admin']
 // Pages that redirect already-authenticated users away
-const AUTH_PATHS      = ['/login', '/signup']
+const AUTH_PATHS      = ['/login', '/signup', '/register']
 // Requires auth but not approval — allowed through once logged in
 const PENDING_PATHS   = ['/pending']
-// Fully public — no auth needed
-const PUBLIC_PATHS    = ['/terms', '/help', '/forgot-password', '/auth/reset-password']
+// Fully public — no auth needed (checked before AUTH_PATHS so /register/link-guardian passes through)
+const PUBLIC_PATHS    = ['/terms', '/help', '/forgot-password', '/auth/reset-password', '/register/link-guardian']
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -60,12 +60,15 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Authenticated user hitting login/signup → send to browse
+  // Authenticated user hitting login/signup → send to browse (admin redirect handled by browse page)
   if (user && isAuthPage) {
     const url = request.nextUrl.clone()
     url.pathname = '/browse'
     return NextResponse.redirect(url)
   }
+
+  // Authenticated user hitting /pending → check admin role server-side (handled in pending/page.tsx)
+  // No special proxy logic needed — the server component handles the redirect
 
   return supabaseResponse
 }
