@@ -365,17 +365,15 @@ export async function POST(req: NextRequest): Promise<Response> {
         console.error(`[import] subscription insert failed for ${email}:`, subErr.message)
       }
 
-      // ── 5. Send password reset / welcome email ───────────────────────────────
-      const { error: linkErr } = await supabaseAdmin.auth.admin.generateLink({
-        type:       'recovery',
-        email,
-        options: {
-          redirectTo: `${siteUrl}/auth/callback?next=/browse`,
-        },
+      // ── 5. Send password-set email via resetPasswordForEmail ────────────────
+      // generateLink() only returns a link — it does NOT send the email.
+      // resetPasswordForEmail() triggers Supabase's email delivery pipeline.
+      const { error: emailErr } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${siteUrl}/auth/callback?next=/browse`,
       })
 
-      if (linkErr) {
-        console.error(`[import] generateLink failed for ${email}:`, linkErr.message)
+      if (emailErr) {
+        console.error(`[import] reset email failed for ${email}:`, emailErr.message)
         // Non-fatal — account is still created
       }
 
