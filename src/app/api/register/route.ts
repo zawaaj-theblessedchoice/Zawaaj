@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { attemptFamilyAccountLink } from '@/lib/zawaaj/linkFamilyAccount'
 
 // All registration logic runs server-side with the admin client so that:
 //  1. Email confirmation is bypassed (private invite-only platform — admin review
@@ -116,6 +117,24 @@ export async function POST(request: Request): Promise<Response> {
 
     if (settingsError) throw new Error(settingsError.message)
 
+    // ── 4. Attempt family account auto-linking ────────────────────────────────
+    // Non-fatal: if this fails the registration still succeeds.
+    // We only run it for fresh profiles (not multi-match parent accounts).
+    if (matchCount <= 1) {
+      try {
+        await attemptFamilyAccountLink({
+          profileId,
+          userId,
+          email,
+          phone: fields.contactNumber ?? null,
+          firstName: fields.firstName ?? null,
+          lastName: fields.lastName ?? null,
+        })
+      } catch (linkErr) {
+        console.warn('[register] Family account auto-link failed (non-fatal):', linkErr)
+      }
+    }
+
     return NextResponse.json({ success: true, linked })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Something went wrong.'
@@ -160,6 +179,7 @@ interface RegistrationPayload {
   prefSchoolOfThought: string[]
   prefRelocation: string
   prefPartnerChildren: string
+  contactNumber?: string
 }
 
 function buildSharedFields(userId: string, initials: string, f: Omit<RegistrationPayload, 'email' | 'password'>) {
