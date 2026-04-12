@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Amiri } from "next/font/google";
 import "./globals.css";
 
@@ -45,6 +45,11 @@ export const metadata: Metadata = {
     images: ["https://www.zawaaj.uk/opengraph-image"],
   },
 };
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+}
 
 // Inline script runs synchronously before first paint to avoid theme flash.
 // CSS :root is LIGHT by default (no attribute). Dark mode = data-theme="dark" on <html>.

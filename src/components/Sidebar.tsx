@@ -284,6 +284,7 @@ export default function Sidebar({
 
   return (
     <aside
+      className="sidebar-desktop"
       style={{
         width: 200,
         flexShrink: 0,

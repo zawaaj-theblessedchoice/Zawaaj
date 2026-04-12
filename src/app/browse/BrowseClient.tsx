@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Sidebar from '@/components/Sidebar'
+import BottomNav from '@/components/BottomNav'
 import ProfileModal, { ProfileRecord } from '@/components/ProfileModal'
 import AvatarInitials from '@/components/AvatarInitials'
 import CompatibilityBar from '@/components/CompatibilityBar'
@@ -143,6 +144,7 @@ function ProfileCard({
 
   return (
     <div
+      className="profile-card-outer"
       style={{
         position: 'relative',
         minHeight: 140,
@@ -205,107 +207,113 @@ function ProfileCard({
         {isSaved ? '♥' : '♡'}
       </button>
 
-      {/* Avatar + Name */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <AvatarInitials
-          initials={profile.display_initials}
-          gender={profile.gender}
-          size="sm"
-        />
-        <div style={{ minWidth: 0 }}>
-          <div
-            style={{
-              fontSize: 13.5,
-              fontWeight: 500,
-              color: 'var(--text-primary)',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {displayName}
-          </div>
-          {ageLine && (
+      {/* Avatar col (mobile: side-by-side) */}
+      <div className="profile-card-avatar-col">
+        {/* Avatar + Name */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <AvatarInitials
+            initials={profile.display_initials}
+            gender={profile.gender}
+            size="sm"
+          />
+          <div style={{ minWidth: 0 }}>
             <div
               style={{
-                fontSize: 11.5,
-                color: 'var(--text-secondary)',
-                marginTop: 1,
+                fontSize: 13.5,
+                fontWeight: 500,
+                color: 'var(--text-primary)',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
               }}
             >
-              {ageLine}
+              {displayName}
             </div>
+            {ageLine && (
+              <div
+                style={{
+                  fontSize: 11.5,
+                  color: 'var(--text-secondary)',
+                  marginTop: 1,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {ageLine}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Detail col (mobile: takes remaining width) */}
+      <div className="profile-card-detail-col">
+        {/* Profession */}
+        {profile.profession_detail && (
+          <div
+            style={{
+              fontSize: 12,
+              color: 'var(--text-secondary)',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {profile.profession_detail}
+          </div>
+        )}
+
+        {/* Tags */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+          {profile.school_of_thought && (
+            <span
+              style={{
+                fontSize: 10.5,
+                padding: '2px 7px',
+                borderRadius: 20,
+                background: 'var(--surface-3)',
+                color: 'var(--text-muted)',
+                border: '0.5px solid var(--border-default)',
+              }}
+            >
+              {profile.school_of_thought}
+            </span>
+          )}
+          {profile.ethnicity && (
+            <span
+              style={{
+                fontSize: 10.5,
+                padding: '2px 7px',
+                borderRadius: 20,
+                background: 'var(--surface-3)',
+                color: 'var(--text-muted)',
+                border: '0.5px solid var(--border-default)',
+              }}
+            >
+              {profile.ethnicity}
+            </span>
+          )}
+          {suggested && (
+            <span
+              style={{
+                fontSize: 10.5,
+                padding: '2px 7px',
+                borderRadius: 20,
+                background: 'rgba(184,150,12,0.12)',
+                color: 'var(--gold)',
+                border: '0.5px solid rgba(184,150,12,0.35)',
+              }}
+            >
+              Suggested
+            </span>
           )}
         </div>
       </div>
 
-      {/* Profession */}
-      {profile.profession_detail && (
-        <div
-          style={{
-            fontSize: 12,
-            color: 'var(--text-secondary)',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          {profile.profession_detail}
-        </div>
-      )}
-
-      {/* Tags */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-        {profile.school_of_thought && (
-          <span
-            style={{
-              fontSize: 10.5,
-              padding: '2px 7px',
-              borderRadius: 20,
-              background: 'var(--surface-3)',
-              color: 'var(--text-muted)',
-              border: '0.5px solid var(--border-default)',
-            }}
-          >
-            {profile.school_of_thought}
-          </span>
-        )}
-        {profile.ethnicity && (
-          <span
-            style={{
-              fontSize: 10.5,
-              padding: '2px 7px',
-              borderRadius: 20,
-              background: 'var(--surface-3)',
-              color: 'var(--text-muted)',
-              border: '0.5px solid var(--border-default)',
-            }}
-          >
-            {profile.ethnicity}
-          </span>
-        )}
-        {suggested && (
-          <span
-            style={{
-              fontSize: 10.5,
-              padding: '2px 7px',
-              borderRadius: 20,
-              background: 'rgba(184,150,12,0.12)',
-              color: 'var(--gold)',
-              border: '0.5px solid rgba(184,150,12,0.35)',
-            }}
-          >
-            Suggested
-          </span>
-        )}
-      </div>
-
-      {/* Compat bar */}
+      {/* Compat bar — hidden on mobile via CSS class */}
       {showCompatBar && (
-        <div style={{ marginTop: 2 }}>
+        <div className="profile-card-compat" style={{ marginTop: 2 }}>
           <CompatibilityBar score={score} />
         </div>
       )}
@@ -499,7 +507,7 @@ function BrowsingAsBanner({
       >
         <AvatarInitials initials={activeInitials} gender={activeGender} size="sm" />
         <span>
-          Browsing as{' '}
+          <span className="browsing-as-text">Browsing as </span>
           <strong style={{ color: 'var(--text-primary)', fontWeight: 600 }}>
             {activeName}
           </strong>
@@ -632,6 +640,9 @@ export default function BrowseClient({
   const monthlyLimit   = planConfig.monthlyLimit
   const searchParams   = useSearchParams()
   const router         = useRouter()
+  const pathname       = usePathname()
+  const tab            = searchParams.get('tab')
+  const activeRoute    = tab ? `${pathname}?tab=${tab}` : pathname
 
   // Free users never get persisted filters even if somehow passed
   const safeInitialFilters: FilterState = canFilter && initialFilters ? initialFilters : EMPTY_FILTERS
@@ -974,6 +985,7 @@ export default function BrowseClient({
 
       {/* Main content */}
       <main
+        className="browse-main"
         style={{
           marginLeft: 200,
           flex: 1,
@@ -1008,7 +1020,7 @@ export default function BrowseClient({
             gap: 12,
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div className="topbar-title-row" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <h1
               style={{
                 fontSize: 22,
@@ -1086,8 +1098,8 @@ export default function BrowseClient({
 
           {/* Search + Filter + Sort */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            {/* Search */}
-            <div style={{ position: 'relative' }}>
+            {/* Search — full input (hidden on mobile) */}
+            <div className="topbar-search-full" style={{ position: 'relative' }}>
               <svg
                 width="13"
                 height="13"
@@ -1122,6 +1134,18 @@ export default function BrowseClient({
                 }}
               />
             </div>
+            {/* Search icon — mobile only */}
+            <button
+              className="topbar-search-icon"
+              onClick={() => { /* expand search on mobile */ }}
+              style={{ display: 'none', alignItems: 'center', justifyContent: 'center', width: 36, height: 36, borderRadius: 9, background: 'var(--surface-3)', border: '0.5px solid var(--border-default)', cursor: 'pointer', color: 'var(--text-secondary)' }}
+              aria-label="Search"
+            >
+              <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+                <circle cx="6.5" cy="6.5" r="4.5" stroke="currentColor" strokeWidth="1.2"/>
+                <path d="M10 10l3 3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+              </svg>
+            </button>
 
             {/* Filters applied indicator — Plus/Premium with active filters */}
             {canFilter && activeFilterCount > 0 && (
@@ -1190,7 +1214,7 @@ export default function BrowseClient({
                   <circle cx="14" cy="11" r="2.5" fill="var(--surface-2)" strokeWidth="1.7"/>
                   <circle cx="9" cy="16" r="2.5" fill="var(--surface-2)" strokeWidth="1.7"/>
                 </svg>
-                Filter
+                <span className="topbar-filter-label">Filter</span>
                 {canFilter && activeFilterCount > 0 && (
                   <span
                     style={{
@@ -1779,6 +1803,7 @@ export default function BrowseClient({
                           ★ Top Picks
                         </div>
                         <div
+                          className="profile-grid"
                           style={{
                             display: 'grid',
                             gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
@@ -1822,6 +1847,7 @@ export default function BrowseClient({
                               More recommendations
                             </div>
                             <div
+                              className="profile-grid"
                               style={{
                                 display: 'grid',
                                 gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
@@ -1855,6 +1881,7 @@ export default function BrowseClient({
                     {/* Plus: flat list (no Top Picks section) */}
                     {plan !== 'premium' && (
                       <div
+                        className="profile-grid"
                         style={{
                           display: 'grid',
                           gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
@@ -1917,6 +1944,7 @@ export default function BrowseClient({
 
             {/* Card grid */}
             <div
+              className="profile-grid"
               style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
@@ -1993,6 +2021,12 @@ export default function BrowseClient({
       {showUpgrade && (
         <UpgradeModal trigger="intro_limit" onClose={() => setShowUpgrade(false)} />
       )}
+
+      <BottomNav
+        activeRoute={activeRoute}
+        introRequestsCount={introRequests.filter(r => r.status === 'pending').length}
+        shortlistCount={savedIds.size}
+      />
     </div>
   )
 }

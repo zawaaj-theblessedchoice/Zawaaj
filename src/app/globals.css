@@ -186,3 +186,88 @@ input:focus, textarea:focus, select:focus {
   outline: none;
   box-shadow: 0 0 0 1.5px var(--gold-border);
 }
+
+/* ─── Mobile / responsive layout ────────────────────────────────────────── */
+
+/* Sidebar: hide on mobile, narrow on tablet */
+@media (max-width: 767px) {
+  .sidebar-desktop { display: none !important; }
+}
+@media (min-width: 768px) and (max-width: 1024px) {
+  .sidebar-desktop { width: 180px !important; }
+}
+
+/* Browse main content: no left margin on mobile, reduced on tablet, bottom padding for bottom nav */
+@media (max-width: 767px) {
+  .browse-main { margin-left: 0 !important; padding: 16px 12px 80px !important; }
+}
+@media (min-width: 768px) and (max-width: 1024px) {
+  .browse-main { margin-left: 180px !important; }
+}
+
+/* Bottom nav: only visible on mobile */
+.bottom-nav-bar { display: none; }
+@media (max-width: 767px) {
+  .bottom-nav-bar { display: flex !important; }
+}
+
+/* Profile card: horizontal layout on mobile */
+@media (max-width: 767px) {
+  .profile-card-outer {
+    flex-direction: row !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+    padding: 12px !important;
+    min-height: auto !important;
+  }
+  .profile-card-avatar-col { flex-shrink: 0; }
+  .profile-card-detail-col { flex: 1; min-width: 0; }
+  .profile-card-compat { display: none !important; }
+}
+
+/* Profile grid: 1-col on mobile, 2-col on tablet */
+@media (max-width: 767px) {
+  .profile-grid { grid-template-columns: 1fr !important; gap: 10px !important; }
+}
+@media (min-width: 768px) and (max-width: 1024px) {
+  .profile-grid { grid-template-columns: repeat(2, 1fr) !important; }
+}
+
+/* Topbar title row: stack on mobile */
+@media (max-width: 767px) {
+  .topbar-title-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 6px !important;
+  }
+  .topbar-filter-label { display: none !important; }
+  .topbar-search-full  { display: none !important; }
+  .topbar-search-icon  { display: flex !important; }
+}
+@media (min-width: 768px) {
+  .topbar-search-icon  { display: none !important; }
+}
+
+/* SlidePanel: bottom sheet on mobile */
+@media (max-width: 767px) {
+  .slide-panel-container {
+    top: auto !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    max-height: 92vh !important;
+    border-left: none !important;
+    border-radius: 16px 16px 0 0 !important;
+    border-top: 0.5px solid var(--border-default) !important;
+  }
+  .slide-panel-drag-handle { display: flex !important; }
+}
+@media (min-width: 768px) {
+  .slide-panel-drag-handle { display: none !important; }
+}
+
+/* Browsing-as banner: compact on mobile */
+@media (max-width: 767px) {
+  .browsing-as-text { display: none !important; }
+}

@@ -183,6 +183,20 @@ function PlanCard({ plan, annual }: { plan: typeof PLANS[number]; annual: boolea
         ))}
       </ul>
 
+      {/* Mobile plan highlights — shown instead of comparison table */}
+      <div className="md:hidden mt-1">
+        {COMPACT_COMPARISON.map(row => {
+          const val = row[plan.key as 'free' | 'plus' | 'premium']
+          if (val === '—') return null
+          return (
+            <div key={row.feature} className="flex items-center gap-2 text-xs text-white/50 mt-1">
+              <span className="text-gold">✓</span>
+              <span>{row.feature}: <span className="text-white/70">{val}</span></span>
+            </div>
+          )
+        })}
+      </div>
+
       <Link
         href={plan.ctaHref}
         className={`block text-center py-3 rounded-xl text-sm font-semibold transition-colors ${
@@ -201,13 +215,14 @@ function PlanCard({ plan, annual }: { plan: typeof PLANS[number]; annual: boolea
 
 export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
   const [annual, setAnnual] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
 
   return (
     <div className="min-h-screen" data-theme="dark" style={{ background: 'var(--surface)', color: 'var(--text-primary)' }}>
 
       {/* ── Nav ── 3-column grid: [CTA left] [links centred] [sign-in right] */}
       <nav className="sticky top-0 z-50 border-b border-white/8 bg-surface/90 backdrop-blur-md">
-        <div className="max-w-6xl mx-auto px-5 h-16 grid grid-cols-3 items-center">
+        <div className="max-w-6xl mx-auto px-5 h-16 grid grid-cols-2 md:grid-cols-3 items-center">
 
           {/* Left — logo + primary CTA */}
           <div className="flex items-center gap-4">
@@ -247,11 +262,29 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
             <a href="#membership" className="hover:text-white transition-colors">Membership</a>
             <a href="#faq" className="hover:text-white transition-colors">FAQ</a>
           </div>
-          {/* Mobile placeholder so grid stays balanced */}
-          <div className="md:hidden" />
 
-          {/* Right — sign in */}
-          <div className="flex items-center justify-end">
+          {/* Mobile — hamburger button */}
+          <div className="flex items-center justify-end gap-2 md:hidden">
+            <button
+              onClick={() => setMenuOpen(o => !o)}
+              aria-label="Menu"
+              className="p-2 rounded-lg"
+              style={{ color: 'rgba(255,255,255,0.7)', background: 'none', border: 'none', cursor: 'pointer' }}
+            >
+              {menuOpen ? (
+                <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                  <path d="M4 4l14 14M18 4L4 18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+                </svg>
+              ) : (
+                <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                  <path d="M3 6h16M3 11h16M3 16h16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+                </svg>
+              )}
+            </button>
+          </div>
+
+          {/* Right — sign in (desktop only) */}
+          <div className="hidden md:flex items-center justify-end">
             {!isLoggedIn && (
               <Link
                 href="/login"
@@ -264,10 +297,42 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
           </div>
 
         </div>
+
+        {/* Mobile menu */}
+        <div className={`md:hidden overflow-hidden transition-all duration-200 ${menuOpen ? 'max-h-96' : 'max-h-0'}`}
+          style={{ borderTop: menuOpen ? '0.5px solid rgba(255,255,255,0.1)' : 'none' }}
+        >
+          <div className="flex flex-col py-3">
+            {[
+              { href: '#how-it-works', label: 'How it works' },
+              { href: '#values', label: 'Our values' },
+              { href: '#membership', label: 'Membership' },
+              { href: '#faq', label: 'FAQ' },
+            ].map(link => (
+              <a
+                key={link.href}
+                href={link.href}
+                onClick={() => setMenuOpen(false)}
+                className="px-5 py-3 text-sm text-white/70 hover:text-white hover:bg-white/5 transition-colors"
+              >
+                {link.label}
+              </a>
+            ))}
+            {!isLoggedIn && (
+              <a
+                href="/login"
+                onClick={() => setMenuOpen(false)}
+                className="px-5 py-3 text-sm text-white/70 hover:text-white hover:bg-white/5 transition-colors border-t border-white/10"
+              >
+                Sign in
+              </a>
+            )}
+          </div>
+        </div>
       </nav>
 
       {/* ── Hero ── */}
-      <section className="max-w-4xl mx-auto px-5 pt-16 pb-20 text-center">
+      <section className="max-w-4xl mx-auto px-4 md:px-5 pt-10 pb-12 md:pt-16 md:pb-20 text-center">
         {/* Full brand logo — image already contains ZAWAAJ + THE BLESSED CHOICE text */}
         <div className="flex justify-center mb-8">
           <Image
@@ -282,7 +347,7 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-gold/30 bg-gold/8 text-gold text-xs font-medium mb-8">
           🌙 Invite-only · Admin-mediated · Halal by design
         </div>
-        <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white leading-tight tracking-tight mb-6">
+        <h1 className="text-[2rem] sm:text-5xl md:text-6xl font-bold text-white leading-tight tracking-tight mb-6">
           A blessed path to<br />
           <span style={{ color: 'var(--gold)' }}>your spouse</span>
         </h1>
@@ -292,15 +357,15 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           {isLoggedIn ? (
-            <Link href="/browse" className="px-8 py-3.5 rounded-xl text-sm font-semibold bg-gold text-black hover:bg-[var(--gold-hover)] transition-colors">
+            <Link href="/browse" className="w-full sm:w-auto px-8 py-3.5 rounded-xl text-sm font-semibold bg-gold text-black hover:bg-[var(--gold-hover)] transition-colors">
               Browse profiles →
             </Link>
           ) : (
             <>
-              <Link href="/signup" className="px-8 py-3.5 rounded-xl text-sm font-semibold bg-gold text-black hover:bg-[var(--gold-hover)] transition-colors">
+              <Link href="/signup" className="w-full sm:w-auto px-8 py-3.5 rounded-xl text-sm font-semibold bg-gold text-black hover:bg-[var(--gold-hover)] transition-colors">
                 Create your profile →
               </Link>
-              <Link href="/login" className="px-8 py-3.5 rounded-xl text-sm font-medium border border-white/20 text-white/80 hover:text-white hover:bg-white/5 transition-colors">
+              <Link href="/login" className="w-full sm:w-auto px-8 py-3.5 rounded-xl text-sm font-medium border border-white/20 text-white/80 hover:text-white hover:bg-white/5 transition-colors">
                 Sign in
               </Link>
             </>
@@ -314,7 +379,7 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
 
       {/* ── Quranic ayah ── */}
       <section style={{ background: 'rgba(184,150,12,0.04)', borderTop: '0.5px solid rgba(184,150,12,0.12)', borderBottom: '0.5px solid rgba(184,150,12,0.12)' }}>
-        <div className="max-w-3xl mx-auto px-6 py-20 text-center flex flex-col items-center gap-6">
+        <div className="max-w-3xl mx-auto px-4 md:px-6 py-10 md:py-20 text-center flex flex-col items-center gap-6">
           {/* Arabic */}
           <p
             dir="rtl"
@@ -347,7 +412,7 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
 
       {/* ── Trust bar ── */}
       <section className="border-y border-white/8 bg-surface-2">
-        <div className="max-w-5xl mx-auto px-5 py-10 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+        <div className="max-w-5xl mx-auto px-4 md:px-5 py-10 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           {[
             { icon: '👩‍👩‍👧', label: 'Mother-to-mother introductions', sub: 'Verified by our team' },
             { icon: '👁‍🗨', label: 'No photos shared', sub: 'Focused on character & values' },
@@ -364,7 +429,7 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
       </section>
 
       {/* ── How it works ── */}
-      <section id="how-it-works" className="max-w-5xl mx-auto px-5 py-24">
+      <section id="how-it-works" className="max-w-5xl mx-auto px-4 md:px-5 py-12 md:py-24">
         <div className="text-center mb-14">
           <p className="text-xs font-semibold text-gold uppercase tracking-widest mb-3">The process</p>
           <h2 className="text-3xl font-bold text-white">How Zawaaj works</h2>
@@ -382,7 +447,7 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
 
       {/* ── Values ── */}
       <section id="values" className="bg-surface-2 border-y border-white/8">
-        <div className="max-w-5xl mx-auto px-5 py-24">
+        <div className="max-w-5xl mx-auto px-4 md:px-5 py-12 md:py-24">
           <div className="text-center mb-14">
             <p className="text-xs font-semibold text-gold uppercase tracking-widest mb-3">What we stand for</p>
             <h2 className="text-3xl font-bold text-white">Our values</h2>
@@ -402,7 +467,7 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
       </section>
 
       {/* ── Pricing ── */}
-      <section id="membership" className="max-w-5xl mx-auto px-5 py-24">
+      <section id="membership" className="max-w-5xl mx-auto px-4 md:px-5 py-12 md:py-24">
         <div className="text-center mb-12">
           <p className="text-xs font-semibold text-gold uppercase tracking-widest mb-3">Membership</p>
           <h2 className="text-3xl font-bold text-white mb-4">Simple, transparent pricing</h2>
@@ -430,8 +495,8 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
           {PLANS.map(p => <PlanCard key={p.key} plan={p} annual={annual} />)}
         </div>
 
-        {/* Compact comparison */}
-        <div className="bg-surface-2 rounded-2xl border border-white/10 overflow-hidden">
+        {/* Compact comparison — hidden on mobile */}
+        <div className="hidden md:block bg-surface-2 rounded-2xl border border-white/10 overflow-hidden">
           <div className="grid grid-cols-4 text-xs font-semibold text-white/40 uppercase tracking-wide px-6 py-3 bg-surface-3 border-b border-white/8">
             <span className="col-span-1">Feature</span>
             <span className="text-center">Voluntary</span>
@@ -456,7 +521,7 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
 
       {/* ── Testimonials ── */}
       <section className="bg-surface-2 border-y border-white/8">
-        <div className="max-w-4xl mx-auto px-5 py-24">
+        <div className="max-w-4xl mx-auto px-4 md:px-5 py-12 md:py-24">
           <div className="text-center mb-14">
             <p className="text-xs font-semibold text-gold uppercase tracking-widest mb-3">Stories</p>
             <h2 className="text-3xl font-bold text-white">From our community</h2>
@@ -485,7 +550,7 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
       </section>
 
       {/* ── FAQ ── */}
-      <section id="faq" className="max-w-3xl mx-auto px-5 py-24">
+      <section id="faq" className="max-w-3xl mx-auto px-4 md:px-5 py-12 md:py-24">
         <div className="text-center mb-14">
           <p className="text-xs font-semibold text-gold uppercase tracking-widest mb-3">Questions</p>
           <h2 className="text-3xl font-bold text-white">Frequently asked</h2>
@@ -497,7 +562,7 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
 
       {/* ── CTA ── */}
       <section className="bg-surface-2 border-y border-gold/20">
-        <div className="max-w-2xl mx-auto px-5 py-20 text-center">
+        <div className="max-w-2xl mx-auto px-4 md:px-5 py-10 md:py-20 text-center">
           <h2 className="text-3xl font-bold text-white mb-4">
             Begin your search with <span style={{ color: 'var(--gold)' }}>barakah</span>
           </h2>
@@ -512,12 +577,12 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
 
       {/* ── Footer ── */}
       <footer className="bg-surface border-t border-white/8">
-        <div className="max-w-5xl mx-auto px-5 py-12 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="max-w-5xl mx-auto px-4 md:px-5 py-12 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex flex-col items-center md:items-start gap-2">
             <ZawaajLogo size={44} tagline={false} />
             <p className="text-xs text-white/30">© {new Date().getFullYear()} Zawaaj. All rights reserved.</p>
           </div>
-          <div className="flex flex-wrap justify-center gap-x-8 gap-y-2 text-sm text-white/40">
+          <div className="flex flex-wrap justify-center md:justify-start gap-x-8 gap-y-2 text-sm text-white/40 mx-auto md:mx-0">
             <a href="#how-it-works" className="hover:text-white transition-colors">How it works</a>
             <Link href="/pricing" className="hover:text-white transition-colors">Pricing</Link>
             <a href="#faq" className="hover:text-white transition-colors">FAQ</a>
