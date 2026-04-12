@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
 import type { ConciergeProfile, CandidateProfile, ExistingSuggestion } from './page'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -189,10 +188,7 @@ export default function AdminConciergeClient({
   return (
     <div style={{ minHeight: '100vh', background: 'var(--surface)', color: 'white', padding: '36px 40px' }}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 8 }}>
-        <Link href="/admin" style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, textDecoration: 'none' }}>
-          ← Admin
-        </Link>
+      <div style={{ marginBottom: 8 }}>
         <h1 style={{ fontSize: 20, fontWeight: 700, color: 'white', margin: 0 }}>Concierge matching</h1>
       </div>
       <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', marginBottom: 28 }}>

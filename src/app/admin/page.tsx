@@ -3,7 +3,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import ZawaajLogo from '@/components/ZawaajLogo'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -2542,33 +2541,6 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-surface" data-theme="dark">
-      {/* Header */}
-      <header className="bg-surface-2 sticky top-0 z-30" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <ZawaajLogo size={40} tagline={false} />
-            <div>
-              <div className="text-white text-sm font-semibold leading-tight">Admin Dashboard</div>
-              <div className="text-white/30 text-xs leading-tight">Zawaaj – The Blessed Choice</div>
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <Link href="/browse?preview=1" className="text-white/40 hover:text-white/80 text-xs transition-colors">
-              Member view
-            </Link>
-            <button
-              onClick={async () => {
-                const supabase = createClient()
-                await supabase.auth.signOut()
-                window.location.href = '/login'
-              }}
-              className="text-white/40 hover:text-white/80 text-xs transition-colors"
-            >
-              Sign out
-            </button>
-          </div>
-        </div>
-      </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         {/* Title */}

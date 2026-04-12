@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import ZawaajLogo from '@/components/ZawaajLogo'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -548,23 +547,6 @@ export default function AdminIntroductionsClient({
 
   return (
     <div className="min-h-screen bg-[#111111] text-white">
-
-      {/* Top nav */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
-        <ZawaajLogo size={32} tagline={false} />
-        <div className="flex items-center gap-4">
-          <Link href="/admin/help" className="text-sm text-white/40 hover:text-white/70 transition-colors">
-            ? Help
-          </Link>
-          <Link
-            href={role === 'super_admin' ? '/admin' : '#'}
-            className="text-sm text-white/50 hover:text-white/80 transition-colors"
-            style={role === 'manager' ? { pointerEvents: 'none', opacity: 0.3 } : undefined}
-          >
-            ← Back to dashboard
-          </Link>
-        </div>
-      </div>
 
       {/* Page header */}
       <div className="px-6 pt-8 pb-0 border-b border-white/10">

@@ -1,7 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
-import ZawaajLogo from '@/components/ZawaajLogo'
 
 export default async function AdminHelpPage() {
   const supabase = await createClient()
@@ -17,17 +15,6 @@ export default async function AdminHelpPage() {
   return (
     <div className="min-h-screen bg-[#111111] text-white">
 
-      {/* Top nav */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
-        <ZawaajLogo size={32} tagline={false} />
-        <Link
-          href={isSuperAdmin ? '/admin' : '/admin/introductions'}
-          className="text-sm text-white/50 hover:text-white/80 transition-colors"
-        >
-          ← Back
-        </Link>
-      </div>
-
       <div className="max-w-2xl mx-auto px-6 py-10 space-y-10">
 
         {/* Page title */}
@@ -40,18 +27,20 @@ export default async function AdminHelpPage() {
 
         {/* ── 1. Roles Overview ── */}
         <Section title="Roles overview">
-          <RoleCard
-            title="Super Admin"
-            badge="Full access"
-            badgeColor="#B8960C"
-            items={[
-              'Full visibility across all members and introduction requests',
-              'Assign managers to mutual introduction requests',
-              'Override any status at any stage',
-              'Promote members to Manager role',
-              'Access all admin sub-pages (subscriptions, concierge, import)',
-            ]}
-          />
+          {isSuperAdmin && (
+            <RoleCard
+              title="Super Admin"
+              badge="Full access"
+              badgeColor="#B8960C"
+              items={[
+                'Full visibility across all members and introduction requests',
+                'Assign managers to mutual introduction requests',
+                'Override any status at any stage',
+                'Promote members to Manager role',
+                'Access all admin sub-pages (subscriptions, concierge, import)',
+              ]}
+            />
+          )}
           <RoleCard
             title="Manager"
             badge="Scoped access"

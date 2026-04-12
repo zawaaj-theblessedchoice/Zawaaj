@@ -230,7 +230,7 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
           {/* Left — logo + primary CTA */}
           <div className="flex items-center gap-4">
             <Link href="/" style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
-              <ZawaajLogo height={44} width={176} />
+              <ZawaajLogo height={44} />
             </Link>
             {isLoggedIn ? (
               <Link href="/browse" className="text-sm font-semibold px-4 py-2 rounded-xl bg-gold text-black hover:bg-[var(--gold-hover)] transition-colors">
@@ -331,7 +331,7 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
       <section className="max-w-4xl mx-auto px-4 md:px-5 pt-10 pb-12 md:pt-16 md:pb-20 text-center">
         {/* Full brand logo — image already contains ZAWAAJ + THE BLESSED CHOICE text */}
         <div className="flex justify-center mb-8">
-          <ZawaajLogo height={220} width={880} />
+          <ZawaajLogo height={220} />
         </div>
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-gold/30 bg-gold/8 text-gold text-xs font-medium mb-8">
           Private · Family-mediated · Every profile reviewed
@@ -566,7 +566,7 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
       <footer className="bg-surface border-t border-white/8">
         <div className="max-w-5xl mx-auto px-4 md:px-5 py-12 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex flex-col items-center md:items-start gap-2">
-            <ZawaajLogo height={44} width={176} />
+            <ZawaajLogo height={44} />
             <p className="text-xs text-white/30">© {new Date().getFullYear()} Zawaaj. All rights reserved.</p>
           </div>
           <div className="flex flex-wrap justify-center md:justify-start gap-x-8 gap-y-2 text-sm text-white/40 mx-auto md:mx-0">

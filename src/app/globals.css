@@ -271,3 +271,26 @@ input:focus, textarea:focus, select:focus {
 @media (max-width: 767px) {
   .browsing-as-text { display: none !important; }
 }
+
+/* ─── Admin theme vars fallback — actual values set via AdminShell inline style ── */
+:root {
+  --admin-bg: #111111;
+  --admin-surface: #161616;
+  --admin-border: rgba(255,255,255,0.08);
+  --admin-text: rgba(255,255,255,0.85);
+  --admin-muted: rgba(255,255,255,0.35);
+}
+[data-theme="light"] {
+  --admin-bg: #f8f7f4;
+  --admin-surface: #ffffff;
+  --admin-border: rgba(0,0,0,0.08);
+  --admin-text: #1a1a1a;
+  --admin-muted: rgba(0,0,0,0.45);
+}
+
+/* Admin responsive sidebar */
+@media (max-width: 768px) {
+  .admin-sidebar { transform: translateX(-100%) !important; width: 260px !important; }
+  .admin-main { margin-left: 0 !important; }
+  .admin-topbar-mobile { display: flex !important; }
+}

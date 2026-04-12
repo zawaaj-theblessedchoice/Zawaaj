@@ -38,7 +38,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="flex justify-center mb-8">
-          <ZawaajLogo height={80} width={320} />
+          <ZawaajLogo height={80} />
         </div>
 
         {/* Card */}

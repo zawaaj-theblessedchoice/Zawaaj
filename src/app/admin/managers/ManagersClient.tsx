@@ -4,8 +4,6 @@
 // Super admin only.
 
 import { useState } from 'react'
-import Link from 'next/link'
-import ZawaajLogo from '@/components/ZawaajLogo'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -607,17 +605,6 @@ export default function AdminManagersClient({ managers: initial }: AdminManagers
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#111111', color: 'white' }}>
-
-      {/* ── Top nav ── */}
-      <div
-        className="flex items-center justify-between px-6 py-4"
-        style={{ borderBottom: '0.5px solid rgba(255,255,255,0.1)' }}
-      >
-        <ZawaajLogo size={32} tagline={false} />
-        <Link href="/admin" className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>
-          ← Back to dashboard
-        </Link>
-      </div>
 
       {/* ── Page header ── */}
       <div className="px-6 pt-8 pb-6 flex items-start justify-between gap-4" style={{ borderBottom: '0.5px solid rgba(255,255,255,0.1)' }}>

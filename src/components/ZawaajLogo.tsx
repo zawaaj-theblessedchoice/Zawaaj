@@ -1,29 +1,30 @@
 interface Props {
   className?: string
+  /** Explicit pixel width. If omitted, width is auto (preserves aspect ratio). */
   width?: number
+  /** Pixel height of the logo. Defaults to 48. */
   height?: number
   style?: React.CSSProperties
-  /** @deprecated Use width/height instead */
+  /** @deprecated Use height instead — maps 1:1 to height, width becomes auto */
   size?: number
-  /** @deprecated No longer needed — new logo PNG has transparent background */
+  /** @deprecated No longer needed — transparent PNG renders on any background */
   tagline?: boolean
   /** @deprecated No longer used */
   variant?: 'light' | 'dark'
 }
 
 export function ZawaajLogo({ className, width, height, size, style }: Props) {
-  // Support legacy `size` prop: treat as height, derive width at 4:1 ratio
-  const resolvedHeight = height ?? size ?? 120
-  const resolvedWidth  = width ?? (size ? size * 4 : 120)
+  // New logo is square (1024×1024). Always let width be auto unless explicitly set.
+  const resolvedHeight = height ?? size ?? 48
 
   return (
     <img
       src="/Zawaaj_Logo_Transparent.png"
       alt="Zawaaj — The Blessed Choice"
-      width={resolvedWidth}
+      width={width ?? resolvedHeight}   // needed for next/image SSR but overridden by style
       height={resolvedHeight}
       className={className}
-      style={style}
+      style={{ height: resolvedHeight, width: width ?? 'auto', ...style }}
     />
   )
 }

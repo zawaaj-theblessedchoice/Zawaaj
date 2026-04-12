@@ -314,7 +314,7 @@ export default function Sidebar({
           background: 'linear-gradient(180deg, rgba(196,154,16,0.06) 0%, transparent 100%)',
         }}
       >
-        <ZawaajLogo height={44} width={176} style={{ maxWidth: '100%' }} />
+        <ZawaajLogo height={44} />
       </Link>
 
       {/* Nav sections */}

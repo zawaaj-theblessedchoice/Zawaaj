@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import ZawaajLogo from '@/components/ZawaajLogo'
 import AvatarInitials from '@/components/AvatarInitials'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -513,20 +512,6 @@ export default function AdminMatchesClient({
 
   return (
     <div style={{ minHeight: '100vh', background: '#111111', color: 'white' }}>
-      {/* Top bar */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 16,
-        padding: '12px 24px',
-        borderBottom: '0.5px solid rgba(255,255,255,0.08)',
-        background: '#0d0d0d',
-      }}>
-        <Link href="/admin" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
-          <ZawaajLogo size={32} tagline={false} />
-          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', fontWeight: 500 }}>Admin</span>
-        </Link>
-        <span style={{ color: 'rgba(255,255,255,0.15)', fontSize: 16 }}>/</span>
-        <span style={{ fontSize: 13, fontWeight: 600, color: 'white' }}>Match Queue</span>
-      </div>
 
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '28px 24px 80px' }}>
         <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 6 }}>Match Queue</h1>
