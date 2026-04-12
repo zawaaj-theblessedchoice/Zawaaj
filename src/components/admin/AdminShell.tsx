@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import ZawaajLogo from '@/components/ZawaajLogo'
 import { createClient } from '@/lib/supabase/client'
 
 type Role = 'super_admin' | 'manager'
@@ -123,10 +122,10 @@ export function AdminShell({ role, children }: Props) {
         }}
         className="admin-sidebar"
       >
-        {/* Logo */}
-        <div style={{ padding: '20px 20px 16px', borderBottom: `1px solid ${border}` }}>
+        {/* Logo — wordmark */}
+        <div style={{ padding: '18px 20px 14px', borderBottom: `1px solid ${border}` }}>
           <Link href={role === 'super_admin' ? '/admin' : '/admin/introductions'} style={{ display: 'inline-block' }}>
-            <ZawaajLogo height={36} />
+            <img src="/zawaaj-wordmark.png" alt="Zawaaj" style={{ height: 22, width: 'auto', opacity: isDark ? 1 : 0.85 }} />
           </Link>
         </div>
 
@@ -268,7 +267,7 @@ export function AdminShell({ role, children }: Props) {
               <path strokeLinecap="round" d="M4 6h16M4 12h16M4 18h16"/>
             </svg>
           </button>
-          <ZawaajLogo height={30} />
+          <img src="/zawaaj-wordmark.png" alt="Zawaaj" style={{ height: 20, width: 'auto' }} />
           <button
             onClick={toggleTheme}
             style={{ background: 'none', border: 'none', cursor: 'pointer', color: muted, fontSize: 18, padding: 4 }}

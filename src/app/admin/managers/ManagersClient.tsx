@@ -33,7 +33,7 @@ export interface AdminManagersClientProps {
 const INPUT_STYLE: React.CSSProperties = {
   backgroundColor: '#111111',
   border: '0.5px solid rgba(255,255,255,0.12)',
-  color: 'white',
+  color: 'var(--admin-text)',
   borderRadius: 8,
   padding: '8px 12px',
   fontSize: 13,
@@ -44,7 +44,7 @@ const INPUT_STYLE: React.CSSProperties = {
 const LABEL_STYLE: React.CSSProperties = {
   fontSize: 11,
   fontWeight: 600,
-  color: 'rgba(255,255,255,0.4)',
+  color: 'var(--admin-muted)',
   textTransform: 'uppercase',
   letterSpacing: '0.06em',
   marginBottom: 4,
@@ -215,8 +215,8 @@ function AddManagerForm({ onCreated }: AddManagerFormProps) {
       style={{ backgroundColor: '#1A1A1A', border: '0.5px solid rgba(255,255,255,0.12)' }}
     >
       <div className="flex items-center justify-between">
-        <h3 style={{ fontSize: 15, fontWeight: 600, color: 'white' }}>Add manager</h3>
-        <button onClick={() => { setOpen(false); reset() }} style={{ color: 'rgba(255,255,255,0.4)', fontSize: 18, lineHeight: 1 }}>×</button>
+        <h3 style={{ fontSize: 15, fontWeight: 600, color: 'var(--admin-text)' }}>Add manager</h3>
+        <button onClick={() => { setOpen(false); reset() }} style={{ color: 'var(--admin-muted)', fontSize: 18, lineHeight: 1 }}>×</button>
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -289,7 +289,7 @@ function AddManagerForm({ onCreated }: AddManagerFormProps) {
             type="button"
             onClick={() => { setOpen(false); reset() }}
             className="px-4 py-2 rounded-lg text-sm"
-            style={{ border: '0.5px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.5)' }}
+            style={{ border: '0.5px solid rgba(255,255,255,0.12)', color: 'var(--admin-muted)' }}
           >
             Cancel
           </button>
@@ -432,7 +432,7 @@ function ManagerCard({ manager, onUpdate, onRemove }: ManagerCardProps) {
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span style={{ fontSize: 15, fontWeight: 600, color: 'white' }}>{manager.full_name}</span>
+            <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--admin-text)' }}>{manager.full_name}</span>
             <span
               className="px-2 py-0.5 rounded-full text-xs font-medium"
               style={{ backgroundColor: 'rgba(184,150,12,0.15)', color: '#B8960C' }}
@@ -442,7 +442,7 @@ function ManagerCard({ manager, onUpdate, onRemove }: ManagerCardProps) {
             {!manager.is_active && (
               <span
                 className="px-2 py-0.5 rounded-full text-xs"
-                style={{ backgroundColor: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.4)' }}
+                style={{ backgroundColor: 'rgba(255,255,255,0.05)', color: 'var(--admin-muted)' }}
               >
                 Inactive
               </span>
@@ -450,10 +450,10 @@ function ManagerCard({ manager, onUpdate, onRemove }: ManagerCardProps) {
           </div>
           <div className="flex items-center gap-3 flex-wrap mt-0.5">
             {manager.email && (
-              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>{manager.email}</span>
+              <span style={{ fontSize: 12, color: 'var(--admin-muted)' }}>{manager.email}</span>
             )}
             {manager.contact_number && (
-              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>{manager.contact_number}</span>
+              <span style={{ fontSize: 12, color: 'var(--admin-muted)' }}>{manager.contact_number}</span>
             )}
           </div>
           {allScopes.length > 0 && (
@@ -576,7 +576,7 @@ function ManagerCard({ manager, onUpdate, onRemove }: ManagerCardProps) {
               type="button"
               onClick={() => setExpanded(false)}
               className="px-4 py-2 rounded-lg text-sm"
-              style={{ border: '0.5px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.5)' }}
+              style={{ border: '0.5px solid rgba(255,255,255,0.12)', color: 'var(--admin-muted)' }}
             >
               Cancel
             </button>
@@ -604,15 +604,15 @@ export default function AdminManagersClient({ managers: initial }: AdminManagers
   const inactive = managers.filter(m => !m.is_active)
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#111111', color: 'white' }}>
+    <div className="min-h-screen" style={{ backgroundColor: '#111111', color: 'var(--admin-text)' }}>
 
       {/* ── Page header ── */}
       <div className="px-6 pt-8 pb-6 flex items-start justify-between gap-4" style={{ borderBottom: '0.5px solid rgba(255,255,255,0.1)' }}>
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 600, color: 'white', marginBottom: 4 }}>
+          <h1 style={{ fontSize: 22, fontWeight: 600, color: 'var(--admin-text)', marginBottom: 4 }}>
             Managers
           </h1>
-          <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)' }}>
+          <p style={{ fontSize: 14, color: 'var(--admin-muted)' }}>
             Super admin only. Managers are assigned matches based on their scope.
           </p>
         </div>
@@ -636,10 +636,10 @@ export default function AdminManagersClient({ managers: initial }: AdminManagers
         {/* Active managers */}
         <section className="flex flex-col gap-4">
           <div className="flex items-center gap-3">
-            <h2 style={{ fontSize: 16, fontWeight: 600, color: 'white' }}>Active</h2>
+            <h2 style={{ fontSize: 16, fontWeight: 600, color: 'var(--admin-text)' }}>Active</h2>
             <span
               className="px-2 py-0.5 rounded-full text-xs font-medium"
-              style={{ backgroundColor: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.5)' }}
+              style={{ backgroundColor: 'rgba(255,255,255,0.08)', color: 'var(--admin-muted)' }}
             >
               {active.length}
             </span>
@@ -672,10 +672,10 @@ export default function AdminManagersClient({ managers: initial }: AdminManagers
         {inactive.length > 0 && (
           <section className="flex flex-col gap-4">
             <div className="flex items-center gap-3">
-              <h2 style={{ fontSize: 16, fontWeight: 600, color: 'rgba(255,255,255,0.4)' }}>Inactive</h2>
+              <h2 style={{ fontSize: 16, fontWeight: 600, color: 'var(--admin-muted)' }}>Inactive</h2>
               <span
                 className="px-2 py-0.5 rounded-full text-xs"
-                style={{ backgroundColor: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.3)' }}
+                style={{ backgroundColor: 'rgba(255,255,255,0.05)', color: 'var(--admin-muted)' }}
               >
                 {inactive.length}
               </span>

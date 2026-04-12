@@ -161,26 +161,26 @@ function ContactBlock({
         <>
           {/* Primary contact */}
           <div style={{ marginBottom: 6 }}>
-            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginBottom: 2 }}>Primary contact</div>
-            <div style={{ fontSize: 12.5, color: 'white', fontWeight: 500 }}>{fa.contact_full_name}</div>
-            <div style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.5)' }}>
+            <div style={{ fontSize: 11, color: 'var(--admin-muted)', marginBottom: 2 }}>Primary contact</div>
+            <div style={{ fontSize: 12.5, color: 'var(--admin-text)', fontWeight: 500 }}>{fa.contact_full_name}</div>
+            <div style={{ fontSize: 11.5, color: 'var(--admin-muted)' }}>
               {fa.contact_relationship} · {fa.contact_number}
             </div>
-            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>{fa.contact_email}</div>
+            <div style={{ fontSize: 11, color: 'var(--admin-muted)' }}>{fa.contact_email}</div>
           </div>
 
           {/* Female fallback (shown if male contact) */}
           {isMale && (
             <div style={{ marginBottom: 6, paddingTop: 6, borderTop: '0.5px solid rgba(255,255,255,0.06)' }}>
-              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginBottom: 2 }}>Female contact</div>
+              <div style={{ fontSize: 11, color: 'var(--admin-muted)', marginBottom: 2 }}>Female contact</div>
               {fa.no_female_contact_flag ? (
                 <div style={{ fontSize: 11.5, color: '#f87171' }}>
                   ⚠ No female contact — {fa.father_explanation || 'no explanation provided'}
                 </div>
               ) : fa.female_contact_name ? (
                 <>
-                  <div style={{ fontSize: 12.5, color: 'white', fontWeight: 500 }}>{fa.female_contact_name}</div>
-                  <div style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.5)' }}>
+                  <div style={{ fontSize: 12.5, color: 'var(--admin-text)', fontWeight: 500 }}>{fa.female_contact_name}</div>
+                  <div style={{ fontSize: 11.5, color: 'var(--admin-muted)' }}>
                     {fa.female_contact_relationship} · {fa.female_contact_number}
                   </div>
                 </>
@@ -190,12 +190,12 @@ function ContactBlock({
             </div>
           )}
 
-          <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginBottom: 8 }}>
+          <div style={{ fontSize: 10, color: 'var(--admin-muted)', marginBottom: 8 }}>
             Path: {fa.registration_path === 'parent' ? 'Parent registered' : 'Child registered'}
           </div>
         </>
       ) : (
-        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', marginBottom: 8 }}>
+        <div style={{ fontSize: 12, color: 'var(--admin-muted)', marginBottom: 8 }}>
           No family account linked
         </div>
       )}
@@ -331,7 +331,7 @@ function MatchCard({
               <Link href={`/admin/profile/${match.profile_a.id}`} style={{ color: '#B8960C', textDecoration: 'none', fontSize: 13.5, fontWeight: 600 }}>
                 {profileName(match.profile_a)}
               </Link>
-              <div style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.4)' }}>
+              <div style={{ fontSize: 11.5, color: 'var(--admin-muted)' }}>
                 {[match.profile_a.age_display, match.profile_a.location, match.profile_a.profession_detail].filter(Boolean).join(' · ')}
               </div>
             </div>
@@ -345,7 +345,7 @@ function MatchCard({
               <Link href={`/admin/profile/${match.profile_b.id}`} style={{ color: '#B8960C', textDecoration: 'none', fontSize: 13.5, fontWeight: 600 }}>
                 {profileName(match.profile_b)}
               </Link>
-              <div style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.4)' }}>
+              <div style={{ fontSize: 11.5, color: 'var(--admin-muted)' }}>
                 {[match.profile_b.age_display, match.profile_b.location, match.profile_b.profession_detail].filter(Boolean).join(' · ')}
               </div>
             </div>
@@ -387,12 +387,12 @@ function MatchCard({
           display: 'flex', gap: 24, flexWrap: 'wrap',
         }}>
           <div>
-            <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginBottom: 3 }}>SHARED WITH FAMILY A</div>
-            <div style={{ fontSize: 12.5, color: 'white' }}>{match.family_b_contact_name} · {match.family_b_contact_number}</div>
+            <div style={{ fontSize: 10, color: 'var(--admin-muted)', marginBottom: 3 }}>SHARED WITH FAMILY A</div>
+            <div style={{ fontSize: 12.5, color: 'var(--admin-text)' }}>{match.family_b_contact_name} · {match.family_b_contact_number}</div>
           </div>
           <div>
-            <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginBottom: 3 }}>SHARED WITH FAMILY B</div>
-            <div style={{ fontSize: 12.5, color: 'white' }}>{match.family_a_contact_name} · {match.family_a_contact_number}</div>
+            <div style={{ fontSize: 10, color: 'var(--admin-muted)', marginBottom: 3 }}>SHARED WITH FAMILY B</div>
+            <div style={{ fontSize: 12.5, color: 'var(--admin-text)' }}>{match.family_a_contact_name} · {match.family_a_contact_number}</div>
           </div>
         </div>
       )}
@@ -442,7 +442,7 @@ function MatchCard({
           style={{
             padding: '5px 12px', borderRadius: 7, fontSize: 11,
             background: 'transparent', border: '0.5px solid rgba(255,255,255,0.12)',
-            color: 'rgba(255,255,255,0.5)', textDecoration: 'none',
+            color: 'var(--admin-muted)', textDecoration: 'none',
           }}
         >
           View side-by-side →
@@ -452,7 +452,7 @@ function MatchCard({
       {/* Follow-up notes */}
       {(match.status === 'contacts_shared' || match.status === 'in_follow_up') && (
         <div style={{ marginTop: 14, borderTop: '0.5px solid rgba(255,255,255,0.06)', paddingTop: 12 }}>
-          <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', marginBottom: 6 }}>
+          <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--admin-muted)', marginBottom: 6 }}>
             Follow-up notes
           </div>
           <textarea
@@ -463,7 +463,7 @@ function MatchCard({
             style={{
               width: '100%', padding: '8px 10px', borderRadius: 7,
               background: '#111', border: '0.5px solid rgba(255,255,255,0.10)',
-              color: 'white', fontSize: 12, resize: 'vertical', boxSizing: 'border-box',
+              color: 'var(--admin-text)', fontSize: 12, resize: 'vertical', boxSizing: 'border-box',
             }}
           />
           <button
@@ -511,11 +511,11 @@ export default function AdminMatchesClient({
   const visibleMatches = matches.filter(m => m.status === activeTab)
 
   return (
-    <div style={{ minHeight: '100vh', background: '#111111', color: 'white' }}>
+    <div style={{ minHeight: '100vh', background: '#111111', color: 'var(--admin-text)' }}>
 
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '28px 24px 80px' }}>
         <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 6 }}>Match Queue</h1>
-        <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', marginBottom: 24 }}>
+        <p style={{ fontSize: 13, color: 'var(--admin-muted)', marginBottom: 24 }}>
           Verify contacts and coordinate introductions between matched families.
         </p>
 

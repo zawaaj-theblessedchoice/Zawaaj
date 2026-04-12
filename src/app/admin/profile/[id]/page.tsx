@@ -4,7 +4,6 @@ import { use, useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import ZawaajLogo from '@/components/ZawaajLogo'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -119,6 +118,8 @@ export default function ProfileEditPage({
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [accessDenied, setAccessDenied] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteConfirm, setDeleteConfirm] = useState<'profile' | 'account' | null>(null)
 
   // Check admin
   useEffect(() => {
@@ -211,6 +212,35 @@ export default function ProfileEditPage({
     loadProfile()
   }
 
+  async function deleteProfile() {
+    if (!window.confirm('Permanently delete this profile? This cannot be undone.')) return
+    setDeleting(true)
+    const res = await fetch('/api/admin/delete-account', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ profile_id: id }),
+    })
+    const json = await res.json().catch(() => ({}))
+    setDeleting(false)
+    if (!res.ok) { alert(json.error ?? 'Delete failed'); return }
+    router.push('/admin')
+  }
+
+  async function deleteAccount() {
+    if (!profile?.user_id) { alert('No linked auth account to delete.'); return }
+    if (!window.confirm('Delete the LOGIN ACCOUNT for this user? Their profile data will be preserved but unlinked. This cannot be undone.')) return
+    setDeleting(true)
+    const res = await fetch('/api/admin/delete-account', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: profile.user_id }),
+    })
+    const json = await res.json().catch(() => ({}))
+    setDeleting(false)
+    if (!res.ok) { alert(json.error ?? 'Delete failed'); return }
+    router.push('/admin')
+  }
+
   if (accessDenied) {
     return (
       <div className="min-h-screen bg-surface flex items-center justify-center" data-theme="dark">
@@ -245,16 +275,16 @@ export default function ProfileEditPage({
   const avatarBg = profile.gender === 'female' ? 'var(--status-purple)' : 'var(--status-info)'
 
   return (
-    <div className="min-h-screen bg-surface" data-theme="dark">
+    <div className="min-h-screen" style={{ background: 'var(--admin-bg)', color: 'var(--admin-text)' }}>
       {/* Header */}
-      <header className="bg-surface-2 sticky top-0 z-30 shadow-sm">
+      <header style={{ background: 'var(--admin-surface)', borderBottom: '1px solid var(--admin-border)' }} className="sticky top-0 z-30">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <ZawaajLogo size={30} tagline={false} />
-            <span className="text-white/30 text-sm hidden sm:block">Admin — Edit Profile</span>
+            <img src="/zawaaj-wordmark.png" alt="Zawaaj" style={{ height: 20, width: 'auto', opacity: 0.9 }} />
+            <span style={{ color: 'var(--admin-muted)' }} className="text-sm hidden sm:block">Admin — Edit Profile</span>
           </div>
-          <Link href="/admin" className="text-white/40 hover:text-white/80 text-xs transition-colors">
-            Back to Dashboard
+          <Link href="/admin" style={{ color: 'var(--admin-muted)' }} className="text-xs hover:opacity-80 transition-opacity">
+            ← Back to Dashboard
           </Link>
         </div>
       </header>
@@ -527,17 +557,40 @@ export default function ProfileEditPage({
           </div>
 
           {/* Save */}
-          <div className="flex justify-between items-center mt-8 pt-6 border-t border-white/10">
-            <Link href="/admin" className="text-sm text-white/50 hover:text-white transition-colors">
-              Cancel — back to dashboard
-            </Link>
-            <button
-              onClick={save}
-              disabled={saving}
-              className="px-6 py-3 rounded-2xl text-sm font-semibold bg-surface-2 text-gold hover:bg-surface-3 disabled:opacity-50 transition-colors"
-            >
-              {saving ? 'Saving…' : 'Save Profile'}
-            </button>
+          <div className="flex justify-between items-center mt-8 pt-6 border-t border-white/10 flex-wrap gap-3">
+            <div className="flex gap-2 flex-wrap">
+              <button
+                onClick={deleteProfile}
+                disabled={deleting}
+                className="px-4 py-2 rounded-xl text-xs font-medium disabled:opacity-50 transition-colors"
+                style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.25)' }}
+              >
+                {deleting ? 'Deleting…' : 'Delete profile'}
+              </button>
+              {profile.user_id && (
+                <button
+                  onClick={deleteAccount}
+                  disabled={deleting}
+                  className="px-4 py-2 rounded-xl text-xs font-medium disabled:opacity-50 transition-colors"
+                  style={{ background: 'rgba(239,68,68,0.06)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.15)' }}
+                >
+                  {deleting ? 'Deleting…' : 'Delete login account'}
+                </button>
+              )}
+            </div>
+            <div className="flex items-center gap-3">
+              <Link href="/admin" className="text-sm text-white/50 hover:text-white transition-colors">
+                Cancel
+              </Link>
+              <button
+                onClick={save}
+                disabled={saving}
+                className="px-6 py-3 rounded-2xl text-sm font-semibold disabled:opacity-50 transition-colors"
+                style={{ background: 'var(--gold)', color: '#000' }}
+              >
+                {saving ? 'Saving…' : 'Save profile'}
+              </button>
+            </div>
           </div>
         </div>
       </main>

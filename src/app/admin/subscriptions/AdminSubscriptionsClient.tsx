@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import type { SubscriptionRow } from './page'
+import { PLAN_PRICES } from '@/lib/plan-config'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -31,7 +32,7 @@ const STATUS_BADGE: Record<string, { bg: string; text: string }> = {
   trialing:  { bg: 'var(--status-warning-bg)', text: 'var(--status-warning)' },
 }
 
-const PLAN_PRICES = { free: 0, plus: 9, premium: 19 }
+// PLAN_PRICES imported from @/lib/plan-config
 
 // ─── Override modal ───────────────────────────────────────────────────────────
 
@@ -69,10 +70,10 @@ function OverrideModal({
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
       <div style={{ background: 'var(--surface-2)', border: '0.5px solid rgba(255,255,255,0.1)', borderRadius: 16, width: '100%', maxWidth: 380, padding: 24 }}>
-        <p className="text-white font-semibold mb-1" style={{ fontSize: 14, color: 'white', fontWeight: 600, marginBottom: 4 }}>
+        <p className="text-white font-semibold mb-1" style={{ fontSize: 14, color: 'var(--admin-text)', fontWeight: 600, marginBottom: 4 }}>
           Override plan — {profileName(sub.profile)}
         </p>
-        <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginBottom: 20 }}>
+        <p style={{ fontSize: 12, color: 'var(--admin-muted)', marginBottom: 20 }}>
           Admin override bypasses Stripe. Use for test accounts or courtesy upgrades.
         </p>
 
@@ -98,7 +99,7 @@ function OverrideModal({
         {error && <p style={{ fontSize: 12, color: 'var(--status-error)', marginBottom: 12 }}>{error}</p>}
 
         <div style={{ display: 'flex', gap: 8 }}>
-          <button onClick={onClose} style={{ flex: 1, padding: '9px 0', borderRadius: 9, background: 'rgba(255,255,255,0.06)', border: '0.5px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.5)', fontSize: 13, cursor: 'pointer' }}>
+          <button onClick={onClose} style={{ flex: 1, padding: '9px 0', borderRadius: 9, background: 'rgba(255,255,255,0.06)', border: '0.5px solid rgba(255,255,255,0.1)', color: 'var(--admin-muted)', fontSize: 13, cursor: 'pointer' }}>
             Cancel
           </button>
           <button onClick={save} disabled={loading || plan === sub.plan} style={{ flex: 2, padding: '9px 0', borderRadius: 9, background: 'var(--gold)', color: 'var(--surface)', fontSize: 13, fontWeight: 600, cursor: loading || plan === sub.plan ? 'not-allowed' : 'pointer', opacity: plan === sub.plan ? 0.5 : 1, border: 'none' }}>
@@ -117,11 +118,20 @@ export default function AdminSubscriptionsClient({ subs: initialSubs }: { subs: 
   const [overrideSub, setOverrideSub] = useState<SubscriptionRow | null>(null)
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'cancelled' | 'past_due'>('all')
 
-  // ─── MRR calculation ───────────────────────────────────────────────────────
+  // ─── MRR calculation — driven by PLAN_PRICES, no hardcoded plan names ────────
   const activeSubs = subs.filter(s => s.status === 'active')
-  const plusActive = activeSubs.filter(s => s.plan === 'plus').length
-  const premiumActive = activeSubs.filter(s => s.plan === 'premium').length
-  const estimatedMRR = plusActive * PLAN_PRICES.plus + premiumActive * PLAN_PRICES.premium
+  // Count active subscribers per plan and compute MRR from config prices
+  const planCounts = Object.fromEntries(
+    (Object.keys(PLAN_PRICES) as Array<keyof typeof PLAN_PRICES>).map(p => [
+      p, activeSubs.filter(s => s.plan === p).length,
+    ])
+  ) as Record<keyof typeof PLAN_PRICES, number>
+  const estimatedMRR = (Object.keys(PLAN_PRICES) as Array<keyof typeof PLAN_PRICES>).reduce(
+    (sum, p) => sum + planCounts[p] * PLAN_PRICES[p].monthly,
+    0
+  )
+  const plusActive = planCounts.plus
+  const premiumActive = planCounts.premium
 
   const filtered = statusFilter === 'all' ? subs : subs.filter(s => s.status === statusFilter)
 
@@ -130,27 +140,27 @@ export default function AdminSubscriptionsClient({ subs: initialSubs }: { subs: 
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--surface)', color: 'white', padding: '36px 40px' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--surface)', color: 'var(--admin-text)', padding: '36px 40px' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 28 }}>
-        <Link href="/admin" style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, textDecoration: 'none' }}>
+        <Link href="/admin" style={{ color: 'var(--admin-muted)', fontSize: 13, textDecoration: 'none' }}>
           ← Admin
         </Link>
-        <h1 style={{ fontSize: 20, fontWeight: 700, color: 'white', margin: 0 }}>Subscriptions</h1>
+        <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--admin-text)', margin: 0 }}>Subscriptions</h1>
       </div>
 
       {/* MRR summary */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 28 }}>
         {[
-          { label: 'Plus active', value: `${plusActive}`, sub: `${plusActive} × £${PLAN_PRICES.plus}/mo` },
-          { label: 'Premium active', value: `${premiumActive}`, sub: `${premiumActive} × £${PLAN_PRICES.premium}/mo` },
+          { label: 'Plus active', value: `${plusActive}`, sub: `${plusActive} × £${PLAN_PRICES.plus.monthly}/mo` },
+          { label: 'Premium active', value: `${premiumActive}`, sub: `${premiumActive} × £${PLAN_PRICES.premium.monthly}/mo` },
           { label: 'Estimated MRR', value: `£${estimatedMRR}`, sub: 'Monthly recurring' },
           { label: 'Total members', value: `${subs.length}`, sub: `${activeSubs.length} active` },
         ].map(card => (
           <div key={card.label} style={{ background: 'var(--surface-2)', border: '0.5px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '16px 20px' }}>
-            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>{card.label}</div>
-            <div style={{ fontSize: 22, fontWeight: 700, color: 'white', marginBottom: 2 }}>{card.value}</div>
-            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>{card.sub}</div>
+            <div style={{ fontSize: 11, color: 'var(--admin-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>{card.label}</div>
+            <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--admin-text)', marginBottom: 2 }}>{card.value}</div>
+            <div style={{ fontSize: 11, color: 'var(--admin-muted)' }}>{card.sub}</div>
           </div>
         ))}
       </div>
@@ -187,7 +197,7 @@ export default function AdminSubscriptionsClient({ subs: initialSubs }: { subs: 
         </div>
 
         {filtered.length === 0 ? (
-          <div style={{ padding: '40px 20px', textAlign: 'center', color: 'rgba(255,255,255,0.3)', fontSize: 13 }}>
+          <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--admin-muted)', fontSize: 13 }}>
             No subscriptions found.
           </div>
         ) : (
@@ -241,7 +251,7 @@ export default function AdminSubscriptionsClient({ subs: initialSubs }: { subs: 
                 <div style={{ display: 'flex', gap: 6 }}>
                   <button
                     onClick={() => setOverrideSub(sub)}
-                    style={{ padding: '4px 10px', borderRadius: 6, fontSize: 11, background: 'rgba(255,255,255,0.06)', border: '0.5px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.5)', cursor: 'pointer' }}
+                    style={{ padding: '4px 10px', borderRadius: 6, fontSize: 11, background: 'rgba(255,255,255,0.06)', border: '0.5px solid rgba(255,255,255,0.1)', color: 'var(--admin-muted)', cursor: 'pointer' }}
                   >
                     Override
                   </button>

@@ -99,14 +99,14 @@ function SuggestPicker({
           placeholder="Search candidates…"
           value={search}
           onChange={e => setSearch(e.target.value)}
-          style={{ flex: 1, padding: '7px 12px', borderRadius: 8, border: '0.5px solid rgba(255,255,255,0.12)', background: 'var(--surface)', color: 'white', fontSize: 12, outline: 'none' }}
+          style={{ flex: 1, padding: '7px 12px', borderRadius: 8, border: '0.5px solid var(--admin-border)', background: 'var(--admin-bg)', color: 'var(--admin-text)', fontSize: 12, outline: 'none' }}
         />
         <input
           type="text"
           placeholder="Optional admin note…"
           value={note}
           onChange={e => setNote(e.target.value)}
-          style={{ flex: 1.5, padding: '7px 12px', borderRadius: 8, border: '0.5px solid rgba(255,255,255,0.12)', background: 'var(--surface)', color: 'white', fontSize: 12, outline: 'none' }}
+          style={{ flex: 1.5, padding: '7px 12px', borderRadius: 8, border: '0.5px solid var(--admin-border)', background: 'var(--admin-bg)', color: 'var(--admin-text)', fontSize: 12, outline: 'none' }}
         />
       </div>
 
@@ -118,7 +118,7 @@ function SuggestPicker({
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         {filtered.length === 0 && (
-          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', padding: '8px 0' }}>No candidates found.</p>
+          <p style={{ fontSize: 12, color: 'var(--admin-muted)', padding: '8px 0' }}>No candidates found.</p>
         )}
         {filtered.map(c => {
           const age = calcAge(c.date_of_birth)
@@ -136,8 +136,8 @@ function SuggestPicker({
                 {c.display_initials}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 12.5, color: 'white', fontWeight: 500 }}>{profileName(c)}</div>
-                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>
+                <div style={{ fontSize: 12.5, color: 'var(--admin-text)', fontWeight: 500 }}>{profileName(c)}</div>
+                <div style={{ fontSize: 11, color: 'var(--admin-muted)' }}>
                   {[age && `${age}y`, c.location, c.ethnicity, c.school_of_thought].filter(Boolean).join(' · ')}
                 </div>
               </div>
@@ -186,17 +186,17 @@ export default function AdminConciergeClient({
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--surface)', color: 'white', padding: '36px 40px' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--admin-bg)', color: 'var(--admin-text)', padding: '32px 36px' }}>
       {/* Header */}
-      <div style={{ marginBottom: 8 }}>
-        <h1 style={{ fontSize: 20, fontWeight: 700, color: 'white', margin: 0 }}>Concierge matching</h1>
+      <div style={{ marginBottom: 6 }}>
+        <h1 style={{ fontSize: 18, fontWeight: 700, color: 'var(--admin-text)', margin: 0 }}>Concierge matching</h1>
       </div>
-      <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', marginBottom: 28 }}>
+      <p style={{ fontSize: 13, color: 'var(--admin-muted)', marginBottom: 24 }}>
         Proactively suggest profiles to Premium members. Each suggestion is sent as a notification.
       </p>
 
       {premiumProfiles.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '60px 0', color: 'rgba(255,255,255,0.3)' }}>
+        <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--admin-muted)' }}>
           <div style={{ fontSize: 32, marginBottom: 12 }}>✦</div>
           <p style={{ fontSize: 14, fontWeight: 500, marginBottom: 6 }}>No Premium members yet</p>
           <p style={{ fontSize: 12 }}>Members who subscribe to Zawaaj Premium will appear here.</p>
@@ -228,16 +228,16 @@ export default function AdminConciergeClient({
                     {member.display_initials}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13.5, fontWeight: 500, color: 'white', marginBottom: 3 }}>
+                    <div style={{ fontSize: 13.5, fontWeight: 500, color: 'var(--admin-text)', marginBottom: 3 }}>
                       {profileName(member)}
                       <span style={{ marginLeft: 8, fontSize: 10, padding: '2px 7px', borderRadius: 5, background: 'var(--gold-muted)', color: 'var(--gold)', fontWeight: 600 }}>Premium</span>
                     </div>
-                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>
+                    <div style={{ fontSize: 11, color: 'var(--admin-muted)' }}>
                       {[age && `${age}y`, member.location, member.ethnicity].filter(Boolean).join(' · ')}
                     </div>
                   </div>
                   {/* Preferences summary */}
-                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', textAlign: 'right', lineHeight: 1.6 }}>
+                  <div style={{ fontSize: 11, color: 'var(--admin-muted)', textAlign: 'right', lineHeight: 1.6 }}>
                     {member.pref_age_min && member.pref_age_max && (
                       <div>Age {member.pref_age_min}–{member.pref_age_max}</div>
                     )}
@@ -245,16 +245,16 @@ export default function AdminConciergeClient({
                     {member.pref_school_of_thought?.length ? <div>{member.pref_school_of_thought.join(', ')}</div> : null}
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                    <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>
+                    <span style={{ fontSize: 11, color: 'var(--admin-muted)' }}>
                       {suggestionCount} suggested
                     </span>
-                    <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12 }}>{isExpanded ? '▲' : '▼'}</span>
+                    <span style={{ color: 'var(--admin-muted)', fontSize: 12 }}>{isExpanded ? '▲' : '▼'}</span>
                   </div>
                 </button>
 
                 {/* Expanded picker */}
                 {isExpanded && (
-                  <div style={{ padding: '0 20px 20px', borderTop: '0.5px solid rgba(255,255,255,0.06)' }}>
+                  <div style={{ padding: '0 20px 20px', borderTop: '0.5px solid var(--admin-border)' }}>
                     <div style={{ marginTop: 16 }}>
                       <SuggestPicker
                         forProfile={member}
