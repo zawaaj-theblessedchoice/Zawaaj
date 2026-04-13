@@ -19,26 +19,41 @@ export default function ResetPasswordPage() {
   useEffect(() => {
     const supabase = createClient()
 
-    // Listen for PASSWORD_RECOVERY event (implicit/hash flow from generateLink)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && session)) {
-        setHasSession(true)
-        setChecking(false)
-      }
-    })
-
-    // Also check for an existing cookie session (PKCE flow via /auth/callback)
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    async function init() {
+      // 1. Try cookie-based session first (PKCE flow)
+      const { data: { session } } = await supabase.auth.getSession()
       if (session) {
         setHasSession(true)
         setChecking(false)
-      } else {
-        // No cookie session — wait up to 3 s for hash-based auth state change
-        setTimeout(() => setChecking(false), 3000)
+        return
       }
-    })
 
-    return () => subscription.unsubscribe()
+      // 2. Try implicit flow — parse access_token & refresh_token from hash
+      const hash = window.location.hash.substring(1)
+      const params = new URLSearchParams(hash)
+      const accessToken  = params.get('access_token')
+      const refreshToken = params.get('refresh_token')
+      const type         = params.get('type')
+
+      if (accessToken && refreshToken && type === 'recovery') {
+        const { data, error } = await supabase.auth.setSession({
+          access_token:  accessToken,
+          refresh_token: refreshToken,
+        })
+        if (!error && data.session) {
+          // Clean the tokens out of the URL
+          window.history.replaceState(null, '', window.location.pathname)
+          setHasSession(true)
+          setChecking(false)
+          return
+        }
+      }
+
+      // No valid session found
+      setChecking(false)
+    }
+
+    void init()
   }, [])
 
   async function handleSubmit(e: React.FormEvent) {
