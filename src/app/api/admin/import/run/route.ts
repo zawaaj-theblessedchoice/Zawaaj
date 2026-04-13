@@ -9,6 +9,7 @@ interface RowResult {
   email: string
   success: boolean
   error: string | null
+  invite_link?: string
 }
 
 // ─── CSV parser (handles basic quoted fields) ─────────────────────────────────
@@ -365,19 +366,23 @@ export async function POST(req: NextRequest): Promise<Response> {
         console.error(`[import] subscription insert failed for ${email}:`, subErr.message)
       }
 
-      // ── 5. Send password-set email via resetPasswordForEmail ────────────────
-      // generateLink() only returns a link — it does NOT send the email.
-      // resetPasswordForEmail() triggers Supabase's email delivery pipeline.
-      const { error: emailErr } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${siteUrl}/auth/callback?next=/browse`,
+      // ── 5. Generate invite link ──────────────────────────────────────────────
+      // We return the link to the admin UI rather than relying on email delivery
+      // (which is subject to rate limits and spam filters). The admin can share
+      // it directly via WhatsApp, SMS, or their own email.
+      let inviteLink: string | undefined
+      const { data: linkData, error: linkErr } = await supabaseAdmin.auth.admin.generateLink({
+        type:  'recovery',
+        email,
+        options: { redirectTo: `${siteUrl}/auth/callback?next=/browse` },
       })
-
-      if (emailErr) {
-        console.error(`[import] reset email failed for ${email}:`, emailErr.message)
-        // Non-fatal — account is still created
+      if (linkErr) {
+        console.error(`[import] generateLink failed for ${email}:`, linkErr.message)
+      } else {
+        inviteLink = linkData.properties?.action_link ?? undefined
       }
 
-      results.push({ row: rowNum, email, success: true, error: null })
+      results.push({ row: rowNum, email, success: true, error: null, invite_link: inviteLink })
     }
 
     // ── Update batch record ────────────────────────────────────────────────────
@@ -396,10 +401,16 @@ export async function POST(req: NextRequest): Promise<Response> {
       })
       .eq('id', batchId)
 
+    // Return invite links for successful rows so the admin can share them directly
+    const inviteLinks = results
+      .filter(r => r.success && r.invite_link)
+      .map(r => ({ email: r.email, link: r.invite_link as string }))
+
     return NextResponse.json({
       success:  successCount,
       errors:   errorCount,
       batchId,
+      inviteLinks,
     })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Something went wrong'

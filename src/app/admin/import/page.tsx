@@ -100,7 +100,7 @@ export default function ImportPage() {
 
   // Run
   const [running, setRunning]       = useState(false)
-  const [runResult, setRunResult]   = useState<{ success: number; errors: number; batchId: string } | null>(null)
+  const [runResult, setRunResult]   = useState<{ success: number; errors: number; batchId: string; inviteLinks: { email: string; link: string }[] } | null>(null)
   const [runError, setRunError]     = useState<string | null>(null)
 
   // History
@@ -205,12 +205,13 @@ export default function ImportPage() {
         headers: { 'Content-Type': 'text/plain' },
         body:    csvText,
       })
-      const json = await res.json() as { success?: number; errors?: number; batchId?: string; error?: string }
+      const json = await res.json() as { success?: number; errors?: number; batchId?: string; error?: string; inviteLinks?: { email: string; link: string }[] }
       if (!res.ok) throw new Error(json.error ?? 'Import failed')
       setRunResult({
-        success: json.success ?? 0,
-        errors:  json.errors  ?? 0,
-        batchId: json.batchId ?? '',
+        success:     json.success     ?? 0,
+        errors:      json.errors      ?? 0,
+        batchId:     json.batchId     ?? '',
+        inviteLinks: json.inviteLinks ?? [],
       })
       // Refresh history
       void loadHistory()
@@ -456,9 +457,33 @@ export default function ImportPage() {
                 <span className="font-mono text-xs" style={{ color: 'var(--admin-muted)' }}>{runResult.batchId}</span>
               </div>
             </div>
-            <p className="mt-3 text-xs" style={{ color: 'var(--admin-muted)' }}>
-              Each imported member has been sent a password-reset email so they can set their password and log in.
-            </p>
+            {runResult.inviteLinks.length > 0 && (
+              <div className="mt-4 space-y-2">
+                <p className="text-xs font-medium" style={{ color: 'var(--admin-text)' }}>
+                  Invite links — copy and send directly to each member:
+                </p>
+                {runResult.inviteLinks.map(({ email, link }) => (
+                  <div key={email} className="rounded-xl p-3 space-y-1.5" style={{ border: '1px solid var(--admin-border)', background: 'var(--admin-surface)' }}>
+                    <p className="text-xs font-mono" style={{ color: 'var(--admin-muted)' }}>{email}</p>
+                    <div className="flex items-center gap-2">
+                      <input
+                        readOnly
+                        value={link}
+                        className="flex-1 text-xs font-mono rounded-lg px-2 py-1.5 truncate"
+                        style={{ background: 'var(--surface-3)', border: '1px solid var(--admin-border)', color: 'var(--admin-text)' }}
+                        onClick={e => (e.target as HTMLInputElement).select()}
+                      />
+                      <button
+                        onClick={() => void navigator.clipboard.writeText(link)}
+                        className="shrink-0 text-xs px-3 py-1.5 rounded-lg font-medium border border-gold/40 text-gold hover:bg-gold/10 transition-colors"
+                      >
+                        Copy
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </section>
         )}
 
