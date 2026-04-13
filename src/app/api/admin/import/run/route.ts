@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { sendEmail, passwordResetTemplate } from '@/lib/email'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -380,6 +381,17 @@ export async function POST(req: NextRequest): Promise<Response> {
         console.error(`[import] generateLink failed for ${email}:`, linkErr.message)
       } else {
         inviteLink = linkData.properties?.action_link ?? undefined
+        // Also attempt to send the invite email directly via Resend
+        if (inviteLink) {
+          const emailResult = await sendEmail({
+            to: email,
+            subject: "You've been invited to Zawaaj",
+            html: passwordResetTemplate(inviteLink),
+          })
+          if (!emailResult.ok) {
+            console.error(`[import] Resend failed for ${email}:`, emailResult.error)
+          }
+        }
       }
 
       results.push({ row: rowNum, email, success: true, error: null, invite_link: inviteLink })

@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
 import ZawaajLogo from '@/components/ZawaajLogo'
 
 export default function ForgotPasswordPage() {
@@ -17,27 +16,17 @@ export default function ForgotPasswordPage() {
     setError('')
     setLoading(true)
 
-    const supabase = createClient()
-    const { error: resetError } = await supabase.auth.resetPasswordForEmail(
-      email.trim().toLowerCase(),
-      {
-        // With @supabase/ssr (PKCE), the email link carries a ?code= param.
-        // We route via /auth/callback which exchanges the code server-side,
-        // sets the recovery session in cookies, then redirects to the target page.
-        // Always use the canonical production origin so the redirectTo URL matches
-        // the Supabase allowlist regardless of which Vercel preview URL the user is on.
-        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://zawaaj.uk'}/auth/callback?next=/auth/reset-password`,
-      }
-    )
-
-    setLoading(false)
-
-    if (resetError) {
-      // Don't expose whether the email exists — show generic message
-      setSent(true)
-      return
+    try {
+      await fetch('/api/auth/send-reset-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim().toLowerCase() }),
+      })
+    } catch {
+      // Silently ignore network errors — always show the sent state
     }
 
+    setLoading(false)
     setSent(true)
   }
 
