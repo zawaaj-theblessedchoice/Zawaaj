@@ -148,7 +148,7 @@ export default function ResetPasswordPage() {
     >
       <div style={{ width: '100%', maxWidth: 400 }}>
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 32 }}>
-          <ZawaajLogo size={72} tagline={false} />
+          <ZawaajLogo height={220} />
         </div>
 
         <div
