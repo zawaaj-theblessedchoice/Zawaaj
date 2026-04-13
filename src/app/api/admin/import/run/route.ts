@@ -375,7 +375,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       const { data: linkData, error: linkErr } = await supabaseAdmin.auth.admin.generateLink({
         type:  'recovery',
         email,
-        options: { redirectTo: `${siteUrl}/auth/callback?next=/browse` },
+        options: { redirectTo: `${siteUrl}/auth/reset-password` },
       })
       if (linkErr) {
         console.error(`[import] generateLink failed for ${email}:`, linkErr.message)

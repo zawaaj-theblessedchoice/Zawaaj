@@ -17,14 +17,28 @@ export default function ResetPasswordPage() {
   const [hasSession, setHasSession] = useState(false)
 
   useEffect(() => {
-    // With @supabase/ssr (PKCE), the code was already exchanged by /auth/callback
-    // before this page loaded. The recovery session lives in cookies.
-    // We just verify a session exists and show the form.
     const supabase = createClient()
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setHasSession(!!session)
-      setChecking(false)
+
+    // Listen for PASSWORD_RECOVERY event (implicit/hash flow from generateLink)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && session)) {
+        setHasSession(true)
+        setChecking(false)
+      }
     })
+
+    // Also check for an existing cookie session (PKCE flow via /auth/callback)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        setHasSession(true)
+        setChecking(false)
+      } else {
+        // No cookie session — wait up to 3 s for hash-based auth state change
+        setTimeout(() => setChecking(false), 3000)
+      }
+    })
+
+    return () => subscription.unsubscribe()
   }, [])
 
   async function handleSubmit(e: React.FormEvent) {

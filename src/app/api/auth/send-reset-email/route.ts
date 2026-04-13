@@ -19,7 +19,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       type: 'recovery',
       email: normalised,
       options: {
-        redirectTo: `${SITE_URL}/auth/callback?next=/auth/reset-password`,
+        redirectTo: `${SITE_URL}/auth/reset-password`,
       },
     })
 
