@@ -429,9 +429,9 @@ export function AdminShell({ role, children }: Props) {
           }}
         >
           <span style={{ fontSize: 14, width: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            {isDark ? '☾' : '☀'}
+            {isDark ? '☀' : '☾'}
           </span>
-          <span>{isDark ? 'Dark mode' : 'Light mode'}</span>
+          <span>{isDark ? 'Light mode' : 'Dark mode'}</span>
         </button>
 
         {/* Sign out */}
