@@ -69,8 +69,8 @@ export function FilterBar({ filters, onChange }: FilterBarProps) {
       {/* Gender chips */}
       {[
         { v: 'all', l: 'All' },
-        { v: 'female', l: 'Sisters' },
-        { v: 'male', l: 'Brothers' },
+        { v: 'female', l: 'Female' },
+        { v: 'male', l: 'Male' },
       ].map(g => (
         <button
           key={g.v}

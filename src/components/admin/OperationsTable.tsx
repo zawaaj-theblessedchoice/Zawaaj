@@ -90,15 +90,18 @@ function RowMenu({ profileId, onDelete }: RowMenuProps) {
     <div ref={ref} style={{ position: 'relative' }}>
       <button
         onClick={() => { setOpen(o => !o); setConfirming(false) }}
+        title="More actions"
         style={{
-          padding: '4px 8px',
+          padding: '5px 10px',
           borderRadius: 6,
-          fontSize: 14,
-          background: 'transparent',
-          border: '1px solid var(--admin-border)',
-          color: 'var(--admin-muted)',
+          fontSize: 16,
+          fontWeight: 700,
+          background: open ? 'rgba(184,150,12,0.1)' : 'transparent',
+          border: `1px solid ${open ? 'rgba(184,150,12,0.4)' : 'var(--admin-border)'}`,
+          color: open ? 'var(--gold)' : 'var(--admin-text)',
           cursor: 'pointer',
           lineHeight: 1,
+          letterSpacing: 2,
         }}
       >
         ···
@@ -136,7 +139,9 @@ function RowMenu({ profileId, onDelete }: RowMenuProps) {
             <button
               onClick={() => setConfirming(true)}
               style={{
-                display: 'block',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
                 width: '100%',
                 padding: '9px 14px',
                 fontSize: 13,
@@ -148,7 +153,7 @@ function RowMenu({ profileId, onDelete }: RowMenuProps) {
                 cursor: 'pointer',
               }}
             >
-              Delete profile
+              🗑 Delete profile &amp; account
             </button>
           ) : (
             <div style={{ borderTop: '1px solid var(--admin-border)', padding: '10px 14px' }}>
