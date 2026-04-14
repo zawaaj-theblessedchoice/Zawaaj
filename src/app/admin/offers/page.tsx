@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
-import { AdminShell } from '@/components/admin/AdminShell'
 import { OffersClient } from './OffersClient'
 
 export const dynamic = 'force-dynamic'
@@ -40,9 +39,5 @@ export default async function OffersPage() {
     .select('*')
     .order('created_at', { ascending: false })
 
-  return (
-    <AdminShell role="super_admin">
-      <OffersClient codes={(codes as PromoCodeRow[]) ?? []} />
-    </AdminShell>
-  )
+  return <OffersClient codes={(codes as PromoCodeRow[]) ?? []} />
 }

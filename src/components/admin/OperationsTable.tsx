@@ -61,12 +61,18 @@ function RowMenu({ profileId, onDelete }: RowMenuProps) {
   const [open, setOpen] = useState(false)
   const [confirming, setConfirming] = useState(false)
   const [deleting, setDeleting] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
+  const [menuPos, setMenuPos] = useState({ top: 0, right: 0 })
+  const menuRef = useRef<HTMLDivElement>(null)
+  const btnRef = useRef<HTMLButtonElement>(null)
 
+  // Close on outside click
   useEffect(() => {
     if (!open) return
     function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
+      const target = e.target as Node
+      const outsideMenu = menuRef.current && !menuRef.current.contains(target)
+      const outsideBtn  = btnRef.current  && !btnRef.current.contains(target)
+      if (outsideMenu && outsideBtn) {
         setOpen(false)
         setConfirming(false)
       }
@@ -74,6 +80,26 @@ function RowMenu({ profileId, onDelete }: RowMenuProps) {
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
   }, [open])
+
+  // Close on scroll so it doesn't drift
+  useEffect(() => {
+    if (!open) return
+    const close = () => { setOpen(false); setConfirming(false) }
+    window.addEventListener('scroll', close, true)
+    return () => window.removeEventListener('scroll', close, true)
+  }, [open])
+
+  function handleToggle() {
+    if (!open && btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect()
+      setMenuPos({
+        top: rect.bottom + 4,
+        right: window.innerWidth - rect.right,
+      })
+    }
+    setOpen(o => !o)
+    setConfirming(false)
+  }
 
   async function handleConfirmDelete() {
     setDeleting(true)
@@ -86,10 +112,24 @@ function RowMenu({ profileId, onDelete }: RowMenuProps) {
     }
   }
 
+  const dropdownStyle: React.CSSProperties = {
+    position: 'fixed',
+    top: menuPos.top,
+    right: menuPos.right,
+    background: 'var(--admin-surface)',
+    border: '1px solid var(--admin-border)',
+    borderRadius: 8,
+    minWidth: 168,
+    zIndex: 9999,
+    overflow: 'hidden',
+    boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
+  }
+
   return (
-    <div ref={ref} style={{ position: 'relative' }}>
+    <div style={{ position: 'relative', display: 'inline-block' }}>
       <button
-        onClick={() => { setOpen(o => !o); setConfirming(false) }}
+        ref={btnRef}
+        onClick={handleToggle}
         title="More actions"
         style={{
           padding: '5px 10px',
@@ -106,22 +146,9 @@ function RowMenu({ profileId, onDelete }: RowMenuProps) {
       >
         ···
       </button>
+
       {open && (
-        <div
-          style={{
-            position: 'absolute',
-            right: 0,
-            top: '100%',
-            marginTop: 4,
-            background: 'var(--admin-surface)',
-            border: '1px solid var(--admin-border)',
-            borderRadius: 8,
-            minWidth: 160,
-            zIndex: 10,
-            overflow: 'hidden',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-          }}
-        >
+        <div ref={menuRef} style={dropdownStyle}>
           <Link
             href={`/admin/profile/${profileId}`}
             style={{
