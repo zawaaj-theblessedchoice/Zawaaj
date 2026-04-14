@@ -327,7 +327,7 @@ export default function LinkGuardianPage() {
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'center' }}>
-          <ZawaajLogo size={52} tagline={false} />
+          <ZawaajLogo height={220} />
         </div>
         <Suspense fallback={<div style={{ color: 'var(--text-muted)', textAlign: 'center', fontSize: 13 }}>Loading…</div>}>
           <LinkGuardianContent />

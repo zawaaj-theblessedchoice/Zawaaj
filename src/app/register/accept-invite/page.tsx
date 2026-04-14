@@ -108,7 +108,7 @@ function AcceptInviteContent() {
         borderRadius: 20, padding: 40, textAlign: 'center',
       }}>
         <div style={{ marginBottom: 28 }}>
-          <ZawaajLogo size={60} />
+          <ZawaajLogo height={220} />
         </div>
 
         {loading && (
