@@ -39,23 +39,10 @@ export default function OGImage() {
           style={{ objectFit: 'contain' }}
         />
 
-        {/* Tagline */}
+        {/* Domain watermark — tagline is already part of the logo image */}
         <div
           style={{
-            marginTop: 16,
-            fontSize: 22,
-            color: 'rgba(184,150,12,0.75)',
-            letterSpacing: '0.22em',
-            textTransform: 'uppercase' as const,
-          }}
-        >
-          The Blessed Choice
-        </div>
-
-        {/* Domain watermark */}
-        <div
-          style={{
-            marginTop: 8,
+            marginTop: 12,
             fontSize: 14,
             color: 'rgba(255,255,255,0.2)',
             letterSpacing: '0.12em',
