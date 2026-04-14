@@ -33,23 +33,11 @@ export default function OGImage() {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={`${base}/Zawaaj_Logo_Transparent.png`}
-          width={540}
-          height={540}
+          width={600}
+          height={600}
           alt="Zawaaj"
           style={{ objectFit: 'contain' }}
         />
-
-        {/* Domain watermark — tagline is already part of the logo image */}
-        <div
-          style={{
-            marginTop: 12,
-            fontSize: 14,
-            color: 'rgba(255,255,255,0.2)',
-            letterSpacing: '0.12em',
-          }}
-        >
-          zawaaj.uk
-        </div>
       </div>
     ),
     { ...size },
