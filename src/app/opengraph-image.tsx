@@ -33,8 +33,8 @@ export default function OGImage() {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={`${base}/Zawaaj_Logo_Transparent.png`}
-          width={480}
-          height={480}
+          width={540}
+          height={540}
           alt="Zawaaj"
           style={{ objectFit: 'contain' }}
         />
