@@ -14,6 +14,7 @@ interface OperationsTableProps {
   onOpenProfile: (id: string | null) => void
   onApprove: (id: string) => Promise<void>
   onReject: (id: string) => Promise<void>
+  onDelete: (id: string) => Promise<void>
   onClearFilters: () => void
 }
 
@@ -51,8 +52,15 @@ export function StatusBadge({ status }: { status: string }) {
 
 // ─── RowMenu ──────────────────────────────────────────────────────────────────
 
-function RowMenu({ profileId }: { profileId: string }) {
+interface RowMenuProps {
+  profileId: string
+  onDelete: (id: string) => Promise<void>
+}
+
+function RowMenu({ profileId, onDelete }: RowMenuProps) {
   const [open, setOpen] = useState(false)
+  const [confirming, setConfirming] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -60,16 +68,28 @@ function RowMenu({ profileId }: { profileId: string }) {
     function handleClick(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) {
         setOpen(false)
+        setConfirming(false)
       }
     }
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
   }, [open])
 
+  async function handleConfirmDelete() {
+    setDeleting(true)
+    try {
+      await onDelete(profileId)
+    } finally {
+      setDeleting(false)
+      setOpen(false)
+      setConfirming(false)
+    }
+  }
+
   return (
     <div ref={ref} style={{ position: 'relative' }}>
       <button
-        onClick={() => setOpen(o => !o)}
+        onClick={() => { setOpen(o => !o); setConfirming(false) }}
         style={{
           padding: '4px 8px',
           borderRadius: 6,
@@ -93,7 +113,7 @@ function RowMenu({ profileId }: { profileId: string }) {
             background: 'var(--admin-surface)',
             border: '1px solid var(--admin-border)',
             borderRadius: 8,
-            minWidth: 140,
+            minWidth: 160,
             zIndex: 10,
             overflow: 'hidden',
             boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
@@ -111,23 +131,67 @@ function RowMenu({ profileId }: { profileId: string }) {
           >
             Edit profile
           </Link>
-          <button
-            onClick={() => setOpen(false)}
-            style={{
-              display: 'block',
-              width: '100%',
-              padding: '9px 14px',
-              fontSize: 13,
-              color: 'var(--admin-muted)',
-              textAlign: 'left',
-              background: 'none',
-              border: 'none',
-              borderTop: '1px solid var(--admin-border)',
-              cursor: 'pointer',
-            }}
-          >
-            View full
-          </button>
+
+          {!confirming ? (
+            <button
+              onClick={() => setConfirming(true)}
+              style={{
+                display: 'block',
+                width: '100%',
+                padding: '9px 14px',
+                fontSize: 13,
+                color: 'var(--status-error)',
+                textAlign: 'left',
+                background: 'none',
+                border: 'none',
+                borderTop: '1px solid var(--admin-border)',
+                cursor: 'pointer',
+              }}
+            >
+              Delete profile
+            </button>
+          ) : (
+            <div style={{ borderTop: '1px solid var(--admin-border)', padding: '10px 14px' }}>
+              <p style={{ fontSize: 12, color: 'var(--admin-muted)', margin: '0 0 8px' }}>
+                Delete profile + auth user?
+              </p>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <button
+                  onClick={handleConfirmDelete}
+                  disabled={deleting}
+                  style={{
+                    flex: 1,
+                    padding: '6px 0',
+                    borderRadius: 6,
+                    fontSize: 12,
+                    fontWeight: 600,
+                    background: 'var(--status-error-bg)',
+                    border: '1px solid var(--status-error)',
+                    color: 'var(--status-error)',
+                    cursor: deleting ? 'not-allowed' : 'pointer',
+                    opacity: deleting ? 0.6 : 1,
+                  }}
+                >
+                  {deleting ? '…' : 'Yes, delete'}
+                </button>
+                <button
+                  onClick={() => setConfirming(false)}
+                  style={{
+                    flex: 1,
+                    padding: '6px 0',
+                    borderRadius: 6,
+                    fontSize: 12,
+                    background: 'transparent',
+                    border: '1px solid var(--admin-border)',
+                    color: 'var(--admin-muted)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -146,6 +210,7 @@ export function OperationsTable({
   onOpenProfile,
   onApprove,
   onReject,
+  onDelete,
   onClearFilters,
 }: OperationsTableProps) {
   const allSelected = profiles.length > 0 && profiles.every(p => selectedIds.has(p.id))
@@ -419,7 +484,7 @@ export function OperationsTable({
                             </button>
                           </>
                         )}
-                        <RowMenu profileId={p.id} />
+                        <RowMenu profileId={p.id} onDelete={onDelete} />
                       </div>
                     </td>
                   </tr>

@@ -150,6 +150,29 @@ export function OperationsConsole() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  const handleDelete = useCallback(async (id: string) => {
+    try {
+      const res = await fetch(`/api/admin/profiles/${id}`, { method: 'DELETE' })
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({})) as { error?: string }
+        throw new Error(body.error ?? 'Delete failed')
+      }
+      setProfiles(prev => prev.filter(p => p.id !== id))
+      setOpenProfileId(prev => (prev === id ? null : prev))
+      setSelectedIds(prev => {
+        const next = new Set(prev)
+        next.delete(id)
+        return next
+      })
+      loadMetrics()
+      addToast('Profile and account deleted', 'success')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to delete profile'
+      addToast(message, 'error')
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   async function handleBulkApprove() {
     const ids = Array.from(selectedIds)
     for (const id of ids) {
@@ -332,6 +355,7 @@ export function OperationsConsole() {
               onOpenProfile={setOpenProfileId}
               onApprove={handleApprove}
               onReject={handleReject}
+              onDelete={handleDelete}
               onClearFilters={() => handleSetFilters({})}
             />
 
@@ -395,6 +419,7 @@ export function OperationsConsole() {
               onClose={() => setOpenProfileId(null)}
               onApprove={handleApprove}
               onReject={handleReject}
+              onDelete={handleDelete}
               onNotesUpdate={(id, notes) => {
                 setProfiles(prev =>
                   prev.map(p => (p.id === id ? { ...p, admin_notes: notes } : p))

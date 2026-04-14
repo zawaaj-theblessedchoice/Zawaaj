@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { getPlanConfig } from '@/lib/plan-config'
+import type { Plan } from '@/lib/plan-config'
 
-const MAX_PROFILES = 4
+// Fallback cap in case plan lookup fails
+const HARD_MAX_PROFILES = 4
 
 function ageDisplay(dob: string | undefined): string | null {
   if (!dob) return null
@@ -61,15 +64,27 @@ export async function POST(request: Request): Promise<Response> {
       return NextResponse.json({ error: 'First name and gender are required.' }, { status: 400 })
     }
 
+    // Determine max profiles allowed for this user's plan
+    const { data: subRow } = await supabaseAdmin
+      .from('zawaaj_subscriptions')
+      .select('plan')
+      .eq('user_id', user.id)
+      .eq('status', 'active')
+      .maybeSingle()
+
+    const userPlan = (subRow?.plan ?? 'free') as Plan
+    const planConfig = getPlanConfig(userPlan)
+    const maxProfiles = planConfig?.maxFamilyMembers ?? HARD_MAX_PROFILES
+
     // Enforce max profiles per account
     const { count } = await supabaseAdmin
       .from('zawaaj_profiles')
       .select('id', { count: 'exact', head: true })
       .eq('user_id', user.id)
 
-    if ((count ?? 0) >= MAX_PROFILES) {
+    if ((count ?? 0) >= maxProfiles) {
       return NextResponse.json(
-        { error: `Maximum of ${MAX_PROFILES} profiles allowed per account.` },
+        { error: `Maximum of ${maxProfiles} profiles allowed on your current plan.` },
         { status: 409 }
       )
     }

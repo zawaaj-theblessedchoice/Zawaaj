@@ -11,6 +11,7 @@ interface ProfilePanelProps {
   onClose: () => void
   onApprove: (id: string) => Promise<void>
   onReject: (id: string) => Promise<void>
+  onDelete: (id: string) => Promise<void>
   onNotesUpdate: (id: string, notes: string) => void
   onStartIntro: (id: string) => void
 }
@@ -61,12 +62,15 @@ export function ProfilePanel({
   onClose,
   onApprove,
   onReject,
+  onDelete,
   onNotesUpdate,
   onStartIntro,
 }: ProfilePanelProps) {
   const supabase = createClient()
   const [noteText, setNoteText] = useState('')
   const [savingNote, setSavingNote] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   if (!profile) return null
 
@@ -352,6 +356,94 @@ export function ProfilePanel({
         >
           Edit full profile →
         </Link>
+
+        {/* Danger zone — delete */}
+        <div
+          style={{
+            marginTop: 4,
+            paddingTop: 12,
+            borderTop: '1px solid var(--admin-border)',
+          }}
+        >
+          {!confirmDelete ? (
+            <button
+              onClick={() => setConfirmDelete(true)}
+              style={{
+                width: '100%',
+                padding: '9px',
+                borderRadius: 8,
+                fontSize: 13,
+                background: 'transparent',
+                border: '1px solid rgba(248,113,113,0.3)',
+                color: 'var(--status-error)',
+                cursor: 'pointer',
+                opacity: 0.7,
+              }}
+            >
+              Delete profile &amp; account
+            </button>
+          ) : (
+            <div
+              style={{
+                background: 'var(--status-error-bg)',
+                border: '1px solid var(--status-error)',
+                borderRadius: 8,
+                padding: '12px',
+              }}
+            >
+              <p
+                style={{
+                  fontSize: 12,
+                  color: 'var(--status-error)',
+                  margin: '0 0 10px',
+                  lineHeight: 1.4,
+                }}
+              >
+                This permanently deletes the profile row and the auth account. Cannot be undone.
+              </p>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <button
+                  onClick={async () => {
+                    setDeleting(true)
+                    try { await onDelete(profile.id) }
+                    finally { setDeleting(false); setConfirmDelete(false) }
+                  }}
+                  disabled={deleting}
+                  style={{
+                    flex: 1,
+                    padding: '8px 0',
+                    borderRadius: 6,
+                    fontSize: 13,
+                    fontWeight: 600,
+                    background: 'var(--status-error)',
+                    border: 'none',
+                    color: '#fff',
+                    cursor: deleting ? 'not-allowed' : 'pointer',
+                    opacity: deleting ? 0.6 : 1,
+                  }}
+                >
+                  {deleting ? 'Deleting…' : 'Yes, delete'}
+                </button>
+                <button
+                  onClick={() => setConfirmDelete(false)}
+                  disabled={deleting}
+                  style={{
+                    flex: 1,
+                    padding: '8px 0',
+                    borderRadius: 6,
+                    fontSize: 13,
+                    background: 'transparent',
+                    border: '1px solid var(--admin-border)',
+                    color: 'var(--admin-muted)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
