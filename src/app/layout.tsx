@@ -27,14 +27,14 @@ export const metadata: Metadata = {
     description: 'A private Muslim matrimonial platform. Family-first, admin-mediated introductions. Mothers connect with mothers. Free to join.',
     url: 'https://www.zawaaj.uk',
     siteName: 'Zawaaj',
-    images: [{ url: 'https://www.zawaaj.uk/og-image.jpg', width: 1200, height: 630, type: 'image/jpeg', alt: 'Zawaaj — The Blessed Choice' }],
     type: 'website',
+    // og:image is served by src/app/opengraph-image.tsx (dynamic edge render)
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Zawaaj — The Blessed Choice',
     description: 'A private Muslim matrimonial platform. Family-first, admin-mediated introductions. Mothers connect with mothers. Free to join.',
-    images: ['https://www.zawaaj.uk/og-image.jpg'],
+    // twitter:image is auto-derived from opengraph-image.tsx
   },
 };
 
