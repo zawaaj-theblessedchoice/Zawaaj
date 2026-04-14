@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import {
   ProfileRow,
@@ -45,6 +46,7 @@ export function OperationsConsole() {
   const [openProfileId, setOpenProfileId] = useState<string | null>(null)
   const [toasts, setToasts] = useState<Toast[]>([])
   const [introModalProfileId, setIntroModalProfileId] = useState<string | null>(null)
+  const [pendingFamilyCount, setPendingFamilyCount] = useState(0)
 
   // ─── Toast helpers ──────────────────────────────────────────────────────────
 
@@ -86,6 +88,12 @@ export function OperationsConsole() {
   useEffect(() => {
     loadMetrics()
     loadProfiles(filters, page)
+    // Fetch pending family account registrations (not profile rows — shown in Families tab)
+    supabase
+      .from('zawaaj_family_accounts')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'pending_approval')
+      .then(({ count }) => setPendingFamilyCount(count ?? 0))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -329,6 +337,39 @@ export function OperationsConsole() {
           metrics={metrics}
           onFilter={status => handleSetFilters({ ...filters, status })}
         />
+
+        {/* Pending family accounts notice */}
+        {pendingFamilyCount > 0 && (
+          <Link
+            href="/admin/families"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              marginTop: 12,
+              padding: '10px 14px',
+              borderRadius: 9,
+              background: 'rgba(184,150,12,0.08)',
+              border: '1px solid rgba(184,150,12,0.25)',
+              borderLeft: '3px solid var(--gold)',
+              textDecoration: 'none',
+              color: 'var(--admin-text)',
+            }}
+          >
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" style={{ color: 'var(--gold)', flexShrink: 0 }}>
+              <circle cx="7.5" cy="7.5" r="6.5" stroke="currentColor" strokeWidth="1.3" />
+              <path d="M7.5 5v3.5M7.5 10v.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+            </svg>
+            <span style={{ fontSize: 13, fontWeight: 500 }}>
+              <span style={{ color: 'var(--gold)', fontWeight: 700 }}>{pendingFamilyCount}</span>
+              {' '}pending family registration{pendingFamilyCount !== 1 ? 's' : ''} awaiting approval —{' '}
+              <span style={{ color: 'var(--gold)', textDecoration: 'underline', textUnderlineOffset: 2 }}>
+                review in Families tab →
+              </span>
+            </span>
+          </Link>
+        )}
+
         <div style={{ height: 16 }} />
         <FilterBar filters={filters} onChange={handleSetFilters} />
         <div style={{ height: 12 }} />

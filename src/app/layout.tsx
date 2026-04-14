@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     description: 'A private Muslim matrimonial platform. Family-first, admin-mediated introductions. Mothers connect with mothers. Free to join.',
     url: 'https://www.zawaaj.uk',
     siteName: 'Zawaaj',
-    images: [{ url: 'https://www.zawaaj.uk/og-image.jpg', width: 1200, height: 630 }],
+    images: [{ url: 'https://www.zawaaj.uk/og-image.jpg', width: 1200, height: 630, type: 'image/jpeg', alt: 'Zawaaj — The Blessed Choice' }],
     type: 'website',
   },
   twitter: {
