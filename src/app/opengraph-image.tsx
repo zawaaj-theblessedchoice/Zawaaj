@@ -27,43 +27,26 @@ export default function OGImage() {
           alignItems: 'center',
           justifyContent: 'center',
           background: '#111111',
-          position: 'relative',
         }}
       >
-        {/* Subtle gold radial glow behind logo */}
-        <div
-          style={{
-            position: 'absolute',
-            width: 500,
-            height: 500,
-            borderRadius: '50%',
-            background:
-              'radial-gradient(circle, rgba(184,150,12,0.18) 0%, transparent 70%)',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -60%)',
-          }}
-        />
-
         {/* Full logo — Zawaaj_Logo_Transparent.png (Arabic + English mark) */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={`${base}/Zawaaj_Logo_Transparent.png`}
-          width={320}
-          height={320}
+          width={480}
+          height={480}
           alt="Zawaaj"
-          style={{ objectFit: 'contain', position: 'relative' }}
+          style={{ objectFit: 'contain' }}
         />
 
         {/* Tagline */}
         <div
           style={{
-            marginTop: 28,
-            fontSize: 26,
+            marginTop: 16,
+            fontSize: 22,
             color: 'rgba(184,150,12,0.75)',
             letterSpacing: '0.22em',
             textTransform: 'uppercase' as const,
-            position: 'relative',
           }}
         >
           The Blessed Choice
@@ -72,11 +55,10 @@ export default function OGImage() {
         {/* Domain watermark */}
         <div
           style={{
-            marginTop: 12,
-            fontSize: 15,
+            marginTop: 8,
+            fontSize: 14,
             color: 'rgba(255,255,255,0.2)',
             letterSpacing: '0.12em',
-            position: 'relative',
           }}
         >
           zawaaj.uk
