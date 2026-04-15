@@ -15,6 +15,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { NextResponse } from 'next/server'
+import { sendEmail, mutualMatchTemplate } from '@/lib/email'
 
 type FreeBody = { action: 'accept' | 'decline' }
 type PaidBody = { template_id: string }
@@ -177,7 +178,7 @@ export async function POST(
         console.error('[respond] match row creation failed:', matchError.message)
       }
 
-      // Notify both families
+      // Notify both families — in-app
       await supabaseAdmin.from('zawaaj_notifications').insert([
         {
           profile_id: req.requesting_profile_id,
@@ -198,6 +199,41 @@ export async function POST(
           related_interest_id: requestId,
         },
       ])
+
+      // Send emails to both family contacts — non-blocking, errors logged only
+      try {
+        const [{ data: reqProfile }, { data: accProfile }] = await Promise.all([
+          supabaseAdmin
+            .from('zawaaj_profiles')
+            .select('family_account:zawaaj_family_accounts!family_account_id(contact_full_name,contact_email)')
+            .eq('id', req.requesting_profile_id)
+            .single(),
+          supabaseAdmin
+            .from('zawaaj_profiles')
+            .select('family_account:zawaaj_family_accounts!family_account_id(contact_full_name,contact_email)')
+            .eq('id', activeProfileId)
+            .single(),
+        ])
+
+        type FA = { contact_full_name: string; contact_email: string }
+        const reqFA = (Array.isArray(reqProfile?.family_account) ? reqProfile!.family_account[0] : reqProfile?.family_account) as FA | null
+        const accFA = (Array.isArray(accProfile?.family_account) ? accProfile!.family_account[0] : accProfile?.family_account) as FA | null
+
+        await Promise.all([
+          reqFA ? sendEmail({
+            to: reqFA.contact_email,
+            subject: 'Your Zawaaj interest has been accepted',
+            html: mutualMatchTemplate(reqFA.contact_full_name, 'requester'),
+          }) : Promise.resolve(),
+          accFA ? sendEmail({
+            to: accFA.contact_email,
+            subject: 'Introduction accepted — Zawaaj team notified',
+            html: mutualMatchTemplate(accFA.contact_full_name, 'acceptor'),
+          }) : Promise.resolve(),
+        ])
+      } catch (emailErr) {
+        console.error('[respond] mutual match email error:', emailErr)
+      }
 
       return NextResponse.json({ success: true, mutual: true })
 

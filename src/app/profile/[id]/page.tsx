@@ -26,7 +26,10 @@ interface Profile {
   religiosity: string | null
   prayer_regularity: string | null
   wears_hijab: boolean | null
+  wears_niqab: string | null
+  wears_abaya: string | null
   keeps_beard: boolean | null
+  quran_engagement_level: string | null
   marital_status: string | null
   has_children: boolean | null
   languages_spoken: string[] | null
@@ -246,7 +249,7 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
         supabase
           .from('zawaaj_profiles')
           .select(
-            'id, display_initials, gender, age_display, height, ethnicity, nationality, school_of_thought, education_level, education_detail, profession_detail, location, bio, religiosity, prayer_regularity, wears_hijab, keeps_beard, marital_status, has_children, languages_spoken, living_situation, open_to_relocation, pref_age_min, pref_age_max, pref_location, pref_ethnicity, pref_school_of_thought, pref_partner_children, status'
+            'id, display_initials, gender, age_display, height, ethnicity, nationality, school_of_thought, education_level, education_detail, profession_detail, location, bio, religiosity, prayer_regularity, wears_hijab, wears_niqab, wears_abaya, keeps_beard, quran_engagement_level, marital_status, has_children, languages_spoken, living_situation, open_to_relocation, pref_age_min, pref_age_max, pref_location, pref_ethnicity, pref_school_of_thought, pref_partner_children, status'
           )
           .eq('id', id)
           .eq('status', 'approved')
@@ -436,8 +439,17 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
               {profile.gender === 'female' && (
                 <FieldRow label="Wears hijab" value={profile.wears_hijab === true ? 'Yes' : profile.wears_hijab === false ? 'No' : null} />
               )}
+              {profile.gender === 'female' && profile.wears_niqab && (
+                <FieldRow label="Wears niqab" value={displayValue({ yes: 'Yes', no: 'No', sometimes: 'Sometimes' }, profile.wears_niqab)} />
+              )}
+              {profile.gender === 'female' && profile.wears_abaya && (
+                <FieldRow label="Wears abaya" value={displayValue({ yes: 'Yes', no: 'No', sometimes: 'Sometimes' }, profile.wears_abaya)} />
+              )}
               {profile.gender === 'male' && (
                 <FieldRow label="Keeps beard" value={profile.keeps_beard === true ? 'Yes' : profile.keeps_beard === false ? 'No' : null} />
+              )}
+              {profile.quran_engagement_level && (
+                <FieldRow label="Quran engagement" value={displayValue({ memorised: 'Hafiz/Hafiza', regularly: 'Read regularly', occasionally: 'Occasionally', learning: 'Currently learning', not_currently: 'Not currently' }, profile.quran_engagement_level)} />
               )}
             </div>
 
