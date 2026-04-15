@@ -18,10 +18,11 @@ const RELATIONSHIP_LABELS: Record<string, string> = {
 const MALE_RELATIONSHIPS = ['father', 'male_guardian']
 
 const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
-  pending_approval:        { bg: 'rgba(234,179,8,0.15)',   text: '#ca8a04' },
-  active:                  { bg: 'rgba(34,197,94,0.15)',   text: '#16a34a' },
-  suspended:               { bg: 'rgba(239,68,68,0.15)',   text: '#dc2626' },
-  pending_contact_details: { bg: 'rgba(99,102,241,0.15)',  text: '#6366f1' },
+  pending_email_verification: { bg: 'rgba(251,146,60,0.15)',  text: '#ea580c' },
+  pending_approval:           { bg: 'rgba(234,179,8,0.15)',   text: '#ca8a04' },
+  active:                     { bg: 'rgba(34,197,94,0.15)',   text: '#16a34a' },
+  suspended:                  { bg: 'rgba(239,68,68,0.15)',   text: '#dc2626' },
+  pending_contact_details:    { bg: 'rgba(99,102,241,0.15)',  text: '#6366f1' },
 }
 
 const PLAN_COLORS: Record<string, { bg: string; text: string }> = {
@@ -348,7 +349,7 @@ function InviteModal({
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         family_account_id: family.id,
-        purpose: 'link_child',
+        purpose: 'child_invite',
         invited_name:  invitedName  || null,
         invited_email: invitedEmail || null,
         invited_phone: invitedPhone || null,
@@ -688,6 +689,7 @@ export function FamiliesClient({ families: initial }: Props) {
 
   const counts = {
     all: families.length,
+    pending_email_verification: families.filter(f => f.status === 'pending_email_verification').length,
     pending_approval: families.filter(f => f.status === 'pending_approval').length,
     active: families.filter(f => f.status === 'active').length,
     suspended: families.filter(f => f.status === 'suspended').length,
@@ -730,7 +732,7 @@ export function FamiliesClient({ families: initial }: Props) {
           }}
         />
         <div style={{ display: 'flex', gap: 6 }}>
-          {(['all', 'pending_approval', 'active', 'suspended'] as const).map(s => (
+          {(['all', 'pending_email_verification', 'pending_approval', 'active', 'suspended'] as const).map(s => (
             <button
               key={s}
               onClick={() => setStatusFilter(s)}

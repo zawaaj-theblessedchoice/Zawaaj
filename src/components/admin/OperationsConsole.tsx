@@ -47,6 +47,7 @@ export function OperationsConsole() {
   const [toasts, setToasts] = useState<Toast[]>([])
   const [introModalProfileId, setIntroModalProfileId] = useState<string | null>(null)
   const [pendingFamilyCount, setPendingFamilyCount] = useState(0)
+  const [pendingEmailVerificationCount, setPendingEmailVerificationCount] = useState(0)
 
   // ─── Toast helpers ──────────────────────────────────────────────────────────
 
@@ -94,6 +95,11 @@ export function OperationsConsole() {
       .select('id', { count: 'exact', head: true })
       .eq('status', 'pending_approval')
       .then(({ count }) => setPendingFamilyCount(count ?? 0))
+    supabase
+      .from('zawaaj_family_accounts')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'pending_email_verification')
+      .then(({ count }) => setPendingEmailVerificationCount(count ?? 0))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -368,6 +374,14 @@ export function OperationsConsole() {
               </span>
             </span>
           </Link>
+        )}
+
+        {/* Awaiting email verification — muted informational note */}
+        {pendingEmailVerificationCount > 0 && (
+          <p style={{ margin: '8px 0 0', fontSize: 12, color: 'var(--admin-muted)' }}>
+            Awaiting email verification:{' '}
+            <span style={{ fontWeight: 600, color: 'var(--admin-text)' }}>{pendingEmailVerificationCount}</span>
+          </p>
         )}
 
         <div style={{ height: 16 }} />

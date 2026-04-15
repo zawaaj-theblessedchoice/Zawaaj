@@ -74,7 +74,7 @@ export const PLAN_CONFIG = {
     // Recommendations — premium members get prioritised recommendations
     recommendations:      true,
     // Family member profiles per account
-    maxFamilyMembers:     4,
+    maxFamilyMembers:     6,
   },
 } as const satisfies Record<Plan, {
   monthlyLimit: number
@@ -206,7 +206,7 @@ export async function fetchPlansFromDb(
         price_monthly_gbp: 1900,
         price_annual_gbp: 18000,
         monthly_interests: null,
-        max_profiles: 4,
+        max_profiles: 6,
         features: ['admin_mediated_intros', 'profile_review', 'basic_search', 'priority_admin', 'profile_boost_weekly', 'new_profile_alerts', 'full_bio_on_received_interests', 'dedicated_manager', 'manager_followup', 'spotlight_monthly', 'who_viewed'],
         is_active: true,
         sort_order: 3,

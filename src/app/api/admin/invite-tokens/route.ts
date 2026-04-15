@@ -35,11 +35,12 @@ export async function POST(request: Request): Promise<Response> {
     .insert({
       family_account_id: body.family_account_id,
       created_by:        user.id,
-      purpose:           body.purpose        ?? 'link_child',
+      purpose:           body.purpose        ?? 'child_invite',
       invited_name:      body.invited_name   ?? null,
       invited_email:     body.invited_email  ?? null,
       invited_phone:     body.invited_phone  ?? null,
-      // expires_at defaults to now() + 7 days via DB default
+      // DB default is now 24h (migration 028); admin tokens get 7 days explicitly
+      expires_at:        new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
     })
     .select('token, expires_at')
     .single()

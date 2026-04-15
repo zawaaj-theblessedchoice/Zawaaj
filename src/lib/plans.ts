@@ -1,39 +1,25 @@
+// ─── Server-side plan utilities ───────────────────────────────────────────────
+// All plan values live in plan-config.ts (safe for client + server).
+// This file adds the server-only DB helper.
+
 import { createClient } from '@/lib/supabase/server'
+import type { Plan } from '@/lib/plan-config'
 
-// ─── Plan type ────────────────────────────────────────────────────────────────
-
-export type Plan = 'free' | 'plus' | 'premium'
-
-// ─── Limits (source of truth — enforced in API, reflected in UI) ──────────────
-
-export const PLAN_LIMITS = {
-  free:    { introsPerMonth: 2,  activeRequests: 1,        boosts: 0, spotlight: 0, concierge: false, viewTracking: false, fullProfile: false, savedSearches: 0, digestEmail: false },
-  plus:    { introsPerMonth: 5,  activeRequests: 2,        boosts: 1, spotlight: 0, concierge: false, viewTracking: false, fullProfile: true,  savedSearches: 1, digestEmail: true  },
-  premium: { introsPerMonth: 10, activeRequests: Infinity, boosts: 4, spotlight: 1, concierge: true,  viewTracking: true,  fullProfile: true,  savedSearches: 5, digestEmail: true  },
-} as const
-
-// ─── UI display names ─────────────────────────────────────────────────────────
-
-export const PLAN_LABELS: Record<Plan, string> = {
-  free:    'Community Access',
-  plus:    'Zawaaj Plus',
-  premium: 'Zawaaj Premium',
-}
-
-// ─── Pricing ──────────────────────────────────────────────────────────────────
-
-export const PLAN_PRICES: Record<Plan, { monthly: number; annual: number }> = {
-  free:    { monthly: 0,  annual: 0  },
-  plus:    { monthly: 9,  annual: 7  },
-  premium: { monthly: 19, annual: 15 },
-}
+export type { Plan } from '@/lib/plan-config'
+export {
+  PLAN_CONFIG,
+  PLAN_LABELS,
+  PLAN_PRICES,
+  INTRO_EXPIRY_DAYS,
+  getPlanConfig,
+} from '@/lib/plan-config'
 
 // ─── Server helper — get active plan for a user ───────────────────────────────
 
 /**
  * Returns the active plan for a user.
  * Falls back to 'free' if no active subscription row exists.
- * Server-side only.
+ * Server-side only — uses createClient() which calls await cookies().
  */
 export async function getUserPlan(userId: string): Promise<Plan> {
   const supabase = await createClient()
@@ -47,8 +33,7 @@ export async function getUserPlan(userId: string): Promise<Plan> {
 }
 
 /**
- * Returns plan limits for a given plan key.
+ * @deprecated Use getPlanConfig(plan) from @/lib/plan-config instead.
+ * Kept for any callers not yet migrated.
  */
-export function getPlanLimits(plan: Plan) {
-  return PLAN_LIMITS[plan]
-}
+export { getPlanConfig as getPlanLimits } from '@/lib/plan-config'

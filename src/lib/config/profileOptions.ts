@@ -58,59 +58,50 @@ export const RELOCATION_OPTIONS = [
   { value: 'no',       label: 'No, prefer to stay local' },
 ] as const
 
-/** Static fallback — used at build time and when DB is unreachable. */
-export const PLAN_LIMITS = {
+/** Static fallback — used during SSR/build only. */
+export const PLAN_LIMITS_FALLBACK = {
   voluntary: { monthlyInterests: 5,        maxProfiles: 2 },
   plus:      { monthlyInterests: 15,       maxProfiles: 4 },
-  premium:   { monthlyInterests: Infinity, maxProfiles: 4 },
+  premium:   { monthlyInterests: Infinity, maxProfiles: 6 },
 } as const
 
-/**
- * Fetches live plan limits from zawaaj_plans (server-side only).
- * Falls back to PLAN_LIMITS if the table is unreachable.
- *
- * @example  (Server Component / Route Handler)
- *   const limits = await fetchPlanConfig('plus', supabase)
- */
-export async function fetchPlanConfig(
-  planKey: string,
+/** Live fetch — use this everywhere in application code (server-side only). */
+export async function fetchPlanLimits(
   supabase: { from: (t: string) => unknown }
-): Promise<{ monthlyInterests: number; maxProfiles: number }> {
+): Promise<Record<string, { monthlyInterests: number; maxProfiles: number }>> {
   type Client = {
     from: (t: string) => {
       select: (cols: string) => {
-        eq: (col: string, val: string) => {
-          maybeSingle: () => Promise<{
-            data: { monthly_interests: number | null; max_profiles: number } | null
-            error: unknown
-          }>
-        }
+        eq: (col: string, val: boolean) => Promise<{
+          data: Array<{ key: string; monthly_interests: number | null; max_profiles: number }> | null
+          error: unknown
+        }>
       }
     }
   }
   try {
-    const { data } = await (supabase as Client)
+    const { data, error } = await (supabase as Client)
       .from('zawaaj_plans')
-      .select('monthly_interests,max_profiles')
-      .eq('key', planKey)
-      .maybeSingle()
+      .select('key,monthly_interests,max_profiles')
+      .eq('is_active', true)
 
-    if (data) {
-      return {
-        monthlyInterests: data.monthly_interests ?? Infinity,
-        maxProfiles: data.max_profiles,
-      }
+    if (!error && data) {
+      return Object.fromEntries(
+        data.map(p => [p.key, {
+          monthlyInterests: p.monthly_interests ?? Infinity,
+          maxProfiles: p.max_profiles,
+        }])
+      )
     }
   } catch {
     // fall through to static fallback
   }
 
-  const key = planKey as keyof typeof PLAN_LIMITS
-  return PLAN_LIMITS[key] ?? { monthlyInterests: 5, maxProfiles: 2 }
+  return PLAN_LIMITS_FALLBACK
 }
 
 export const INTEREST_EXPIRY_DAYS     = 7
 export const FOLLOWUP_REMINDER_DAYS   = 14
 export const MAX_BIO_LENGTH           = 1000
 export const MIN_BIO_LENGTH           = 80
-export const MAX_PROFILES_PER_ACCOUNT = 4
+export const MAX_PROFILES_PER_ACCOUNT = 6

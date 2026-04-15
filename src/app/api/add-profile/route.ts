@@ -1,11 +1,10 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
-import { getPlanConfig } from '@/lib/plan-config'
-import type { Plan } from '@/lib/plan-config'
+import { fetchPlanLimits, PLAN_LIMITS_FALLBACK } from '@/lib/config/profileOptions'
 
 // Fallback cap in case plan lookup fails
-const HARD_MAX_PROFILES = 4
+const HARD_MAX_PROFILES = 6
 
 function ageDisplay(dob: string | undefined): string | null {
   if (!dob) return null
@@ -72,9 +71,12 @@ export async function POST(request: Request): Promise<Response> {
       .eq('status', 'active')
       .maybeSingle()
 
-    const userPlan = (subRow?.plan ?? 'free') as Plan
-    const planConfig = getPlanConfig(userPlan)
-    const maxProfiles = planConfig?.maxFamilyMembers ?? HARD_MAX_PROFILES
+    // Map legacy 'free' key to 'voluntary' (DB uses 'voluntary')
+    const rawPlan = (subRow?.plan ?? 'voluntary') as string
+    const planKey = rawPlan === 'free' ? 'voluntary' : rawPlan
+
+    const planLimits = await fetchPlanLimits(supabaseAdmin)
+    const maxProfiles = planLimits[planKey]?.maxProfiles ?? PLAN_LIMITS_FALLBACK[planKey as keyof typeof PLAN_LIMITS_FALLBACK]?.maxProfiles ?? HARD_MAX_PROFILES
 
     // Enforce max profiles per account
     const { count } = await supabaseAdmin

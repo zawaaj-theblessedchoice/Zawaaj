@@ -244,6 +244,10 @@ export default function RegisterChildPage() {
   const [submitting, setSubmitting] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [verificationEmail, setVerificationEmail] = useState<string | null>(null)
+  const [familyAccountId, setFamilyAccountId] = useState<string>('')
+  const [resending, setResending] = useState(false)
+  const [resendDone, setResendDone] = useState(false)
 
   function set<K extends keyof FormData>(key: K, value: FormData[K]) {
     setForm(prev => ({ ...prev, [key]: value }))
@@ -406,7 +410,49 @@ export default function RegisterChildPage() {
       return
     }
 
-    router.push('/register/pending?path=child')
+    setVerificationEmail(json.contactEmail ?? form.guardianEmail ?? form.email)
+    setFamilyAccountId(json.familyAccountId ?? '')
+    setSubmitting(false)
+  }
+
+  async function handleResend() {
+    if (resending || !familyAccountId) return
+    setResending(true)
+    setResendDone(false)
+    try {
+      await fetch('/api/register/resend-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ familyAccountId }),
+      })
+      setResendDone(true)
+    } finally {
+      setResending(false)
+    }
+  }
+
+  // ── Email verification holding screen ────────────────────────────────────────
+  if (verificationEmail) {
+    return (
+      <main style={{ minHeight: '100vh', background: 'var(--surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px' }}>
+        <div style={{ width: '100%', maxWidth: 440, background: 'var(--surface-2)', border: '0.5px solid var(--border-default)', borderTop: '1px solid rgba(196,154,16,0.25)', borderRadius: 12, padding: '40px 36px', textAlign: 'center' }}>
+          <ZawaajLogo size={56} tagline={false} />
+          <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'var(--gold-muted)', border: '0.5px solid var(--border-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '24px auto 0' }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="2" y="4" width="20" height="16" rx="2" stroke="var(--gold)" strokeWidth="1.5"/><path d="M2 7l10 7 10-7" stroke="var(--gold)" strokeWidth="1.5" strokeLinecap="round"/></svg>
+          </div>
+          <h1 style={{ fontSize: 18, fontWeight: 600, color: 'var(--text-primary)', margin: '20px 0 8px' }}>Check your inbox</h1>
+          <p style={{ fontSize: 13.5, color: 'var(--text-secondary)', lineHeight: 1.65, margin: '0 0 6px' }}>We&rsquo;ve sent a verification link to</p>
+          <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 16px' }}>{verificationEmail}</p>
+          <p style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6, margin: '0 0 24px' }}>Click the link in the email to continue setting up your Zawaaj account.</p>
+          {resendDone
+            ? <p style={{ fontSize: 13, color: 'var(--gold)' }}>Verification email resent.</p>
+            : <button onClick={handleResend} disabled={resending} style={{ background: 'none', border: 'none', color: 'var(--gold)', fontSize: 13, cursor: resending ? 'not-allowed' : 'pointer', textDecoration: 'underline', opacity: resending ? 0.6 : 1 }}>
+                {resending ? 'Sending…' : 'Didn\'t receive it? Resend email'}
+              </button>
+          }
+        </div>
+      </main>
+    )
   }
 
   return (

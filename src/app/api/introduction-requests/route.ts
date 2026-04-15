@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase/admin'
 import { NextResponse } from 'next/server'
 import { getPlanConfig, INTRO_EXPIRY_DAYS } from '@/lib/plan-config'
 import type { Plan } from '@/lib/plan-config'
+import { fetchPlanLimits, PLAN_LIMITS_FALLBACK } from '@/lib/config/profileOptions'
 
 // ─── POST — Create introduction request ──────────────────────────────────────
 
@@ -112,8 +113,16 @@ export async function POST(request: Request): Promise<Response> {
       .eq('user_id', user.id)
       .eq('status', 'active')
       .maybeSingle()
-    const userPlan = (subRow?.plan ?? 'free') as Plan
-    const planConfig = getPlanConfig(userPlan)
+    const rawPlan = (subRow?.plan ?? 'voluntary') as string
+    const userPlan = (rawPlan === 'free' ? 'voluntary' : rawPlan) as Plan
+    const planConfig = getPlanConfig(rawPlan === 'free' ? 'free' : userPlan as Plan)
+
+    // DB-driven monthly limit
+    const planLimits = await fetchPlanLimits(supabase)
+    const dbPlanKey = rawPlan === 'free' ? 'voluntary' : rawPlan
+    const monthlyInterestsLimit = planLimits[dbPlanKey]?.monthlyInterests
+      ?? PLAN_LIMITS_FALLBACK[dbPlanKey as keyof typeof PLAN_LIMITS_FALLBACK]?.monthlyInterests
+      ?? planConfig.monthlyLimit
 
     const { count: monthlyCount, error: countError } = await supabase
       .from('zawaaj_introduction_requests')
@@ -125,9 +134,9 @@ export async function POST(request: Request): Promise<Response> {
       return NextResponse.json({ error: 'Failed to check monthly limit' }, { status: 500 })
     }
 
-    if ((monthlyCount ?? 0) >= planConfig.monthlyLimit) {
+    if (monthlyInterestsLimit !== Infinity && (monthlyCount ?? 0) >= monthlyInterestsLimit) {
       return NextResponse.json(
-        { error: 'Monthly limit reached', plan: userPlan, limit: planConfig.monthlyLimit },
+        { error: 'Monthly limit reached', plan: userPlan, limit: monthlyInterestsLimit },
         { status: 422 }
       )
     }

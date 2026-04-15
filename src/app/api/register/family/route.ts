@@ -12,6 +12,7 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { validateFamilyAccount } from '@/lib/zawaaj/validateFamilyAccount'
+import { sendEmail, emailVerificationTemplate } from '@/lib/email'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -157,7 +158,7 @@ export async function POST(request: Request): Promise<Response> {
         registration_path:           path,
         terms_agreed:                true,
         terms_agreed_at:             new Date().toISOString(),
-        status:                      'pending_approval',
+        status:                      'pending_email_verification',
       })
       .select('id')
       .single()
@@ -257,7 +258,30 @@ export async function POST(request: Request): Promise<Response> {
       console.error('user_settings upsert failed:', settingsError.message)
     }
 
-    return NextResponse.json({ success: true, path, familyAccountId, profileId })
+    // ── 5. Create email verification token ───────────────────────────────────
+
+    const { data: tokenRow, error: tokenError } = await supabaseAdmin
+      .from('zawaaj_invite_tokens')
+      .insert({
+        family_account_id: familyAccountId,
+        purpose: 'email_verification',
+        invited_email: contactEmail,
+        created_by: userId,
+        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      })
+      .select('token')
+      .single()
+
+    if (!tokenError && tokenRow) {
+      const verifyLink = `https://www.zawaaj.uk/register/verify?token=${tokenRow.token}`
+      await sendEmail({
+        to: contactEmail,
+        subject: 'Verify your Zawaaj account',
+        html: emailVerificationTemplate(verifyLink, contactEmail),
+      })
+    }
+
+    return NextResponse.json({ success: true, path, familyAccountId, profileId, contactEmail })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Something went wrong.'
     return NextResponse.json({ error: message }, { status: 500 })

@@ -205,6 +205,33 @@ export function ProfilePanel({
         <DetailRow label="Number" value={profile.contact_number} />
       </div>
 
+      {/* Family account */}
+      {profile.family_account && (
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--admin-border)' }}>
+          <SectionTitle>Family account</SectionTitle>
+          <DetailRow label="Contact name" value={profile.family_account.contact_full_name} />
+          <DetailRow label="Relationship" value={profile.family_account.contact_relationship} />
+          <div style={{ display: 'flex', gap: 8, padding: '4px 0', fontSize: 12 }}>
+            <span style={{ color: 'var(--admin-muted)', width: 110, flexShrink: 0 }}>Account status</span>
+            <span style={{
+              padding: '2px 8px', borderRadius: 999, fontSize: 11, fontWeight: 600,
+              background: profile.family_account.status === 'active'
+                ? 'rgba(74,222,128,0.1)' : 'rgba(251,191,36,0.1)',
+              color: profile.family_account.status === 'active'
+                ? 'var(--status-success)' : '#ca8a04',
+              border: `1px solid ${profile.family_account.status === 'active' ? 'var(--status-success)' : '#ca8a04'}`,
+            }}>
+              {profile.family_account.status === 'active' ? 'Email verified' : 'Pending verification'}
+            </span>
+          </div>
+          {profile.family_account.no_female_contact_flag && (
+            <div style={{ marginTop: 8, padding: '6px 10px', borderRadius: 6, background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.3)', fontSize: 12, color: '#ca8a04' }}>
+              ⚠ No female contact provided
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Notes */}
       <div
         style={{
@@ -281,28 +308,40 @@ export function ProfilePanel({
           <>
             {(() => {
               const contactOk = isContactComplete(profile.family_account)
+              const accountVerified = !profile.family_account || profile.family_account.status === 'active'
+              const canApprove = contactOk && accountVerified
+              const blockReason = !accountVerified
+                ? 'Cannot approve — family account not yet email-verified.'
+                : !contactOk
+                  ? 'Cannot approve — primary contact details incomplete.'
+                  : undefined
               return (
                 <button
-                  onClick={() => contactOk && onApprove(profile.id)}
-                  disabled={!contactOk}
-                  title={!contactOk ? 'Cannot approve — primary contact details incomplete.' : undefined}
+                  onClick={() => canApprove && onApprove(profile.id)}
+                  disabled={!canApprove}
+                  title={blockReason}
                   style={{
                     padding: '10px',
                     borderRadius: 8,
                     fontSize: 14,
                     fontWeight: 600,
-                    background: contactOk ? 'rgba(74,222,128,0.1)' : 'rgba(255,255,255,0.05)',
-                    border: `1px solid ${contactOk ? 'var(--status-success)' : 'var(--admin-border)'}`,
-                    color: contactOk ? 'var(--status-success)' : 'var(--admin-muted)',
-                    cursor: contactOk ? 'pointer' : 'not-allowed',
-                    opacity: contactOk ? 1 : 0.6,
+                    background: canApprove ? 'rgba(74,222,128,0.1)' : 'rgba(255,255,255,0.05)',
+                    border: `1px solid ${canApprove ? 'var(--status-success)' : 'var(--admin-border)'}`,
+                    color: canApprove ? 'var(--status-success)' : 'var(--admin-muted)',
+                    cursor: canApprove ? 'pointer' : 'not-allowed',
+                    opacity: canApprove ? 1 : 0.6,
                   }}
                 >
-                  {contactOk ? '✓ Approve' : '⊘ Approve'}
+                  {canApprove ? '✓ Approve' : '⊘ Approve'}
                 </button>
               )
             })()}
-            {!isContactComplete(profile.family_account) && (
+            {profile.family_account && profile.family_account.status !== 'active' && (
+              <p style={{ fontSize: 11, color: '#ca8a04', marginTop: 4, lineHeight: 1.4 }}>
+                ⚠ Family account not yet email-verified. Approve will be available once they verify.
+              </p>
+            )}
+            {isContactComplete(profile.family_account) === false && profile.family_account?.status === 'active' && (
               <p style={{ fontSize: 11, color: '#ca8a04', marginTop: 4, lineHeight: 1.4 }}>
                 ⚠ Primary contact details are incomplete. Update the family account before approving.
               </p>

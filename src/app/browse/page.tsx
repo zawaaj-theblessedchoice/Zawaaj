@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import BrowseClient from './BrowseClient'
+import Sidebar from '@/components/Sidebar'
 import type { ProfileRecord } from '@/components/ProfileModal'
 import type { FilterState } from '@/lib/filter-types'
 import { getPlanConfig } from '@/lib/plan-config'
@@ -75,7 +76,42 @@ export default async function BrowsePage({
   }
 
   if (viewerProfile.status !== 'approved') {
-    redirect('/pending')
+    // Show pending review dashboard — sidebar visible with greyed-out nav items
+    return (
+      <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
+        <Sidebar
+          activeRoute="/browse"
+          shortlistCount={0}
+          introRequestsCount={0}
+          profile={{ display_initials: viewerProfile.display_initials, gender: viewerProfile.gender, first_name: viewerProfile.first_name }}
+          profileApproved={false}
+        />
+        <main style={{ marginLeft: 200, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px' }}>
+          <div style={{ maxWidth: 440, textAlign: 'center' }}>
+            <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'var(--gold-muted)', border: '0.5px solid var(--border-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="var(--gold)" strokeWidth="1.5"/><path d="M12 7v5l3 3" stroke="var(--gold)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            </div>
+            <h1 style={{ fontSize: 20, fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 12px' }}>
+              Your profile is being reviewed
+            </h1>
+            <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.7, margin: '0 0 8px' }}>
+              Our team reviews every profile to ensure the platform remains private and trustworthy. This typically takes 1–2 working days.
+            </p>
+            <p style={{ fontSize: 13.5, color: 'var(--text-secondary)', lineHeight: 1.6, margin: '0 0 28px' }}>
+              You&rsquo;ll receive an email as soon as your profile is approved.
+            </p>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+              <a href="/my-profile" style={{ padding: '9px 20px', borderRadius: 8, border: '0.5px solid var(--border-default)', background: 'var(--surface-3)', color: 'var(--text-primary)', fontSize: 13, textDecoration: 'none' }}>
+                Edit my profile
+              </a>
+              <a href="/help" style={{ padding: '9px 20px', borderRadius: 8, border: '0.5px solid var(--border-gold)', background: 'var(--gold-muted)', color: 'var(--gold)', fontSize: 13, textDecoration: 'none' }}>
+                Contact us
+              </a>
+            </div>
+          </div>
+        </main>
+      </div>
+    )
   }
 
   // 4. Get all approved profiles (excluding own, filtered by opposite gender)

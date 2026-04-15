@@ -23,6 +23,8 @@ interface SidebarProps {
   managedProfiles?: ManagedProfile[]
   /** The currently active profile id — used to highlight the active profile in the switcher */
   activeProfileId?: string
+  /** When false, Browse/Introductions/Shortlist are greyed-out and non-clickable */
+  profileApproved?: boolean
 }
 
 interface NavItem {
@@ -198,6 +200,8 @@ function SectionDivider({ label }: { label: string }) {
   )
 }
 
+const PENDING_LOCKED = new Set(['/browse', '/introductions'])
+
 export default function Sidebar({
   activeRoute,
   shortlistCount,
@@ -205,6 +209,7 @@ export default function Sidebar({
   profile,
   managedProfiles,
   activeProfileId,
+  profileApproved = true,
 }: SidebarProps) {
   const [switcherOpen, setSwitcherOpen] = useState(false)
   const [switching, setSwitching] = useState(false)
@@ -328,7 +333,26 @@ export default function Sidebar({
             <SectionDivider label={section.section} />
             {section.items.map(item => {
               const active = isActive(item.href)
-              return (
+              const basePath = item.href.split('?')[0]
+              const locked = !profileApproved && PENDING_LOCKED.has(basePath)
+              return locked ? (
+                <div
+                  key={item.href}
+                  title="Available once your profile is approved."
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 9,
+                    padding: '6px 16px', fontSize: 13, fontWeight: 400,
+                    color: 'var(--text-muted)', cursor: 'not-allowed',
+                    borderLeft: '2px solid transparent', opacity: 0.45,
+                    userSelect: 'none',
+                  }}
+                >
+                  <IconTile active={false}>
+                    <span style={{ color: 'var(--text-muted)', display: 'flex' }}>{item.icon}</span>
+                  </IconTile>
+                  <span style={{ flex: 1 }}>{item.label}</span>
+                </div>
+              ) : (
                 <Link
                   key={item.href}
                   href={item.href}
