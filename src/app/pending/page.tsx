@@ -22,5 +22,18 @@ export default async function PendingPage() {
     .maybeSingle()
   if (adminProfile) redirect('/admin')
 
-  return <PendingClient />
+  // Fetch family account status so the client can show the right message
+  const { data: familyAccount } = await supabase
+    .from('zawaaj_family_accounts')
+    .select('id, status, contact_email')
+    .eq('primary_user_id', user.id)
+    .maybeSingle()
+
+  return (
+    <PendingClient
+      status={familyAccount?.status ?? null}
+      familyAccountId={familyAccount?.id ?? null}
+      contactEmail={familyAccount?.contact_email ?? null}
+    />
+  )
 }

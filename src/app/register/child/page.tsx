@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import ZawaajLogo from '@/components/ZawaajLogo'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -237,6 +237,7 @@ const TOTAL_STEPS = 6  // 0–5
 
 export default function RegisterChildPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [step, setStep] = useState(0)
   const [form, setForm] = useState<FormData>(EMPTY)
   const [error, setError] = useState<string | null>(null)
@@ -248,6 +249,64 @@ export default function RegisterChildPage() {
   const [familyAccountId, setFamilyAccountId] = useState<string>('')
   const [resending, setResending] = useState(false)
   const [resendDone, setResendDone] = useState(false)
+
+  // ── Invite token state ────────────────────────────────────────────────────
+  const [inviteToken, setInviteToken] = useState<string | null>(null)
+  const [tokenStatus, setTokenStatus] = useState<'idle' | 'loading' | 'valid' | 'invalid' | 'expired' | 'used'>('idle')
+
+  useEffect(() => {
+    const token = searchParams.get('token')
+    if (!token) return
+    setTokenStatus('loading')
+    fetch(`/api/register/validate-invite-token?token=${encodeURIComponent(token)}`)
+      .then(r => r.json())
+      .then((data: {
+        ok?: boolean; error?: string
+        familyAccountId?: string; invitedEmail?: string; invitedName?: string
+        family?: {
+          contactFullName: string; contactRelationship: string; contactNumber: string
+          contactEmail: string; femaleContactName?: string | null; femaleContactNumber?: string | null
+          noFemaleContactFlag?: boolean; fatherExplanation?: string | null
+        }
+      }) => {
+        if (!data.ok) {
+          setTokenStatus(
+            data.error === 'expired' ? 'expired'
+            : data.error === 'already_used' ? 'used'
+            : 'invalid'
+          )
+          return
+        }
+        setInviteToken(token)
+        setTokenStatus('valid')
+        // Pre-fill guardian fields from the existing family account
+        if (data.family) {
+          setForm(f => ({
+            ...f,
+            guardianFullName:     data.family!.contactFullName,
+            guardianRelationship: data.family!.contactRelationship,
+            guardianNumber:       data.family!.contactNumber,
+            guardianEmail:        data.family!.contactEmail,
+            noFemaleContactFlag:  data.family!.noFemaleContactFlag ?? false,
+            fatherExplanation:    data.family!.fatherExplanation ?? '',
+          }))
+        }
+        // Pre-fill email if provided in the token
+        if (data.invitedEmail) {
+          setForm(f => ({ ...f, email: data.invitedEmail! }))
+        }
+      })
+      .catch(() => setTokenStatus('invalid'))
+  }, [searchParams])
+
+  // When using an invite token, step 4 (guardian details) is skipped
+  // because the family account already has those details.
+  const EFFECTIVE_TOTAL = inviteToken ? TOTAL_STEPS - 1 : TOTAL_STEPS
+  // Map display step to data step (skip step 4 when using token)
+  function dataStep(displayStep: number): number {
+    if (!inviteToken || displayStep < 4) return displayStep
+    return displayStep + 1  // skip guardian step
+  }
 
   function set<K extends keyof FormData>(key: K, value: FormData[K]) {
     setForm(prev => {
@@ -279,24 +338,25 @@ export default function RegisterChildPage() {
   }
 
   function validateStep(): string | null {
-    if (step === 0) {
+    const ds = dataStep(step)
+    if (ds === 0) {
       if (!form.email.trim())               return 'Email is required.'
       if (!/\S+@\S+\.\S+/.test(form.email)) return 'Enter a valid email address.'
       if (!form.password)                   return 'Password is required.'
       if (form.password.length < 8)         return 'Password must be at least 8 characters.'
       if (form.password !== form.confirmPassword) return 'Passwords do not match.'
     }
-    if (step === 1) {
+    if (ds === 1) {
       if (!form.firstName.trim())  return 'First name is required.'
       if (!form.lastName.trim())   return 'Last name is required.'
       if (!form.dateOfBirth)       return 'Date of birth is required.'
       if (!form.gender)            return 'Gender is required.'
       if (!form.location.trim())   return 'City / location is required.'
     }
-    if (step === 2) {
+    if (ds === 2) {
       if (!form.schoolOfThought) return 'School of thought is required.'
     }
-    if (step === 4) {
+    if (ds === 4) {
       const step4Errs: Record<string, string> = {}
       if (!form.guardianFullName.trim())
         step4Errs.contact_full_name = 'Please enter the full name of the primary contact'
@@ -314,7 +374,7 @@ export default function RegisterChildPage() {
         return 'Please complete all required fields.'
       }
     }
-    if (step === 5) {
+    if (ds === 5) {
       if (!form.termsAgreed)     return 'You must agree to the Terms of Use.'
       if (!form.detailsAccurate) return 'Please confirm that all details are accurate.'
       if (!form.guardianConsents) return "Please confirm your guardian's consent."
@@ -328,6 +388,11 @@ export default function RegisterChildPage() {
     setError(null)
     setStep(s => s + 1)
   }
+
+  // Step titles adjusted for token flow (drop the guardian step label)
+  const displayStepTitles = inviteToken
+    ? STEP_TITLES.filter((_, i) => i !== 4)
+    : STEP_TITLES
 
   async function handleSubmit() {
     const err = validateStep()
@@ -359,12 +424,16 @@ export default function RegisterChildPage() {
         path:                    'child',
         email:                   form.email,
         password:                form.password,
-        contactFullName:         form.guardianFullName,
-        contactRelationship:     form.guardianRelationship,
-        contactNumber:           form.guardianNumber,
-        contactEmail:            form.guardianEmail || form.email,
-        noFemaleContactFlag:     form.noFemaleContactFlag,
-        fatherExplanation:       form.fatherExplanation || undefined,
+        // When using an invite token, guardian fields come from the existing
+        // family account (pre-filled and not editable by the user)
+        ...(inviteToken ? { invite_token: inviteToken } : {
+          contactFullName:       form.guardianFullName,
+          contactRelationship:   form.guardianRelationship,
+          contactNumber:         form.guardianNumber,
+          contactEmail:          form.guardianEmail || form.email,
+          noFemaleContactFlag:   form.noFemaleContactFlag,
+          fatherExplanation:     form.fatherExplanation || undefined,
+        }),
         termsAgreed:             true,
         profile: {
           firstName:             form.firstName,
@@ -441,6 +510,33 @@ export default function RegisterChildPage() {
     }
   }
 
+  // ── Invite token loading screen ──────────────────────────────────────────────
+  if (tokenStatus === 'loading') {
+    return (
+      <main style={{ minHeight: '100vh', background: 'var(--surface)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Validating your invite link…</p>
+      </main>
+    )
+  }
+
+  // ── Invite token error screens ───────────────────────────────────────────────
+  if (tokenStatus === 'expired' || tokenStatus === 'invalid' || tokenStatus === 'used') {
+    const msg =
+      tokenStatus === 'expired' ? 'This invitation link has expired. Please contact the Zawaaj team for a new one.' :
+      tokenStatus === 'used'    ? 'This invitation link has already been used. If you already registered, please sign in.' :
+                                  'This invitation link is not valid. Please check the link or contact the Zawaaj team.'
+    return (
+      <main style={{ minHeight: '100vh', background: 'var(--surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px' }}>
+        <div style={{ width: '100%', maxWidth: 420, background: 'var(--surface-2)', border: '0.5px solid var(--border-default)', borderTop: '1px solid rgba(239,68,68,0.4)', borderRadius: 12, padding: '40px 36px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+          <ZawaajLogo size={56} tagline={false} />
+          <h1 style={{ fontSize: 17, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Invalid invitation</h1>
+          <p style={{ fontSize: 13.5, color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0 }}>{msg}</p>
+          <a href="/login" style={{ fontSize: 13, color: 'var(--gold)', textDecoration: 'none', fontWeight: 500 }}>Sign in →</a>
+        </div>
+      </main>
+    )
+  }
+
   // ── Email verification holding screen ────────────────────────────────────────
   if (verificationEmail) {
     return (
@@ -493,13 +589,18 @@ export default function RegisterChildPage() {
       >
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
           <ZawaajLogo height={220} />
-          <StepDots total={TOTAL_STEPS} current={step} />
+          <StepDots total={EFFECTIVE_TOTAL} current={step} />
+          {inviteToken && (
+            <span style={{ fontSize: 11, color: 'var(--gold)', background: 'rgba(184,150,12,0.1)', border: '0.5px solid var(--border-gold)', padding: '3px 10px', borderRadius: 999, letterSpacing: '0.06em' }}>
+              Invited registration
+            </span>
+          )}
           <div style={{ textAlign: 'center' }}>
             <h2 style={{ fontSize: 17, fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 4px' }}>
-              {STEP_TITLES[step]}
+              {displayStepTitles[step]}
             </h2>
             <p style={{ fontSize: 11.5, color: 'var(--text-muted)', margin: 0 }}>
-              Step {step + 1} of {TOTAL_STEPS}
+              Step {step + 1} of {EFFECTIVE_TOTAL}
             </p>
           </div>
         </div>
@@ -870,8 +971,8 @@ export default function RegisterChildPage() {
           </div>
         )}
 
-        {/* ── Step 4: Guardian details ──────────────────────────────────── */}
-        {step === 4 && (
+        {/* ── Step 4: Guardian details (skipped when using invite token) ─── */}
+        {step === 4 && !inviteToken && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <div
               style={{
@@ -1007,7 +1108,7 @@ export default function RegisterChildPage() {
               Back
             </button>
           )}
-          {step < TOTAL_STEPS - 1 ? (
+          {step < EFFECTIVE_TOTAL - 1 ? (
             <button onClick={handleNext}
               style={{
                 flex: 1, padding: '10px 0', borderRadius: 8, border: 'none',
