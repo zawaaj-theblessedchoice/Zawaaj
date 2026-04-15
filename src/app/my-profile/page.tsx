@@ -29,7 +29,10 @@ interface Profile {
   religiosity: string | null
   prayer_regularity: string | null
   wears_hijab: boolean | null
+  wears_niqab: string | null
+  wears_abaya: string | null
   keeps_beard: boolean | null
+  quran_engagement_level: string | null
   marital_status: string | null
   has_children: boolean | null
   languages_spoken: string[] | null
@@ -225,7 +228,10 @@ export default function MyProfilePage() {
     religiosity: '',
     prayerRegularity: '',
     wearsHijab: '',
+    wearsNiqab: '',
+    wearsAbaya: '',
     keepsBeard: '',
+    quranEngagement: '',
     // Bio
     bio: '',
     // Partner preferences
@@ -259,7 +265,7 @@ export default function MyProfilePage() {
 
       const { data: profileRows } = await supabase
         .from('zawaaj_profiles')
-        .select('id, display_initials, first_name, last_name, gender, date_of_birth, age_display, height, ethnicity, nationality, school_of_thought, education_level, education_detail, profession_detail, location, bio, religiosity, prayer_regularity, wears_hijab, keeps_beard, marital_status, has_children, languages_spoken, living_situation, open_to_relocation, open_to_partners_children, polygamy_openness, pref_age_min, pref_age_max, pref_location, pref_ethnicity, pref_school_of_thought, pref_partner_children, pref_relocation, status, is_admin, interests_this_month')
+        .select('id, display_initials, first_name, last_name, gender, date_of_birth, age_display, height, ethnicity, nationality, school_of_thought, education_level, education_detail, profession_detail, location, bio, religiosity, prayer_regularity, wears_hijab, wears_niqab, wears_abaya, keeps_beard, quran_engagement_level, marital_status, has_children, languages_spoken, living_situation, open_to_relocation, open_to_partners_children, polygamy_openness, pref_age_min, pref_age_max, pref_location, pref_ethnicity, pref_school_of_thought, pref_partner_children, pref_relocation, status, is_admin, interests_this_month')
         .eq('user_id', user.id)
 
       if (!profileRows?.length) { setLoading(false); return }
@@ -342,7 +348,10 @@ export default function MyProfilePage() {
       religiosity: profile.religiosity ?? '',
       prayerRegularity: profile.prayer_regularity ?? '',
       wearsHijab: profile.wears_hijab === true ? 'true' : profile.wears_hijab === false ? 'false' : '',
+      wearsNiqab: profile.wears_niqab ?? '',
+      wearsAbaya: profile.wears_abaya ?? '',
       keepsBeard: profile.keeps_beard === true ? 'true' : profile.keeps_beard === false ? 'false' : '',
+      quranEngagement: profile.quran_engagement_level ?? '',
       bio: profile.bio ?? '',
       prefAgeMin: profile.pref_age_min?.toString() ?? '',
       prefAgeMax: profile.pref_age_max?.toString() ?? '',
@@ -379,7 +388,10 @@ export default function MyProfilePage() {
       religiosity: editForm.religiosity || null,
       prayer_regularity: editForm.prayerRegularity || null,
       wears_hijab: profile.gender === 'female' && editForm.wearsHijab !== '' ? editForm.wearsHijab === 'true' : null,
+      wears_niqab: profile.gender === 'female' ? (editForm.wearsNiqab || null) : null,
+      wears_abaya: profile.gender === 'female' ? (editForm.wearsAbaya || null) : null,
       keeps_beard: profile.gender === 'male' && editForm.keepsBeard !== '' ? editForm.keepsBeard === 'true' : null,
+      quran_engagement_level: editForm.quranEngagement || null,
       bio: editForm.bio || null,
       pref_age_min: editForm.prefAgeMin ? parseInt(editForm.prefAgeMin, 10) : null,
       pref_age_max: editForm.prefAgeMax ? parseInt(editForm.prefAgeMax, 10) : null,
@@ -408,7 +420,10 @@ export default function MyProfilePage() {
       religiosity: editForm.religiosity || null,
       prayer_regularity: editForm.prayerRegularity || null,
       wears_hijab: profile.gender === 'female' && editForm.wearsHijab !== '' ? editForm.wearsHijab === 'true' : null,
+      wears_niqab: profile.gender === 'female' ? (editForm.wearsNiqab || null) : null,
+      wears_abaya: profile.gender === 'female' ? (editForm.wearsAbaya || null) : null,
       keeps_beard: profile.gender === 'male' && editForm.keepsBeard !== '' ? editForm.keepsBeard === 'true' : null,
+      quran_engagement_level: editForm.quranEngagement || null,
       bio: editForm.bio || null,
       pref_age_min: editForm.prefAgeMin ? parseInt(editForm.prefAgeMin, 10) : null,
       pref_age_max: editForm.prefAgeMax ? parseInt(editForm.prefAgeMax, 10) : null,
@@ -555,7 +570,10 @@ export default function MyProfilePage() {
             <FieldRow label="Religiosity" value={profile.religiosity} />
             <FieldRow label="Prayer regularity" value={displayValue({ yes_regularly: 'Yes, regularly', most_of_time: 'Most of the time', working_on_it: 'Working on it', not_currently: 'Not currently' }, profile.prayer_regularity)} />
             {profile.gender === 'female' && <FieldRow label="Wears hijab" value={profile.wears_hijab === true ? 'Yes' : profile.wears_hijab === false ? 'No' : null} />}
+            {profile.gender === 'female' && profile.wears_niqab && <FieldRow label="Wears niqab" value={displayValue({ yes: 'Yes', no: 'No', sometimes: 'Sometimes' }, profile.wears_niqab)} />}
+            {profile.gender === 'female' && profile.wears_abaya && <FieldRow label="Wears abaya" value={displayValue({ yes: 'Yes', no: 'No', sometimes: 'Sometimes' }, profile.wears_abaya)} />}
             {profile.gender === 'male' && <FieldRow label="Keeps beard" value={profile.keeps_beard === true ? 'Yes' : profile.keeps_beard === false ? 'No' : null} />}
+            {profile.quran_engagement_level && <FieldRow label="Quran engagement" value={displayValue({ memorised: 'Hafiz/Hafiza', regularly: 'Read regularly', occasionally: 'Occasionally', learning: 'Currently learning', not_currently: 'Not currently' }, profile.quran_engagement_level)} />}
           </div>
 
           {/* Bio */}
@@ -803,6 +821,22 @@ export default function MyProfilePage() {
                       { value: 'false', label: 'No' },
                     ]} />
                   )}
+                  {profile?.gender === 'female' && (
+                    <EditSelect label="Wears niqab" value={editForm.wearsNiqab} onChange={v => setEditForm(f => ({ ...f, wearsNiqab: v }))} options={[
+                      { value: '', label: 'Not specified' },
+                      { value: 'yes', label: 'Yes' },
+                      { value: 'no', label: 'No' },
+                      { value: 'sometimes', label: 'Sometimes' },
+                    ]} />
+                  )}
+                  {profile?.gender === 'female' && (
+                    <EditSelect label="Wears abaya" value={editForm.wearsAbaya} onChange={v => setEditForm(f => ({ ...f, wearsAbaya: v }))} options={[
+                      { value: '', label: 'Not specified' },
+                      { value: 'yes', label: 'Yes' },
+                      { value: 'no', label: 'No' },
+                      { value: 'sometimes', label: 'Sometimes' },
+                    ]} />
+                  )}
                   {profile?.gender === 'male' && (
                     <EditSelect label="Keeps beard" value={editForm.keepsBeard} onChange={v => setEditForm(f => ({ ...f, keepsBeard: v }))} options={[
                       { value: '', label: 'Not specified' },
@@ -810,6 +844,14 @@ export default function MyProfilePage() {
                       { value: 'false', label: 'No' },
                     ]} />
                   )}
+                  <EditSelect label="Quran engagement" value={editForm.quranEngagement} onChange={v => setEditForm(f => ({ ...f, quranEngagement: v }))} options={[
+                    { value: '', label: 'Not specified' },
+                    { value: 'memorised', label: 'Memorised (Hafiz/Hafiza)' },
+                    { value: 'regularly', label: 'Read regularly' },
+                    { value: 'occasionally', label: 'Read occasionally' },
+                    { value: 'learning', label: 'Currently learning' },
+                    { value: 'not_currently', label: 'Not currently' },
+                  ]} />
                 </div>
               )}
 

@@ -9,8 +9,8 @@ import type { Plan } from '@/lib/plan-config'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-// Family Model v2 — 5-value status enum (Section 5)
-export type IntroStatus = 'pending' | 'accepted' | 'declined' | 'expired' | 'withdrawn'
+// Family Model v2 — 6-value status enum
+export type IntroStatus = 'pending' | 'accepted' | 'facilitated' | 'declined' | 'expired' | 'withdrawn'
 
 interface TargetProfile {
   id: string
@@ -86,8 +86,8 @@ interface IntroductionsClientProps {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-// 'accepted' = our team will facilitate; shown in the Matches tab from sender's view
-const MATCH_STATUSES: IntroStatus[] = ['accepted']
+// 'accepted' = team will facilitate; 'facilitated' = contacts already shared
+const MATCH_STATUSES: IntroStatus[] = ['accepted', 'facilitated']
 
 const PAST_STATUSES: IntroStatus[] = ['declined', 'expired', 'withdrawn']
 
@@ -111,6 +111,11 @@ const STATUS_CONFIG: Record<IntroStatus, BadgeConfig> = {
     text: 'var(--gold)',
     label: 'Accepted — team notified',
     pulse: true,
+  },
+  facilitated: {
+    bg: 'rgba(74,222,128,0.10)',
+    text: '#4ade80',
+    label: 'Contacts shared',
   },
   declined: {
     bg: 'var(--surface-3)',
@@ -232,7 +237,7 @@ function SentRequestCard({ req }: { req: IntroRequest }) {
     <div
       style={{
         background: 'var(--surface-2)',
-        border: `0.5px solid ${req.status === 'accepted' ? 'var(--border-gold)' : 'var(--border-default)'}`,
+        border: `0.5px solid ${MATCH_STATUSES.includes(req.status) ? 'var(--border-gold)' : 'var(--border-default)'}`,
         borderRadius: 13,
         padding: '16px 18px',
         display: 'flex',
@@ -697,14 +702,16 @@ function MatchCard({ req }: { req: IntroRequest }) {
     ? buildDisplayName(target.first_name, target.last_name, target.display_initials)
     : '—'
 
-  // v2: 'accepted' = family accepted, team will facilitate
-  const helpText = 'Your interest has been accepted. Our team is coordinating the introduction — you will hear from us soon.'
+  const isFacilitated = req.status === 'facilitated'
+  const helpText = isFacilitated
+    ? 'Alhamdulillah — contact details have been shared with both families by the Zawaaj team. Please reach out directly and may Allah bless your journey.'
+    : 'Your interest has been accepted. Our team is coordinating the introduction — you will hear from us soon, in shaa Allah.'
 
   return (
     <div
       style={{
-        background: 'var(--surface-2)',
-        border: '0.5px solid var(--border-gold)',
+        background: isFacilitated ? 'rgba(74,222,128,0.04)' : 'var(--surface-2)',
+        border: `0.5px solid ${isFacilitated ? 'rgba(74,222,128,0.25)' : 'var(--border-gold)'}`,
         borderRadius: 13,
         padding: '16px 18px',
         display: 'flex',
@@ -879,8 +886,11 @@ export default function IntroductionsClient({
   plan = 'free',
 }: IntroductionsClientProps) {
   // Derive counts for default tab selection
+  // Priority: facilitated matches > pending received > sent
+  const facilitatedCount = requests.filter(r => r.status === 'facilitated').length
   const pendingReceivedCount = receivedRequests.filter(r => r.status === 'pending').length
   const defaultTab: 'sent' | 'received' | 'matches' =
+    facilitatedCount > 0 ? 'matches' :
     pendingReceivedCount > 0 ? 'received' : 'sent'
 
   const [activeTab, setActiveTab] = useState<'sent' | 'received' | 'matches'>(defaultTab)
@@ -907,9 +917,8 @@ export default function IntroductionsClient({
   const receivedCount = receivedRequests.length
   const matchesCount = matchRequests.length
 
-  // Sidebar mutual count
-  // Count accepted requests (mutual interest) for sidebar badge
-  const mutualCount = requests.filter(r => r.status === 'accepted').length
+  // Sidebar mutual count — accepted (team notified) + facilitated (contacts shared)
+  const mutualCount = requests.filter(r => MATCH_STATUSES.includes(r.status)).length
 
   const hasAnything = requests.length > 0 || receivedRequests.length > 0
 
