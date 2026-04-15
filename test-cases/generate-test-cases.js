@@ -10,6 +10,7 @@ const path = require('path')
 // ─── Column headers ───────────────────────────────────────────────────────────
 const COLS = [
   'Test ID',
+  'Tester',
   'Category',
   'Test Case',
   'Pre-conditions',
@@ -29,6 +30,7 @@ function id(prefix) {
 function row(prefix, category, testCase, preconditions, steps, expected) {
   return {
     'Test ID': id(prefix),
+    'Tester': '',
     'Category': category,
     'Test Case': testCase,
     'Pre-conditions': preconditions,
@@ -502,6 +504,7 @@ function makeSheet(rows) {
   // Column widths
   ws['!cols'] = [
     { wch: 12 },  // Test ID
+    { wch: 18 },  // Tester
     { wch: 20 },  // Category
     { wch: 38 },  // Test Case
     { wch: 32 },  // Pre-conditions
