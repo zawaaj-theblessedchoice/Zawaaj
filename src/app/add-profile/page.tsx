@@ -534,12 +534,14 @@ function Step1({
           onChange={(val) => update({ maritalStatus: val as string })}
         />
       </Field>
-      <Field label="Has children?">
-        <ToggleGroup
-          value={form.hasChildren}
-          onChange={(val) => update({ hasChildren: val })}
-        />
-      </Field>
+      {form.maritalStatus !== 'Never married' && (
+        <Field label="Has children?">
+          <ToggleGroup
+            value={form.hasChildren}
+            onChange={(val) => update({ hasChildren: val })}
+          />
+        </Field>
+      )}
       <Field label="Height">
         <StyledSelect
           value={form.height}
@@ -849,7 +851,9 @@ function Step7({
         <ReviewRow label="Location" value={[form.city, form.country].filter(Boolean).join(', ') || null} />
         <ReviewRow label="Nationality" value={form.nationality || null} />
         <ReviewRow label="Marital status" value={form.maritalStatus || null} />
-        <ReviewRow label="Has children" value={form.hasChildren === null ? null : form.hasChildren ? 'Yes' : 'No'} />
+        {form.maritalStatus !== 'Never married' && (
+          <ReviewRow label="Has children" value={form.hasChildren === null ? null : form.hasChildren ? 'Yes' : 'No'} />
+        )}
         <ReviewRow label="Height" value={form.height || null} />
         <ReviewRow label="Living situation" value={form.livingSituation || null} />
       </ReviewSection>
@@ -1005,7 +1009,14 @@ export default function AddProfilePage() {
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   function update(patch: Partial<AddProfileForm>) {
-    setForm(prev => ({ ...prev, ...patch }))
+    setForm(prev => {
+      const next = { ...prev, ...patch }
+      // Never-married implies no children — clear the field so it's not asked/sent.
+      if (patch.maritalStatus === 'Never married') {
+        next.hasChildren = false
+      }
+      return next
+    })
   }
 
   function handleNext() {

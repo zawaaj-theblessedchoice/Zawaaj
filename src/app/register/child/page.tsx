@@ -250,7 +250,14 @@ export default function RegisterChildPage() {
   const [resendDone, setResendDone] = useState(false)
 
   function set<K extends keyof FormData>(key: K, value: FormData[K]) {
-    setForm(prev => ({ ...prev, [key]: value }))
+    setForm(prev => {
+      const next = { ...prev, [key]: value }
+      // Never-married implies no children — clear the field so it's not asked/sent.
+      if (key === 'maritalStatus' && value === 'never_married') {
+        next.hasChildren = ''
+      }
+      return next
+    })
     setError(null)
   }
 
@@ -334,7 +341,10 @@ export default function RegisterChildPage() {
     const keepsBeardBool = form.gender === 'male'
       ? (form.keepsBeard === 'yes' ? true : form.keepsBeard === 'no' ? false : null)
       : null
-    const hasChildrenBool = form.hasChildren === 'yes' ? true
+    // Never married → no children implicitly; otherwise use the form selection.
+    const hasChildrenBool = form.maritalStatus === 'never_married'
+      ? false
+      : form.hasChildren === 'yes' ? true
       : form.hasChildren === 'no' ? false : null
     const languages = form.languagesSpoken.trim()
       ? form.languagesSpoken.split(',').map(s => s.trim()).filter(Boolean)
@@ -625,7 +635,11 @@ export default function RegisterChildPage() {
                 onChange={e => set('languagesSpoken', e.target.value)} style={inputStyle} />
             </Field>
             <SectionLabel label="Status" />
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: form.maritalStatus === 'never_married' ? '1fr' : '1fr 1fr',
+              gap: 12,
+            }}>
               <Field label="Marital status">
                 <select value={form.maritalStatus} onChange={e => set('maritalStatus', e.target.value)}
                   style={{ ...inputStyle, cursor: 'pointer' }}>
@@ -633,14 +647,16 @@ export default function RegisterChildPage() {
                   {MARITAL_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
               </Field>
-              <Field label="Currently has children">
-                <select value={form.hasChildren} onChange={e => set('hasChildren', e.target.value)}
-                  style={{ ...inputStyle, cursor: 'pointer' }}>
-                  <option value="">Select…</option>
-                  <option value="no">No</option>
-                  <option value="yes">Yes</option>
-                </select>
-              </Field>
+              {form.maritalStatus !== 'never_married' && (
+                <Field label="Currently has children">
+                  <select value={form.hasChildren} onChange={e => set('hasChildren', e.target.value)}
+                    style={{ ...inputStyle, cursor: 'pointer' }}>
+                    <option value="">Select…</option>
+                    <option value="no">No</option>
+                    <option value="yes">Yes</option>
+                  </select>
+                </Field>
+              )}
             </div>
           </div>
         )}
