@@ -259,6 +259,65 @@ export function contactSharingTemplate(
 </html>`
 }
 
+// ─── Admin ad-hoc message to family ──────────────────────────────────────────
+// Sent when admin composes a free-form message to a family contact.
+
+export function adminMessageTemplate(
+  recipientName: string,
+  subject: string,
+  messageBody: string,
+): string {
+  // Preserve newlines by converting to <br> in HTML
+  const htmlBody = messageBody
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\n/g, '<br />')
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${subject} — Zawaaj</title>
+</head>
+<body style="margin:0;padding:0;background:#111111;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#111111;padding:40px 16px;">
+    <tr>
+      <td align="center">
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;">
+          <tr>
+            <td align="center" style="padding-bottom:32px;">
+              <img src="https://zawaaj.uk/logo.png" alt="Zawaaj" width="90" style="display:block;" />
+              <p style="margin:8px 0 0;color:#B8960C;font-size:11px;letter-spacing:2px;text-transform:uppercase;">The Blessed Choice</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="background:#1A1A1A;border:1px solid #2a2a2a;border-top:1px solid rgba(184,150,12,0.3);border-radius:12px;padding:36px 32px;">
+              <p style="margin:0 0 16px;font-size:14px;color:#9ca3af;">Dear ${recipientName},</p>
+              <div style="font-size:14px;color:#e5e7eb;line-height:1.7;">${htmlBody}</div>
+              <p style="margin:24px 0 0;font-size:13px;color:#6b7280;line-height:1.6;border-top:1px solid #2a2a2a;padding-top:16px;">
+                This message was sent by the Zawaaj team. If you have any questions, please reply to this email or visit
+                <a href="https://zawaaj.uk/help" style="color:#B8960C;text-decoration:none;">zawaaj.uk/help</a>.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding-top:24px;">
+              <p style="margin:0;font-size:11px;color:#4b5563;">
+                © Zawaaj · <a href="https://zawaaj.uk" style="color:#6b7280;text-decoration:none;">zawaaj.uk</a> ·
+                <a href="https://zawaaj.uk/help" style="color:#6b7280;text-decoration:none;">Contact us</a>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`
+}
+
 // ─── Guardian / child invite email ───────────────────────────────────────────
 // Sent when admin emails an invite link directly to a candidate from the Families page.
 

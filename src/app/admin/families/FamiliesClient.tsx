@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import Link from 'next/link'
 import type { FamilyRow } from './page'
 
@@ -507,6 +507,115 @@ function InviteModal({
   )
 }
 
+// ─── Email Family Modal ───────────────────────────────────────────────────────
+
+function EmailFamilyModal({
+  family,
+  onClose,
+}: {
+  family: FamilyRow
+  onClose: () => void
+}) {
+  const [subject, setSubject]   = useState('')
+  const [message, setMessage]   = useState('')
+  const [loading, setLoading]   = useState(false)
+  const [sent, setSent]         = useState(false)
+  const [error, setError]       = useState<string | null>(null)
+
+  async function send() {
+    if (!subject.trim() || !message.trim()) { setError('Subject and message are required.'); return }
+    setLoading(true); setError(null)
+    const res = await fetch('/api/admin/send-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        to: family.contact_email,
+        recipient_name: family.contact_full_name,
+        subject: subject.trim(),
+        message: message.trim(),
+      }),
+    })
+    const json = await res.json().catch(() => ({}))
+    setLoading(false)
+    if (!res.ok) { setError(json.error ?? 'Failed to send email'); return }
+    setSent(true)
+  }
+
+  return (
+    <div
+      onClick={e => { if (e.target === e.currentTarget) onClose() }}
+      style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+    >
+      <div style={{
+        background: 'var(--admin-surface)', border: '1px solid var(--admin-border)',
+        borderRadius: 16, width: '100%', maxWidth: 520, padding: 28,
+      }}>
+        <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--admin-text)', margin: '0 0 4px' }}>
+          Email to family
+        </h2>
+        <p style={{ fontSize: 13, color: 'var(--admin-muted)', margin: '0 0 20px' }}>
+          To: <strong style={{ color: 'var(--admin-text)' }}>{family.contact_full_name}</strong>{' '}
+          <span style={{ color: 'var(--admin-muted)' }}>({family.contact_email})</span>
+        </p>
+
+        {sent ? (
+          <div>
+            <p style={{ fontSize: 13, color: '#16a34a', marginBottom: 16 }}>✓ Email sent to {family.contact_email}</p>
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <button onClick={onClose} style={{
+                padding: '8px 20px', borderRadius: 8, fontSize: 13, fontWeight: 600,
+                border: 'none', cursor: 'pointer', background: '#B8960C', color: '#111',
+              }}>Done</button>
+            </div>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div>
+              <label style={labelStyle}>Subject</label>
+              <input
+                value={subject}
+                onChange={e => setSubject(e.target.value)}
+                placeholder="e.g. Update regarding your Zawaaj account"
+                style={inputStyle}
+              />
+            </div>
+            <div>
+              <label style={labelStyle}>Message</label>
+              <textarea
+                value={message}
+                onChange={e => setMessage(e.target.value)}
+                rows={7}
+                placeholder="Write your message here…"
+                style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.6 } as React.CSSProperties}
+              />
+              <p style={{ fontSize: 11, color: 'var(--admin-muted)', marginTop: 4 }}>
+                The email will be sent from noreply@zawaaj.uk with Zawaaj branding.
+              </p>
+            </div>
+
+            {error && <p style={{ fontSize: 12, color: '#ef4444' }}>{error}</p>}
+
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 4 }}>
+              <button onClick={onClose} style={{
+                padding: '8px 16px', borderRadius: 8, fontSize: 13,
+                border: '1px solid var(--admin-border)', cursor: 'pointer',
+                background: 'transparent', color: 'var(--admin-muted)',
+              }}>Cancel</button>
+              <button onClick={send} disabled={loading} style={{
+                padding: '8px 20px', borderRadius: 8, fontSize: 13, fontWeight: 600,
+                border: 'none', cursor: loading ? 'not-allowed' : 'pointer',
+                background: '#B8960C', color: '#111', opacity: loading ? 0.7 : 1,
+              }}>
+                {loading ? 'Sending…' : 'Send email'}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ─── Link Profile Modal ───────────────────────────────────────────────────────
 
 interface ProfileSearchResult {
@@ -696,6 +805,7 @@ export function FamiliesClient({ families: initial }: Props) {
   const [showCreate, setShowCreate]         = useState(false)
   const [inviteFamily, setInviteFamily]     = useState<FamilyRow | null>(null)
   const [linkFamily, setLinkFamily]         = useState<FamilyRow | null>(null)
+  const [emailFamily, setEmailFamily]       = useState<FamilyRow | null>(null)
 
   const filtered = families.filter(f => {
     const matchStatus = statusFilter === 'all' || f.status === statusFilter
@@ -978,6 +1088,8 @@ export function FamiliesClient({ families: initial }: Props) {
                             loading={false} onClick={() => setInviteFamily(f)} />
                           <ActionBtn label="Link profile manually" color="var(--admin-text)" bg="rgba(255,255,255,0.07)"
                             loading={false} onClick={() => setLinkFamily(f)} />
+                          <ActionBtn label="✉ Email family" color="var(--admin-text)" bg="rgba(255,255,255,0.05)"
+                            loading={false} onClick={() => setEmailFamily(f)} />
                         </div>
                       </td>
                     </tr>
@@ -1002,6 +1114,9 @@ export function FamiliesClient({ families: initial }: Props) {
           onClose={() => setLinkFamily(null)}
           onLinked={id => handleLinked(linkFamily.id, id)}
         />
+      )}
+      {emailFamily && (
+        <EmailFamilyModal family={emailFamily} onClose={() => setEmailFamily(null)} />
       )}
     </div>
   )
