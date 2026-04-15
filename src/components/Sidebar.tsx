@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import AvatarInitials from '@/components/AvatarInitials'
 import ZawaajLogo from '@/components/ZawaajLogo'
+import NotificationBell from '@/components/NotificationBell'
 
 interface ManagedProfile {
   id: string
@@ -307,24 +308,35 @@ export default function Sidebar({
       }}
     >
       {/* Logo header — full brand image, links to home */}
-      <Link
-        href="/"
+      <div
         style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '10px 12px',
-          textDecoration: 'none',
+          position: 'relative',
           borderBottom: '1px solid rgba(196,154,16,0.18)',
           background: 'linear-gradient(180deg, rgba(196,154,16,0.06) 0%, transparent 100%)',
         }}
       >
-        <img
-          src="/zawaaj-wordmark.png"
-          alt="Zawaaj"
-          style={{ height: 26, width: 'auto', maxWidth: '100%' }}
-        />
-      </Link>
+        <Link
+          href="/"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '10px 12px',
+            textDecoration: 'none',
+          }}
+        >
+          <img
+            src="/zawaaj-wordmark.png"
+            alt="Zawaaj"
+            style={{ height: 26, width: 'auto', maxWidth: '100%' }}
+          />
+        </Link>
+        {profileApproved && (
+          <div style={{ position: 'absolute', top: 7, right: 8 }}>
+            <NotificationBell />
+          </div>
+        )}
+      </div>
 
       {/* Nav sections */}
       <nav style={{ flex: 1 }}>
