@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import ZawaajLogo from '@/components/ZawaajLogo'
 
@@ -235,7 +235,7 @@ const TOTAL_STEPS = 6  // 0–5
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
-export default function RegisterChildPage() {
+function RegisterChildPageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [step, setStep] = useState(0)
@@ -1139,5 +1139,13 @@ export default function RegisterChildPage() {
         </p>
       </div>
     </main>
+  )
+}
+
+export default function RegisterChildPage() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: '100vh', background: 'var(--surface)' }} />}>
+      <RegisterChildPageInner />
+    </Suspense>
   )
 }
