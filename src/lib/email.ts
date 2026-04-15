@@ -156,6 +156,109 @@ export function emailVerificationTemplate(verifyLink: string, contactEmail: stri
 </html>`
 }
 
+// ─── Contact sharing email ────────────────────────────────────────────────────
+// Sent to each family when admin facilitates an introduction.
+
+interface ContactInfo {
+  name: string        // other family's contact full name
+  phone: string       // other family's contact number
+  email?: string      // other family's contact email (optional to share)
+  femaleContact?: {   // female contact if provided
+    name: string
+    phone: string
+  }
+  profile: {          // public profile snippet
+    displayName: string
+    ageDisplay: string | null
+    location: string | null
+    schoolOfThought: string | null
+  }
+}
+
+export function contactSharingTemplate(
+  recipientName: string,       // "Dear [name]"
+  otherContact: ContactInfo,
+  adminMessage?: string,
+): string {
+  const femaleRow = otherContact.femaleContact
+    ? `<tr><td style="padding:6px 0;color:#9ca3af;font-size:13px;">Female contact</td><td style="padding:6px 0;color:#e5e7eb;font-size:13px;font-weight:500;">${otherContact.femaleContact.name} — ${otherContact.femaleContact.phone}</td></tr>`
+    : ''
+
+  const profileSnippet = [
+    otherContact.profile.ageDisplay,
+    otherContact.profile.location,
+    otherContact.profile.schoolOfThought,
+  ].filter(Boolean).join(' · ')
+
+  const adminNote = adminMessage
+    ? `<p style="margin:20px 0 0;font-size:13px;color:#9ca3af;line-height:1.6;border-top:1px solid #2a2a2a;padding-top:16px;">${adminMessage}</p>`
+    : ''
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Introduction details — Zawaaj</title>
+</head>
+<body style="margin:0;padding:0;background:#111111;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#111111;padding:40px 16px;">
+    <tr>
+      <td align="center">
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;">
+          <tr>
+            <td align="center" style="padding-bottom:32px;">
+              <img src="https://zawaaj.uk/logo.png" alt="Zawaaj" width="90" style="display:block;" />
+              <p style="margin:8px 0 0;color:#B8960C;font-size:11px;letter-spacing:2px;text-transform:uppercase;">The Blessed Choice</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="background:#1A1A1A;border:1px solid #2a2a2a;border-top:1px solid rgba(184,150,12,0.3);border-radius:12px;padding:36px 32px;">
+              <h1 style="margin:0 0 8px;font-size:20px;font-weight:600;color:#ffffff;">Alhamdulillah — an introduction has been arranged</h1>
+              <p style="margin:0 0 24px;font-size:14px;color:#9ca3af;line-height:1.6;">
+                Dear ${recipientName}, both families have expressed interest and the Zawaaj team has confirmed it is appropriate to proceed. Below are the contact details to facilitate getting to know each other in a halal manner, in shaa Allah.
+              </p>
+
+              <!-- Profile snippet -->
+              ${profileSnippet ? `<p style="margin:0 0 16px;font-size:13px;color:#6b7280;">${otherContact.profile.displayName} · ${profileSnippet}</p>` : ''}
+
+              <!-- Contact card -->
+              <div style="background:#111111;border:1px solid #2a2a2a;border-radius:10px;padding:20px 24px;margin-bottom:20px;">
+                <table width="100%" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="padding:6px 0;color:#9ca3af;font-size:13px;width:140px;">Primary contact</td>
+                    <td style="padding:6px 0;color:#e5e7eb;font-size:13px;font-weight:600;">${otherContact.name}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:6px 0;color:#9ca3af;font-size:13px;">Phone</td>
+                    <td style="padding:6px 0;color:#e5e7eb;font-size:13px;font-weight:500;"><a href="tel:${otherContact.phone}" style="color:#B8960C;text-decoration:none;">${otherContact.phone}</a></td>
+                  </tr>
+                  ${femaleRow}
+                </table>
+              </div>
+
+              <p style="margin:0;font-size:13px;color:#9ca3af;line-height:1.6;">
+                We ask that all communication remains respectful and within Islamic boundaries. If at any point you wish to withdraw or need support from the Zawaaj team, please do not hesitate to reach out.
+              </p>
+              ${adminNote}
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding-top:24px;">
+              <p style="margin:0;font-size:11px;color:#4b5563;">
+                © Zawaaj · <a href="https://zawaaj.uk" style="color:#6b7280;text-decoration:none;">zawaaj.uk</a> ·
+                <a href="https://zawaaj.uk/help" style="color:#6b7280;text-decoration:none;">Contact us</a>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`
+}
+
 export function passwordResetRequestTemplate(resetLink: string): string {
   return `<!DOCTYPE html>
 <html lang="en">

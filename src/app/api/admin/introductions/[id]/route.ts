@@ -1,16 +1,19 @@
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { NextResponse } from 'next/server'
+import { sendEmail, contactSharingTemplate } from '@/lib/email'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type Action = 'assign_manager' | 'set_in_progress' | 'complete' | 'override_status'
+type Action = 'assign_manager' | 'set_in_progress' | 'complete' | 'override_status' | 'facilitate' | 'record_outcome'
 
 type RequestBody = {
   action: Action
   manager_profile_id?: string
   status?: string
   admin_notes?: string
+  admin_message?: string  // custom note appended to facilitation emails
+  outcome?: string        // for record_outcome
 }
 
 type IntroductionRequest = {
@@ -300,9 +303,207 @@ export async function PATCH(
       return NextResponse.json({ success: true })
     }
 
+    // ─── Action: facilitate ───────────────────────────────────────────────────
+    // Shares contact details between both families via email and marks the
+    // request as facilitated. Requires status = 'accepted'.
+    if (action === 'facilitate') {
+      if (req.status !== 'accepted') {
+        return NextResponse.json(
+          { error: `Cannot facilitate: status is '${req.status}', expected 'accepted'` },
+          { status: 422 }
+        )
+      }
+
+      const { admin_message } = body
+
+      // Fetch both profiles with their family account contact details
+      const [{ data: reqProfile }, { data: tgtProfile }] = await Promise.all([
+        supabaseAdmin
+          .from('zawaaj_profiles')
+          .select(`
+            first_name, last_name, display_initials, age_display, location, school_of_thought, gender,
+            family_account:zawaaj_family_accounts!family_account_id(
+              contact_full_name, contact_number, contact_email,
+              female_contact_name, female_contact_number
+            )
+          `)
+          .eq('id', req.requesting_profile_id)
+          .single(),
+        supabaseAdmin
+          .from('zawaaj_profiles')
+          .select(`
+            first_name, last_name, display_initials, age_display, location, school_of_thought, gender,
+            family_account:zawaaj_family_accounts!family_account_id(
+              contact_full_name, contact_number, contact_email,
+              female_contact_name, female_contact_number
+            )
+          `)
+          .eq('id', req.target_profile_id)
+          .single(),
+      ])
+
+      type FamilyAccount = {
+        contact_full_name: string
+        contact_number: string
+        contact_email: string
+        female_contact_name: string | null
+        female_contact_number: string | null
+      }
+
+      const reqFA = (reqProfile?.family_account as FamilyAccount | FamilyAccount[] | null)
+      const tgtFA = (tgtProfile?.family_account as FamilyAccount | FamilyAccount[] | null)
+      const reqFamilyAccount = Array.isArray(reqFA) ? reqFA[0] : reqFA
+      const tgtFamilyAccount = Array.isArray(tgtFA) ? tgtFA[0] : tgtFA
+
+      if (!reqFamilyAccount || !tgtFamilyAccount) {
+        return NextResponse.json(
+          { error: 'Could not load family contact details for one or both profiles. Ensure both profiles are linked to a family account.' },
+          { status: 422 }
+        )
+      }
+
+      function profileDisplayName(p: { first_name: string | null; last_name: string | null; display_initials: string }): string {
+        const name = [p.first_name, p.last_name ? `${p.last_name[0]}.` : null].filter(Boolean).join(' ')
+        return name || p.display_initials
+      }
+
+      // Build contact objects for each family to share with the other
+      const reqContactForTarget = {
+        name: reqFamilyAccount.contact_full_name,
+        phone: reqFamilyAccount.contact_number,
+        femaleContact: reqFamilyAccount.female_contact_name && reqFamilyAccount.female_contact_number
+          ? { name: reqFamilyAccount.female_contact_name, phone: reqFamilyAccount.female_contact_number }
+          : undefined,
+        profile: {
+          displayName: profileDisplayName(reqProfile!),
+          ageDisplay: (reqProfile as { age_display?: string | null })?.age_display ?? null,
+          location: (reqProfile as { location?: string | null })?.location ?? null,
+          schoolOfThought: (reqProfile as { school_of_thought?: string | null })?.school_of_thought ?? null,
+        },
+      }
+
+      const tgtContactForRequester = {
+        name: tgtFamilyAccount.contact_full_name,
+        phone: tgtFamilyAccount.contact_number,
+        femaleContact: tgtFamilyAccount.female_contact_name && tgtFamilyAccount.female_contact_number
+          ? { name: tgtFamilyAccount.female_contact_name, phone: tgtFamilyAccount.female_contact_number }
+          : undefined,
+        profile: {
+          displayName: profileDisplayName(tgtProfile!),
+          ageDisplay: (tgtProfile as { age_display?: string | null })?.age_display ?? null,
+          location: (tgtProfile as { location?: string | null })?.location ?? null,
+          schoolOfThought: (tgtProfile as { school_of_thought?: string | null })?.school_of_thought ?? null,
+        },
+      }
+
+      // Send both emails in parallel
+      const [emailA, emailB] = await Promise.all([
+        sendEmail({
+          to: reqFamilyAccount.contact_email,
+          subject: 'Your Zawaaj introduction — contact details enclosed',
+          html: contactSharingTemplate(reqFamilyAccount.contact_full_name, tgtContactForRequester, admin_message ?? undefined),
+        }),
+        sendEmail({
+          to: tgtFamilyAccount.contact_email,
+          subject: 'Your Zawaaj introduction — contact details enclosed',
+          html: contactSharingTemplate(tgtFamilyAccount.contact_full_name, reqContactForTarget, admin_message ?? undefined),
+        }),
+      ])
+
+      if (!emailA.ok) console.error('[facilitate] email to requester family failed:', emailA.error)
+      if (!emailB.ok) console.error('[facilitate] email to target family failed:', emailB.error)
+
+      // Mark request as facilitated
+      const { error: updateError } = await supabaseAdmin
+        .from('zawaaj_introduction_requests')
+        .update({
+          status: 'facilitated',
+          handled_by: activeProfileId,
+          handled_at: now,
+          ...(admin_notes !== undefined ? { admin_notes } : {}),
+        })
+        .eq('id', id)
+
+      if (updateError) {
+        return NextResponse.json({ error: 'Emails sent but failed to update status: ' + updateError.message }, { status: 500 })
+      }
+
+      // In-app notifications to both profiles
+      await supabaseAdmin.from('zawaaj_notifications').insert([
+        {
+          profile_id: req.requesting_profile_id,
+          type: 'match_update',
+          event_type: 'intro_facilitated',
+          title: 'Introduction arranged — contact shared',
+          body: 'The Zawaaj team has facilitated your introduction. Contact details have been shared with both families.',
+          action_url: '/introductions',
+        },
+        {
+          profile_id: req.target_profile_id,
+          type: 'match_update',
+          event_type: 'intro_facilitated',
+          title: 'Introduction arranged — contact shared',
+          body: 'The Zawaaj team has facilitated your introduction. Contact details have been shared with both families.',
+          action_url: '/introductions',
+        },
+      ])
+
+      return NextResponse.json({
+        success: true,
+        emailsSent: { toRequester: emailA.ok, toTarget: emailB.ok },
+      })
+    }
+
+    // ─── Action: record_outcome ───────────────────────────────────────────────
+    // Captures the outcome after facilitation (e.g. 'in_conversation',
+    // 'meeting_arranged', 'engaged', 'married', 'unsuccessful', 'withdrawn').
+    if (action === 'record_outcome') {
+      const { outcome, admin_notes: outcomeNotes } = body
+      if (!outcome) {
+        return NextResponse.json({ error: 'outcome is required' }, { status: 400 })
+      }
+
+      const VALID_OUTCOMES = ['in_conversation', 'meeting_arranged', 'engaged', 'married', 'unsuccessful', 'withdrawn']
+      if (!VALID_OUTCOMES.includes(outcome)) {
+        return NextResponse.json(
+          { error: `Invalid outcome. Valid values: ${VALID_OUTCOMES.join(', ')}` },
+          { status: 400 }
+        )
+      }
+
+      const { error: updateError } = await supabaseAdmin
+        .from('zawaaj_introduction_requests')
+        .update({
+          outcome,
+          outcome_date: now,
+          handled_by: activeProfileId,
+          handled_at: now,
+          ...(outcomeNotes !== undefined ? { admin_notes: outcomeNotes } : {}),
+        })
+        .eq('id', id)
+
+      if (updateError) {
+        // outcome / outcome_date may not exist yet — fall back to admin_notes only
+        console.error('[record_outcome] update error:', updateError.message)
+        const { error: fallbackError } = await supabaseAdmin
+          .from('zawaaj_introduction_requests')
+          .update({
+            admin_notes: `[Outcome: ${outcome}] ${outcomeNotes ?? ''}`.trim(),
+            handled_by: activeProfileId,
+            handled_at: now,
+          })
+          .eq('id', id)
+        if (fallbackError) {
+          return NextResponse.json({ error: 'Failed to record outcome' }, { status: 500 })
+        }
+      }
+
+      return NextResponse.json({ success: true })
+    }
+
     // Unknown action
     return NextResponse.json(
-      { error: `Unknown action '${action as string}'. Valid actions: assign_manager, set_in_progress, complete, override_status` },
+      { error: `Unknown action '${action as string}'. Valid actions: assign_manager, set_in_progress, complete, override_status, facilitate, record_outcome` },
       { status: 400 }
     )
   } catch (err) {

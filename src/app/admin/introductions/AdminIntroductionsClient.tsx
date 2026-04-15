@@ -45,7 +45,7 @@ export interface AdminIntroductionsClientProps {
   role: 'super_admin' | 'manager'
 }
 
-type FilterTab = 'pending' | 'mutual' | 'active' | 'completed' | 'declined'
+type FilterTab = 'pending' | 'mutual' | 'active' | 'facilitated' | 'completed' | 'declined'
 
 const VALID_STATUSES = [
   'pending',
@@ -95,8 +95,11 @@ function avatarBgColor(gender: string | null): string {
 function statusLabel(status: string): string {
   const labels: Record<string, string> = {
     pending:            'Pending',
+    accepted:           'Mutual — ready to facilitate',
+    facilitated:        'Contacts shared',
     responded_positive: 'Responded +',
     responded_negative: 'Declined',
+    declined:           'Declined',
     mutual_confirmed:   'Mutual',
     admin_pending:      'Admin Pending',
     admin_assigned:     'Assigned',
@@ -111,8 +114,11 @@ function statusLabel(status: string): string {
 function statusColors(status: string): { bg: string; color: string } {
   switch (status) {
     case 'pending':            return { bg: '#1e1e1e', color: '#9ca3af' }
+    case 'accepted':           return { bg: '#2a200a', color: '#B8960C' }
+    case 'facilitated':        return { bg: '#052e16', color: '#4ade80' }
     case 'responded_positive': return { bg: '#052e16', color: '#4ade80' }
-    case 'responded_negative': return { bg: '#2d1515', color: '#f87171' }
+    case 'responded_negative':
+    case 'declined':           return { bg: '#2d1515', color: '#f87171' }
     case 'mutual_confirmed':   return { bg: '#2a200a', color: '#B8960C' }
     case 'admin_pending':      return { bg: '#1e1e2e', color: '#a5b4fc' }
     case 'admin_assigned':     return { bg: '#0f2a3f', color: '#60a5fa' }
@@ -259,8 +265,19 @@ interface RequestRowProps {
   onSetInProgress: (reqId: string) => void
   onComplete: (reqId: string) => void
   onOverrideStatus: (reqId: string, status: ValidStatus) => void
+  onFacilitate: (reqId: string, adminMessage?: string) => void
+  onRecordOutcome: (reqId: string, outcome: string) => void
   isLast: boolean
 }
+
+const OUTCOMES = [
+  { value: 'in_conversation',   label: 'In conversation' },
+  { value: 'meeting_arranged',  label: 'Meeting arranged' },
+  { value: 'engaged',           label: 'Engaged' },
+  { value: 'married',           label: 'Married — alhamdulillah' },
+  { value: 'unsuccessful',      label: 'Unsuccessful' },
+  { value: 'withdrawn',         label: 'Withdrawn' },
+]
 
 function RequestRow({
   req,
@@ -272,10 +289,14 @@ function RequestRow({
   onSetInProgress,
   onComplete,
   onOverrideStatus,
+  onFacilitate,
+  onRecordOutcome,
   isLast,
 }: RequestRowProps) {
   const loading = loadingIds.has(req.id)
   const rowError = errors.get(req.id)
+  const [facilMessage, setFacilMessage] = useState('')
+  const [showFacilNote, setShowFacilNote] = useState(false)
 
   const assignedManager = req.assigned_manager_id
     ? managers.find((m) => m.id === req.assigned_manager_id)
@@ -290,6 +311,8 @@ function RequestRow({
     (role === 'super_admin' || req.assigned_manager_id === req.assigned_manager_id) // manager scope enforced at API
 
   const canComplete = req.status === 'admin_in_progress'
+  const canFacilitate = req.status === 'accepted'
+  const canRecordOutcome = req.status === 'facilitated'
 
   return (
     <>
@@ -391,6 +414,32 @@ function RequestRow({
               />
             )}
 
+            {/* ── SHARE CONTACTS — primary action for 'accepted' status ── */}
+            {canFacilitate && !showFacilNote && (
+              <button
+                onClick={() => setShowFacilNote(true)}
+                disabled={loading}
+                className="px-3 py-1.5 rounded text-xs font-semibold transition-colors disabled:opacity-50"
+                style={{ background: 'rgba(184,150,12,0.15)', color: '#B8960C', border: '1px solid rgba(184,150,12,0.35)' }}
+              >
+                ✉ Share contacts
+              </button>
+            )}
+
+            {/* ── Record outcome — for facilitated requests ── */}
+            {canRecordOutcome && (
+              <select
+                defaultValue=""
+                disabled={loading}
+                onChange={e => { if (e.target.value) onRecordOutcome(req.id, e.target.value) }}
+                className="text-xs rounded px-2 py-1 outline-none disabled:opacity-50"
+                style={{ background: 'var(--admin-surface)', border: '1px solid var(--admin-border)', color: 'var(--admin-text)', cursor: 'pointer' }}
+              >
+                <option value="">Record outcome…</option>
+                {OUTCOMES.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
+            )}
+
             {/* View profiles link */}
             <Link
               href={`/admin/sidebyside/${req.requesting_profile.id}__${req.target_profile.id}`}
@@ -400,6 +449,37 @@ function RequestRow({
               View profiles
             </Link>
           </div>
+
+          {/* ── Inline facilitation note panel ── */}
+          {showFacilNote && (
+            <div style={{ marginTop: 8, padding: '10px 12px', borderRadius: 8, border: '1px solid rgba(184,150,12,0.3)', background: 'rgba(184,150,12,0.06)' }}>
+              <p style={{ fontSize: 11, color: '#B8960C', marginBottom: 6, fontWeight: 500 }}>
+                This will send contact details to both families. Add an optional personal message:
+              </p>
+              <input
+                type="text"
+                value={facilMessage}
+                onChange={e => setFacilMessage(e.target.value)}
+                placeholder="e.g. Please be in touch by the end of the week, insha'Allah."
+                style={{ width: '100%', boxSizing: 'border-box', padding: '6px 8px', borderRadius: 6, border: '1px solid rgba(184,150,12,0.25)', background: '#111', color: '#e5e7eb', fontSize: 12, marginBottom: 8 }}
+              />
+              <div style={{ display: 'flex', gap: 6 }}>
+                <button
+                  onClick={() => { onFacilitate(req.id, facilMessage || undefined); setShowFacilNote(false) }}
+                  disabled={loading}
+                  style={{ padding: '6px 14px', borderRadius: 6, border: 'none', background: '#B8960C', color: '#111', fontSize: 12, fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.6 : 1 }}
+                >
+                  {loading ? 'Sending…' : 'Send & share contacts'}
+                </button>
+                <button
+                  onClick={() => setShowFacilNote(false)}
+                  style={{ padding: '6px 14px', borderRadius: 6, border: '1px solid var(--admin-border)', background: 'transparent', color: 'var(--admin-muted)', fontSize: 12, cursor: 'pointer' }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
         </td>
       </tr>
 
@@ -434,11 +514,12 @@ export default function AdminIntroductionsClient({
   // ─── Tab filtering ────────────────────────────────────────────────────────
 
   const tabDefs: { key: FilterTab; label: string; statuses: string[] }[] = [
-    { key: 'pending',   label: 'Pending',          statuses: ['pending'] },
-    { key: 'mutual',    label: 'Mutual',            statuses: ['mutual_confirmed', 'admin_pending'] },
-    { key: 'active',    label: 'Active',            statuses: ['admin_assigned', 'admin_in_progress'] },
-    { key: 'completed', label: 'Completed',         statuses: ['admin_completed'] },
-    { key: 'declined',  label: 'Declined / Expired', statuses: ['responded_negative', 'expired', 'withdrawn'] },
+    { key: 'pending',    label: 'Pending',           statuses: ['pending'] },
+    { key: 'mutual',     label: 'Mutual ✦',          statuses: ['accepted', 'mutual_confirmed', 'admin_pending'] },
+    { key: 'facilitated',label: 'Facilitated',       statuses: ['facilitated', 'admin_in_progress', 'admin_completed'] },
+    { key: 'active',     label: 'Legacy active',     statuses: ['admin_assigned'] },
+    { key: 'completed',  label: 'Completed',         statuses: [] },
+    { key: 'declined',   label: 'Declined / Expired', statuses: ['declined', 'responded_negative', 'expired', 'withdrawn'] },
   ]
 
   const filtered = requests.filter((r) => {
@@ -528,6 +609,25 @@ export default function AdminIntroductionsClient({
         status: 'admin_completed',
         handled_at: new Date().toISOString(),
       })
+    }
+  }
+
+  async function handleFacilitate(reqId: string, adminMessage?: string) {
+    const body: Record<string, string | undefined> = { action: 'facilitate' }
+    if (adminMessage) body.admin_message = adminMessage
+    const ok = await callApi(reqId, body)
+    if (ok) {
+      applyUpdate(reqId, {
+        status: 'facilitated',
+        handled_at: new Date().toISOString(),
+      })
+    }
+  }
+
+  async function handleRecordOutcome(reqId: string, outcome: string) {
+    const ok = await callApi(reqId, { action: 'record_outcome', outcome })
+    if (ok) {
+      applyUpdate(reqId, { admin_notes: `Outcome: ${outcome}` })
     }
   }
 
@@ -631,6 +731,8 @@ export default function AdminIntroductionsClient({
                     onSetInProgress={handleSetInProgress}
                     onComplete={handleComplete}
                     onOverrideStatus={handleOverrideStatus}
+                    onFacilitate={handleFacilitate}
+                    onRecordOutcome={handleRecordOutcome}
                     isLast={idx === filtered.length - 1}
                   />
                 ))}

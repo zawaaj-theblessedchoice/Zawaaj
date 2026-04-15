@@ -272,16 +272,31 @@ export async function POST(request: Request): Promise<Response> {
       .select('token')
       .single()
 
-    if (!tokenError && tokenRow) {
-      const verifyLink = `https://www.zawaaj.uk/register/verify?token=${tokenRow.token}`
-      await sendEmail({
-        to: contactEmail,
-        subject: 'Verify your Zawaaj account',
-        html: emailVerificationTemplate(verifyLink, contactEmail),
+    if (tokenError || !tokenRow) {
+      console.error('[register/family] token insert error:', tokenError?.message ?? 'no row returned')
+      // Don't block registration — user can resend from holding screen.
+      // But signal to client so it can log a warning if needed.
+      return NextResponse.json({
+        success: true, path, familyAccountId, profileId, contactEmail,
+        emailSent: false, emailError: 'token_create_failed',
       })
     }
 
-    return NextResponse.json({ success: true, path, familyAccountId, profileId, contactEmail })
+    const verifyLink = `https://www.zawaaj.uk/register/verify?token=${tokenRow.token}`
+    const emailResult = await sendEmail({
+      to: contactEmail,
+      subject: 'Verify your Zawaaj account',
+      html: emailVerificationTemplate(verifyLink, contactEmail),
+    })
+
+    if (!emailResult.ok) {
+      console.error('[register/family] email send failed:', emailResult.error)
+    }
+
+    return NextResponse.json({
+      success: true, path, familyAccountId, profileId, contactEmail,
+      emailSent: emailResult.ok,
+    })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Something went wrong.'
     return NextResponse.json({ error: message }, { status: 500 })

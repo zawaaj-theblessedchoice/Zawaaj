@@ -661,6 +661,23 @@ export function FamiliesClient({ families: initial }: Props) {
     return matchStatus && matchSearch
   })
 
+  async function resendVerification(id: string) {
+    setActionLoading(id)
+    try {
+      const res = await fetch('/api/register/resend-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ familyAccountId: id }),
+      })
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({})) as { error?: string }
+        alert(json.error ?? 'Failed to resend verification email')
+      }
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
   async function updateStatus(id: string, status: string) {
     setActionLoading(id)
     const res = await fetch('/api/admin/families', {
@@ -894,6 +911,10 @@ export function FamiliesClient({ families: initial }: Props) {
 
                         {/* Actions */}
                         <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
+                          {f.status === 'pending_email_verification' && (
+                            <ActionBtn label="↺ Resend verification email" color="#ea580c" bg="rgba(251,146,60,0.12)"
+                              loading={actionLoading === f.id} onClick={() => resendVerification(f.id)} />
+                          )}
                           {f.status === 'pending_approval' && (
                             <ActionBtn label="Approve" color="#16a34a" bg="rgba(34,197,94,0.12)"
                               loading={actionLoading === f.id} onClick={() => updateStatus(f.id, 'active')} />
