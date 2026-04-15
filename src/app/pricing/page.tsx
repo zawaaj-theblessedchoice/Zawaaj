@@ -3,6 +3,12 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import ZawaajLogo from '@/components/ZawaajLogo'
+import { PLAN_CONFIG, PLAN_PRICES } from '@/lib/plan-config'
+
+// Helper — converts a numeric limit to a display string
+function limitStr(n: number) {
+  return n === Infinity ? 'Unlimited' : String(n)
+}
 
 // ─── Full comparison table data ───────────────────────────────────────────────
 
@@ -26,8 +32,8 @@ const SECTIONS: Array<{
   {
     title: 'Introductions',
     rows: [
-      { feature: 'Monthly interest expressions / profile', desc: 'Interest expressions per profile per calendar month', free: '5', plus: '15', premium: 'Unlimited' },
-      { feature: 'Candidate profiles', desc: 'Number of candidate profiles per family account', free: '1', plus: 'Up to 4', premium: 'Up to 4' },
+      { feature: 'Monthly interest expressions / profile', desc: 'Interest expressions per profile per calendar month', free: limitStr(PLAN_CONFIG.free.monthlyLimit), plus: limitStr(PLAN_CONFIG.plus.monthlyLimit), premium: limitStr(PLAN_CONFIG.premium.monthlyLimit) },
+      { feature: 'Candidate profiles', desc: 'Number of candidate profiles per family account', free: limitStr(PLAN_CONFIG.free.maxFamilyMembers), plus: `Up to ${PLAN_CONFIG.plus.maxFamilyMembers}`, premium: `Up to ${PLAN_CONFIG.premium.maxFamilyMembers}` },
       { feature: 'Mutual match notifications', desc: 'Alert when mutual interest confirmed', free: true, plus: true, premium: true },
       { feature: 'Admin-facilitated introduction', desc: 'Admin personally shares contact details on confirmation', free: true, plus: true, premium: true },
       { feature: 'Dedicated manager', desc: 'Named manager assigned to your family account', free: false, plus: false, premium: true },
@@ -65,8 +71,8 @@ export default function PricingPage() {
   const [annual, setAnnual] = useState(false)
 
   const plans = [
-    { name: 'Voluntary', monthly: 0, annual: 0, highlight: false, ctaLabel: 'Get started', cta: '/signup' },
-    { name: 'Zawaaj Premium', monthly: 19, annual: 15, highlight: true, ctaLabel: 'Get Premium', cta: '/signup' },
+    { name: 'Voluntary', monthly: PLAN_PRICES.free.monthly, annual: PLAN_PRICES.free.annual, highlight: false, ctaLabel: 'Get started', cta: '/signup' },
+    { name: 'Zawaaj Premium', monthly: PLAN_PRICES.premium.monthly, annual: PLAN_PRICES.premium.annual, highlight: true, ctaLabel: 'Get Premium', cta: '/signup' },
   ]
 
   return (
