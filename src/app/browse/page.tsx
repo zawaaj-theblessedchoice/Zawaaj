@@ -64,7 +64,8 @@ export default async function BrowsePage({
       `id, display_initials, first_name, last_name, gender, date_of_birth, age_display,
        location, profession_detail, education_level, school_of_thought, ethnicity,
        languages_spoken, nationality, marital_status, has_children, height, living_situation,
-       religiosity, prayer_regularity, wears_hijab, keeps_beard, bio, open_to_relocation,
+       religiosity, prayer_regularity, wears_hijab, keeps_beard, wears_niqab, wears_abaya,
+       quran_engagement_level, bio, open_to_relocation,
        open_to_partners_children, pref_age_min, pref_age_max, pref_location, pref_ethnicity,
        pref_school_of_thought, pref_relocation, pref_partner_children, status, listed_at`
     )
@@ -128,7 +129,8 @@ export default async function BrowsePage({
       `id, display_initials, first_name, last_name, gender, date_of_birth, age_display,
        location, profession_detail, education_level, school_of_thought, ethnicity,
        languages_spoken, nationality, marital_status, has_children, height, living_situation,
-       religiosity, prayer_regularity, wears_hijab, keeps_beard, bio, open_to_relocation,
+       religiosity, prayer_regularity, wears_hijab, keeps_beard, wears_niqab, wears_abaya,
+       quran_engagement_level, bio, open_to_relocation,
        open_to_partners_children, pref_age_min, pref_age_max, pref_location, pref_ethnicity,
        pref_school_of_thought, pref_relocation, pref_partner_children, status, listed_at`
     )
@@ -151,6 +153,9 @@ export default async function BrowsePage({
     // Ensure nulls for missing fields
     wears_hijab: p.wears_hijab ?? null,
     keeps_beard: p.keeps_beard ?? null,
+    wears_niqab: p.wears_niqab ?? null,
+    wears_abaya: p.wears_abaya ?? null,
+    quran_engagement_level: p.quran_engagement_level ?? null,
     has_children: p.has_children ?? null,
     pref_school_of_thought: p.pref_school_of_thought ?? null,
     open_to_partners_children: p.open_to_partners_children ?? null,
@@ -265,6 +270,9 @@ export default async function BrowsePage({
     ...viewerProfile,
     wears_hijab: viewerProfile.wears_hijab ?? null,
     keeps_beard: viewerProfile.keeps_beard ?? null,
+    wears_niqab: (viewerProfile as Record<string, unknown>).wears_niqab as string | null ?? null,
+    wears_abaya: (viewerProfile as Record<string, unknown>).wears_abaya as string | null ?? null,
+    quran_engagement_level: (viewerProfile as Record<string, unknown>).quran_engagement_level as string | null ?? null,
     has_children: viewerProfile.has_children ?? null,
     pref_school_of_thought: viewerProfile.pref_school_of_thought ?? null,
     open_to_partners_children: viewerProfile.open_to_partners_children ?? null,

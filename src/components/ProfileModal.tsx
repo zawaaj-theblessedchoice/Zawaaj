@@ -33,6 +33,9 @@ export interface ProfileRecord {
   prayer_regularity: string | null
   wears_hijab: boolean | null
   keeps_beard: boolean | null
+  wears_niqab: string | null
+  wears_abaya: string | null
+  quran_engagement_level: string | null
   bio: string | null
   pref_age_min: number | null
   pref_age_max: number | null
@@ -714,6 +717,48 @@ export default function ProfileModal({
                           : profile.keeps_beard === false
                           ? 'No'
                           : null
+                      }
+                    />
+                  )}
+                  {profile.gender === 'female' && profile.wears_niqab && (
+                    <FieldRow
+                      label="Wears niqab"
+                      value={
+                        profile.wears_niqab === 'yes'
+                          ? 'Yes'
+                          : profile.wears_niqab === 'sometimes'
+                          ? 'Sometimes'
+                          : profile.wears_niqab === 'no'
+                          ? 'No'
+                          : profile.wears_niqab
+                      }
+                    />
+                  )}
+                  {profile.gender === 'female' && profile.wears_abaya && (
+                    <FieldRow
+                      label="Wears abaya"
+                      value={
+                        profile.wears_abaya === 'yes'
+                          ? 'Yes'
+                          : profile.wears_abaya === 'sometimes'
+                          ? 'Sometimes'
+                          : profile.wears_abaya === 'no'
+                          ? 'No'
+                          : profile.wears_abaya
+                      }
+                    />
+                  )}
+                  {profile.quran_engagement_level && (
+                    <FieldRow
+                      label="Qur\u2019an engagement"
+                      value={
+                        {
+                          daily: 'Daily',
+                          few_times_week: 'A few times a week',
+                          occasionally: 'Occasionally',
+                          rarely: 'Rarely',
+                          not_currently: 'Not currently',
+                        }[profile.quran_engagement_level] ?? profile.quran_engagement_level
                       }
                     />
                   )}
