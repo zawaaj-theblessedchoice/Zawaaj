@@ -341,6 +341,9 @@ function InviteModal({
   const [inviteUrl, setInviteUrl]       = useState<string | null>(null)
   const [copied, setCopied]             = useState(false)
   const [error, setError]               = useState<string | null>(null)
+  const [emailSending, setEmailSending] = useState(false)
+  const [emailSent, setEmailSent]       = useState(false)
+  const [emailError, setEmailError]     = useState<string | null>(null)
 
   async function generate() {
     setLoading(true); setError(null)
@@ -367,6 +370,25 @@ function InviteModal({
       setCopied(true)
       setTimeout(() => setCopied(false), 2500)
     })
+  }
+
+  async function emailToCandidate() {
+    if (!inviteUrl || !invitedEmail) return
+    setEmailSending(true); setEmailError(null)
+    const res = await fetch('/api/admin/invite-tokens/send-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        invite_url: inviteUrl,
+        candidate_email: invitedEmail,
+        candidate_name: invitedName || null,
+        family_contact_name: family.contact_full_name,
+      }),
+    })
+    const json = await res.json().catch(() => ({}))
+    setEmailSending(false)
+    if (!res.ok) { setEmailError(json.error ?? 'Failed to send email'); return }
+    setEmailSent(true)
   }
 
   return (
@@ -447,6 +469,31 @@ function InviteModal({
             <p style={{ fontSize: 12, color: 'var(--admin-muted)', marginTop: 10 }}>
               Share this link with the candidate. They must sign in to Zawaaj to accept.
             </p>
+
+            {/* Email button — only shown if candidate email was provided */}
+            {invitedEmail && (
+              <div style={{ marginTop: 14 }}>
+                {emailSent ? (
+                  <p style={{ fontSize: 12, color: '#16a34a' }}>✓ Invitation emailed to {invitedEmail}</p>
+                ) : (
+                  <>
+                    <button
+                      onClick={emailToCandidate}
+                      disabled={emailSending}
+                      style={{
+                        padding: '7px 16px', borderRadius: 8, fontSize: 12, fontWeight: 600,
+                        border: '1px solid rgba(184,150,12,0.4)', cursor: emailSending ? 'not-allowed' : 'pointer',
+                        background: 'rgba(184,150,12,0.08)', color: '#B8960C', opacity: emailSending ? 0.7 : 1,
+                      }}
+                    >
+                      {emailSending ? 'Sending…' : `✉ Email invite to ${invitedEmail}`}
+                    </button>
+                    {emailError && <p style={{ fontSize: 12, color: '#ef4444', marginTop: 6 }}>{emailError}</p>}
+                  </>
+                )}
+              </div>
+            )}
+
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16 }}>
               <button onClick={onClose} style={{
                 padding: '8px 20px', borderRadius: 8, fontSize: 13, fontWeight: 600,
