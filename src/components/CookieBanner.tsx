@@ -47,19 +47,17 @@ export default function CookieBanner() {
       aria-live="polite"
       style={{
         position: 'fixed',
-        bottom: 20,
-        left: '50%',
-        transform: 'translateX(-50%)',
+        bottom: 0,
+        left: 0,
+        right: 0,
         zIndex: 9999,
-        width: 'min(560px, calc(100vw - 32px))',
         background: 'var(--surface-2)',
-        border: '0.5px solid var(--border-default)',
-        borderRadius: 12,
-        padding: '16px 20px',
+        borderTop: '0.5px solid var(--border-default)',
+        padding: '12px 24px',
         display: 'flex',
-        alignItems: 'flex-start',
-        gap: 16,
-        boxShadow: '0 8px 32px rgba(0,0,0,0.45)',
+        alignItems: 'center',
+        gap: 14,
+        boxShadow: '0 -4px 24px rgba(0,0,0,0.35)',
       }}
     >
       {/* Cookie icon */}
