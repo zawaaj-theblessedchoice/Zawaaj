@@ -17,11 +17,26 @@ CREATE TABLE IF NOT EXISTS public.zawaaj_privacy_requests (
   controller_notified_at timestamptz,
   controller_approved_at timestamptz,
   completed_at          timestamptz,
-  statutory_deadline    timestamptz GENERATED ALWAYS AS (created_at + interval '30 days') STORED,
+  statutory_deadline    timestamptz,
   rejection_reason      text,
   created_at            timestamptz NOT NULL DEFAULT now(),
   updated_at            timestamptz NOT NULL DEFAULT now()
 );
+
+-- Trigger: auto-populate statutory_deadline = created_at + 30 days on insert.
+-- (Generated columns cannot use STABLE expressions like timestamptz + interval,
+--  so we use a BEFORE INSERT trigger instead.)
+CREATE OR REPLACE FUNCTION public.zawaaj_set_privacy_deadline()
+  RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+  NEW.statutory_deadline := NEW.created_at + interval '30 days';
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER zawaaj_privacy_requests_deadline
+  BEFORE INSERT ON public.zawaaj_privacy_requests
+  FOR EACH ROW EXECUTE FUNCTION public.zawaaj_set_privacy_deadline();
 
 ALTER TABLE public.zawaaj_privacy_requests ENABLE ROW LEVEL SECURITY;
 
