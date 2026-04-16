@@ -10,6 +10,7 @@ import { PLAN_LABELS, PLAN_PRICES, PLAN_CONFIG } from '@/lib/plan-config'
 type Plan = 'free' | 'plus' | 'premium'
 type Tab = 'membership' | 'account' | 'privacy'
 type ThemeMode = 'light' | 'dark' | 'system'
+type EraseStep = 'idle' | 'confirming' | 'submitting' | 'done' | 'cancelled'
 
 interface Subscription {
   plan: Plan
@@ -76,6 +77,14 @@ function SettingsContent() {
   const [profile, setProfile] = useState<{ display_initials: string; gender: string | null; first_name: string | null } | null>(null)
   const [annual, setAnnual] = useState(false)
   const [themeMode, setThemeMode] = useState<ThemeMode>('dark')
+
+  // Data rights state
+  const [exportLoading, setExportLoading] = useState(false)
+  const [exportMsg, setExportMsg] = useState<string | null>(null)
+  const [eraseStep, setEraseStep] = useState<EraseStep>('idle')
+  const [erasePhrase, setErasePhrase] = useState('')
+  const [eraseChecked, setEraseChecked] = useState(false)
+  const [eraseError, setEraseError] = useState<string | null>(null)
 
   // Show success flash if returning from Stripe checkout
   const checkoutSuccess = searchParams.get('checkout') === 'success'
@@ -172,6 +181,45 @@ function SettingsContent() {
     } catch {
       setCheckoutError('Unexpected error — please try again')
       setCheckoutLoading(null)
+    }
+  }
+
+  async function handleExport() {
+    setExportLoading(true)
+    setExportMsg(null)
+    try {
+      const res = await fetch('/api/privacy/export', { method: 'POST' })
+      const json = await res.json().catch(() => ({}))
+      if (res.ok) {
+        setExportMsg('Done — a copy of your data has been sent to your registered email address.')
+      } else if (res.status === 429) {
+        setExportMsg(json.error ?? 'You can only request a data export once every 30 days.')
+      } else {
+        setExportMsg(json.error ?? 'Something went wrong — please try again.')
+      }
+    } catch {
+      setExportMsg('Something went wrong — please try again.')
+    } finally {
+      setExportLoading(false)
+    }
+  }
+
+  async function handleErase() {
+    if (erasePhrase !== 'DELETE MY ACCOUNT' || !eraseChecked) return
+    setEraseStep('submitting')
+    setEraseError(null)
+    try {
+      const res = await fetch('/api/privacy/erase', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ confirmation_phrase: erasePhrase }) })
+      const json = await res.json().catch(() => ({}))
+      if (res.ok) {
+        setEraseStep('done')
+      } else {
+        setEraseError(json.error ?? 'Something went wrong — please try again.')
+        setEraseStep('confirming')
+      }
+    } catch {
+      setEraseError('Something went wrong — please try again.')
+      setEraseStep('confirming')
     }
   }
 
@@ -475,24 +523,150 @@ function SettingsContent() {
         {/* ── Privacy tab ────────────────────────────────────────────────── */}
         {tab === 'privacy' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+            {/* How we protect your data */}
             <div style={{ background: 'var(--surface-2)', border: '0.5px solid var(--border-default)', borderRadius: 16, padding: 20 }}>
-              <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>Profile visibility</p>
-              <p style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.6 }}>
-                Your profile is only visible to other approved members of the opposite gender. Profile links require sign-in to view. Admins can always see your profile.
-              </p>
+              <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>How your data is protected</p>
+              <ul style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.8, paddingLeft: 16, margin: 0 }}>
+                <li>Your profile is only visible to approved members of the opposite gender.</li>
+                <li>Your phone number and guardian details are never shared with other members — only with families you have both agreed to be introduced to.</li>
+                <li>Your date of birth is never shown; only your approximate age appears on your profile.</li>
+                <li>One-sided interest is completely private — the other person only knows you expressed interest if it becomes mutual.</li>
+              </ul>
             </div>
+
+            {/* Download my data */}
             <div style={{ background: 'var(--surface-2)', border: '0.5px solid var(--border-default)', borderRadius: 16, padding: 20 }}>
-              <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>Introduction privacy</p>
-              <p style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.6 }}>
-                One-sided interest is completely private. Another member only knows you expressed interest if the interest is mutual. Contact details are never shared without explicit verbal consent.
+              <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>Download a copy of my data</p>
+              <p style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: 14 }}>
+                Under UK data protection law, you have the right to receive a copy of all the information we hold about you. We&apos;ll email it to your registered address. You can request this once every 30 days.
               </p>
+              {exportMsg ? (
+                <p style={{ fontSize: 12, color: exportMsg.startsWith('Done') ? 'var(--status-success)' : 'var(--status-error)', lineHeight: 1.6 }}>
+                  {exportMsg}
+                </p>
+              ) : (
+                <button
+                  onClick={handleExport}
+                  disabled={exportLoading}
+                  style={{
+                    padding: '9px 20px', borderRadius: 9, fontSize: 12, fontWeight: 500,
+                    background: 'var(--surface-3)', border: '0.5px solid var(--border-default)',
+                    color: 'var(--text-primary)', cursor: exportLoading ? 'not-allowed' : 'pointer',
+                    opacity: exportLoading ? 0.6 : 1, transition: 'opacity 0.15s',
+                  }}
+                >
+                  {exportLoading ? 'Sending…' : 'Send me a copy of my data'}
+                </button>
+              )}
             </div>
+
+            {/* Delete account */}
+            <div style={{ background: 'var(--surface-2)', border: '0.5px solid rgba(239,68,68,0.2)', borderRadius: 16, padding: 20 }}>
+              <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>Delete my account</p>
+              <p style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: 14 }}>
+                You have the right to ask us to delete your account and personal data. Your profile will be removed from the directory immediately. Your account will be permanently deleted after a 7-day waiting period, giving you a chance to change your mind. We&apos;ll send a cancellation link to your email.
+              </p>
+
+              {eraseStep === 'idle' && (
+                <button
+                  onClick={() => setEraseStep('confirming')}
+                  style={{
+                    padding: '9px 20px', borderRadius: 9, fontSize: 12, fontWeight: 500,
+                    background: 'rgba(239,68,68,0.08)', border: '0.5px solid rgba(239,68,68,0.3)',
+                    color: '#f87171', cursor: 'pointer',
+                  }}
+                >
+                  Delete my account
+                </button>
+              )}
+
+              {eraseStep === 'confirming' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={eraseChecked}
+                      onChange={e => setEraseChecked(e.target.checked)}
+                      style={{ marginTop: 2, accentColor: '#ef4444', flexShrink: 0 }}
+                    />
+                    <span style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+                      I understand this will permanently delete my account and all my data after 7 days. This cannot be undone.
+                    </span>
+                  </label>
+                  <div>
+                    <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 6 }}>
+                      To confirm, type <strong style={{ color: 'var(--text-primary)', letterSpacing: '0.04em' }}>DELETE MY ACCOUNT</strong> in the box below:
+                    </p>
+                    <input
+                      type="text"
+                      value={erasePhrase}
+                      onChange={e => setErasePhrase(e.target.value)}
+                      placeholder="DELETE MY ACCOUNT"
+                      style={{
+                        width: '100%', padding: '9px 12px', borderRadius: 8, fontSize: 12,
+                        background: 'var(--surface-3)', border: '0.5px solid var(--border-default)',
+                        color: 'var(--text-primary)', outline: 'none', boxSizing: 'border-box',
+                      }}
+                    />
+                  </div>
+                  {eraseError && (
+                    <p style={{ fontSize: 12, color: '#f87171' }}>{eraseError}</p>
+                  )}
+                  <div style={{ display: 'flex', gap: 10 }}>
+                    <button
+                      onClick={() => { setEraseStep('idle'); setErasePhrase(''); setEraseChecked(false); setEraseError(null) }}
+                      style={{
+                        padding: '9px 20px', borderRadius: 9, fontSize: 12, fontWeight: 500,
+                        background: 'var(--surface-3)', border: '0.5px solid var(--border-default)',
+                        color: 'var(--text-secondary)', cursor: 'pointer',
+                      }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleErase}
+                      disabled={erasePhrase !== 'DELETE MY ACCOUNT' || !eraseChecked}
+                      style={{
+                        padding: '9px 20px', borderRadius: 9, fontSize: 12, fontWeight: 600,
+                        background: erasePhrase === 'DELETE MY ACCOUNT' && eraseChecked ? '#ef4444' : 'rgba(239,68,68,0.15)',
+                        border: 'none',
+                        color: erasePhrase === 'DELETE MY ACCOUNT' && eraseChecked ? '#fff' : '#f87171',
+                        cursor: erasePhrase === 'DELETE MY ACCOUNT' && eraseChecked ? 'pointer' : 'not-allowed',
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      Request account deletion
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {eraseStep === 'submitting' && (
+                <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Submitting your request…</p>
+              )}
+
+              {eraseStep === 'done' && (
+                <div style={{ padding: '12px 16px', borderRadius: 10, background: 'rgba(239,68,68,0.08)', border: '0.5px solid rgba(239,68,68,0.25)' }}>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: '#f87171', marginBottom: 4 }}>Deletion request submitted</p>
+                  <p style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.6 }}>
+                    Your profile has been removed from the directory. Your account will be permanently deleted in 7 days. We&apos;ve sent a cancellation link to your email — use it if you change your mind.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Legal links */}
             <div style={{ background: 'var(--surface-2)', border: '0.5px solid var(--border-default)', borderRadius: 16, padding: 20 }}>
-              <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>Terms & conditions</p>
-              <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 12 }}>Read our full terms of use and privacy policy.</p>
-              <Link href="/terms" style={{ fontSize: 12, color: 'var(--gold)', textDecoration: 'none' }}>
-                Read Terms →
-              </Link>
+              <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 12 }}>Legal documents</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <Link href="/privacy" style={{ fontSize: 12, color: 'var(--gold)', textDecoration: 'none' }}>
+                  Privacy Policy →
+                </Link>
+                <Link href="/terms" style={{ fontSize: 12, color: 'var(--gold)', textDecoration: 'none' }}>
+                  Terms &amp; Conditions →
+                </Link>
+              </div>
             </div>
           </div>
         )}
