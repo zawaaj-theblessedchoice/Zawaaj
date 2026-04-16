@@ -496,6 +496,110 @@ const adminEventsRows = [
     'Archived event not visible anywhere on member events page'),
 ]
 
+// ─── Sheet 7 — GDPR & Privacy Rights ─────────────────────────────────────────
+counter = 1
+const gdprRows = [
+  row('GDPR', 'Cookie Notice', 'Cookie notice appears on first visit',
+    'Fresh browser / cleared browser storage (or use private/incognito window)',
+    '1. Open zawaaj.uk in a new private/incognito window\n2. Wait for the page to fully load',
+    'A small notice bar appears at the bottom of the screen saying the site uses strictly necessary cookies only, with a "Got it" button and a link to the Privacy Policy'),
+
+  row('GDPR', 'Cookie Notice', 'Cookie notice disappears after clicking "Got it"',
+    'Cookie notice is visible on screen',
+    '1. Click the "Got it" button on the cookie notice',
+    'The notice bar closes immediately and does not reappear when navigating to other pages'),
+
+  row('GDPR', 'Cookie Notice', 'Cookie notice does not reappear on return visit',
+    'Already clicked "Got it" on this device/browser',
+    '1. Close the browser tab\n2. Open zawaaj.uk again in the same browser (not incognito)',
+    'The cookie notice does not appear — it stays dismissed'),
+
+  row('GDPR', 'Privacy Policy', 'Privacy Policy page is publicly accessible (no login needed)',
+    'Not logged in',
+    '1. Go to zawaaj.uk/privacy',
+    'Full Privacy Policy page loads — no login required; page shows Ingenious Education Ltd as Data Controller and Zawaaj as Data Processor'),
+
+  row('GDPR', 'Privacy Policy', 'Privacy Policy link in cookie notice works',
+    'Cookie notice visible on screen',
+    '1. Click the "Privacy Policy" link in the cookie notice',
+    'Navigates to /privacy — Privacy Policy page loads correctly'),
+
+  row('GDPR', 'Privacy Policy', 'Privacy link in sidebar works for logged-in members',
+    'Signed in as an approved member',
+    '1. Look at the left-hand sidebar\n2. Click "Privacy" (below Help centre)',
+    'Navigates to /privacy — Privacy Policy page loads'),
+
+  row('GDPR', 'Terms & Conditions', 'GDPR clauses visible on Terms page',
+    'None',
+    '1. Go to zawaaj.uk/terms\n2. Scroll to clauses 11–14',
+    'Four new sections visible: "Data Controller & Processor", "Your Data Protection Rights", "Cookies", and "Changes to These Terms"'),
+
+  row('GDPR', 'Terms & Conditions', 'Privacy Policy link at bottom of Terms page works',
+    'On /terms page',
+    '1. Scroll to the very bottom of the Terms page\n2. Click "Privacy Policy →"',
+    'Navigates to /privacy — Privacy Policy loads'),
+
+  row('GDPR', 'Data Rights Portal', 'Data rights page requires login',
+    'Not logged in',
+    '1. Go to zawaaj.uk/privacy/rights',
+    'Redirected to /login — cannot access the data rights page without being signed in'),
+
+  row('GDPR', 'Data Rights Portal', 'Data rights portal loads for logged-in member',
+    'Signed in as an approved member',
+    '1. Go to zawaaj.uk/privacy/rights  (or click Privacy in sidebar, then click "Manage your data rights")',
+    'Page loads with five tabs: Overview, Request my data, Correct my data, Delete my account, Request history'),
+
+  row('GDPR', 'Data Rights Portal', 'Overview tab shows action cards',
+    'On /privacy/rights — Overview tab',
+    '1. Check the Overview tab',
+    'Four action cards visible: "Download my data", "Correct my data", "Delete my account", "View request history"'),
+
+  row('GDPR', 'Request My Data', 'Member can request a copy of their data',
+    'Signed in as member; on /privacy/rights — "Request my data" tab; no export request in the last 30 days',
+    '1. Click the "Request my data" tab\n2. Click "Send me my data"',
+    'Success message shown — "We\'ve sent a copy of your data to your registered email address"; an email arrives with a downloadable file attached'),
+
+  row('GDPR', 'Request My Data', 'Second export request within 30 days is blocked',
+    'Already submitted an export request within the last 30 days',
+    '1. Go to "Request my data" tab\n2. Try to click "Send me my data" again',
+    'Message shown explaining that only one export is allowed every 30 days; the button is disabled or shows when the next request can be made'),
+
+  row('GDPR', 'Correct My Data', 'Member can submit a correction request',
+    'Signed in; on "Correct my data" tab; fewer than 3 pending correction requests',
+    '1. Click the "Correct my data" tab\n2. Select a field (e.g. Location)\n3. Enter the correct value\n4. Add a brief reason\n5. Click Submit',
+    'Success message shown — request submitted; appears in Request history with status "Pending"'),
+
+  row('GDPR', 'Correct My Data', 'Cannot have more than 3 open correction requests at once',
+    'Already have 3 correction requests with status "Pending"',
+    '1. Go to "Correct my data" tab\n2. Try to submit another correction',
+    'Error message shown — cannot submit more than 3 correction requests at a time; told to wait for existing ones to be processed'),
+
+  row('GDPR', 'Delete My Account', 'Delete account requires typing a confirmation phrase',
+    'Signed in; on "Delete my account" tab',
+    '1. Click "Delete my account" tab\n2. Check the confirmation checkbox\n3. Leave the confirmation phrase box empty\n4. Try to click "Request account deletion"',
+    'Button remains inactive or shows an error — the exact phrase "DELETE MY ACCOUNT" must be typed before the request can be submitted'),
+
+  row('GDPR', 'Delete My Account', 'Delete account request submitted successfully',
+    'Signed in; on "Delete my account" tab',
+    '1. Check the confirmation checkbox\n2. Type DELETE MY ACCOUNT in the text box (exactly as shown)\n3. Click "Request account deletion"',
+    'Success message shown — account is scheduled for deletion in 7 days; profile immediately disappears from the member directory; a cancellation link is sent to the registered email address'),
+
+  row('GDPR', 'Delete My Account', 'Member can cancel their deletion request via email link',
+    'Deletion request submitted; cancellation email received',
+    '1. Open the cancellation email\n2. Click "Cancel my deletion request"',
+    'Browser opens with a message confirming the deletion has been cancelled; profile is restored (status set to paused — no longer in the browse directory but account is active)'),
+
+  row('GDPR', 'Request History', 'Submitted requests appear in history tab',
+    'At least one request has been submitted (export, correction, or deletion)',
+    '1. Go to "Request history" tab',
+    'All past requests listed with type, date submitted, and current status (Pending / Completed / Cancelled)'),
+
+  row('GDPR', 'Request History', 'Empty history shows friendly message',
+    'No requests have ever been submitted',
+    '1. Go to "Request history" tab',
+    'Message shown: "No requests yet" or similar — no blank/broken table'),
+]
+
 // ─── Build workbook ───────────────────────────────────────────────────────────
 
 function makeSheet(rows) {
@@ -526,11 +630,13 @@ XLSX.utils.book_append_sheet(wb, makeSheet(parentPathARows),  '3. Parent Account
 XLSX.utils.book_append_sheet(wb, makeSheet(childPathBRows),   '4. Child Path B (Direct)')
 XLSX.utils.book_append_sheet(wb, makeSheet(inviteTokenRows),  '5. Invite Token Auto-Linkage')
 XLSX.utils.book_append_sheet(wb, makeSheet(adminEventsRows),  '6. Admin Events CRUD')
+XLSX.utils.book_append_sheet(wb, makeSheet(gdprRows),          '7. Privacy & Data Rights')
 
 const outPath = path.join(__dirname, 'Zawaaj_Test_Cases.xlsx')
 XLSX.writeFile(wb, outPath)
 console.log(`✅  Written: ${outPath}`)
 console.log(`    Total test cases: ${
   memberRows.length + managerRows.length + parentPathARows.length +
-  childPathBRows.length + inviteTokenRows.length + adminEventsRows.length
+  childPathBRows.length + inviteTokenRows.length + adminEventsRows.length +
+  gdprRows.length
 }`)
