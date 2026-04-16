@@ -53,6 +53,26 @@ const CLAUSES = [
     title: 'Withdrawal & Data Retention',
     body: `You may withdraw your profile at any time by contacting the admin or using the withdrawal option in your profile settings. Upon withdrawal, your profile will be removed from the directory immediately and marked as withdrawn. Your personal data will be retained for a period of 2 years from the date of withdrawal for audit and safeguarding purposes, after which it will be permanently deleted. If you wish to request earlier deletion of your data, please contact the admin directly. Requests will be processed in accordance with applicable data protection law.`,
   },
+  {
+    number: '11.',
+    title: 'Data Controller & Processor',
+    body: `The Data Controller for personal data processed through the Zawaaj platform is Ingenious Education Ltd, a company incorporated in England and Wales. Ingenious Education Ltd determines the purposes and means of processing your personal data and is responsible for ensuring that processing is carried out lawfully in accordance with the UK General Data Protection Regulation (UK GDPR) and the Data Protection Act 2018. Zawaaj (zawaaj.uk) acts as a Data Processor, processing your personal data solely on the instructions of Ingenious Education Ltd and in accordance with a Data Processing Agreement entered into pursuant to Article 28 UK GDPR. If you have any questions about how your data is processed, please contact Ingenious Education Ltd directly.`,
+  },
+  {
+    number: '12.',
+    title: 'Your Data Protection Rights',
+    body: `As a Data Subject under UK GDPR, you have the following rights: (a) Right of Access (Article 15) — request a copy of the personal data we hold about you; (b) Right to Rectification (Article 16) — request correction of inaccurate data; (c) Right to Erasure (Article 17) — request deletion of your data where there is no overriding legal basis for retention; (d) Right to Restriction (Article 18) — request that we limit processing of your data in certain circumstances; (e) Right to Data Portability (Article 20) — receive your data in a structured, machine-readable format; (f) Right to Object (Article 21) — object to processing based on legitimate interests. You may exercise any of these rights via the Privacy & Data Rights section of your account settings (zawaaj.uk/privacy/rights). We will respond within 30 days. You also have the right to lodge a complaint with the Information Commissioner's Office (ICO) at ico.org.uk if you believe your data protection rights have been infringed.`,
+  },
+  {
+    number: '13.',
+    title: 'Cookies',
+    body: `Zawaaj uses strictly necessary cookies only. These cookies are essential for the platform to function — they manage your login session and protect against cross-site request forgery (CSRF). No analytics cookies, advertising cookies, or third-party tracking technologies are used on this platform. You cannot opt out of strictly necessary cookies without also opting out of the platform itself. For full details, please read our Privacy Policy at zawaaj.uk/privacy.`,
+  },
+  {
+    number: '14.',
+    title: 'Changes to These Terms',
+    body: `Ingenious Education Ltd reserves the right to update these Terms & Conditions at any time. Where changes are material, registered members will be notified by email. Continued use of the platform following notification of changes constitutes acceptance of the revised terms. The date at the top of this page reflects the date of the most recent update.`,
+  },
 ]
 
 export default function TermsPage() {
@@ -112,7 +132,7 @@ export default function TermsPage() {
         </div>
 
         {/* Footer nav */}
-        <div className="mt-12 pt-6 border-t flex items-center gap-4" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
+        <div className="mt-12 pt-6 border-t flex items-center justify-between flex-wrap gap-4" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
           <button
             onClick={() => router.back()}
             className="text-sm font-medium transition-opacity hover:opacity-70"
@@ -120,6 +140,13 @@ export default function TermsPage() {
           >
             &larr; Return to form
           </button>
+          <a
+            href="/privacy"
+            className="text-sm font-medium transition-opacity hover:opacity-70"
+            style={{ color: '#B8960C', textDecoration: 'none' }}
+          >
+            Privacy Policy &rarr;
+          </a>
         </div>
 
       </div>

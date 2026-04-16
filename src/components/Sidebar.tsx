@@ -633,8 +633,33 @@ export default function Sidebar({
           )}
         </div>
       )}
-      {/* Help + Sign out — grouped with slight separation */}
+      {/* Help + Privacy + Sign out — grouped with slight separation */}
       <div style={{ padding: '8px 10px', borderTop: '0.5px solid var(--border-default)', display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Link
+          href="/privacy"
+          style={{
+            display: 'flex', alignItems: 'center', gap: 9,
+            width: '100%', padding: '9px 10px',
+            background: 'none', borderRadius: 8,
+            color: 'var(--text-secondary)', fontSize: 13,
+            textDecoration: 'none',
+            transition: 'background 0.15s, color 0.15s',
+          }}
+          onMouseEnter={e => {
+            (e.currentTarget as HTMLAnchorElement).style.background = 'var(--surface-3)'
+            ;(e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-primary)'
+          }}
+          onMouseLeave={e => {
+            (e.currentTarget as HTMLAnchorElement).style.background = 'none'
+            ;(e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-secondary)'
+          }}
+        >
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" style={{ flexShrink: 0 }}>
+            <path d="M7.5 1.5L2 4v4c0 3.3 2.4 5.7 5.5 6.5C10.6 13.7 13 11.3 13 8V4L7.5 1.5Z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+          </svg>
+          Privacy
+        </Link>
+
         <button
           onClick={() => window.open('/help', '_blank')}
           style={{
