@@ -143,7 +143,20 @@
       "Bash(sed -i 's/<ZawaajLogo size={60} \\\\/>/<ZawaajLogo height={220} \\\\/>/g' src/app/register/accept-invite/page.tsx)",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://www.zawaaj.uk/og-image.jpg\")",
       "mcp__50fe9e92-bb5c-48b5-bd51-cefe4f004add__list_teams",
-      "mcp__50fe9e92-bb5c-48b5-bd51-cefe4f004add__list_projects"
+      "mcp__50fe9e92-bb5c-48b5-bd51-cefe4f004add__list_projects",
+      "Bash(grep -n \"ALTER TABLE.*zawaaj_profiles.*ADD.*outcome\" \"C:/Users/mrkha/OneDrive/Desktop/Zawaaj-MVP/supabase/migrations\"/*.sql)",
+      "Bash(grep -l \"outcome\\\\|outcome_date\" \"C:/Users/mrkha/OneDrive/Desktop/Zawaaj-MVP/supabase/migrations\"/*.sql)",
+      "Bash(dir \"C:\\\\Users\\\\mrkha\\\\OneDrive\\\\Desktop\\\\Zawaaj-MVP\\\\supabase\\\\migrations\" /B /O:N)",
+      "Bash(node node_modules\\\\typescript\\\\bin\\\\tsc --noEmit)",
+      "Bash(node test-cases/generate-test-cases.js)",
+      "Bash(node \"C:/Users/mrkha/OneDrive/Desktop/Zawaaj-MVP/test-cases/generate-test-cases.js\")",
+      "mcp__50fe9e92-bb5c-48b5-bd51-cefe4f004add__get_deployment_build_logs",
+      "mcp__50fe9e92-bb5c-48b5-bd51-cefe4f004add__list_deployments",
+      "WebFetch(domain:purematrimony.com)",
+      "Bash(node test-cases/generate-end-user-tests.js)",
+      "Bash(node test-cases/generate-manager-tests.js)",
+      "Bash(node test-cases/generate-admin-tests.js)",
+      "Bash(grep -E \"\\\\.\\(sql|ts|js\\)$\")"
     ]
   }
 }

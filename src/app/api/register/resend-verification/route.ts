@@ -48,10 +48,7 @@ export async function POST(request: Request): Promise<Response> {
 
     if (tokenError || !tokenRow) {
       console.error('[resend-verification] token insert error:', tokenError?.message, tokenError?.details, tokenError?.hint)
-      return NextResponse.json(
-        { error: `Token insert failed: ${tokenError?.message ?? 'no row returned'} | ${tokenError?.details ?? ''} | hint: ${tokenError?.hint ?? ''}` },
-        { status: 500 }
-      )
+      return NextResponse.json({ error: 'Failed to create verification token. Please try again.' }, { status: 500 })
     }
 
     const verifyLink = `https://www.zawaaj.uk/register/verify?token=${tokenRow.token}`

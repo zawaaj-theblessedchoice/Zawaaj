@@ -295,15 +295,20 @@ const parentPathARows = [
     '1. Check consent and terms boxes\n2. Click Submit',
     'Cannot submit without both boxes checked', 'Self'),
 
+  row('PAR-A', 'Registration', 'Form state preserved if user opens T&C mid-wizard',
+    'In the middle of completing the wizard (e.g. step 2 filled in)',
+    '1. Fill in steps 1–2 of the registration form\n2. Click the Terms of Use link (opens in a new tab)\n3. Close the T&C tab and return to the registration form',
+    'All previously entered fields are still filled in — the form has not been cleared', 'Self'),
+
   row('PAR-A', 'Registration', 'Successful registration',
     'All steps complete; valid data',
     '1. Click Submit on final step',
-    'Account created; family account created; profile created with status=pending; redirect to /pending', 'Self'),
+    'Email verification screen shown; auth user created; family account created with status=active; profile created with status=pending', 'Self'),
 
-  row('PAR-A', 'Post-registration', 'Pending page after registration',
+  row('PAR-A', 'Post-registration', 'Email verification screen after registration',
     'Just completed registration',
-    '1. After redirect to /pending',
-    'Clock icon shown; "Application submitted — JazakAllahu Khayran" message; sign-out link', 'Self'),
+    '1. Click Submit on final step',
+    'Envelope illustration shown; registered email address displayed; "Resend email" button available', 'Self'),
 
   row('PAR-A', 'Post-registration', 'Profile not visible in browse before approval',
     'Profile status = pending',
@@ -311,14 +316,14 @@ const parentPathARows = [
     'Newly registered profile not visible', 'Super Admin + Member'),
 
   row('PAR-A', 'Family account', 'Family account created on registration',
-    'Completed Path A registration',
-    '1. In Supabase / admin families view, search by contact email',
-    'Family account row exists with contact_full_name, contact_email, registration_path = direct', 'Super Admin'),
+    'Completed Path A registration and email verified',
+    '1. Sign in as super_admin\n2. Go to /admin/accounts\n3. Search by contact email',
+    'Family account row exists with status = Active; contact name, email, registration path all correct', 'Super Admin'),
 
   row('PAR-A', 'Family account', 'Admin can view family details after Path A',
-    'As admin; on /admin/families',
-    '1. Search for family\n2. Open family row',
-    'Contact details, family members, invite tokens all visible', 'Super Admin'),
+    'As super_admin; on /admin/accounts',
+    '1. Search for the family\n2. Click the candidates count to expand the row',
+    'Contact details visible; candidate profile shown with status = Pending Review; Approve/Reject buttons available', 'Super Admin'),
 ]
 
 // ─── Sheet 4 — Child Path B (direct self-registration) ────────────────────────
@@ -344,10 +349,15 @@ const childPathBRows = [
     '1. Complete all 8 steps with guardian details\n2. Submit',
     'Auth user created; new family account created; profile created; redirect to /pending', 'Self'),
 
-  row('CHD-B', 'Post-registration', 'Pending state after child direct registration',
+  row('CHD-B', 'Registration', 'Form state preserved if user opens T&C mid-wizard',
+    'In the middle of completing the wizard (e.g. personal details filled in)',
+    '1. Fill in steps 1–2 of the child registration form\n2. Click the Terms of Use link\n3. Close that tab and return to the form',
+    'All previously entered fields are still filled in — no data has been lost', 'Self'),
+
+  row('CHD-B', 'Post-registration', 'Email verification screen after child direct registration',
     'Just completed child Path B registration',
-    '1. Check /pending',
-    '"Application submitted" message with clock icon; no email verification pending state', 'Self'),
+    '1. Click Submit on final step',
+    'Envelope illustration shown with contact email; "Resend email" button available', 'Self'),
 
   row('CHD-B', 'Family account', 'New family account created for independent child',
     'Completed Path B direct registration',
@@ -415,23 +425,23 @@ const inviteTokenRows = [
 
   row('INV', 'Auto-linkage', 'Admin can see linked profile under family account',
     'Registration completed via invite token',
-    '1. Go to /admin/families\n2. Open the family account that issued the token',
-    'New member profile appears under family account members list', 'Super Admin'),
+    '1. Go to /admin/accounts\n2. Find the family account that issued the token\n3. Click the candidates count to expand',
+    'New candidate profile appears with the correct status (Pending Review)', 'Super Admin'),
 
-  row('INV', 'Admin — families view', 'Families page lists all family accounts',
+  row('INV', 'Admin — accounts view', 'Accounts page lists all family accounts',
     'Signed in as super_admin',
-    '1. Navigate to /admin/families',
-    'All family accounts listed with contact info, member count, registration path', 'Super Admin'),
+    '1. Navigate to /admin/accounts (via sidebar)',
+    'All family accounts listed with contact info, plan, status badge, candidate count, last active, and registered date', 'Super Admin'),
 
-  row('INV', 'Admin — families view', 'Filter families by registration path',
-    'On /admin/families',
-    '1. Apply filter for "direct" or "child_direct"',
-    'List updates to show only matching families', 'Super Admin'),
+  row('INV', 'Admin — accounts view', 'Status tabs filter accounts correctly',
+    'On /admin/accounts',
+    '1. Click "Active" tab\n2. Then "Invited" tab\n3. Then "Inactive" tab',
+    'Each tab shows only accounts in that status; counts in tab labels match the filtered list', 'Super Admin'),
 
-  row('INV', 'Admin — families view', 'Search families by name or email',
-    'On /admin/families',
-    '1. Type in search box',
-    'Results filter to matching families', 'Super Admin'),
+  row('INV', 'Admin — accounts view', 'Search accounts by name or email',
+    'On /admin/accounts',
+    '1. Type a contact name or email in the search box',
+    'List filters in real-time to accounts matching the search', 'Super Admin'),
 ]
 
 // ─── Sheet 6 — Admin Events CRUD ─────────────────────────────────────────────
@@ -602,6 +612,105 @@ const gdprRows = [
     'A message is shown such as "No requests yet" — no blank or broken table', 'Self'),
 ]
 
+// ─── Sheet 8 — Admin Accounts Management ──────────────────────────────────────
+counter = 1
+const adminAccountsRows = [
+  row('ACC', 'Accounts page', 'Access /admin/accounts from sidebar',
+    'Signed in as super_admin',
+    '1. Click "Accounts" in the admin sidebar (under Dashboard section)',
+    '/admin/accounts loads; table shows all family accounts with columns: Contact, Plan, Status, Candidates, Last Active, Registered', 'Super Admin'),
+
+  row('ACC', 'Accounts page', 'Accounts not accessible to managers',
+    'Signed in as manager',
+    '1. Try to navigate to /admin/accounts',
+    'Redirected away (403 or redirect to /admin/introductions); Accounts not visible in sidebar', 'Manager'),
+
+  row('ACC', 'Status badges', 'Active account shows green "Active" badge',
+    'Family account with status = active',
+    '1. On /admin/accounts\n2. Locate an account that has verified their email',
+    'Green "Active" badge displayed in the Status column', 'Super Admin'),
+
+  row('ACC', 'Status badges', 'Unverified account shows blue "Invited" badge',
+    'Family account with status = pending_email_verification',
+    '1. On /admin/accounts\n2. Locate a newly registered account that has not verified email yet',
+    'Blue "Invited" badge displayed in the Status column', 'Super Admin'),
+
+  row('ACC', 'Status badges', 'Suspended account shows grey "Inactive" badge',
+    'Family account with status = suspended',
+    '1. On /admin/accounts\n2. Locate a suspended account',
+    'Grey "Inactive" badge displayed in the Status column', 'Super Admin'),
+
+  row('ACC', 'Candidates', 'Expand candidates row',
+    'Family account with at least one candidate profile',
+    '1. On /admin/accounts\n2. Click the candidates count button on a family row',
+    'Candidate sub-rows appear showing: initials avatar, name, gender, age, location, status badge, and action buttons', 'Super Admin'),
+
+  row('ACC', 'Candidates', 'Pending badge on candidates button when review needed',
+    'Family account has a candidate profile with status = pending',
+    '1. On /admin/accounts\n2. Look at the candidates count button for that family',
+    'An amber number badge appears on the button showing the count of pending-review profiles; families with pending candidates start expanded automatically', 'Super Admin'),
+
+  row('ACC', 'Candidates', 'Approve a pending candidate profile inline',
+    'Candidate profile with status = Pending Review visible in expanded row',
+    '1. Expand the family\'s candidate rows\n2. Click "Approve" next to the pending candidate',
+    'Status badge changes to "Approved" immediately; Approve button disappears; Pause button appears', 'Super Admin'),
+
+  row('ACC', 'Candidates', 'Reject a pending candidate profile inline',
+    'Candidate profile with status = Pending Review visible in expanded row',
+    '1. Expand the family\'s candidate rows\n2. Click "Reject" next to the pending candidate',
+    'Status badge changes to "Rejected"; Reject button disappears; Approve button appears', 'Super Admin'),
+
+  row('ACC', 'Candidates', 'Pause an approved candidate profile inline',
+    'Candidate profile with status = Approved',
+    '1. Expand the family\'s candidate rows\n2. Click "Pause"',
+    'Status badge changes to "Paused"; profile disappears from member browse', 'Super Admin'),
+
+  row('ACC', 'Candidates', 'Re-approve a paused or rejected profile inline',
+    'Candidate profile with status = Paused or Rejected',
+    '1. Expand the family\'s candidate rows\n2. Click "Approve"',
+    'Status badge changes to "Approved"; profile reappears in member browse', 'Super Admin'),
+
+  row('ACC', 'Candidates', 'View full profile from accounts page',
+    'Candidate row visible in expanded accounts view',
+    '1. Click "View" next to any candidate',
+    'Navigates to /admin/profile/[id] — full admin profile view with all sensitive fields', 'Super Admin'),
+
+  row('ACC', 'Last Active', 'Last active column shows relative time for active users',
+    'Family account where the guardian has signed in before',
+    '1. On /admin/accounts\n2. Look at the Last Active column for an active account',
+    'Relative time shown (e.g. "3d ago", "2h ago"); never shows a raw timestamp', 'Super Admin'),
+
+  row('ACC', 'Last Active', 'Last active shows dash for unverified accounts',
+    'Family account that has never signed in (status = Invited)',
+    '1. On /admin/accounts\n2. Look at Last Active column for an Invited account',
+    'Dash (—) shown in Last Active column', 'Super Admin'),
+
+  row('ACC', 'Delete account', 'Delete a family account with confirmation',
+    'Family account exists on /admin/accounts',
+    '1. Click the bin/delete icon on a family row\n2. Read the confirmation prompt\n3. Click OK to confirm',
+    'Account disappears from the list; family account, linked profiles, and auth users all removed from the database', 'Super Admin'),
+
+  row('ACC', 'Delete account', 'Cancel delete shows no change',
+    'Family account exists on /admin/accounts',
+    '1. Click the bin/delete icon on a family row\n2. Click Cancel on the confirmation prompt',
+    'Nothing changes; account remains in the list', 'Super Admin'),
+
+  row('ACC', 'Search & filter', 'Search by contact name',
+    'On /admin/accounts',
+    '1. Type a guardian\'s name in the search box',
+    'Only accounts with matching contact name appear; case-insensitive', 'Super Admin'),
+
+  row('ACC', 'Search & filter', 'Search by email address',
+    'On /admin/accounts',
+    '1. Type part of an email address in the search box',
+    'Only accounts with matching contact email appear', 'Super Admin'),
+
+  row('ACC', 'Search & filter', 'Tab counts update correctly after status change',
+    'On /admin/accounts; one account is currently Active',
+    '1. Note the Active tab count\n2. Suspend the account via a PATCH or SQL\n3. Refresh the page',
+    'Active count decreases by 1; Inactive count increases by 1', 'Super Admin'),
+]
+
 // ─── Build workbook ───────────────────────────────────────────────────────────
 
 function makeSheet(rows) {
@@ -627,13 +736,14 @@ function makeSheet(rows) {
 
 const wb = XLSX.utils.book_new()
 
-XLSX.utils.book_append_sheet(wb, makeSheet(memberRows),       '1. Member User Flow')
-XLSX.utils.book_append_sheet(wb, makeSheet(managerRows),      '2. Manager Flow')
-XLSX.utils.book_append_sheet(wb, makeSheet(parentPathARows),  '3. Parent Account Path A')
-XLSX.utils.book_append_sheet(wb, makeSheet(childPathBRows),   '4. Child Path B (Direct)')
-XLSX.utils.book_append_sheet(wb, makeSheet(inviteTokenRows),  '5. Invite Token Auto-Linkage')
-XLSX.utils.book_append_sheet(wb, makeSheet(adminEventsRows),  '6. Admin Events CRUD')
+XLSX.utils.book_append_sheet(wb, makeSheet(memberRows),        '1. Member User Flow')
+XLSX.utils.book_append_sheet(wb, makeSheet(managerRows),       '2. Manager Flow')
+XLSX.utils.book_append_sheet(wb, makeSheet(parentPathARows),   '3. Parent Account Path A')
+XLSX.utils.book_append_sheet(wb, makeSheet(childPathBRows),    '4. Child Path B (Direct)')
+XLSX.utils.book_append_sheet(wb, makeSheet(inviteTokenRows),   '5. Invite Token Auto-Linkage')
+XLSX.utils.book_append_sheet(wb, makeSheet(adminEventsRows),   '6. Admin Events CRUD')
 XLSX.utils.book_append_sheet(wb, makeSheet(gdprRows),          '7. Privacy & Data Rights')
+XLSX.utils.book_append_sheet(wb, makeSheet(adminAccountsRows), '8. Admin Accounts')
 
 const outPath = path.join(__dirname, 'Zawaaj_Test_Cases.xlsx')
 XLSX.writeFile(wb, outPath)
@@ -641,5 +751,5 @@ console.log(`✅  Written: ${outPath}`)
 console.log(`    Total test cases: ${
   memberRows.length + managerRows.length + parentPathARows.length +
   childPathBRows.length + inviteTokenRows.length + adminEventsRows.length +
-  gdprRows.length
+  gdprRows.length + adminAccountsRows.length
 }`)

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useEffect, useTransition } from 'react'
 import { AdminShell } from '@/components/admin/AdminShell'
 import Link from 'next/link'
 
@@ -457,8 +457,17 @@ type FilterTab = 'all' | 'active' | 'invited' | 'inactive'
 export function AccountsClient({ accounts }: Props) {
   const [tab, setTab] = useState<FilterTab>('all')
   const [search, setSearch] = useState('')
-  // Derive theme from CSS — default dark
-  const isDark = true
+  const [isDark, setIsDark] = useState(true)
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('zawaaj-theme')
+      if (stored === 'light') { setIsDark(false); return }
+      if (stored === 'dark') { setIsDark(true); return }
+      // system preference
+      setIsDark(window.matchMedia('(prefers-color-scheme: dark)').matches)
+    } catch { /* ignore */ }
+  }, [])
 
   const statusForFilter = (a: AccountRow): FilterTab => {
     const s = accountStatus(a.status)

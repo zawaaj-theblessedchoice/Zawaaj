@@ -299,6 +299,27 @@ function RegisterChildPageInner() {
       .catch(() => setTokenStatus('invalid'))
   }, [searchParams])
 
+  // Restore saved progress from sessionStorage on first mount (after token check settled)
+  useEffect(() => {
+    // Only restore if there's no invite token pre-filling form data
+    try {
+      const saved = sessionStorage.getItem('zawaaj-register-child')
+      if (saved) {
+        const parsed = JSON.parse(saved) as Partial<FormData>
+        const { password: _p, confirmPassword: _c, ...safe } = parsed
+        setForm(prev => ({ ...prev, ...safe }))
+      }
+    } catch { /* ignore */ }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Persist progress (excluding passwords) on every form change
+  useEffect(() => {
+    try {
+      const { password: _p, confirmPassword: _c, ...safe } = form
+      sessionStorage.setItem('zawaaj-register-child', JSON.stringify(safe))
+    } catch { /* ignore */ }
+  }, [form])
+
   // When using an invite token, step 4 (guardian details) is skipped
   // because the family account already has those details.
   const EFFECTIVE_TOTAL = inviteToken ? TOTAL_STEPS - 1 : TOTAL_STEPS
@@ -489,6 +510,8 @@ function RegisterChildPageInner() {
       return
     }
 
+    // Clear saved progress now that registration succeeded
+    try { sessionStorage.removeItem('zawaaj-register-child') } catch { /* ignore */ }
     setVerificationEmail(json.contactEmail ?? form.guardianEmail ?? form.email)
     setFamilyAccountId(json.familyAccountId ?? '')
     setSubmitting(false)
@@ -985,7 +1008,7 @@ function RegisterChildPageInner() {
                 lineHeight: 1.6,
               }}
             >
-              Zawaaj requires a female family member to be the point of contact for introductions. Her details will be used by our team when connecting families — they will never be visible to other members until a mutual match is confirmed and our team verifies the contact.
+              Your guardian's details will be used by our team when connecting families — they are never shared with other members until a mutual introduction is confirmed and both families have verbally agreed to proceed.
             </div>
             <Field label="Her full name" required fieldId="field-contact_full_name" error={fieldErrors.contact_full_name}>
               <input type="text" placeholder="e.g. Fatima Hussain" value={form.guardianFullName}
@@ -1023,7 +1046,7 @@ function RegisterChildPageInner() {
                 onChange={e => set('noFemaleContactFlag', e.target.checked)}
                 style={{ marginTop: 2, flexShrink: 0 }} />
               <span style={{ fontSize: 12.5, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                My mother / female guardian is not available — I am unable to provide a female contact at this time.
+                My guardian is not available to be contacted at this time.
               </span>
             </label>
 

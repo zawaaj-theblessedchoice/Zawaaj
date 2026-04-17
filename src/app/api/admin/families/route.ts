@@ -85,7 +85,7 @@ export async function PATCH(request: Request): Promise<Response> {
   const body = await request.json() as { id: string; status: string }
   const { id, status } = body
 
-  const validStatuses = ['pending_approval', 'active', 'suspended', 'pending_contact_details']
+  const validStatuses = ['active', 'suspended', 'pending_contact_details']
   if (!id || !validStatuses.includes(status)) {
     return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
   }

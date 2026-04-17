@@ -134,7 +134,7 @@ const FAQS = [
   },
   {
     q: 'How does the introduction work?',
-    a: 'When interest is mutual, our admin team reaches out to both families separately. If both are ready to proceed, we connect the mothers directly and facilitate the introduction personally.',
+    a: 'When interest is mutual, our admin team reaches out to both families separately. If both are ready to proceed, we connect both families directly and facilitate the introduction personally.',
   },
   {
     q: 'What if I want to pause or withdraw?',

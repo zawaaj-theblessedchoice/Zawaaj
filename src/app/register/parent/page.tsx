@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import ZawaajLogo from '@/components/ZawaajLogo'
 
@@ -143,6 +143,27 @@ export default function RegisterParentPage() {
   // Number of steps depends on whether male contact / female-flag screens show
   const totalSteps = isMale ? 4 : 3
 
+  // Restore saved progress from sessionStorage on first mount
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem('zawaaj-register-parent')
+      if (saved) {
+        const parsed = JSON.parse(saved) as Partial<FormData>
+        // Never restore passwords for security
+        const { password: _p, confirmPassword: _c, ...safe } = parsed
+        setForm(prev => ({ ...prev, ...safe }))
+      }
+    } catch { /* ignore */ }
+  }, [])
+
+  // Persist progress (excluding passwords) to sessionStorage on every change
+  useEffect(() => {
+    try {
+      const { password: _p, confirmPassword: _c, ...safe } = form
+      sessionStorage.setItem('zawaaj-register-parent', JSON.stringify(safe))
+    } catch { /* ignore */ }
+  }, [form])
+
   function set<K extends keyof FormData>(key: K, value: FormData[K]) {
     setForm(prev => ({ ...prev, [key]: value }))
     setError(null)
@@ -263,6 +284,8 @@ export default function RegisterParentPage() {
       return
     }
 
+    // Clear saved progress now that registration succeeded
+    try { sessionStorage.removeItem('zawaaj-register-parent') } catch { /* ignore */ }
     setVerificationEmail(json.contactEmail ?? form.contactEmail)
     setFamilyAccountId(json.familyAccountId ?? '')
     setSubmitting(false)
@@ -473,7 +496,7 @@ export default function RegisterParentPage() {
                 Female contact
               </h2>
               <p style={{ fontSize: 12.5, color: 'var(--text-muted)', margin: 0, lineHeight: 1.5 }}>
-                We require a female family member to act as the primary contact for all introductions. This keeps the process dignified and appropriate for all families.
+                Where possible, we ask male guardians to also provide a female family contact. This allows our team to carry out introductions in the most appropriate and dignified way for both families.
               </p>
             </div>
 
@@ -509,7 +532,7 @@ export default function RegisterParentPage() {
                     style={{ ...inputStyle, borderColor: fieldErrors.female_contact_number ? 'var(--status-error, #f87171)' : undefined }}
                   />
                 </Field>
-                <Field label="Please explain why the mother is not the primary contact" required fieldId="field-father_explanation" error={fieldErrors.father_explanation}>
+                <Field label="Why is a male guardian the primary contact? (admin note — not shared with other families)" required fieldId="field-father_explanation" error={fieldErrors.father_explanation}>
                   <textarea
                     placeholder="This is seen by admin only and will never be shared with other families."
                     value={form.fatherExplanation}
@@ -584,7 +607,7 @@ export default function RegisterParentPage() {
             </div>
 
             <div style={{ padding: '12px 14px', borderRadius: 8, background: 'var(--surface-3)', border: '0.5px solid var(--border-default)', fontSize: 12.5, color: 'var(--text-muted)', lineHeight: 1.6 }}>
-              Your family account will be submitted for review. Our team will be in touch insha&apos;Allah. Once approved you can add profiles for your children.
+              Once your email is verified, your family account will be ready. You can then add candidate profiles — each profile is reviewed individually by our team before going live.
             </div>
 
             <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', cursor: 'pointer' }}>

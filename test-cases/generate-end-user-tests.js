@@ -211,20 +211,20 @@ const childPathBRows = [
     '1. Leave guardian fields blank\n2. Try to proceed',
     'Validation error; cannot proceed without guardian contact info', 'Self'),
 
+  row('CHD-B', 'Registration', 'Form state preserved if user opens T&C mid-wizard',
+    'In the middle of completing the wizard (e.g. personal details filled in)',
+    '1. Fill in steps 1–2 of the child registration form\n2. Click the Terms of Use link\n3. Close that tab and return to the form',
+    'All previously entered fields are still filled in — no data has been lost', 'Self'),
+
   row('CHD-B', 'Registration', 'Complete child registration — independent',
     'Valid email; no existing account',
-    '1. Complete all 8 steps with guardian details\n2. Submit',
-    'Auth user created; new family account created; profile created; redirect to /pending', 'Self'),
+    '1. Complete all steps with guardian details\n2. Submit',
+    'Auth user created; new family account created with status=active; profile created with status=pending', 'Self'),
 
-  row('CHD-B', 'Post-registration', 'Pending state after child direct registration',
+  row('CHD-B', 'Post-registration', 'Email verification screen after child direct registration',
     'Just completed child Path B registration',
-    '1. Check /pending',
-    '"Application submitted" message with clock icon; no email verification pending state', 'Self'),
-
-  row('CHD-B', 'Family account', 'New family account created for independent child',
-    'Completed Path B direct registration',
-    '1. In admin /admin/families, search by contact email or name',
-    'New family account exists with registration_path = child_direct', 'Super Admin'),
+    '1. Review the screen shown after clicking Submit',
+    'Envelope illustration shown with contact email; "Resend email" button available', 'Self'),
 ]
 
 // ─── Sheet 3 — Privacy & Data Rights ─────────────────────────────────────────
