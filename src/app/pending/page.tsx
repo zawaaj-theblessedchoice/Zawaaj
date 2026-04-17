@@ -29,6 +29,19 @@ export default async function PendingPage() {
     .eq('primary_user_id', user.id)
     .maybeSingle()
 
+  // Active family account with no candidate profile yet → prompt to add one
+  if (familyAccount?.status === 'active') {
+    const { data: settings } = await supabase
+      .from('zawaaj_user_settings')
+      .select('active_profile_id')
+      .eq('user_id', user.id)
+      .maybeSingle()
+
+    if (!settings?.active_profile_id) {
+      redirect('/register/child')
+    }
+  }
+
   return (
     <PendingClient
       status={familyAccount?.status ?? null}

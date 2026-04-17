@@ -44,6 +44,16 @@ export default async function BrowsePage({
     .maybeSingle()
 
   if (!settings?.active_profile_id) {
+    // Check if they have an active family account — if so, they need to add a candidate profile
+    const { data: familyAccount } = await supabase
+      .from('zawaaj_family_accounts')
+      .select('status')
+      .eq('primary_user_id', user.id)
+      .maybeSingle()
+
+    if (familyAccount?.status === 'active') {
+      redirect('/register/child')
+    }
     redirect('/pending')
   }
 

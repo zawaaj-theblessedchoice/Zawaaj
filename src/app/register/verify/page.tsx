@@ -104,7 +104,7 @@ function VerifyContent() {
             </div>
             <h1 style={{ fontSize: 18, fontWeight: 600, color: 'var(--text-primary)', margin: '20px 0 8px' }}>Email verified</h1>
             <p style={{ fontSize: 13.5, color: 'var(--text-secondary)', lineHeight: 1.65 }}>
-              Your account is now pending review. Our team will be in touch insha&rsquo;Allah. Redirecting you now…
+              Your family account is now active. Redirecting you now…
             </p>
           </>
         )}
