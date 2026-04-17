@@ -5,7 +5,7 @@ import { supabaseAdmin } from '@/lib/supabase/admin'
 // Body: { token: string }
 //
 // Server-side verification: validates the token, marks it accepted,
-// and advances the family account to pending_approval.
+// and activates the family account (no admin approval needed for family accounts).
 // Uses service role to bypass RLS — the token itself is the credential.
 
 export async function POST(request: Request): Promise<Response> {
@@ -62,10 +62,15 @@ export async function POST(request: Request): Promise<Response> {
       return NextResponse.json({ error: 'Failed to mark token accepted' }, { status: 500 })
     }
 
-    // 3. Advance family account status
+    // 3. Activate family account — no manual approval needed for family accounts,
+    //    only profiles require admin approval.
     const { error: accountUpdateErr } = await supabaseAdmin
       .from('zawaaj_family_accounts')
-      .update({ status: 'pending_approval', onboarding_state: 'contact_added' })
+      .update({
+        status: 'active',
+        onboarding_state: 'contact_added',
+        approved_at: new Date().toISOString(),
+      })
       .eq('id', invite.family_account_id)
 
     if (accountUpdateErr) {
