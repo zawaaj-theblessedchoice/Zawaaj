@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useTransition } from 'react'
-import { AdminShell } from '@/components/admin/AdminShell'
 import Link from 'next/link'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -474,8 +473,7 @@ export function AccountsClient({ accounts }: Props) {
   ]
 
   return (
-    <AdminShell role="super_admin">
-      <div style={{ padding: '28px 32px', maxWidth: 1100 }}>
+    <div style={{ padding: '28px 32px', maxWidth: 1100 }}>
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, marginBottom: 20, flexWrap: 'wrap' as const }}>
@@ -535,7 +533,6 @@ export function AccountsClient({ accounts }: Props) {
             <AccountRowCard key={account.id} account={account} isDark={isDark} />
           ))}
         </div>
-      </div>
-    </AdminShell>
+    </div>
   )
 }
