@@ -1,6 +1,6 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
+import ZawaajLogo from '@/components/ZawaajLogo'
 
 const CLAUSES = [
   {
@@ -76,37 +76,35 @@ const CLAUSES = [
 ]
 
 export default function TermsPage() {
-  const router = useRouter()
-
   return (
-    <main className="min-h-screen px-4 py-14" style={{ background: 'var(--surface, #111111)' }}>
+    <main className="min-h-screen px-4 py-14" style={{ background: 'var(--surface)' }}>
       <div className="max-w-3xl mx-auto">
 
         {/* Header */}
         <div className="mb-10 text-center">
-          <h1 className="text-3xl font-bold tracking-tight mb-2" style={{ color: '#B8960C' }}>
-            ZAWAAJ
-          </h1>
-          <p className="text-base font-semibold" style={{ color: '#fff' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+            <ZawaajLogo size={72} tagline={true} />
+          </div>
+          <p className="text-base font-semibold" style={{ color: 'var(--text-primary)' }}>
             Terms &amp; Conditions
           </p>
-          <p className="mt-1 text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          <p className="mt-1 text-xs" style={{ color: 'var(--text-muted)' }}>
             Last updated: April 2026
           </p>
         </div>
 
         {/* Bismillah */}
         <div className="mb-8 text-center">
-          <p style={{ fontSize: 22, color: '#B8960C', fontWeight: 600, letterSpacing: '0.03em', margin: '0 0 6px' }}>
+          <p style={{ fontSize: 22, color: 'var(--gold)', fontWeight: 600, letterSpacing: '0.03em', margin: '0 0 6px' }}>
             بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ
           </p>
-          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', fontStyle: 'italic' }}>
+          <p style={{ fontSize: 13, color: 'var(--text-muted)', fontStyle: 'italic' }}>
             In the name of Allah, the Most Gracious, the Most Merciful
           </p>
         </div>
 
         {/* Intro */}
-        <p className="mb-10 text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.55)' }}>
+        <p className="mb-10 text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
           Please read these Terms &amp; Conditions carefully before using the Zawaaj platform. By creating a profile and using this service, you agree to be bound by these terms in full, including the Islamic Declaration in Clause 3. If you do not agree, please do not use the platform.
         </p>
 
@@ -121,10 +119,10 @@ export default function TermsPage() {
                 border: '0.5px solid rgba(184,150,12,0.25)',
               } : undefined}
             >
-              <h2 className="text-sm font-bold uppercase tracking-wider mb-2" style={{ color: clause.number === '3.' ? '#B8960C' : '#fff' }}>
+              <h2 className="text-sm font-bold uppercase tracking-wider mb-2" style={{ color: clause.number === '3.' ? 'var(--gold)' : 'var(--text-primary)' }}>
                 {clause.number} {clause.title}
               </h2>
-              <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.55)' }}>
+              <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
                 {clause.body}
               </p>
             </section>
@@ -132,18 +130,26 @@ export default function TermsPage() {
         </div>
 
         {/* Footer nav */}
-        <div className="mt-12 pt-6 border-t flex items-center justify-between flex-wrap gap-4" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
+        <div className="mt-12 pt-6 border-t flex items-center justify-between flex-wrap gap-4" style={{ borderColor: 'var(--border-default)' }}>
           <button
-            onClick={() => router.back()}
+            onClick={() => {
+              // Terms opens in a new tab from the registration form.
+              // window.close() closes the tab and returns the user to the form.
+              if (window.opener || window.history.length <= 1) {
+                window.close()
+              } else {
+                window.history.back()
+              }
+            }}
             className="text-sm font-medium transition-opacity hover:opacity-70"
-            style={{ color: '#B8960C', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+            style={{ color: 'var(--gold)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
           >
-            &larr; Return to form
+            &larr; Close and return to form
           </button>
           <a
             href="/privacy"
             className="text-sm font-medium transition-opacity hover:opacity-70"
-            style={{ color: '#B8960C', textDecoration: 'none' }}
+            style={{ color: 'var(--gold)', textDecoration: 'none' }}
           >
             Privacy Policy &rarr;
           </a>

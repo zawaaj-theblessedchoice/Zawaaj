@@ -45,14 +45,21 @@ function StatusBadge({ status }: { status: string }) {
   )
 }
 
+const PLAN_DISPLAY: Record<string, string> = {
+  voluntary: 'Free',
+  free:      'Free',
+  plus:      'Plus',
+  premium:   'Premium',
+}
+
 function PlanBadge({ plan }: { plan: string }) {
   const c = PLAN_COLORS[plan] ?? PLAN_COLORS.voluntary
   return (
     <span style={{
       fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 99,
-      background: c.bg, color: c.text, textTransform: 'capitalize', whiteSpace: 'nowrap',
+      background: c.bg, color: c.text, whiteSpace: 'nowrap',
     }}>
-      {plan}
+      {PLAN_DISPLAY[plan] ?? plan}
     </span>
   )
 }
