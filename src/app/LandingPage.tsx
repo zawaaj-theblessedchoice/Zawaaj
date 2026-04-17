@@ -83,18 +83,18 @@ const COMPACT_COMPARISON = [
 ]
 
 const HOW_IT_WORKS = [
-  { n: 1, title: 'Create your family account', body: 'A parent, guardian, or the candidate themselves registers. The primary point of contact throughout is always a mother or female guardian.' },
+  { n: 1, title: 'Create your family account', body: 'A parent, guardian, or the candidate themselves registers and manages the family account.' },
   { n: 2, title: 'Admin review', body: 'Our team personally reviews every profile before it goes live — keeping the platform trusted and the community high quality.' },
   { n: 3, title: 'Browse & express interest', body: 'When a profile feels right, express interest. One-sided interest remains completely private — the other family is not notified at this stage.' },
   { n: 4, title: 'Mutual interest', body: 'When both families have independently expressed interest in each other, our admin team is notified.' },
   { n: 5, title: 'Admin reaches out', body: 'Our team contacts both families separately to introduce the situation and learn whether they\'d like to proceed.' },
-  { n: 6, title: 'Introduction made', body: 'If both families are ready, our admin connects the mothers directly. Contact details are only shared at this final stage.' },
+  { n: 6, title: 'Introduction made', body: 'If both families are ready, our admin connects the guardian families directly. Contact details are only shared at this final stage.' },
 ]
 
 const VALUES = [
   {
-    title: 'Halal by design',
-    body: 'No direct messaging. No photos. No swiping. Every introduction goes through our admin team.',
+    title: 'Halal and dignified by design',
+    body: 'No direct messaging. No photos. Every introduction goes through our admin team.',
     icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>,
   },
   {
@@ -104,17 +104,17 @@ const VALUES = [
   },
   {
     title: 'Faith-centred',
-    body: 'Built for practising Muslims seeking a serious commitment. We respect your values and your wali.',
+    body: 'Built for Muslims who take marriage seriously.',
     icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2c-2 0-3.5 1.8-3.5 3.5H15.5C15.5 3.8 14 2 12 2Z"/><rect x="3.5" y="7" width="3" height="13" rx="0.5"/><path d="M3.5 7c0-1.3 3-1.3 3 0"/><rect x="17.5" y="7" width="3" height="13" rx="0.5"/><path d="M17.5 7c0-1.3 3-1.3 3 0"/><rect x="8.5" y="5.5" width="7" height="14.5" rx="0.5"/><path d="M10 20c0-2 4-2 4 0"/><line x1="2" y1="20" x2="22" y2="20"/></svg>,
   },
   {
     title: 'Community trust',
-    body: 'Every profile is manually reviewed. We keep the platform small, safe, and high quality.',
+    body: 'Every profile is manually reviewed. We try our best to keep the platform high-quality and safe.',
     icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
   },
   {
-    title: 'Family-first by design',
-    body: 'Every introduction connects families, not just individuals. The mother or female guardian is always the point of contact — keeping the process rooted in respect and Islamic tradition.',
+    title: 'Family-guided',
+    body: 'Families connect with families — every introduction is coordinated personally by our team, keeping the process dignified and respectful.',
     icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
   },
 ]

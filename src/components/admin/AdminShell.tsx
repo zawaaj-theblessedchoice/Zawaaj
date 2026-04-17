@@ -82,13 +82,13 @@ function SubscriptionsIcon() {
   )
 }
 
-function FamiliesIcon() {
+function AccountsIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
-      <circle cx="4" cy="4" r="1.8" stroke="currentColor" strokeWidth="1.3" />
-      <circle cx="10" cy="4" r="1.8" stroke="currentColor" strokeWidth="1.3" />
-      <circle cx="7" cy="9" r="1.8" stroke="currentColor" strokeWidth="1.3" />
-      <path d="M1.5 11.5C1.5 9.8 2.6 8.5 4 8.5M12.5 11.5C12.5 9.8 11.4 8.5 10 8.5M4.8 6.2C5.4 7 6.1 7.2 7 7.2S8.6 7 9.2 6.2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+      <rect x="1" y="2" width="12" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.3" />
+      <path d="M1 5.5h12" stroke="currentColor" strokeWidth="1.3" />
+      <circle cx="4.5" cy="8.5" r="1.2" stroke="currentColor" strokeWidth="1.1" />
+      <path d="M7.5 7.5h4M7.5 9.5h2.5" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" />
     </svg>
   )
 }
@@ -147,6 +147,7 @@ const NAV_SECTIONS = [
     items: [
       { href: '/admin',               label: 'Dashboard',     icon: <DashboardIcon />,     superOnly: true  },
       { href: '/admin/operations',    label: 'Operations',    icon: <OperationsIcon />,    superOnly: true  },
+      { href: '/admin/accounts',      label: 'Accounts',      icon: <AccountsIcon />,      superOnly: true  },
     ],
   },
   {
@@ -160,7 +161,6 @@ const NAV_SECTIONS = [
   {
     label: 'Settings',
     items: [
-      { href: '/admin/families',      label: 'Families',      icon: <FamiliesIcon />,       superOnly: true  },
       { href: '/admin/events',        label: 'Events',        icon: <EventsIcon />,         superOnly: true  },
       { href: '/admin/offers',        label: 'Offers',        icon: <OffersIcon />,         superOnly: true  },
       { href: '/admin/managers',      label: 'Managers',      icon: <ManagersIcon />,       superOnly: true  },
