@@ -326,7 +326,7 @@ function AccountRowCard({ account, isDark }: { account: AccountRow; isDark: bool
             {account.contact_full_name || '—'}
           </div>
           <div style={{ fontSize: 11, color: c.textMuted, lineHeight: 1.3 }}>
-            {RELATIONSHIP_LABEL[account.contact_relationship] ?? account.contact_relationship || '—'}
+            {(RELATIONSHIP_LABEL[account.contact_relationship] ?? account.contact_relationship) || '—'}
           </div>
         </div>
 
