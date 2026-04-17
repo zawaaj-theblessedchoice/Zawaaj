@@ -8,9 +8,9 @@ export type ResponseMode = 'accept_decline' | 'templates'
 
 export const PLAN_CONFIG = {
   free: {
-    // Intro limits (Section 11 — Family Model v2: Voluntary = 5 / month)
-    monthlyLimit:         5,
-    activeLimit:          1,
+    // Intro limits
+    monthlyLimit:         2,
+    activeLimit:          2,
     // Visibility delay before target sees the request
     visibilityDelayHours: 48,
     // Response system
@@ -33,9 +33,8 @@ export const PLAN_CONFIG = {
     maxFamilyMembers:     1,
   },
   plus: {
-    // Section 11: Plus = 15 / month
-    monthlyLimit:         15,
-    activeLimit:          2,
+    monthlyLimit:         4,
+    activeLimit:          4,
     visibilityDelayHours: 24,
     responseMode:         'templates' as ResponseMode,
     canUseTemplates:      true,
@@ -55,9 +54,8 @@ export const PLAN_CONFIG = {
     maxFamilyMembers:     4,
   },
   premium: {
-    // Section 11: Premium = Unlimited
-    monthlyLimit:         Infinity,
-    activeLimit:          Infinity,
+    monthlyLimit:         6,
+    activeLimit:          6,
     visibilityDelayHours: 0,
     responseMode:         'templates' as ResponseMode,
     canUseTemplates:      true,

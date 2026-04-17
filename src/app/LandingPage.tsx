@@ -24,7 +24,7 @@ const PLANS = [
       `${PLAN_CONFIG.free.monthlyLimit} interest expressions / month`,
       'Admin-facilitated introductions',
       'Mutual match notifications',
-      'Community events (selected)',
+      'Invitation to selected community events',
     ],
   },
   {
@@ -41,10 +41,10 @@ const PLANS = [
       `Everything in ${PLAN_LABELS.free}`,
       `${PLAN_CONFIG.plus.monthlyLimit} interest expressions / month`,
       `${PLAN_CONFIG.plus.boosts} profile boost / month`,
-      'Full profile details unlocked',
+      'Detailed profiles provided',
       'New profile alerts',
       'Priority email support',
-      'Full events access',
+      'Priority invitation to all community events',
     ],
   },
   {
@@ -64,7 +64,7 @@ const PLANS = [
       `${PLAN_CONFIG.premium.spotlight} spotlight listing / month`,
       'Concierge matching by admin',
       'See who viewed your profile',
-      'Full activity history',
+      'Priority invitation to all community events',
     ],
   },
 ]
@@ -79,7 +79,7 @@ const COMPACT_COMPARISON = [
   { feature: 'Profile boost',                free: '—',                                    plus: '1× / month',                          premium: 'Weekly' },
   { feature: 'Concierge matching',           free: '—',                                    plus: '—',                                   premium: PLAN_CONFIG.premium.concierge ? 'Yes' : '—' },
   { feature: 'See who viewed you',           free: '—',                                    plus: '—',                                   premium: PLAN_CONFIG.premium.viewTracking ? 'Yes' : '—' },
-  { feature: 'Full profile details',         free: 'Summary',                              plus: PLAN_CONFIG.plus.fullProfile ? 'Yes' : '—', premium: 'Yes' },
+  { feature: 'Profile access',               free: 'Summary of profiles',                  plus: 'Detailed profiles provided',               premium: 'Detailed profiles provided' },
 ]
 
 const HOW_IT_WORKS = [
