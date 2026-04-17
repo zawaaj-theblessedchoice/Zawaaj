@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 import ZawaajLogo from '@/components/ZawaajLogo'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -595,6 +596,15 @@ function RegisterChildPageInner() {
         padding: '24px 16px',
       }}
     >
+      <div style={{ width: '100%', maxWidth: 520 }}>
+        <div style={{ textAlign: 'center', marginBottom: 8 }}>
+          <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, color: 'rgba(255,255,255,0.35)', textDecoration: 'none' }}
+            onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.65)')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.35)')}>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M7.5 2L3.5 6l4 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            Back to website
+          </Link>
+        </div>
       <div
         style={{
           width: '100%',
@@ -1160,6 +1170,7 @@ function RegisterChildPageInner() {
           Already have an account?{' '}
           <a href="/login" style={{ color: 'var(--gold)', textDecoration: 'none' }}>Sign in</a>
         </p>
+      </div>
       </div>
     </main>
   )

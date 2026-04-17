@@ -15,7 +15,8 @@ const AUTH_PATHS      = ['/login', '/signup', '/register']
 // Requires auth but not approval — allowed through once logged in
 const PENDING_PATHS   = ['/pending']
 // Fully public — no auth needed (checked before AUTH_PATHS so /register/link-guardian passes through)
-const PUBLIC_PATHS    = ['/terms', '/help', '/forgot-password', '/auth/reset-password', '/register/link-guardian']
+// /register/child is also public because logged-in guardians need it to add a candidate after email verification
+const PUBLIC_PATHS    = ['/terms', '/help', '/forgot-password', '/auth/reset-password', '/register/link-guardian', '/register/child', '/register/verify']
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
