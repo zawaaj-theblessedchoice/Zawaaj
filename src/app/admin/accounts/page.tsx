@@ -23,7 +23,7 @@ export default async function AccountsPage() {
     .from('zawaaj_family_accounts')
     .select(`
       id, contact_full_name, contact_relationship, contact_number, contact_email,
-      plan, status, created_at, updated_at, primary_user_id,
+      no_female_contact_flag, plan, status, created_at, updated_at, primary_user_id,
       profiles:zawaaj_profiles(
         id, display_initials, first_name, last_name, gender, status,
         age_display, location, duplicate_flag
@@ -50,6 +50,7 @@ export default async function AccountsPage() {
     contact_relationship: f.contact_relationship,
     contact_number: f.contact_number,
     contact_email: f.contact_email,
+    no_female_contact_flag: f.no_female_contact_flag ?? false,
     plan: f.plan,
     status: f.status,
     created_at: f.created_at,

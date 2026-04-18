@@ -314,7 +314,7 @@ export default function RegisterParentPage() {
   if (verificationEmail) {
     return (
       <main style={{ minHeight: '100vh', background: 'var(--surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px' }}>
-        <div style={{ width: '100%', maxWidth: 440, background: 'var(--surface-2)', border: '0.5px solid var(--border-default)', borderTop: '1px solid rgba(196,154,16,0.25)', borderRadius: 12, padding: '40px 36px', textAlign: 'center' }}>
+        <div style={{ width: '100%', maxWidth: 440, background: 'var(--surface-2)', border: '1px solid var(--border-gold)', borderRadius: 12, padding: '40px 36px', textAlign: 'center' }}>
           <ZawaajLogo size={56} tagline={false} />
           <div style={{ marginTop: 24, marginBottom: 8, width: 52, height: 52, borderRadius: '50%', background: 'var(--gold-muted)', border: '0.5px solid var(--border-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '24px auto 0' }}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="2" y="4" width="20" height="16" rx="2" stroke="var(--gold)" strokeWidth="1.5"/><path d="M2 7l10 7 10-7" stroke="var(--gold)" strokeWidth="1.5" strokeLinecap="round"/></svg>
@@ -351,9 +351,9 @@ export default function RegisterParentPage() {
     >
       <div style={{ width: '100%', maxWidth: 480 }}>
         <div style={{ textAlign: 'center', marginBottom: 8 }}>
-          <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, color: 'rgba(255,255,255,0.35)', textDecoration: 'none' }}
-            onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.65)')}
-            onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.35)')}>
+          <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}
+            onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-secondary)')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}>
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M7.5 2L3.5 6l4 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
             Back to website
           </Link>
@@ -363,14 +363,13 @@ export default function RegisterParentPage() {
           width: '100%',
           maxWidth: 480,
           background: 'var(--surface-2)',
-          border: '0.5px solid var(--border-default)',
-          borderTop: '1px solid rgba(196,154,16,0.25)',
+          border: '1px solid var(--border-gold)',
           borderRadius: 12,
           padding: '36px 32px',
           display: 'flex',
           flexDirection: 'column',
           gap: 24,
-          boxShadow: '0 16px 48px rgba(0,0,0,0.4)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.10)',
         }}
       >
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
@@ -562,8 +561,8 @@ export default function RegisterParentPage() {
                 cursor: 'pointer',
                 padding: '12px 14px',
                 borderRadius: 8,
-                background: form.noFemaleContactFlag ? 'rgba(184,150,12,0.06)' : 'var(--surface-3)',
-                border: `0.5px solid ${form.noFemaleContactFlag ? 'rgba(184,150,12,0.35)' : 'var(--border-default)'}`,
+                background: form.noFemaleContactFlag ? 'var(--gold-muted)' : 'var(--surface-3)',
+                border: `0.5px solid ${form.noFemaleContactFlag ? 'var(--border-gold)' : 'var(--border-default)'}`,
                 transition: 'all 0.15s',
               }}
             >
@@ -608,7 +607,7 @@ export default function RegisterParentPage() {
             </div>
 
             {/* Islamic oath */}
-            <div style={{ padding: '14px 16px', borderRadius: 8, background: 'rgba(184,150,12,0.05)', border: '0.5px solid rgba(184,150,12,0.2)', textAlign: 'center' }}>
+            <div style={{ padding: '14px 16px', borderRadius: 8, background: 'var(--gold-muted)', border: '0.5px solid var(--border-gold)', textAlign: 'center' }}>
               <p style={{ fontSize: 15, color: 'var(--gold)', fontWeight: 600, margin: '0 0 8px', letterSpacing: '0.03em' }}>بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ</p>
               <p style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.65, margin: 0 }}>
                 In the name of Allah, the Most Gracious, the Most Merciful.<br />
@@ -655,8 +654,8 @@ export default function RegisterParentPage() {
             style={{
               padding: '10px 14px',
               borderRadius: 8,
-              background: 'rgba(248,113,113,0.08)',
-              border: '0.5px solid rgba(248,113,113,0.3)',
+              background: 'var(--status-error-bg)',
+              border: '0.5px solid var(--status-error-br)',
               fontSize: 13,
               color: 'var(--status-error)',
             }}

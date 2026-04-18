@@ -103,12 +103,12 @@ function SectionLabel({ children }: { children: string }) {
 
 function statusColour(s: string): { bg: string; text: string } {
   const map: Record<string, { bg: string; text: string }> = {
-    approved:  { bg: 'rgba(74,222,128,0.12)', text: 'var(--status-success)' },
-    pending:   { bg: 'rgba(251,191,36,0.12)', text: 'var(--status-warning)' },
-    paused:    { bg: 'rgba(96,165,250,0.12)', text: 'var(--status-info)' },
-    rejected:  { bg: 'rgba(248,113,113,0.12)', text: 'var(--status-error)' },
+    approved:  { bg: 'var(--status-success-bg)', text: 'var(--status-success)' },
+    pending:   { bg: 'var(--status-warning-bg)', text: 'var(--status-warning)' },
+    paused:    { bg: 'var(--status-info-bg)', text: 'var(--status-info)' },
+    rejected:  { bg: 'var(--status-error-bg)', text: 'var(--status-error)' },
     withdrawn: { bg: 'var(--surface-3)', text: 'var(--text-muted)' },
-    suspended: { bg: 'rgba(248,113,113,0.12)', text: 'var(--status-error)' },
+    suspended: { bg: 'var(--status-error-bg)', text: 'var(--status-error)' },
     introduced:{ bg: 'var(--gold-muted)', text: 'var(--gold-light)' },
   }
   return map[s] ?? { bg: 'var(--surface-3)', text: 'var(--text-secondary)' }
@@ -628,7 +628,7 @@ export default function MyProfilePage() {
               <button
                 onClick={() => setShowWithdrawModal(true)}
                 disabled={actionLoading}
-                style={{ padding: '8px 16px', borderRadius: 9, fontSize: 13, fontWeight: 500, cursor: 'pointer', background: 'none', border: '0.5px solid rgba(248,113,113,0.4)', color: 'var(--status-error)', opacity: actionLoading ? 0.5 : 1 }}
+                style={{ padding: '8px 16px', borderRadius: 9, fontSize: 13, fontWeight: 500, cursor: 'pointer', background: 'none', border: '0.5px solid var(--status-error-br)', color: 'var(--status-error)', opacity: actionLoading ? 0.5 : 1 }}
               >
                 Withdraw profile
               </button>
@@ -641,9 +641,9 @@ export default function MyProfilePage() {
           <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)', marginBottom: 12 }}>Introduction requests this month</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
             <div style={{ flex: 1, height: 4, borderRadius: 2, background: 'var(--surface-4)', overflow: 'hidden' }}>
-              <div style={{ height: '100%', width: `${Math.min((monthlyUsed / 5) * 100, 100)}%`, background: 'var(--gold)', borderRadius: 2 }} />
+              <div style={{ height: '100%', width: `${Math.min((monthlyUsed / getPlanConfig(plan as Plan).monthlyLimit) * 100, 100)}%`, background: 'var(--gold)', borderRadius: 2 }} />
             </div>
-            <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text-primary)' }}>{monthlyUsed} / 5</span>
+            <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text-primary)' }}>{monthlyUsed} / {getPlanConfig(plan as Plan).monthlyLimit}</span>
           </div>
           <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Resets on the 1st of each month</div>
         </div>
@@ -748,7 +748,7 @@ export default function MyProfilePage() {
       {/* Edit modal */}
       {showEditModal && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.7)' }}>
-          <div style={{ background: 'var(--surface-2)', border: '0.5px solid var(--border-default)', borderRadius: 16, width: '100%', maxWidth: 540, maxHeight: '92vh', display: 'flex', flexDirection: 'column', boxShadow: '0 24px 64px rgba(0,0,0,0.5)' }}>
+          <div style={{ background: 'var(--surface-2)', border: '0.5px solid var(--border-default)', borderRadius: 16, width: '100%', maxWidth: 540, maxHeight: '92vh', display: 'flex', flexDirection: 'column', boxShadow: '0 16px 48px rgba(0,0,0,0.14)' }}>
 
             {/* Modal header */}
             <div style={{ padding: '20px 24px 0', flexShrink: 0 }}>
@@ -896,7 +896,7 @@ export default function MyProfilePage() {
             {/* Footer */}
             <div style={{ padding: '16px 24px 20px', borderTop: '0.5px solid var(--border-default)', flexShrink: 0 }}>
               {editError && (
-                <div style={{ padding: '8px 12px', borderRadius: 8, background: 'rgba(248,113,113,0.1)', border: '0.5px solid rgba(248,113,113,0.3)', fontSize: 12.5, color: 'var(--status-error)', marginBottom: 10 }}>
+                <div style={{ padding: '8px 12px', borderRadius: 8, background: 'var(--status-error-bg)', border: '0.5px solid var(--status-error-br)', fontSize: 12.5, color: 'var(--status-error)', marginBottom: 10 }}>
                   {editError}
                 </div>
               )}
@@ -916,7 +916,7 @@ export default function MyProfilePage() {
       {/* Change password modal */}
       {showPasswordModal && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.7)' }}>
-          <div style={{ background: 'var(--surface-2)', border: '0.5px solid var(--border-default)', borderRadius: 16, padding: 28, width: '100%', maxWidth: 400, boxShadow: '0 24px 64px rgba(0,0,0,0.5)' }}>
+          <div style={{ background: 'var(--surface-2)', border: '0.5px solid var(--border-default)', borderRadius: 16, padding: 28, width: '100%', maxWidth: 400, boxShadow: '0 16px 48px rgba(0,0,0,0.14)' }}>
             <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 20 }}>Change password</div>
             <div style={{ marginBottom: 14 }}>
               <div style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: 6 }}>New password</div>
@@ -926,8 +926,8 @@ export default function MyProfilePage() {
               <div style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: 6 }}>Confirm password</div>
               <input type="password" value={pwForm.confirm} onChange={e => setPwForm(f => ({ ...f, confirm: e.target.value }))} placeholder="Repeat new password" style={{ width: '100%', padding: '10px 12px', borderRadius: 9, border: '0.5px solid var(--border-default)', background: 'var(--surface-3)', color: 'var(--text-primary)', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
             </div>
-            {pwError && <div style={{ padding: '8px 12px', borderRadius: 8, background: 'rgba(248,113,113,0.1)', border: '0.5px solid rgba(248,113,113,0.3)', fontSize: 12.5, color: 'var(--status-error)', marginBottom: 12 }}>{pwError}</div>}
-            {pwSuccess && <div style={{ padding: '8px 12px', borderRadius: 8, background: 'rgba(74,222,128,0.08)', border: '0.5px solid rgba(74,222,128,0.25)', fontSize: 12.5, color: 'var(--status-success)', marginBottom: 12 }}>Password updated ✓</div>}
+            {pwError && <div style={{ padding: '8px 12px', borderRadius: 8, background: 'var(--status-error-bg)', border: '0.5px solid var(--status-error-br)', fontSize: 12.5, color: 'var(--status-error)', marginBottom: 12 }}>{pwError}</div>}
+            {pwSuccess && <div style={{ padding: '8px 12px', borderRadius: 8, background: 'var(--status-success-bg)', border: '0.5px solid var(--status-success-br)', fontSize: 12.5, color: 'var(--status-success)', marginBottom: 12 }}>Password updated ✓</div>}
             <div style={{ display: 'flex', gap: 10 }}>
               <button onClick={() => setShowPasswordModal(false)} style={{ flex: 1, padding: '10px', borderRadius: 9, fontSize: 13, fontWeight: 500, background: 'var(--surface-3)', border: '0.5px solid var(--border-default)', color: 'var(--text-secondary)', cursor: 'pointer' }}>Cancel</button>
               <button onClick={savePassword} disabled={pwLoading} style={{ flex: 2, padding: '10px', borderRadius: 9, fontSize: 13, fontWeight: 600, background: 'linear-gradient(135deg, var(--gold), var(--gold-light))', border: 'none', color: 'var(--surface)', cursor: pwLoading ? 'not-allowed' : 'pointer', opacity: pwLoading ? 0.6 : 1 }}>
@@ -958,7 +958,7 @@ export default function MyProfilePage() {
               <button onClick={() => setShowWithdrawModal(false)} style={{ flex: 1, padding: '10px', borderRadius: 9, fontSize: 13, fontWeight: 500, background: 'var(--surface-3)', border: '0.5px solid var(--border-default)', color: 'var(--text-secondary)', cursor: 'pointer' }}>
                 Cancel
               </button>
-              <button onClick={handleWithdraw} disabled={actionLoading} style={{ flex: 1, padding: '10px', borderRadius: 9, fontSize: 13, fontWeight: 600, background: 'rgba(248,113,113,0.15)', border: '0.5px solid rgba(248,113,113,0.4)', color: 'var(--status-error)', cursor: 'pointer', opacity: actionLoading ? 0.5 : 1 }}>
+              <button onClick={handleWithdraw} disabled={actionLoading} style={{ flex: 1, padding: '10px', borderRadius: 9, fontSize: 13, fontWeight: 600, background: 'var(--status-error-bg)', border: '0.5px solid var(--status-error-br)', color: 'var(--status-error)', cursor: 'pointer', opacity: actionLoading ? 0.5 : 1 }}>
                 {actionLoading ? 'Withdrawing…' : 'Confirm'}
               </button>
             </div>

@@ -33,8 +33,7 @@ export default function LoginPage() {
   }
 
   return (
-    // Login is always dark — force dark token values regardless of user theme preference
-    <main data-theme="dark" className="min-h-screen flex items-center justify-center px-4" style={{ background: 'var(--surface)' }}>
+    <main className="min-h-screen flex items-center justify-center px-4" style={{ background: 'var(--surface)' }}>
       <div className="w-full max-w-md">
 
         {/* Back to website */}
@@ -43,11 +42,11 @@ export default function LoginPage() {
             href="/"
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 5,
-              fontSize: 12, color: 'rgba(255,255,255,0.35)', textDecoration: 'none',
+              fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none',
               transition: 'color 0.15s',
             }}
-            onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.65)')}
-            onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.35)')}
+            onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-secondary)')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
           >
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
               <path d="M7.5 2L3.5 6l4 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
@@ -69,14 +68,14 @@ export default function LoginPage() {
           style={{
             backgroundColor: 'var(--surface-2)',
             borderRadius: 16,
-            border: '1px solid rgba(196,154,16,0.25)',
-            boxShadow: '0 24px 64px rgba(0,0,0,0.5), 0 0 0 0.5px rgba(255,255,255,0.06) inset',
+            border: '1px solid var(--border-gold)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
           }}
         >
-          <h1 className="text-2xl font-semibold text-white mb-1">
+          <h1 className="text-2xl font-semibold text-ink mb-1">
             Welcome back
           </h1>
-          <p className="text-white/50 text-sm mb-8">
+          <p className="text-dim text-sm mb-8">
             Sign in to your account
           </p>
 
@@ -84,7 +83,7 @@ export default function LoginPage() {
             <div>
               <label
                 htmlFor="email"
-                className="block text-sm font-medium text-white/70 mb-1.5"
+                className="block text-sm font-medium text-dim mb-1.5"
               >
                 Email address
               </label>
@@ -96,7 +95,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className="w-full px-4 py-3 text-white placeholder-white/30 border border-white/10 focus:outline-none focus:border-[var(--gold)] transition-colors text-sm"
+                className="w-full px-4 py-3 text-ink placeholder-muted border border-br focus:outline-none transition-colors text-sm"
                 style={{ background: 'var(--surface-3)', borderRadius: 10 }}
               />
             </div>
@@ -105,7 +104,7 @@ export default function LoginPage() {
               <div className="flex items-center justify-between mb-1.5">
                 <label
                   htmlFor="password"
-                  className="block text-sm font-medium text-white/70"
+                  className="block text-sm font-medium text-dim"
                 >
                   Password
                 </label>
@@ -126,7 +125,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full px-4 py-3 text-white placeholder-white/30 border border-white/10 focus:outline-none focus:border-[var(--gold)] transition-colors text-sm"
+                  className="w-full px-4 py-3 text-ink placeholder-muted border border-br focus:outline-none transition-colors text-sm"
                   style={{ background: 'var(--surface-3)', borderRadius: 10, paddingRight: 44 }}
                 />
                 <button
@@ -135,7 +134,7 @@ export default function LoginPage() {
                   style={{
                     position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
                     background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center',
-                    color: showPassword ? 'var(--gold)' : 'rgba(255,255,255,0.4)',
+                    color: showPassword ? 'var(--gold)' : 'var(--text-muted)',
                   }}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
@@ -177,7 +176,7 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <p className="text-center text-white/40 text-sm mt-6">
+          <p className="text-center text-muted text-sm mt-6">
             Don&apos;t have an account?{' '}
             <Link
               href="/signup"

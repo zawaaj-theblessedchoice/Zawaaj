@@ -117,6 +117,11 @@ const VALUES = [
     body: 'Families connect with families — every introduction is coordinated personally by our team, keeping the process dignified and respectful.',
     icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
   },
+  {
+    title: 'Guided by people, not algorithms',
+    body: 'No automated scoring or matching systems. Real people personally review every profile and facilitate every introduction — because finding the right match deserves human care.',
+    icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M19 8h2M3 8h2"/><path d="M19 4l1.5-1.5M3.5 10.5 2 12"/><path d="M19 12l1.5 1.5M3.5 5.5 2 4"/></svg>,
+  },
 ]
 
 const FAQS = [
@@ -151,15 +156,15 @@ const FAQS = [
 function FaqItem({ q, a }: { q: string; a: string }) {
   const [open, setOpen] = useState(false)
   return (
-    <div className="border-b border-white/10">
+    <div className="border-b border-br">
       <button
         onClick={() => setOpen(o => !o)}
         className="w-full flex items-center justify-between gap-4 py-5 text-left"
       >
-        <span className="text-base font-medium text-white">{q}</span>
+        <span className="text-base font-medium text-ink">{q}</span>
         <span className="text-gold text-xl flex-shrink-0">{open ? '−' : '+'}</span>
       </button>
-      {open && <p className="pb-5 text-sm text-white/60 leading-relaxed">{a}</p>}
+      {open && <p className="pb-5 text-sm text-dim leading-relaxed">{a}</p>}
     </div>
   )
 }
@@ -171,8 +176,8 @@ function PlanCard({ plan, annual }: { plan: typeof PLANS[number]; annual: boolea
   return (
     <div className={`relative rounded-2xl p-6 flex flex-col gap-5 border ${
       plan.highlight
-        ? 'bg-surface-2 border-gold/60 shadow-[0_0_40px_rgba(184,150,12,0.12)]'
-        : 'bg-surface-2 border-white/10'
+        ? 'bg-surface-2 border-gold/40 shadow-[0_0_24px_rgba(184,150,12,0.08)]'
+        : 'bg-surface-2 border-br'
     }`}>
       {plan.highlight && (
         <div className="absolute -top-3 left-1/2 -translate-x-1/2">
@@ -180,26 +185,26 @@ function PlanCard({ plan, annual }: { plan: typeof PLANS[number]; annual: boolea
         </div>
       )}
       <div>
-        <p className="text-sm font-medium text-white/60">{plan.name}</p>
+        <p className="text-sm font-medium text-dim">{plan.name}</p>
         <div className="mt-1 flex items-end gap-1">
           {price === 0 ? (
-            <span className="text-3xl font-bold text-white">Free</span>
+            <span className="text-3xl font-bold text-ink">Free</span>
           ) : (
             <>
-              <span className="text-3xl font-bold text-white">£{price}</span>
-              <span className="text-white/40 mb-1 text-sm">/mo</span>
+              <span className="text-3xl font-bold text-ink">£{price}</span>
+              <span className="text-muted mb-1 text-sm">/mo</span>
             </>
           )}
         </div>
         {saving && (
           <span className="mt-1 inline-block text-xs text-gold font-medium">Save 20% · £{plan.annual * 12}/yr</span>
         )}
-        <p className="mt-2 text-sm text-white/50">{plan.description}</p>
+        <p className="mt-2 text-sm text-muted">{plan.description}</p>
       </div>
 
       <ul className="space-y-2 flex-1">
         {plan.features.map(f => (
-          <li key={f} className="flex items-start gap-2 text-sm text-white/70">
+          <li key={f} className="flex items-start gap-2 text-sm text-dim">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ color: '#7A6020', flexShrink: 0, marginTop: 2 }}>
               <path d="M3 8l3.5 3.5L13 4.5" stroke="#7A6020" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
@@ -214,11 +219,11 @@ function PlanCard({ plan, annual }: { plan: typeof PLANS[number]; annual: boolea
           const val = row[plan.key as 'free' | 'plus' | 'premium']
           if (val === '—') return null
           return (
-            <div key={row.feature} className="flex items-center gap-2 text-xs text-white/50 mt-1">
+            <div key={row.feature} className="flex items-center gap-2 text-xs text-muted mt-1">
               <svg width="12" height="12" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
                 <path d="M3 8l3.5 3.5L13 4.5" stroke="#7A6020" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              <span>{row.feature}: <span className="text-white/70">{val}</span></span>
+              <span>{row.feature}: <span className="text-dim">{val}</span></span>
             </div>
           )
         })}
@@ -241,10 +246,10 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
   const [menuOpen, setMenuOpen] = useState(false)
 
   return (
-    <div className="min-h-screen" data-theme="dark" style={{ background: 'var(--surface)', color: 'var(--text-primary)' }}>
+    <div className="min-h-screen" style={{ background: 'var(--surface)', color: 'var(--text-primary)' }}>
 
       {/* ── Nav ── logo left | links centre | CTA right */}
-      <nav className="sticky top-0 z-50 border-b border-white/8 bg-surface/90 backdrop-blur-md">
+      <nav className="sticky top-0 z-50 border-b border-br bg-surface/90 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-5 h-16 grid grid-cols-2 md:grid-cols-3 items-center">
 
           {/* Left — logo only */}
@@ -255,11 +260,11 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
           </div>
 
           {/* Centre — navigation links (desktop) */}
-          <div className="hidden md:flex items-center justify-center gap-7 text-sm text-white/60">
-            <a href="#how-it-works" className="hover:text-white transition-colors">How it works</a>
-            <a href="#values" className="hover:text-white transition-colors">Our values</a>
-            <a href="#membership" className="hover:text-white transition-colors">Membership</a>
-            <a href="#faq" className="hover:text-white transition-colors">FAQ</a>
+          <div className="hidden md:flex items-center justify-center gap-7 text-sm text-dim">
+            <a href="#how-it-works" className="hover:text-ink transition-colors">How it works</a>
+            <a href="#values" className="hover:text-ink transition-colors">Our values</a>
+            <a href="#membership" className="hover:text-ink transition-colors">Membership</a>
+            <a href="#faq" className="hover:text-ink transition-colors">FAQ</a>
           </div>
 
           {/* Right — primary action (desktop) + hamburger (mobile) */}
@@ -278,9 +283,9 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
                 <Link
                   href="/login"
                   className="text-sm font-medium px-4 py-2 rounded-xl transition-colors"
-                  style={{ color: 'rgba(255,255,255,0.7)', border: '1px solid rgba(255,255,255,0.12)' }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = '#fff'; (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(255,255,255,0.3)' }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(255,255,255,0.7)'; (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(255,255,255,0.12)' }}
+                  style={{ color: 'var(--text-secondary)', border: '1px solid var(--border-default)' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-primary)'; (e.currentTarget as HTMLAnchorElement).style.borderColor = 'var(--border-default)' }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-secondary)'; (e.currentTarget as HTMLAnchorElement).style.borderColor = 'var(--border-default)' }}
                 >
                   Sign in
                 </Link>
@@ -299,7 +304,7 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
               onClick={() => setMenuOpen(o => !o)}
               aria-label="Menu"
               className="md:hidden p-2 rounded-lg"
-              style={{ color: 'rgba(255,255,255,0.7)', background: 'none', border: 'none', cursor: 'pointer' }}
+              style={{ color: 'var(--text-secondary)', background: 'none', border: 'none', cursor: 'pointer' }}
             >
               {menuOpen ? (
                 <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
@@ -317,7 +322,7 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
 
         {/* Mobile menu */}
         <div className={`md:hidden overflow-hidden transition-all duration-200 ${menuOpen ? 'max-h-96' : 'max-h-0'}`}
-          style={{ borderTop: menuOpen ? '0.5px solid rgba(255,255,255,0.1)' : 'none' }}
+          style={{ borderTop: menuOpen ? '0.5px solid var(--border-default)' : 'none' }}
         >
           <div className="flex flex-col py-3">
             {[
@@ -327,14 +332,14 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
               { href: '#faq', label: 'FAQ' },
             ].map(link => (
               <a key={link.href} href={link.href} onClick={() => setMenuOpen(false)}
-                className="px-5 py-3 text-sm text-white/70 hover:text-white hover:bg-white/5 transition-colors">
+                className="px-5 py-3 text-sm text-dim hover:text-ink hover:bg-surface-3 transition-colors">
                 {link.label}
               </a>
             ))}
             {!isLoggedIn ? (
               <>
                 <a href="/login" onClick={() => setMenuOpen(false)}
-                  className="px-5 py-3 text-sm text-white/70 hover:text-white hover:bg-white/5 transition-colors border-t border-white/10">
+                  className="px-5 py-3 text-sm text-dim hover:text-ink hover:bg-surface-3 transition-colors border-t border-br">
                   Sign in
                 </a>
                 <a href="/signup" onClick={() => setMenuOpen(false)}
@@ -360,11 +365,11 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
         <div className="flex justify-center" style={{ marginBottom: -8 }}>
           <ZawaajLogo height={400} />
         </div>
-        <h1 className="text-[2rem] sm:text-5xl md:text-6xl font-bold text-white leading-tight tracking-tight mb-3">
+        <h1 className="text-[2rem] sm:text-5xl md:text-6xl font-bold text-ink leading-tight tracking-tight mb-3">
           A dignified path to<br />
           <span style={{ color: 'var(--gold)' }}>your spouse</span>
         </h1>
-        <p className="text-base text-white/60 max-w-xl mx-auto leading-relaxed mb-5">
+        <p className="text-base text-dim max-w-xl mx-auto leading-relaxed mb-5">
           Zawaaj is a private, family-aligned matrimonial platform.<br />
           Every profile is reviewed, every introduction admin-verified.<br />
           No direct messaging or casual chatting. No time-wasting. Just a proper, family-led process.
@@ -379,7 +384,7 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
               <Link href="/signup" className="w-full sm:w-auto px-8 py-3.5 rounded-xl text-sm font-semibold bg-gold text-black hover:bg-[var(--gold-hover)] transition-colors">
                 Create your profile →
               </Link>
-              <Link href="/login" className="w-full sm:w-auto px-8 py-3.5 rounded-xl text-sm font-medium border border-white/20 text-white/80 hover:text-white hover:bg-white/5 transition-colors">
+              <Link href="/login" className="w-full sm:w-auto px-8 py-3.5 rounded-xl text-sm font-medium border border-br text-dim hover:text-ink hover:bg-surface-3 transition-colors">
                 Sign in
               </Link>
             </>
@@ -391,7 +396,7 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
       </section>
 
       {/* ── Quranic ayah ── */}
-      <section style={{ background: 'rgba(184,150,12,0.04)', borderTop: '0.5px solid rgba(184,150,12,0.12)', borderBottom: '0.5px solid rgba(184,150,12,0.12)' }}>
+      <section style={{ background: 'var(--gold-muted)', borderTop: '0.5px solid var(--border-gold)', borderBottom: '0.5px solid var(--border-gold)' }}>
         <div className="max-w-3xl mx-auto px-4 md:px-6 py-10 md:py-20 text-center flex flex-col items-center gap-6">
           {/* Arabic */}
           <p
@@ -411,20 +416,20 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
             وَمِنۡ اٰيٰتِهٖۤ اَنۡ خَلَقَ لَكُمۡ مِّنۡ اَنۡفُسِكُمۡ اَزۡوَاجًا لِّتَسۡكُنُوۡۤا اِلَيۡهَا وَجَعَلَ بَيۡنَكُمۡ مَّوَدَّةً وَّرَحۡمَةً ؕ اِنَّ فِىۡ ذٰلِكَ لَاٰيٰتٍ لِّقَوۡمٍ يَّتَفَكَّرُوۡنَ ٢١
           </p>
           {/* Divider */}
-          <div style={{ width: 40, height: 1, background: 'rgba(184,150,12,0.3)', flexShrink: 0 }} />
+          <div style={{ width: 40, height: 1, background: 'var(--border-gold)', flexShrink: 0 }} />
           {/* English translation */}
-          <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.65)', lineHeight: 1.8, fontStyle: 'italic', maxWidth: '36rem', fontWeight: 400 }}>
+          <p style={{ fontSize: 15, color: 'var(--text-secondary)', lineHeight: 1.8, fontStyle: 'italic', maxWidth: '36rem', fontWeight: 400 }}>
             &ldquo;And among His Signs is that He created for you mates from amongst yourselves, that you may dwell in tranquillity with them, and He has put love and mercy between your hearts. Verily in that are Signs for those who reflect.&rdquo;
           </p>
           {/* Reference */}
-          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.06em', fontWeight: 500 }}>
+          <p style={{ fontSize: 12, color: 'var(--text-muted)', letterSpacing: '0.06em', fontWeight: 500 }}>
             — Surah Ar-Rum, 30:21
           </p>
         </div>
       </section>
 
       {/* ── Trust bar ── */}
-      <section className="border-y border-white/8 bg-surface-2">
+      <section className="border-y border-br bg-surface-2">
         <div className="max-w-5xl mx-auto px-4 md:px-5 py-10 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           {[
             {
@@ -446,8 +451,8 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
           ].map(t => (
             <div key={t.label} className="flex flex-col items-center gap-2">
               <div style={{ color: 'var(--gold)', marginBottom: 2 }}>{t.icon}</div>
-              <p className="text-sm font-medium text-white">{t.label}</p>
-              <p className="text-xs text-white/40">{t.sub}</p>
+              <p className="text-sm font-medium text-ink">{t.label}</p>
+              <p className="text-xs text-muted">{t.sub}</p>
             </div>
           ))}
         </div>
@@ -457,38 +462,38 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
       <section id="how-it-works" className="max-w-5xl mx-auto px-4 md:px-5 py-12 md:py-24">
         <div className="text-center mb-14">
           <p className="text-xs font-semibold text-gold uppercase tracking-widest mb-3">The process</p>
-          <h2 className="text-3xl font-bold text-white">How Zawaaj works</h2>
+          <h2 className="text-3xl font-bold text-ink">How Zawaaj works</h2>
         </div>
         <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
           {HOW_IT_WORKS.map(s => (
-            <div key={s.n} className="bg-surface-2 rounded-2xl p-6 border border-white/8">
+            <div key={s.n} className="bg-surface-2 rounded-2xl p-6 border border-br">
               <div style={{ marginBottom: 10 }}>
-                <span style={{ fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 700, background: 'rgba(184,150,12,0.12)', border: '1px solid rgba(184,150,12,0.25)', borderRadius: 999, padding: '3px 10px', display: 'inline-block' }}>
+                <span style={{ fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 700, background: 'var(--gold-muted)', border: '1px solid var(--border-gold)', borderRadius: 999, padding: '3px 10px', display: 'inline-block' }}>
                   Step {s.n}
                 </span>
               </div>
-              <p className="font-semibold text-white mb-2">{s.title}</p>
-              <p className="text-sm text-white/50 leading-relaxed">{s.body}</p>
+              <p className="font-semibold text-ink mb-2">{s.title}</p>
+              <p className="text-sm text-muted leading-relaxed">{s.body}</p>
             </div>
           ))}
         </div>
       </section>
 
       {/* ── Values ── */}
-      <section id="values" className="bg-surface-2 border-y border-white/8">
+      <section id="values" className="bg-surface-2 border-y border-br">
         <div className="max-w-5xl mx-auto px-4 md:px-5 py-12 md:py-24">
           <div className="text-center mb-14">
             <p className="text-xs font-semibold text-gold uppercase tracking-widest mb-3">What we stand for</p>
-            <h2 className="text-3xl font-bold text-white">Our values</h2>
+            <h2 className="text-3xl font-bold text-ink">Our values</h2>
           </div>
           <div className="grid sm:grid-cols-2 gap-6">
             {VALUES.map(v => (
-              <div key={v.title} className="bg-surface-3 rounded-2xl p-6 border border-white/8">
+              <div key={v.title} className="bg-surface-3 rounded-2xl p-6 border border-br">
                 <div className="flex items-center gap-3 mb-2">
                   <div style={{ flexShrink: 0 }}>{v.icon}</div>
-                  <p className="font-semibold text-white">{v.title}</p>
+                  <p className="font-semibold text-ink">{v.title}</p>
                 </div>
-                <p className="text-sm text-white/50 leading-relaxed">{v.body}</p>
+                <p className="text-sm text-muted leading-relaxed">{v.body}</p>
               </div>
             ))}
           </div>
@@ -499,20 +504,20 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
       <section id="membership" className="max-w-5xl mx-auto px-4 md:px-5 py-12 md:py-24">
         <div className="text-center mb-12">
           <p className="text-xs font-semibold text-gold uppercase tracking-widest mb-3">Membership</p>
-          <h2 className="text-3xl font-bold text-white mb-4">Simple, transparent pricing</h2>
-          <p className="text-white/50 text-sm">All tiers include full admin support and mediated introductions.</p>
+          <h2 className="text-3xl font-bold text-ink mb-4">Simple, transparent pricing</h2>
+          <p className="text-muted text-sm">All tiers include full admin support and mediated introductions.</p>
 
           {/* Billing toggle */}
-          <div className="inline-flex items-center gap-3 mt-6 bg-surface-2 border border-white/10 rounded-xl p-1">
+          <div className="inline-flex items-center gap-3 mt-6 bg-surface-2 border border-br rounded-xl p-1">
             <button
               onClick={() => setAnnual(false)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${!annual ? 'bg-gold text-black' : 'text-white/50 hover:text-white'}`}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${!annual ? 'bg-gold text-black' : 'text-muted hover:text-ink'}`}
             >
               Monthly
             </button>
             <button
               onClick={() => setAnnual(true)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${annual ? 'bg-gold text-black' : 'text-white/50 hover:text-white'}`}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${annual ? 'bg-gold text-black' : 'text-muted hover:text-ink'}`}
             >
               Annual <span className="text-xs ml-1 font-normal opacity-70">Save 20%</span>
             </button>
@@ -525,16 +530,16 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
         </div>
 
         {/* Compact comparison — visible on all screens */}
-        <div className="bg-surface-2 rounded-2xl border border-white/10 overflow-x-auto max-w-2xl mx-auto">
-          <div className="grid grid-cols-3 text-xs font-semibold text-white/40 uppercase tracking-wide px-6 py-3 bg-surface-3 border-b border-white/8 min-w-[380px]">
+        <div className="bg-surface-2 rounded-2xl border border-br overflow-x-auto max-w-2xl mx-auto">
+          <div className="grid grid-cols-3 text-xs font-semibold text-muted uppercase tracking-wide px-6 py-3 bg-surface-3 border-b border-br min-w-[380px]">
             <span className="col-span-1">Feature</span>
             <span className="text-center">Community Access</span>
             <span className="text-center">Premium</span>
           </div>
           {COMPACT_COMPARISON.map((row, i) => (
-            <div key={row.feature} className={`grid grid-cols-3 px-6 py-3 text-sm min-w-[380px] ${i % 2 === 0 ? '' : 'bg-white/2'}`}>
-              <span className="text-white/60 col-span-1">{row.feature}</span>
-              <span className="text-center text-white/50">{row.free}</span>
+            <div key={row.feature} className={`grid grid-cols-3 px-6 py-3 text-sm min-w-[380px] ${i % 2 === 0 ? '' : 'bg-surface-3/40'}`}>
+              <span className="text-dim col-span-1">{row.feature}</span>
+              <span className="text-center text-muted">{row.free}</span>
               <span className="text-center text-gold font-medium">{row.premium}</span>
             </div>
           ))}
@@ -542,11 +547,11 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
       </section>
 
       {/* ── Testimonials ── */}
-      <section className="bg-surface-2 border-y border-white/8">
+      <section className="bg-surface-2 border-y border-br">
         <div className="max-w-4xl mx-auto px-4 md:px-5 py-12 md:py-24">
           <div className="text-center mb-14">
             <p className="text-xs font-semibold text-gold uppercase tracking-widest mb-3">Testimonials</p>
-            <h2 className="text-3xl font-bold text-white">From our community</h2>
+            <h2 className="text-3xl font-bold text-ink">From our community</h2>
           </div>
           <div className="grid md:grid-cols-3 gap-5">
             {[
@@ -554,15 +559,15 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
               { initials: 'M.R.', quote: 'I appreciated that there was no pressure and no direct contact. Everything was handled with respect and care.', location: 'Birmingham' },
               { initials: 'F.K.', quote: 'Finally a platform that actually respects Islamic values. The team were helpful and quick to respond throughout.', location: 'Manchester' },
             ].map(t => (
-              <div key={t.initials} className="bg-surface-3 rounded-2xl p-6 border border-white/8 flex flex-col gap-4">
-                <p className="text-sm text-white/60 leading-relaxed italic">&ldquo;{t.quote}&rdquo;</p>
+              <div key={t.initials} className="bg-surface-3 rounded-2xl p-6 border border-br flex flex-col gap-4">
+                <p className="text-sm text-dim leading-relaxed italic">&ldquo;{t.quote}&rdquo;</p>
                 <div className="flex items-center gap-3 mt-auto">
                   <div className="w-8 h-8 rounded-full bg-gold/20 flex items-center justify-center text-xs font-bold text-gold">
                     {t.initials[0]}
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-white">{t.initials}</p>
-                    <p className="text-xs text-white/40">{t.location}</p>
+                    <p className="text-sm font-medium text-ink">{t.initials}</p>
+                    <p className="text-xs text-muted">{t.location}</p>
                   </div>
                 </div>
               </div>
@@ -575,7 +580,7 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
       <section id="faq" className="max-w-3xl mx-auto px-4 md:px-5 py-12 md:py-24">
         <div className="text-center mb-14">
           <p className="text-xs font-semibold text-gold uppercase tracking-widest mb-3">Questions</p>
-          <h2 className="text-3xl font-bold text-white">Frequently asked</h2>
+          <h2 className="text-3xl font-bold text-ink">Frequently asked</h2>
         </div>
         <div>
           {FAQS.map(f => <FaqItem key={f.q} q={f.q} a={f.a} />)}
@@ -585,10 +590,10 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
       {/* ── CTA ── */}
       <section className="bg-surface-2 border-y border-gold/20">
         <div className="max-w-2xl mx-auto px-4 md:px-5 py-10 md:py-20 text-center">
-          <h2 className="text-3xl font-bold text-white mb-4">
+          <h2 className="text-3xl font-bold text-ink mb-4">
             Begin your search with <span style={{ color: 'var(--gold)' }}>barakah</span>
           </h2>
-          <p className="text-white/50 text-sm mb-8">
+          <p className="text-muted text-sm mb-8">
             Join a platform built with Islamic values at its core.<br />
             Private, trusted, and admin-supported.
           </p>
@@ -599,18 +604,18 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
       </section>
 
       {/* ── Footer ── */}
-      <footer className="bg-surface border-t border-white/8">
+      <footer className="bg-surface border-t border-br">
         <div className="max-w-5xl mx-auto px-4 md:px-5 py-12 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex flex-col items-center md:items-start gap-2">
-            <p className="text-xs text-white/30">© {new Date().getFullYear()} Zawaaj. All rights reserved.</p>
+            <p className="text-xs text-muted">© {new Date().getFullYear()} Zawaaj. All rights reserved.</p>
           </div>
-          <div className="flex flex-wrap justify-center md:justify-start gap-x-8 gap-y-2 text-sm text-white/40 mx-auto md:mx-0">
-            <a href="#how-it-works" className="hover:text-white transition-colors">How it works</a>
-            <Link href="/pricing" className="hover:text-white transition-colors">Pricing</Link>
-            <a href="#faq" className="hover:text-white transition-colors">FAQ</a>
-            <Link href="/terms" className="hover:text-white transition-colors">Terms</Link>
-            <Link href="/help" className="hover:text-white transition-colors">Help</Link>
-            <Link href="/login" className="hover:text-white transition-colors">Sign in</Link>
+          <div className="flex flex-wrap justify-center md:justify-start gap-x-8 gap-y-2 text-sm text-muted mx-auto md:mx-0">
+            <a href="#how-it-works" className="hover:text-ink transition-colors">How it works</a>
+            <Link href="/pricing" className="hover:text-ink transition-colors">Pricing</Link>
+            <a href="#faq" className="hover:text-ink transition-colors">FAQ</a>
+            <Link href="/terms" className="hover:text-ink transition-colors">Terms</Link>
+            <Link href="/help" className="hover:text-ink transition-colors">Help</Link>
+            <Link href="/login" className="hover:text-ink transition-colors">Sign in</Link>
           </div>
         </div>
       </footer>

@@ -158,7 +158,7 @@ export async function POST(request: Request): Promise<Response> {
             bio: profile.bio ?? null,
             pref_age_min: profile.prefAgeMin ?? null, pref_age_max: profile.prefAgeMax ?? null,
             pref_location: profile.prefLocation ?? null, pref_ethnicity: profile.prefEthnicity ?? null,
-            pref_school_of_thought: profile.prefSchoolOfThought ?? null,
+            pref_school_of_thought: profile.prefSchoolOfThought ? [profile.prefSchoolOfThought] : null,
             open_to_relocation: profile.openToRelocation ?? null,
             open_to_partners_children: profile.openToPartnersChildren ?? null,
             marital_status: profile.maritalStatus ?? null, has_children: profile.hasChildren ?? null,

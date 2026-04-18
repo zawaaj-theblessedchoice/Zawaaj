@@ -123,6 +123,7 @@
   /* Text — semantic class names (text-ink, text-dim, text-muted) */
   --color-ink:       var(--text-primary);
   --color-dim:       var(--text-secondary);
+  --color-muted:     var(--text-muted);
 
   /* Border — semantic class name (border-br) */
   --color-br:        var(--border-default);

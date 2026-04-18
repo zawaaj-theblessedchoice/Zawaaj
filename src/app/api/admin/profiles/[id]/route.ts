@@ -56,6 +56,33 @@ export async function PATCH(
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
+    // ── Send in-app notification on status transitions ─────────────────────────
+    if (newStatus === 'approved') {
+      await supabaseAdmin.from('zawaaj_notifications').insert({
+        profile_id: id,
+        type: 'profile_approved',
+        title: 'Profile approved',
+        body: 'Your profile has been reviewed and approved. You can now browse and express interest in other profiles.',
+        action_url: '/browse',
+      }).then(({ error: e }) => { if (e) console.warn('[notify approved]', e.message) })
+    } else if (newStatus === 'rejected') {
+      await supabaseAdmin.from('zawaaj_notifications').insert({
+        profile_id: id,
+        type: 'profile_rejected',
+        title: 'Profile update',
+        body: 'Your profile has been reviewed and was not approved at this time. Please contact us if you have any questions.',
+        action_url: null,
+      }).then(({ error: e }) => { if (e) console.warn('[notify rejected]', e.message) })
+    } else if (newStatus === 'suspended') {
+      await supabaseAdmin.from('zawaaj_notifications').insert({
+        profile_id: id,
+        type: 'profile_suspended',
+        title: 'Account suspended',
+        body: 'Your account has been temporarily suspended. Please contact our team for more information.',
+        action_url: null,
+      }).then(({ error: e }) => { if (e) console.warn('[notify suspended]', e.message) })
+    }
+
     return NextResponse.json({ ok: true, status: newStatus })
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Internal error'

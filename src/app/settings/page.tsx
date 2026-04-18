@@ -20,13 +20,13 @@ interface Subscription {
 }
 
 const PLAN_COLORS: Record<Plan, string> = {
-  free:    'rgba(255,255,255,0.08)',
-  plus:      'rgba(96,165,250,0.12)',
+  free:    'var(--surface-3)',
+  plus:      'var(--status-info-bg)',
   premium:   'rgba(184,150,12,0.15)',
 }
 
 const PLAN_TEXT: Record<Plan, string> = {
-  free:    'rgba(255,255,255,0.5)',
+  free:    'var(--text-muted)',
   plus:      'var(--status-info)',
   premium:   'var(--gold-light)',
 }
@@ -264,12 +264,12 @@ function SettingsContent() {
         {tab === 'membership' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
             {checkoutSuccess && (
-              <div style={{ padding: '12px 16px', borderRadius: 10, background: 'rgba(74,222,128,0.1)', border: '0.5px solid rgba(74,222,128,0.3)', fontSize: 13, color: 'var(--status-success)' }}>
+              <div style={{ padding: '12px 16px', borderRadius: 10, background: 'var(--status-success-bg)', border: '0.5px solid var(--status-success-br)', fontSize: 13, color: 'var(--status-success)' }}>
                 ✓ Subscription activated — welcome to {PLAN_LABELS[currentPlan]}!
               </div>
             )}
             {checkoutError && (
-              <div style={{ padding: '12px 16px', borderRadius: 10, background: 'rgba(248,113,113,0.1)', border: '0.5px solid rgba(248,113,113,0.3)', fontSize: 13, color: 'var(--status-error)' }}>
+              <div style={{ padding: '12px 16px', borderRadius: 10, background: 'var(--status-error-bg)', border: '0.5px solid var(--status-error-br)', fontSize: 13, color: 'var(--status-error)' }}>
                 {checkoutError}
               </div>
             )}
@@ -293,7 +293,7 @@ function SettingsContent() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
                       <PlanBadge plan={currentPlan} />
                       {sub?.status === 'active' && isPaid && (
-                        <span style={{ fontSize: 11, color: 'rgba(74,222,128,0.9)' }}>● Active</span>
+                        <span style={{ fontSize: 11, color: 'var(--status-success)' }}>● Active</span>
                       )}
                       {sub?.status === 'past_due' && (
                         <span style={{ fontSize: 11, color: 'var(--status-error)' }}>● Payment due</span>
@@ -433,7 +433,7 @@ function SettingsContent() {
                       <div key={row.feature} style={{
                         display: 'grid', gridTemplateColumns: '2fr 1fr 1fr',
                         padding: '9px 16px',
-                        background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.015)',
+                        background: i % 2 === 0 ? 'transparent' : 'var(--surface-3)',
                         borderTop: '0.5px solid var(--border-default)',
                       }}>
                         <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{row.feature}</span>
@@ -562,7 +562,7 @@ function SettingsContent() {
             </div>
 
             {/* Delete account */}
-            <div style={{ background: 'var(--surface-2)', border: '0.5px solid rgba(239,68,68,0.2)', borderRadius: 16, padding: 20 }}>
+            <div style={{ background: 'var(--surface-2)', border: '0.5px solid var(--status-error-br)', borderRadius: 16, padding: 20 }}>
               <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>Delete my account</p>
               <p style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: 14 }}>
                 You have the right to ask us to delete your account and personal data. Your profile will be removed from the directory immediately. Your account will be permanently deleted after a 7-day waiting period, giving you a chance to change your mind. We&apos;ll send a cancellation link to your email.
@@ -573,8 +573,8 @@ function SettingsContent() {
                   onClick={() => setEraseStep('confirming')}
                   style={{
                     padding: '9px 20px', borderRadius: 9, fontSize: 12, fontWeight: 500,
-                    background: 'rgba(239,68,68,0.08)', border: '0.5px solid rgba(239,68,68,0.3)',
-                    color: '#f87171', cursor: 'pointer',
+                    background: 'var(--status-error-bg)', border: '0.5px solid var(--status-error-br)',
+                    color: 'var(--status-error)', cursor: 'pointer',
                   }}
                 >
                   Delete my account
@@ -611,7 +611,7 @@ function SettingsContent() {
                     />
                   </div>
                   {eraseError && (
-                    <p style={{ fontSize: 12, color: '#f87171' }}>{eraseError}</p>
+                    <p style={{ fontSize: 12, color: 'var(--status-error)' }}>{eraseError}</p>
                   )}
                   <div style={{ display: 'flex', gap: 10 }}>
                     <button
@@ -629,9 +629,9 @@ function SettingsContent() {
                       disabled={erasePhrase !== 'DELETE MY ACCOUNT' || !eraseChecked}
                       style={{
                         padding: '9px 20px', borderRadius: 9, fontSize: 12, fontWeight: 600,
-                        background: erasePhrase === 'DELETE MY ACCOUNT' && eraseChecked ? '#ef4444' : 'rgba(239,68,68,0.15)',
+                        background: erasePhrase === 'DELETE MY ACCOUNT' && eraseChecked ? '#ef4444' : 'var(--status-error-bg)',
                         border: 'none',
-                        color: erasePhrase === 'DELETE MY ACCOUNT' && eraseChecked ? '#fff' : '#f87171',
+                        color: erasePhrase === 'DELETE MY ACCOUNT' && eraseChecked ? '#fff' : 'var(--status-error)',
                         cursor: erasePhrase === 'DELETE MY ACCOUNT' && eraseChecked ? 'pointer' : 'not-allowed',
                         transition: 'all 0.15s',
                       }}
@@ -647,8 +647,8 @@ function SettingsContent() {
               )}
 
               {eraseStep === 'done' && (
-                <div style={{ padding: '12px 16px', borderRadius: 10, background: 'rgba(239,68,68,0.08)', border: '0.5px solid rgba(239,68,68,0.25)' }}>
-                  <p style={{ fontSize: 13, fontWeight: 600, color: '#f87171', marginBottom: 4 }}>Deletion request submitted</p>
+                <div style={{ padding: '12px 16px', borderRadius: 10, background: 'var(--status-error-bg)', border: '0.5px solid var(--status-error-br)' }}>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--status-error)', marginBottom: 4 }}>Deletion request submitted</p>
                   <p style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.6 }}>
                     Your profile has been removed from the directory. Your account will be permanently deleted in 7 days. We&apos;ve sent a cancellation link to your email — use it if you change your mind.
                   </p>

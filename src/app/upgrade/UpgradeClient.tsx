@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 interface Props {
   currentPlan: string
@@ -41,7 +42,9 @@ function Tick({ yes }: { yes: boolean | string }) {
 }
 
 export function UpgradeClient({ currentPlan, profileId }: Props) {
+  const router = useRouter()
   const [billing, setBilling] = useState<'monthly' | 'annual'>('monthly')
+  const [checkoutLoading, setCheckoutLoading] = useState(false)
   const [promoCode, setPromoCode] = useState('')
   const [promoResult, setPromoResult] = useState<{
     valid: boolean
@@ -201,29 +204,49 @@ export function UpgradeClient({ currentPlan, profileId }: Props) {
               </div>
 
               <button
-                disabled={plan.ctaDisabled}
-                onClick={() => {
-                  if (!plan.ctaDisabled) {
-                    setSelectedPlan(plan.id)
-                    // Future: open payment modal / redirect to Stripe
-                    alert(`Stripe checkout for ${plan.label} coming soon. Promo code: ${promoResult?.valid ? promoCode : 'none'}`)
+                disabled={plan.ctaDisabled || checkoutLoading}
+                onClick={async () => {
+                  if (plan.ctaDisabled || checkoutLoading) return
+                  setSelectedPlan(plan.id)
+                  setCheckoutLoading(true)
+                  try {
+                    const res = await fetch('/api/stripe/create-checkout', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        plan: plan.id,
+                        billing,
+                        promo_code_id: promoResult?.valid ? promoResult.promo_code_id : undefined,
+                      }),
+                    })
+                    const json = await res.json().catch(() => ({})) as { url?: string; error?: string }
+                    if (json.url) {
+                      window.location.href = json.url
+                    } else {
+                      // Stripe not yet configured — fall back to settings tab
+                      router.push('/settings?tab=membership')
+                    }
+                  } catch {
+                    router.push('/settings?tab=membership')
+                  } finally {
+                    setCheckoutLoading(false)
                   }
                 }}
                 style={{
                   padding: '10px 0', borderRadius: 9, fontSize: 13, fontWeight: 600,
                   border: plan.highlight ? 'none' : '1px solid var(--border-default)',
-                  cursor: plan.ctaDisabled ? 'default' : 'pointer',
+                  cursor: (plan.ctaDisabled || checkoutLoading) ? 'default' : 'pointer',
                   background: plan.ctaDisabled
                     ? 'rgba(255,255,255,0.05)'
                     : plan.highlight ? '#B8960C' : 'transparent',
                   color: plan.ctaDisabled
                     ? 'var(--text-secondary)'
                     : plan.highlight ? '#111' : 'var(--text-primary)',
-                  opacity: plan.ctaDisabled ? 0.6 : 1,
+                  opacity: (plan.ctaDisabled || checkoutLoading) ? 0.6 : 1,
                   transition: 'all 0.15s',
                 }}
               >
-                {plan.id === currentPlan ? '✓ Current plan' : plan.cta}
+                {plan.id === currentPlan ? '✓ Current plan' : checkoutLoading && selectedPlan === plan.id ? 'Redirecting…' : plan.cta}
               </button>
             </div>
           )

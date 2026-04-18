@@ -32,7 +32,6 @@ export default function ForgotPasswordPage() {
 
   return (
     <main
-      data-theme="dark"
       style={{
         minHeight: '100vh',
         background: 'var(--surface)',
@@ -45,9 +44,9 @@ export default function ForgotPasswordPage() {
       <div style={{ width: '100%', maxWidth: 400 }}>
         {/* Back to website */}
         <div style={{ textAlign: 'center', marginBottom: 8 }}>
-          <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, color: 'rgba(255,255,255,0.35)', textDecoration: 'none' }}
-            onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.65)')}
-            onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.35)')}>
+          <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}
+            onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-secondary)')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}>
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M7.5 2L3.5 6l4 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
             Back to website
           </Link>
@@ -62,11 +61,10 @@ export default function ForgotPasswordPage() {
         <div
           style={{
             background: 'var(--surface-2)',
-            border: '0.5px solid var(--border-default)',
-            borderTop: '1px solid rgba(196,154,16,0.2)',
+            border: '1px solid var(--border-gold)',
             borderRadius: 12,
             padding: '36px 32px',
-            boxShadow: '0 16px 48px rgba(0,0,0,0.4)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.10)',
           }}
         >
           {sent ? (
@@ -195,8 +193,8 @@ export default function ForgotPasswordPage() {
                     style={{
                       fontSize: 12.5,
                       color: 'var(--status-error)',
-                      background: 'rgba(248,113,113,0.1)',
-                      border: '0.5px solid rgba(248,113,113,0.3)',
+                      background: 'var(--status-error-bg)',
+                      border: '0.5px solid var(--status-error-br)',
                       borderRadius: 8,
                       padding: '8px 12px',
                       marginBottom: 14,

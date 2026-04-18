@@ -11,6 +11,7 @@ export interface AccountRow {
   contact_relationship: string
   contact_number: string
   contact_email: string
+  no_female_contact_flag: boolean
   plan: string
   status: string
   created_at: string
@@ -37,8 +38,11 @@ interface Props {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const RELATIONSHIP_LABEL: Record<string, string> = {
-  mother: 'Mother', father: 'Father', grandmother: 'Grandmother',
-  aunt: 'Aunt', male_guardian: 'Guardian', female_guardian: 'Guardian',
+  mother: 'Mother', grandmother: 'Grandmother', aunt: 'Aunt',
+  sister: 'Sister', female_guardian: 'Female guardian',
+  other_female_relative: 'Female relative',
+  father: 'Father', brother: 'Brother', uncle: 'Uncle',
+  male_guardian: 'Male guardian', other_male_relative: 'Male relative',
   self: 'Self', candidate: 'Self',
 }
 
@@ -344,6 +348,17 @@ function AccountRowCard({ account, isDark }: { account: AccountRow; isDark: bool
             <div style={{ fontSize: 11, color: c.textDim }}>No contact info</div>
           )}
         </div>
+
+        {/* Male guardian flag */}
+        {account.no_female_contact_flag && (
+          <span title="Male guardian — direct coordination required" style={{
+            fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 20,
+            background: 'rgba(251,191,36,0.12)', color: '#f59e0b',
+            border: '0.5px solid rgba(251,191,36,0.35)', whiteSpace: 'nowrap' as const, flexShrink: 0,
+          }}>
+            ⚠ Male guardian
+          </span>
+        )}
 
         {/* Plan */}
         <div style={{ flexShrink: 0 }}>

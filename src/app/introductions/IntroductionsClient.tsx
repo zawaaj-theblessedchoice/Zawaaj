@@ -102,19 +102,19 @@ interface BadgeConfig {
 
 const STATUS_CONFIG: Record<IntroStatus, BadgeConfig> = {
   pending: {
-    bg: 'rgba(251,191,36,0.12)',
+    bg: 'var(--status-warning-bg)',
     text: 'var(--status-warning)',
     label: "Awaiting family's response",
   },
   accepted: {
-    bg: 'rgba(184,150,12,0.14)',
+    bg: 'var(--gold-muted)',
     text: 'var(--gold)',
     label: 'Accepted — team notified',
     pulse: true,
   },
   facilitated: {
-    bg: 'rgba(74,222,128,0.10)',
-    text: '#4ade80',
+    bg: 'var(--status-success-bg)',
+    text: 'var(--status-success)',
     label: 'Contacts shared',
   },
   declined: {
@@ -514,8 +514,8 @@ function ReceivedRequestCard({
                 color: 'var(--text-muted)',
                 padding: '4px 8px',
                 borderRadius: 5,
-                background: 'rgba(255,255,255,0.04)',
-                border: '0.5px solid rgba(255,255,255,0.1)',
+                background: 'var(--surface-3)',
+                border: '0.5px solid var(--border-default)',
                 display: 'inline-block',
               }}
             >
@@ -566,9 +566,9 @@ function ReceivedRequestCard({
                   <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                     {(
                       [
-                        { key: 'proceed' as const,  label: 'Proceed',    accent: 'var(--gold)',          accentBg: 'rgba(184,150,12,0.12)' },
+                        { key: 'proceed' as const,  label: 'Proceed',    accent: 'var(--gold)',          accentBg: 'var(--gold-muted)' },
                         { key: 'needtime' as const, label: 'Need time',  accent: 'var(--text-secondary)', accentBg: 'var(--surface-3)' },
-                        { key: 'decline' as const,  label: 'Decline',    accent: 'var(--status-error)',   accentBg: 'rgba(239,68,68,0.07)' },
+                        { key: 'decline' as const,  label: 'Decline',    accent: 'var(--status-error)',   accentBg: 'var(--status-error-bg)' },
                       ] as { key: ResponseGroup; label: string; accent: string; accentBg: string }[]
                     ).map(({ key, label, accent, accentBg }) => (
                       <button
@@ -603,7 +603,7 @@ function ReceivedRequestCard({
                                 ? `1.5px solid ${isDecline ? 'var(--status-error)' : 'var(--gold)'}`
                                 : '0.5px solid var(--border-default)',
                               background: isSelected
-                                ? (isDecline ? 'rgba(239,68,68,0.06)' : 'rgba(184,150,12,0.08)')
+                                ? (isDecline ? 'var(--status-error-bg)' : 'var(--gold-muted)')
                                 : 'var(--surface-3)',
                               cursor: 'pointer', transition: 'all 0.13s',
                             }}
@@ -710,8 +710,8 @@ function MatchCard({ req }: { req: IntroRequest }) {
   return (
     <div
       style={{
-        background: isFacilitated ? 'rgba(74,222,128,0.04)' : 'var(--surface-2)',
-        border: `0.5px solid ${isFacilitated ? 'rgba(74,222,128,0.25)' : 'var(--border-gold)'}`,
+        background: isFacilitated ? 'var(--status-success-bg)' : 'var(--surface-2)',
+        border: `0.5px solid ${isFacilitated ? 'var(--status-success-br)' : 'var(--border-gold)'}`,
         borderRadius: 13,
         padding: '16px 18px',
         display: 'flex',
@@ -819,7 +819,7 @@ function TabButton({
         padding: '7px 16px',
         borderRadius: 999,
         border: active ? '1.5px solid var(--gold)' : '1px solid var(--border-default)',
-        background: active ? 'rgba(184,150,12,0.10)' : 'transparent',
+        background: active ? 'var(--gold-muted)' : 'transparent',
         color: active ? 'var(--gold)' : 'var(--text-secondary)',
         fontSize: 13,
         fontWeight: active ? 600 : 400,
@@ -965,7 +965,7 @@ export default function IntroductionsClient({
               gap: 10,
               padding: '8px 14px',
               borderRadius: 10,
-              background: limitReached ? 'rgba(239,68,68,0.08)' : 'var(--surface-2)',
+              background: limitReached ? 'var(--status-error-bg)' : 'var(--surface-2)',
               border: `0.5px solid ${limitReached ? 'var(--status-error)' : 'var(--border-default)'}`,
             }}
           >

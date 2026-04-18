@@ -151,7 +151,7 @@ function ProfileCard({
         border: `0.5px solid ${isSaved || hovered ? 'var(--border-gold)' : 'var(--border-default)'}`,
         cursor: 'pointer',
         transition: 'border-color 0.18s, box-shadow 0.18s, transform 0.18s, background 0.18s',
-        boxShadow: hovered ? '0 8px 28px rgba(0,0,0,0.35)' : '0 1px 4px rgba(0,0,0,0.2)',
+        boxShadow: hovered ? '0 6px 20px rgba(0,0,0,0.12)' : '0 1px 4px rgba(0,0,0,0.07)',
         transform: hovered ? 'translateY(-4px)' : 'none',
         padding: '14px 14px 12px',
         display: 'flex',
@@ -313,9 +313,9 @@ function ProfileCard({
                 fontSize: 10.5,
                 padding: '2px 7px',
                 borderRadius: 20,
-                background: 'rgba(184,150,12,0.12)',
+                background: 'var(--gold-muted)',
                 color: 'var(--gold)',
-                border: '0.5px solid rgba(184,150,12,0.35)',
+                border: '0.5px solid var(--border-gold)',
               }}
             >
               Suggested
@@ -557,7 +557,7 @@ function BrowsingAsBanner({
             borderRadius: 10,
             overflow: 'hidden',
             minWidth: 220,
-            boxShadow: '0 8px 28px rgba(0,0,0,0.4)',
+            boxShadow: '0 8px 20px rgba(0,0,0,0.12)',
           }}
         >
           {managedProfiles.map((p) => {
@@ -1053,8 +1053,8 @@ export default function BrowseClient({
                   flexDirection: 'column',
                   padding: '5px 12px',
                   borderRadius: 8,
-                  background: 'rgba(184,150,12,0.09)',
-                  border: '0.5px solid rgba(184,150,12,0.3)',
+                  background: 'var(--gold-muted)',
+                  border: '0.5px solid var(--border-gold)',
                   cursor: 'default',
                 }}
               >
@@ -1076,8 +1076,8 @@ export default function BrowseClient({
                 gap: 4,
                 padding: '3px 10px',
                 borderRadius: 999,
-                background: monthlyUsed >= monthlyLimit ? 'rgba(248,113,113,0.1)' : 'var(--surface-3)',
-                border: `0.5px solid ${monthlyUsed >= monthlyLimit ? 'rgba(248,113,113,0.3)' : 'var(--border-default)'}`,
+                background: monthlyUsed >= monthlyLimit ? 'var(--status-error-bg)' : 'var(--surface-3)',
+                border: `0.5px solid ${monthlyUsed >= monthlyLimit ? 'var(--status-error-br)' : 'var(--border-default)'}`,
                 fontSize: 11.5,
                 fontWeight: 500,
                 color: monthlyUsed >= monthlyLimit ? 'var(--status-error)' : 'var(--text-muted)',
@@ -1097,8 +1097,8 @@ export default function BrowseClient({
                   gap: 4,
                   padding: '3px 10px',
                   borderRadius: 999,
-                  background: 'rgba(184,150,12,0.12)',
-                  border: '0.5px solid rgba(184,150,12,0.35)',
+                  background: 'var(--gold-muted)',
+                  border: '0.5px solid var(--border-gold)',
                   fontSize: 11,
                   fontWeight: 600,
                   color: 'var(--gold)',
@@ -1170,8 +1170,8 @@ export default function BrowseClient({
                   gap: 6,
                   padding: '5px 10px',
                   borderRadius: 8,
-                  background: 'rgba(184,150,12,0.09)',
-                  border: '0.5px solid rgba(184,150,12,0.3)',
+                  background: 'var(--gold-muted)',
+                  border: '0.5px solid var(--border-gold)',
                   fontSize: 11.5,
                   color: 'var(--gold)',
                 }}
@@ -1211,7 +1211,7 @@ export default function BrowseClient({
                   padding: '7px 12px',
                   borderRadius: 8,
                   border: `0.5px solid ${filterOpen ? 'var(--border-gold)' : 'var(--border-default)'}`,
-                  background: filterOpen ? 'rgba(184,150,12,0.08)' : 'var(--surface-2)',
+                  background: filterOpen ? 'var(--gold-muted)' : 'var(--surface-2)',
                   color: filterOpen ? 'var(--gold)' : 'var(--text-secondary)',
                   fontSize: 12.5,
                   cursor: 'pointer',
@@ -1264,7 +1264,7 @@ export default function BrowseClient({
                     borderRadius: 12,
                     padding: '16px',
                     zIndex: 200,
-                    boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
                     maxHeight: '80vh',
                     overflowY: 'auto',
                   }}
@@ -1289,8 +1289,8 @@ export default function BrowseClient({
                         marginBottom: 16,
                         padding: '12px 14px',
                         borderRadius: 10,
-                        background: 'rgba(184,150,12,0.08)',
-                        border: '0.5px solid rgba(184,150,12,0.3)',
+                        background: 'var(--gold-muted)',
+                        border: '0.5px solid var(--border-gold)',
                       }}
                     >
                       <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--gold)', marginBottom: 6 }}>
@@ -1742,7 +1742,7 @@ export default function BrowseClient({
                   padding: '28px 24px',
                   borderRadius: 12,
                   background: 'var(--surface-2)',
-                  border: '0.5px solid rgba(184,150,12,0.3)',
+                  border: '0.5px solid var(--border-gold)',
                   maxWidth: 480,
                   margin: '40px auto',
                   textAlign: 'center',

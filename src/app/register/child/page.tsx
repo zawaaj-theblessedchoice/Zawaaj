@@ -52,21 +52,32 @@ const ETHNICITY_OPTIONS = [
   'West African', 'East African', 'Malaysian', 'Indonesian', 'White British',
   'White European', 'Mixed heritage', 'Other',
 ]
-const FEMALE_RELATIONSHIP_OPTIONS = [
+const GUARDIAN_RELATIONSHIP_OPTIONS = [
+  // Female — preferred
   { value: 'mother',                label: 'Mother' },
   { value: 'grandmother',           label: 'Grandmother' },
   { value: 'aunt',                  label: 'Aunt' },
-  { value: 'female_guardian',       label: 'Female guardian' },
-  { value: 'sister',                label: 'Sister' },
+  { value: 'sister',                label: 'Sister (aged 18+)' },
+  { value: 'female_guardian',       label: 'Other female guardian' },
   { value: 'other_female_relative', label: 'Other female relative' },
+  // Male — fallback (admin-flagged)
+  { value: 'father',                label: 'Father' },
+  { value: 'brother',               label: 'Brother (aged 18+)' },
+  { value: 'uncle',                 label: 'Uncle' },
+  { value: 'male_guardian',         label: 'Other male guardian' },
 ]
+
+// When a male relationship is selected, the system automatically flags the account
+const MALE_GUARDIAN_RELATIONSHIPS = new Set([
+  'father', 'brother', 'uncle', 'male_guardian',
+])
 
 const STEP_TITLES = [
   'Create your account',
-  'Personal details',
+  "Candidate's personal details",
   'Faith & practice',
   'Preferences',
-  "Your guardian's contact details",
+  "Guardian's contact details",
   'Terms & confirmation',
 ]
 
@@ -306,20 +317,24 @@ function RegisterChildPageInner() {
     try {
       const saved = sessionStorage.getItem('zawaaj-register-child')
       if (saved) {
-        const parsed = JSON.parse(saved) as Partial<FormData>
-        const { password: _p, confirmPassword: _c, ...safe } = parsed
+        const parsed = JSON.parse(saved) as Partial<FormData> & { _step?: number }
+        const { password: _p, confirmPassword: _c, _step: savedStep, ...safe } = parsed
         setForm(prev => ({ ...prev, ...safe }))
+        // Restore step so a refresh puts the user back where they were
+        if (typeof savedStep === 'number' && savedStep > 0) {
+          setStep(savedStep)
+        }
       }
     } catch { /* ignore */ }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Persist progress (excluding passwords) on every form change
+  // Persist progress (excluding passwords) + current step on every change
   useEffect(() => {
     try {
       const { password: _p, confirmPassword: _c, ...safe } = form
-      sessionStorage.setItem('zawaaj-register-child', JSON.stringify(safe))
+      sessionStorage.setItem('zawaaj-register-child', JSON.stringify({ ...safe, _step: step }))
     } catch { /* ignore */ }
-  }, [form])
+  }, [form, step])
 
   // When using an invite token, step 4 (guardian details) is skipped
   // because the family account already has those details.
@@ -336,6 +351,10 @@ function RegisterChildPageInner() {
       // Never-married implies no children — clear the field so it's not asked/sent.
       if (key === 'maritalStatus' && value === 'never_married') {
         next.hasChildren = ''
+      }
+      // Auto-flag male guardian — no manual checkbox needed.
+      if (key === 'guardianRelationship') {
+        next.noFemaleContactFlag = MALE_GUARDIAN_RELATIONSHIPS.has(value as string)
       }
       return next
     })
@@ -369,14 +388,40 @@ function RegisterChildPageInner() {
       if (form.password !== form.confirmPassword) return 'Passwords do not match.'
     }
     if (ds === 1) {
-      if (!form.firstName.trim())  return 'First name is required.'
-      if (!form.lastName.trim())   return 'Last name is required.'
-      if (!form.dateOfBirth)       return 'Date of birth is required.'
-      if (!form.gender)            return 'Gender is required.'
-      if (!form.location.trim())   return 'City / location is required.'
+      if (!form.firstName.trim())       return 'First name is required.'
+      if (!form.lastName.trim())        return 'Last name is required.'
+      if (!form.dateOfBirth)            return 'Date of birth is required.'
+      if (!form.gender)                 return 'Gender is required.'
+      if (!form.location.trim())        return 'City / location is required.'
+      if (!form.ethnicity)              return 'Ethnicity is required.'
+      if (!form.nationality.trim())     return 'Nationality is required.'
+      if (!form.languagesSpoken.trim()) return 'Languages spoken is required.'
+      if (!form.maritalStatus)          return 'Marital status is required.'
+      if (form.maritalStatus !== 'never_married' && !form.hasChildren)
+        return 'Please indicate whether you currently have children.'
     }
     if (ds === 2) {
-      if (!form.schoolOfThought) return 'School of thought is required.'
+      if (!form.educationLevel)              return 'Education level is required.'
+      if (!form.educationDetail.trim())      return 'Field of study / detail is required.'
+      if (!form.professionDetail.trim())     return 'Profession / occupation is required.'
+      if (!form.schoolOfThought)             return 'School of thought is required.'
+      if (!form.religiosity)                 return 'Religiosity level is required.'
+      if (!form.prayerRegularity)            return 'Prayer regularity is required.'
+      if (form.gender === 'female') {
+        if (!form.wearsHijab)                return 'Please indicate your hijab practice.'
+        if (!form.wearsNiqab)                return 'Please indicate your niqab practice.'
+        if (!form.wearsAbaya)                return 'Please indicate your abaya practice.'
+      }
+      if (form.gender === 'male' && !form.keepsBeard) return 'Please indicate your beard practice.'
+      if (!form.quranEngagementLevel)        return "Please select your Qur'an engagement level."
+      if (!form.bio.trim())                  return 'About / bio is required.'
+    }
+    if (ds === 3) {
+      if (!form.prefAgeMin)                  return 'Minimum preferred age is required.'
+      if (!form.prefAgeMax)                  return 'Maximum preferred age is required.'
+      if (!form.prefLocation.trim())         return 'Preferred location is required.'
+      if (!form.openToRelocation)            return 'Please indicate whether you are open to relocation.'
+      if (!form.openToPartnersChildren)      return "Please indicate whether you are open to a partner's children."
     }
     if (ds === 4) {
       const step4Errs: Record<string, string> = {}
@@ -386,8 +431,8 @@ function RegisterChildPageInner() {
         step4Errs.contact_relationship = 'Please select a relationship'
       if (!form.guardianNumber.trim())
         step4Errs.contact_number = 'Please enter a contact number'
-      if (form.noFemaleContactFlag && !form.fatherExplanation.trim())
-        step4Errs.father_explanation = 'Please explain why no female contact is available'
+      if (!form.guardianEmail.trim())
+        step4Errs.guardian_email = 'Guardian email address is required'
       if (Object.keys(step4Errs).length > 0) {
         setFieldErrors(step4Errs)
         const firstKey = Object.keys(step4Errs)[0]
@@ -454,7 +499,6 @@ function RegisterChildPageInner() {
           contactNumber:         form.guardianNumber,
           contactEmail:          form.guardianEmail || form.email,
           noFemaleContactFlag:   form.noFemaleContactFlag,
-          fatherExplanation:     form.fatherExplanation || undefined,
         }),
         termsAgreed:             true,
         profile: {
@@ -551,7 +595,7 @@ function RegisterChildPageInner() {
                                   'This invitation link is not valid. Please check the link or contact the Zawaaj team.'
     return (
       <main style={{ minHeight: '100vh', background: 'var(--surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px' }}>
-        <div style={{ width: '100%', maxWidth: 420, background: 'var(--surface-2)', border: '0.5px solid var(--border-default)', borderTop: '1px solid rgba(239,68,68,0.4)', borderRadius: 12, padding: '40px 36px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+        <div style={{ width: '100%', maxWidth: 420, background: 'var(--surface-2)', border: '0.5px solid var(--status-error-br)', borderRadius: 12, padding: '40px 36px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
           <ZawaajLogo size={56} tagline={false} />
           <h1 style={{ fontSize: 17, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Invalid invitation</h1>
           <p style={{ fontSize: 13.5, color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0 }}>{msg}</p>
@@ -565,7 +609,7 @@ function RegisterChildPageInner() {
   if (verificationEmail) {
     return (
       <main style={{ minHeight: '100vh', background: 'var(--surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px' }}>
-        <div style={{ width: '100%', maxWidth: 440, background: 'var(--surface-2)', border: '0.5px solid var(--border-default)', borderTop: '1px solid rgba(196,154,16,0.25)', borderRadius: 12, padding: '40px 36px', textAlign: 'center' }}>
+        <div style={{ width: '100%', maxWidth: 440, background: 'var(--surface-2)', border: '1px solid var(--border-gold)', borderRadius: 12, padding: '40px 36px', textAlign: 'center' }}>
           <ZawaajLogo size={56} tagline={false} />
           <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'var(--gold-muted)', border: '0.5px solid var(--border-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '24px auto 0' }}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="2" y="4" width="20" height="16" rx="2" stroke="var(--gold)" strokeWidth="1.5"/><path d="M2 7l10 7 10-7" stroke="var(--gold)" strokeWidth="1.5" strokeLinecap="round"/></svg>
@@ -598,9 +642,9 @@ function RegisterChildPageInner() {
     >
       <div style={{ width: '100%', maxWidth: 520 }}>
         <div style={{ textAlign: 'center', marginBottom: 8 }}>
-          <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, color: 'rgba(255,255,255,0.35)', textDecoration: 'none' }}
-            onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.65)')}
-            onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.35)')}>
+          <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}
+            onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-secondary)')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}>
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M7.5 2L3.5 6l4 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
             Back to website
           </Link>
@@ -610,21 +654,20 @@ function RegisterChildPageInner() {
           width: '100%',
           maxWidth: 520,
           background: 'var(--surface-2)',
-          border: '0.5px solid var(--border-default)',
-          borderTop: '1px solid rgba(196,154,16,0.25)',
+          border: '1px solid var(--border-gold)',
           borderRadius: 12,
           padding: '36px 32px',
           display: 'flex',
           flexDirection: 'column',
           gap: 20,
-          boxShadow: '0 16px 48px rgba(0,0,0,0.4)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.10)',
         }}
       >
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
           <ZawaajLogo height={220} />
           <StepDots total={EFFECTIVE_TOTAL} current={step} />
           {inviteToken && (
-            <span style={{ fontSize: 11, color: 'var(--gold)', background: 'rgba(184,150,12,0.1)', border: '0.5px solid var(--border-gold)', padding: '3px 10px', borderRadius: 999, letterSpacing: '0.06em' }}>
+            <span style={{ fontSize: 11, color: 'var(--gold)', background: 'var(--gold-muted)', border: '0.5px solid var(--border-gold)', padding: '3px 10px', borderRadius: 999, letterSpacing: '0.06em' }}>
               Invited registration
             </span>
           )}
@@ -641,6 +684,9 @@ function RegisterChildPageInner() {
         {/* ── Step 0: Account ───────────────────────────────────────────── */}
         {step === 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div style={{ padding: '10px 14px', borderRadius: 8, background: 'var(--gold-muted)', border: '0.5px solid var(--border-gold)', fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.55 }}>
+              <strong style={{ color: 'var(--gold)', fontWeight: 600 }}>You are creating a family account.</strong> This account is managed by a parent or guardian (preferably the mother) on behalf of the candidate. Your login credentials are for the guardian, not the candidate.
+            </div>
             <Field label="Email address" required>
               <input type="email" placeholder="your@email.com" value={form.email}
                 onChange={e => set('email', e.target.value)} style={inputStyle} autoComplete="email" />
@@ -680,7 +726,7 @@ function RegisterChildPageInner() {
         {step === 1 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <p style={{ fontSize: 12.5, color: 'var(--text-muted)', margin: 0, lineHeight: 1.5 }}>
-              This is your profile — the information other families will see. Fields marked * are required.
+              These are the candidate&apos;s personal details — the information that forms their profile. Only initials are shown publicly; full names are never shared with other families. Fields marked * are required.
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <Field label="First name" required>
@@ -719,7 +765,7 @@ function RegisterChildPageInner() {
                       style={{
                         padding: '5px 12px', fontSize: 12, border: 'none', cursor: 'pointer',
                         background: form.heightUnit === unit ? 'var(--gold)' : 'var(--surface-3)',
-                        color: form.heightUnit === unit ? '#fff' : 'var(--text-primary)',
+                        color: form.heightUnit === unit ? '#111' : 'var(--text-primary)',
                         fontWeight: form.heightUnit === unit ? 600 : 400,
                       }}
                     >
@@ -752,19 +798,19 @@ function RegisterChildPageInner() {
               </Field>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <Field label="Ethnicity">
+              <Field label="Ethnicity" required>
                 <select value={form.ethnicity} onChange={e => set('ethnicity', e.target.value)}
                   style={{ ...inputStyle, cursor: 'pointer' }}>
                   <option value="">Select…</option>
                   {ETHNICITY_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
                 </select>
               </Field>
-              <Field label="Nationality">
+              <Field label="Nationality" required>
                 <input type="text" placeholder="e.g. British" value={form.nationality}
                   onChange={e => set('nationality', e.target.value)} style={inputStyle} />
               </Field>
             </div>
-            <Field label="Languages spoken" hint="Comma-separated, e.g. English, Urdu, Arabic">
+            <Field label="Languages spoken" required hint="Comma-separated, e.g. English, Urdu, Arabic">
               <input type="text" placeholder="e.g. English, Urdu" value={form.languagesSpoken}
                 onChange={e => set('languagesSpoken', e.target.value)} style={inputStyle} />
             </Field>
@@ -774,7 +820,7 @@ function RegisterChildPageInner() {
               gridTemplateColumns: form.maritalStatus === 'never_married' ? '1fr' : '1fr 1fr',
               gap: 12,
             }}>
-              <Field label="Marital status">
+              <Field label="Marital status" required>
                 <select value={form.maritalStatus} onChange={e => set('maritalStatus', e.target.value)}
                   style={{ ...inputStyle, cursor: 'pointer' }}>
                   <option value="">Select…</option>
@@ -782,7 +828,7 @@ function RegisterChildPageInner() {
                 </select>
               </Field>
               {form.maritalStatus !== 'never_married' && (
-                <Field label="Currently has children">
+                <Field label="Currently has children" required>
                   <select value={form.hasChildren} onChange={e => set('hasChildren', e.target.value)}
                     style={{ ...inputStyle, cursor: 'pointer' }}>
                     <option value="">Select…</option>
@@ -800,19 +846,19 @@ function RegisterChildPageInner() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <SectionLabel label="Education & career" />
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <Field label="Highest education level">
+              <Field label="Highest education level" required>
                 <select value={form.educationLevel} onChange={e => set('educationLevel', e.target.value)}
                   style={{ ...inputStyle, cursor: 'pointer' }}>
                   <option value="">Select…</option>
                   {EDUCATION_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
                 </select>
               </Field>
-              <Field label="Field of study / detail">
+              <Field label="Field of study / detail" required>
                 <input type="text" placeholder="e.g. Computer Science" value={form.educationDetail}
                   onChange={e => set('educationDetail', e.target.value)} style={inputStyle} />
               </Field>
             </div>
-            <Field label="Profession / occupation">
+            <Field label="Profession / occupation" required>
               <input type="text" placeholder="e.g. Software Engineer" value={form.professionDetail}
                 onChange={e => set('professionDetail', e.target.value)} style={inputStyle} />
             </Field>
@@ -827,7 +873,7 @@ function RegisterChildPageInner() {
             </Field>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <div>
-                <label style={labelStyle}>Religiosity level</label>
+                <label style={labelStyle}>Religiosity level<span style={{ color: 'var(--gold)', marginLeft: 2 }}>*</span></label>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {RELIGIOSITY_OPTIONS.map(o => (
                     <button
@@ -837,7 +883,7 @@ function RegisterChildPageInner() {
                       style={{
                         padding: '8px 10px', borderRadius: 8, textAlign: 'left', cursor: 'pointer',
                         border: `0.5px solid ${form.religiosity === o.value ? 'var(--gold)' : 'var(--border-default)'}`,
-                        background: form.religiosity === o.value ? 'rgba(184,150,12,0.08)' : 'var(--surface-3)',
+                        background: form.religiosity === o.value ? 'var(--gold-muted)' : 'var(--surface-3)',
                         color: 'var(--text-primary)',
                       }}
                     >
@@ -847,7 +893,7 @@ function RegisterChildPageInner() {
                   ))}
                 </div>
               </div>
-              <Field label="Prays five times daily">
+              <Field label="Prays five times daily" required>
                 <select value={form.prayerRegularity} onChange={e => set('prayerRegularity', e.target.value)}
                   style={{ ...inputStyle, cursor: 'pointer' }}>
                   <option value="">Select…</option>
@@ -857,8 +903,8 @@ function RegisterChildPageInner() {
             </div>
             {form.gender === 'female' && (
               <div>
-                <h3 style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4, marginTop: 4 }}>Modesty practice</h3>
-                <p style={{ fontSize: 11.5, color: 'var(--text-muted)', marginBottom: 12, lineHeight: 1.4 }}>Optional — this information is only shown to potential matches</p>
+                <h3 style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4, marginTop: 4 }}>Modesty practice<span style={{ color: 'var(--gold)', marginLeft: 2 }}>*</span></h3>
+                <p style={{ fontSize: 11.5, color: 'var(--text-muted)', marginBottom: 12, lineHeight: 1.4 }}>This information is only shown to potential matches</p>
 
                 {/* Hijab */}
                 <div style={{ marginBottom: 14 }}>
@@ -868,7 +914,7 @@ function RegisterChildPageInner() {
                     {[{val: 'yes', label: 'Yes'}, {val: 'no', label: 'No'}].map(opt => (
                       <button key={opt.val} type="button"
                         onClick={() => set('wearsHijab', opt.val)}
-                        style={{ padding: '6px 16px', borderRadius: 8, border: `0.5px solid ${form.wearsHijab === opt.val ? 'var(--gold)' : 'var(--border-default)'}`, background: form.wearsHijab === opt.val ? 'rgba(184,150,12,0.1)' : 'var(--surface-3)', color: form.wearsHijab === opt.val ? 'var(--gold)' : 'var(--text-primary)', cursor: 'pointer', fontSize: 13 }}>
+                        style={{ padding: '6px 16px', borderRadius: 8, border: `0.5px solid ${form.wearsHijab === opt.val ? 'var(--gold)' : 'var(--border-default)'}`, background: form.wearsHijab === opt.val ? 'var(--gold-muted)' : 'var(--surface-3)', color: form.wearsHijab === opt.val ? 'var(--gold)' : 'var(--text-primary)', cursor: 'pointer', fontSize: 13 }}>
                         {opt.label}
                       </button>
                     ))}
@@ -883,7 +929,7 @@ function RegisterChildPageInner() {
                     {['Yes', 'No', 'Sometimes'].map(opt => (
                       <button key={opt} type="button"
                         onClick={() => set('wearsNiqab', opt.toLowerCase())}
-                        style={{ padding: '6px 16px', borderRadius: 8, border: `0.5px solid ${form.wearsNiqab === opt.toLowerCase() ? 'var(--gold)' : 'var(--border-default)'}`, background: form.wearsNiqab === opt.toLowerCase() ? 'rgba(184,150,12,0.1)' : 'var(--surface-3)', color: form.wearsNiqab === opt.toLowerCase() ? 'var(--gold)' : 'var(--text-primary)', cursor: 'pointer', fontSize: 13 }}>
+                        style={{ padding: '6px 16px', borderRadius: 8, border: `0.5px solid ${form.wearsNiqab === opt.toLowerCase() ? 'var(--gold)' : 'var(--border-default)'}`, background: form.wearsNiqab === opt.toLowerCase() ? 'var(--gold-muted)' : 'var(--surface-3)', color: form.wearsNiqab === opt.toLowerCase() ? 'var(--gold)' : 'var(--text-primary)', cursor: 'pointer', fontSize: 13 }}>
                         {opt}
                       </button>
                     ))}
@@ -898,7 +944,7 @@ function RegisterChildPageInner() {
                     {['Yes', 'No', 'Sometimes'].map(opt => (
                       <button key={opt} type="button"
                         onClick={() => set('wearsAbaya', opt.toLowerCase())}
-                        style={{ padding: '6px 16px', borderRadius: 8, border: `0.5px solid ${form.wearsAbaya === opt.toLowerCase() ? 'var(--gold)' : 'var(--border-default)'}`, background: form.wearsAbaya === opt.toLowerCase() ? 'rgba(184,150,12,0.1)' : 'var(--surface-3)', color: form.wearsAbaya === opt.toLowerCase() ? 'var(--gold)' : 'var(--text-primary)', cursor: 'pointer', fontSize: 13 }}>
+                        style={{ padding: '6px 16px', borderRadius: 8, border: `0.5px solid ${form.wearsAbaya === opt.toLowerCase() ? 'var(--gold)' : 'var(--border-default)'}`, background: form.wearsAbaya === opt.toLowerCase() ? 'var(--gold-muted)' : 'var(--surface-3)', color: form.wearsAbaya === opt.toLowerCase() ? 'var(--gold)' : 'var(--text-primary)', cursor: 'pointer', fontSize: 13 }}>
                         {opt}
                       </button>
                     ))}
@@ -907,7 +953,7 @@ function RegisterChildPageInner() {
               </div>
             )}
             {form.gender === 'male' && (
-              <Field label="Keeps beard">
+              <Field label="Keeps beard" required>
                 <select value={form.keepsBeard} onChange={e => set('keepsBeard', e.target.value)}
                   style={{ ...inputStyle, cursor: 'pointer' }}>
                   <option value="">Select…</option>
@@ -917,7 +963,7 @@ function RegisterChildPageInner() {
               </Field>
             )}
             <div>
-              <label style={labelStyle}>Which best describes your current relationship with the Qur&apos;an?</label>
+              <label style={labelStyle}>Which best describes your current relationship with the Qur&apos;an?<span style={{ color: 'var(--gold)', marginLeft: 2 }}>*</span></label>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {QURAN_OPTIONS.map(o => (
                   <button
@@ -927,7 +973,7 @@ function RegisterChildPageInner() {
                     style={{
                       padding: '8px 10px', borderRadius: 8, textAlign: 'left', cursor: 'pointer',
                       border: `0.5px solid ${form.quranEngagementLevel === o.value ? 'var(--gold)' : 'var(--border-default)'}`,
-                      background: form.quranEngagementLevel === o.value ? 'rgba(184,150,12,0.08)' : 'var(--surface-3)',
+                      background: form.quranEngagementLevel === o.value ? 'var(--gold-muted)' : 'var(--surface-3)',
                       color: 'var(--text-primary)',
                     }}
                   >
@@ -937,7 +983,7 @@ function RegisterChildPageInner() {
                 ))}
               </div>
             </div>
-            <Field label="About — character, values, and what you are looking for"
+            <Field label="About — character, values, and what you are looking for" required
               hint="80–200 words. This is what other families will read about you.">
               <textarea value={form.bio} onChange={e => set('bio', e.target.value)}
                 placeholder="Write a short description…" rows={5}
@@ -950,22 +996,22 @@ function RegisterChildPageInner() {
         {step === 3 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <p style={{ fontSize: 12.5, color: 'var(--text-muted)', margin: 0, lineHeight: 1.5 }}>
-              These preferences help us recommend suitable profiles. All fields are optional.
+              These preferences help us recommend suitable profiles. Fields marked * are required.
             </p>
             <SectionLabel label="Age preference" />
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <Field label="Min age">
+              <Field label="Min age" required>
                 <input type="number" placeholder="e.g. 22" value={form.prefAgeMin} min={18} max={80}
                   onChange={e => set('prefAgeMin', e.target.value)} style={inputStyle} />
               </Field>
-              <Field label="Max age">
+              <Field label="Max age" required>
                 <input type="number" placeholder="e.g. 35" value={form.prefAgeMax} min={18} max={80}
                   onChange={e => set('prefAgeMax', e.target.value)} style={inputStyle} />
               </Field>
             </div>
             <SectionLabel label="Location & background" />
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <Field label="Preferred location">
+              <Field label="Preferred location" required>
                 <input type="text" placeholder="e.g. London" value={form.prefLocation}
                   onChange={e => set('prefLocation', e.target.value)} style={inputStyle} />
               </Field>
@@ -986,14 +1032,14 @@ function RegisterChildPageInner() {
             </Field>
             <SectionLabel label="Lifestyle" />
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <Field label="Open to relocation">
+              <Field label="Open to relocation" required>
                 <select value={form.openToRelocation} onChange={e => set('openToRelocation', e.target.value)}
                   style={{ ...inputStyle, cursor: 'pointer' }}>
                   <option value="">Select…</option>
                   {RELOCATION_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
               </Field>
-              <Field label="Open to partner's children">
+              <Field label="Open to partner's children" required>
                 <select value={form.openToPartnersChildren} onChange={e => set('openToPartnersChildren', e.target.value)}
                   style={{ ...inputStyle, cursor: 'pointer' }}>
                   <option value="">Select…</option>
@@ -1011,63 +1057,44 @@ function RegisterChildPageInner() {
               style={{
                 padding: '12px 14px',
                 borderRadius: 8,
-                background: 'rgba(184,150,12,0.06)',
-                border: '0.5px solid rgba(184,150,12,0.25)',
+                background: 'var(--gold-muted)',
+                border: '0.5px solid var(--border-gold)',
                 fontSize: 12.5,
                 color: 'var(--text-secondary)',
                 lineHeight: 1.6,
               }}
             >
-              Your guardian's details will be used by our team when connecting families — they are never shared with other members until a mutual introduction is confirmed and both families have verbally agreed to proceed.
+              A guardian is required. The preferred guardian is the candidate&apos;s mother — if unavailable, please select the closest available female relative, or a male relative as a last resort.
+              Guardian details are used by our team when connecting families and are never shared publicly.
             </div>
-            <Field label="Her full name" required fieldId="field-contact_full_name" error={fieldErrors.contact_full_name}>
+            <Field label="Guardian's full name" required fieldId="field-contact_full_name" error={fieldErrors.contact_full_name}>
               <input type="text" placeholder="e.g. Fatima Hussain" value={form.guardianFullName}
                 onChange={e => { set('guardianFullName', e.target.value); clearFieldError('contact_full_name') }}
                 style={{ ...inputStyle, borderColor: fieldErrors.contact_full_name ? 'var(--status-error, #f87171)' : undefined }} />
             </Field>
-            <Field label="Her relationship to you" required fieldId="field-contact_relationship" error={fieldErrors.contact_relationship}>
+            <Field label="Guardian's relationship to candidate" required fieldId="field-contact_relationship" error={fieldErrors.contact_relationship}>
               <select value={form.guardianRelationship}
                 onChange={e => { set('guardianRelationship', e.target.value); clearFieldError('contact_relationship') }}
                 style={{ ...inputStyle, cursor: 'pointer', borderColor: fieldErrors.contact_relationship ? 'var(--status-error, #f87171)' : undefined }}>
                 <option value="">Select…</option>
-                {FEMALE_RELATIONSHIP_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                {GUARDIAN_RELATIONSHIP_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
             </Field>
-            <Field label="Her contact number (WhatsApp preferred)" required fieldId="field-contact_number" error={fieldErrors.contact_number}>
+            {form.noFemaleContactFlag && (
+              <div style={{ padding: '10px 14px', borderRadius: 8, background: 'var(--status-warning-bg)', border: '0.5px solid var(--status-warning-br)', fontSize: 12, color: 'var(--status-warning)', lineHeight: 1.5 }}>
+                ⚠ A male guardian has been selected. Our team will be notified and will coordinate accordingly.
+              </div>
+            )}
+            <Field label="Guardian's contact number (WhatsApp preferred)" required fieldId="field-contact_number" error={fieldErrors.contact_number}>
               <input type="tel" placeholder="e.g. 07700 900000" value={form.guardianNumber}
                 onChange={e => { set('guardianNumber', e.target.value); clearFieldError('contact_number') }}
                 style={{ ...inputStyle, borderColor: fieldErrors.contact_number ? 'var(--status-error, #f87171)' : undefined }} />
             </Field>
-            <Field label="Her email address" hint="Optional — if provided, she will receive an invitation to link her account.">
-              <input type="email" placeholder="Optional" value={form.guardianEmail}
-                onChange={e => set('guardianEmail', e.target.value)} style={inputStyle} />
+            <Field label="Guardian's email address" required fieldId="field-guardian_email" error={fieldErrors.guardian_email} hint="Your guardian will receive an invitation to link to your account.">
+              <input type="email" placeholder="guardian@email.com" value={form.guardianEmail}
+                onChange={e => { set('guardianEmail', e.target.value); clearFieldError('guardian_email') }}
+                style={{ ...inputStyle, borderColor: fieldErrors.guardian_email ? 'var(--status-error, #f87171)' : undefined }} />
             </Field>
-
-            <label
-              style={{
-                display: 'flex', gap: 10, alignItems: 'flex-start', cursor: 'pointer',
-                padding: '12px 14px', borderRadius: 8,
-                background: form.noFemaleContactFlag ? 'rgba(184,150,12,0.06)' : 'var(--surface-3)',
-                border: `0.5px solid ${form.noFemaleContactFlag ? 'rgba(184,150,12,0.35)' : 'var(--border-default)'}`,
-                marginTop: 4,
-              }}
-            >
-              <input type="checkbox" checked={form.noFemaleContactFlag}
-                onChange={e => set('noFemaleContactFlag', e.target.checked)}
-                style={{ marginTop: 2, flexShrink: 0 }} />
-              <span style={{ fontSize: 12.5, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                My guardian is not available to be contacted at this time.
-              </span>
-            </label>
-
-            {form.noFemaleContactFlag && (
-              <Field label="Please explain" required fieldId="field-father_explanation" error={fieldErrors.father_explanation}>
-                <textarea value={form.fatherExplanation}
-                  onChange={e => { set('fatherExplanation', e.target.value); clearFieldError('father_explanation') }}
-                  placeholder="This is seen by admin only." rows={3}
-                  style={{ ...inputStyle, resize: 'vertical', borderColor: fieldErrors.father_explanation ? 'var(--status-error, #f87171)' : undefined }} />
-              </Field>
-            )}
           </div>
         )}
 
@@ -1075,7 +1102,7 @@ function RegisterChildPageInner() {
         {step === 5 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             {/* Islamic oath */}
-            <div style={{ padding: '14px 16px', borderRadius: 8, background: 'rgba(184,150,12,0.05)', border: '0.5px solid rgba(184,150,12,0.2)', textAlign: 'center' }}>
+            <div style={{ padding: '14px 16px', borderRadius: 8, background: 'var(--gold-muted)', border: '0.5px solid var(--border-gold)', textAlign: 'center' }}>
               <p style={{ fontSize: 15, color: 'var(--gold)', fontWeight: 600, margin: '0 0 8px', letterSpacing: '0.03em' }}>بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ</p>
               <p style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.65, margin: 0 }}>
                 In the name of Allah, the Most Gracious, the Most Merciful.<br />
@@ -1118,8 +1145,8 @@ function RegisterChildPageInner() {
           <div
             style={{
               padding: '10px 14px', borderRadius: 8,
-              background: 'rgba(248,113,113,0.08)',
-              border: '0.5px solid rgba(248,113,113,0.3)',
+              background: 'var(--status-error-bg)',
+              border: '0.5px solid var(--status-error-br)',
               fontSize: 13, color: 'var(--status-error)',
             }}
           >
