@@ -374,12 +374,12 @@ export default function LandingPage({ isLoggedIn = false, featuredEvents = [] }:
           </div>
 
           {/* Centre — navigation links (desktop) */}
-          <div className="hidden md:flex items-center justify-center gap-7 text-sm text-dim">
-            <a href="#how-it-works" className="hover:text-ink transition-colors">How it works</a>
-            <a href="#values" className="hover:text-ink transition-colors">Our values</a>
-            <a href="#membership" className="hover:text-ink transition-colors">Membership</a>
-            <Link href="/events" className="hover:text-ink transition-colors">Events</Link>
-            <a href="#faq" className="hover:text-ink transition-colors">FAQ</a>
+          <div className="hidden md:flex items-center justify-center gap-5 text-sm text-dim">
+            <a href="#how-it-works" className="hover:text-ink transition-colors whitespace-nowrap">How it works</a>
+            <a href="#values" className="hover:text-ink transition-colors whitespace-nowrap">Our values</a>
+            <a href="#membership" className="hover:text-ink transition-colors whitespace-nowrap">Membership</a>
+            <Link href="/events" className="hover:text-ink transition-colors whitespace-nowrap">Events</Link>
+            <a href="#faq" className="hover:text-ink transition-colors whitespace-nowrap">FAQ</a>
           </div>
 
           {/* Right — primary action (desktop) + hamburger (mobile) */}
@@ -488,7 +488,8 @@ export default function LandingPage({ isLoggedIn = false, featuredEvents = [] }:
         <p className="text-base text-dim max-w-xl mx-auto leading-relaxed mb-5">
           Zawaaj is a private, family-aligned matrimonial platform.<br />
           Every profile is reviewed, every introduction admin-verified.<br />
-          No direct messaging or casual chatting. No time-wasting. Just a proper, family-led process.
+          No direct messaging or casual chatting. No time-wasting.<br />
+          Just a proper, family-led process.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center mb-4">
           {isLoggedIn ? (

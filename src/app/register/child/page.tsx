@@ -549,7 +549,14 @@ function RegisterChildPageInner() {
         setFieldErrors(json.errors as Record<string, string>)
         const firstKey = Object.keys(json.errors)[0]
         const el = document.getElementById(`field-${firstKey}`)
-        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        } else {
+          // Error field is on a previous step — navigate back so it becomes visible
+          const guardianStep = inviteToken ? 3 : 4
+          setStep(guardianStep)
+          setError('Some details need to be corrected. Please review the highlighted fields.')
+        }
       } else {
         setError(
           json.error === 'email_exists'
