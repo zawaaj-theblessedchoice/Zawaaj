@@ -152,6 +152,52 @@ export default function HelpPage() {
               ))}
             </div>
           </section>
+
+          {/* Contact section */}
+          <section style={{ maxWidth: 600, marginTop: 12 }}>
+            <div style={{
+              background: 'var(--surface-2)',
+              border: '0.5px solid var(--border-gold)',
+              borderRadius: 10,
+              padding: '24px 28px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 20,
+              flexWrap: 'wrap',
+            }}>
+              <div>
+                <h3 style={{ fontSize: 14.5, fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 4px' }}>
+                  Still need help?
+                </h3>
+                <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.55 }}>
+                  Our team usually responds within one working day.
+                </p>
+              </div>
+              <a
+                href="mailto:hello@zawaaj.uk"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 7,
+                  padding: '9px 18px',
+                  borderRadius: 8,
+                  background: 'var(--gold-muted)',
+                  border: '0.5px solid var(--border-gold)',
+                  color: 'var(--gold)',
+                  fontSize: 13,
+                  fontWeight: 500,
+                  textDecoration: 'none',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 7 10-7"/>
+                </svg>
+                Email hello@zawaaj.uk
+              </a>
+            </div>
+          </section>
         </main>
       </div>
     </div>

@@ -119,7 +119,7 @@ export default async function BrowsePage({
               <a href="/my-profile" style={{ padding: '9px 20px', borderRadius: 8, border: '0.5px solid var(--border-default)', background: 'var(--surface-3)', color: 'var(--text-primary)', fontSize: 13, textDecoration: 'none' }}>
                 Edit my profile
               </a>
-              <a href="/help" style={{ padding: '9px 20px', borderRadius: 8, border: '0.5px solid var(--border-gold)', background: 'var(--gold-muted)', color: 'var(--gold)', fontSize: 13, textDecoration: 'none' }}>
+              <a href="mailto:hello@zawaaj.uk?subject=Profile%20review%20enquiry" style={{ padding: '9px 20px', borderRadius: 8, border: '0.5px solid var(--border-gold)', background: 'var(--gold-muted)', color: 'var(--gold)', fontSize: 13, textDecoration: 'none' }}>
                 Contact us
               </a>
             </div>
