@@ -45,16 +45,20 @@ export const viewport: Viewport = {
 }
 
 // Inline script runs synchronously before first paint to avoid theme flash.
-// CSS :root is LIGHT by default (no attribute). Dark mode = data-theme="dark" on <html>.
+// HTML element defaults to data-theme="dark". Script removes it only if user
+// explicitly chose light.
 const themeInitScript = `
   try {
     var mode = localStorage.getItem('zawaaj-theme');
-    if (mode === 'dark') {
-      document.documentElement.setAttribute('data-theme', 'dark');
-    } else if (mode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      document.documentElement.setAttribute('data-theme', 'dark');
+    if (mode === 'light') {
+      document.documentElement.removeAttribute('data-theme');
+    } else if (mode === 'system') {
+      if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+        document.documentElement.removeAttribute('data-theme');
+      }
+      // system+dark or system — keep data-theme="dark" (already set on element)
     }
-    // 'light', null, or system+light — no attribute; :root is already light
+    // 'dark', null (no preference) — keep data-theme="dark" (already set on element)
   } catch(e) {}
 `;
 
@@ -66,6 +70,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      data-theme="dark"
       className={`${geistSans.variable} ${geistMono.variable} ${amiri.variable} h-full antialiased`}
     >
       {/* eslint-disable-next-line @next/next/no-before-interactive-script-component */}

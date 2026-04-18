@@ -378,6 +378,7 @@ export default function LandingPage({ isLoggedIn = false, featuredEvents = [] }:
             <a href="#how-it-works" className="hover:text-ink transition-colors">How it works</a>
             <a href="#values" className="hover:text-ink transition-colors">Our values</a>
             <a href="#membership" className="hover:text-ink transition-colors">Membership</a>
+            <Link href="/events" className="hover:text-ink transition-colors">Events</Link>
             <a href="#faq" className="hover:text-ink transition-colors">FAQ</a>
           </div>
 
@@ -443,6 +444,7 @@ export default function LandingPage({ isLoggedIn = false, featuredEvents = [] }:
               { href: '#how-it-works', label: 'How it works' },
               { href: '#values', label: 'Our values' },
               { href: '#membership', label: 'Membership' },
+              { href: '/events', label: 'Events' },
               { href: '#faq', label: 'FAQ' },
             ].map(link => (
               <a key={link.href} href={link.href} onClick={() => setMenuOpen(false)}

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import Sidebar from '@/components/Sidebar'
 
@@ -423,6 +424,26 @@ export default function EventsPage() {
         margin: loggedIn ? undefined : '0 auto',
       }}
     >
+      {/* Back to website */}
+      <div style={{ marginBottom: 20 }}>
+        <Link
+          href="/"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 5,
+            fontSize: 12.5,
+            color: 'var(--text-muted)',
+            textDecoration: 'none',
+            transition: 'color 0.15s',
+          }}
+          onMouseEnter={e => ((e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-secondary)')}
+          onMouseLeave={e => ((e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-muted)')}
+        >
+          ← Back to website
+        </Link>
+      </div>
+
       {/* Header */}
       <div style={{ marginBottom: 28 }}>
         <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 6px' }}>

@@ -199,8 +199,15 @@ export default function PricingPage() {
           Prices in GBP. Cancel or change plan at any time. No contracts.
         </p>
 
+        {/* Company / charity notice */}
+        <div className="mt-8 max-w-2xl mx-auto border-t border-white/8 pt-6">
+          <p className="text-center text-xs text-white/30 leading-relaxed">
+            Zawaaj is operated by Ingenious Education Ltd. Net proceeds support Radiance of Hope, a charitable organisation currently undergoing registration.
+          </p>
+        </div>
+
         {/* Back to home */}
-        <div className="text-center mt-10">
+        <div className="text-center mt-8">
           <Link href="/" className="text-sm text-gold hover:underline">← Back to home</Link>
         </div>
       </div>
