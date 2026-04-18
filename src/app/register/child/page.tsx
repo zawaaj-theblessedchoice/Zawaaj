@@ -191,6 +191,7 @@ interface FormData {
   ethnicity:          string
   nationality:        string
   languagesSpoken:    string
+  placeOfBirth:       string
   // Step 2 — Faith
   schoolOfThought:    string
   religiosity:        string
@@ -200,6 +201,8 @@ interface FormData {
   wearsAbaya:         string   // 'yes' | 'no' | 'sometimes' | ''
   keepsBeard:         string   // 'yes' | 'no' | ''
   quranEngagementLevel: string
+  islamicBackground:  string   // 'born_muslim' | 'reverted' | ''
+  smoker:             string   // 'yes' | 'no' | ''
   educationLevel:     string
   educationDetail:    string
   professionDetail:   string
@@ -231,9 +234,9 @@ const EMPTY: FormData = {
   email: '', password: '', confirmPassword: '',
   firstName: '', lastName: '', dateOfBirth: '', gender: '', height: '',
   heightUnit: 'cm', heightCm: '', heightFt: '', heightIn: '',
-  location: '', ethnicity: '', nationality: '', languagesSpoken: '',
+  location: '', ethnicity: '', nationality: '', languagesSpoken: '', placeOfBirth: '',
   schoolOfThought: '', religiosity: '', prayerRegularity: '', wearsHijab: '',
-  wearsNiqab: '', wearsAbaya: '', quranEngagementLevel: '',
+  wearsNiqab: '', wearsAbaya: '', quranEngagementLevel: '', islamicBackground: '', smoker: '',
   keepsBeard: '', educationLevel: '', educationDetail: '', professionDetail: '', bio: '',
   prefAgeMin: '', prefAgeMax: '', prefLocation: '', prefEthnicity: '',
   prefSchoolOfThought: '', openToRelocation: '', openToPartnersChildren: '',
@@ -532,6 +535,9 @@ function RegisterChildPageInner() {
           openToPartnersChildren: form.openToPartnersChildren || undefined,
           maritalStatus:         form.maritalStatus   || undefined,
           hasChildren:           hasChildrenBool,
+          islamicBackground:     form.islamicBackground || undefined,
+          placeOfBirth:          form.placeOfBirth.trim() || undefined,
+          smoker:                form.smoker === 'yes' ? true : form.smoker === 'no' ? false : undefined,
         },
       }),
     })
@@ -810,6 +816,10 @@ function RegisterChildPageInner() {
                   onChange={e => set('nationality', e.target.value)} style={inputStyle} />
               </Field>
             </div>
+            <Field label="Place of birth" hint="Town/city and country where you were born">
+              <input type="text" placeholder="e.g. Lahore, Pakistan" value={form.placeOfBirth}
+                onChange={e => set('placeOfBirth', e.target.value)} style={inputStyle} />
+            </Field>
             <Field label="Languages spoken" required hint="Comma-separated, e.g. English, Urdu, Arabic">
               <input type="text" placeholder="e.g. English, Urdu" value={form.languagesSpoken}
                 onChange={e => set('languagesSpoken', e.target.value)} style={inputStyle} />
@@ -838,12 +848,46 @@ function RegisterChildPageInner() {
                 </Field>
               )}
             </div>
+            <SectionLabel label="Lifestyle" />
+            <Field label="Smoker">
+              <select value={form.smoker} onChange={e => set('smoker', e.target.value)}
+                style={{ ...inputStyle, cursor: 'pointer' }}>
+                <option value="">Select…</option>
+                <option value="no">No</option>
+                <option value="yes">Yes</option>
+              </select>
+            </Field>
           </div>
         )}
 
         {/* ── Step 2: Faith & education ─────────────────────────────────── */}
         {step === 2 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <SectionLabel label="Islamic background" />
+            <Field label="Background">
+              <div style={{ display: 'flex', gap: 8 }}>
+                {([
+                  { value: 'born_muslim', label: 'Born Muslim' },
+                  { value: 'reverted',    label: 'Reverted to Islam' },
+                ] as const).map(opt => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => set('islamicBackground', form.islamicBackground === opt.value ? '' : opt.value)}
+                    style={{
+                      flex: 1, padding: '9px 12px', borderRadius: 8, fontSize: 13, cursor: 'pointer',
+                      border: `0.5px solid ${form.islamicBackground === opt.value ? 'var(--gold)' : 'var(--border-default)'}`,
+                      background: form.islamicBackground === opt.value ? 'var(--gold-muted)' : 'var(--surface-3)',
+                      color: form.islamicBackground === opt.value ? 'var(--gold)' : 'var(--text-secondary)',
+                      fontWeight: form.islamicBackground === opt.value ? 600 : 400,
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </Field>
             <SectionLabel label="Education & career" />
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <Field label="Highest education level" required>

@@ -47,6 +47,9 @@ interface ProfileFields {
   openToPartnersChildren?: string
   maritalStatus?:       string
   hasChildren?:         boolean | null
+  islamicBackground?:   string
+  smoker?:              boolean | null
+  placeOfBirth?:        string
 }
 
 interface FamilyRegistrationPayload {
@@ -162,6 +165,9 @@ export async function POST(request: Request): Promise<Response> {
             open_to_relocation: profile.openToRelocation ?? null,
             open_to_partners_children: profile.openToPartnersChildren ?? null,
             marital_status: profile.maritalStatus ?? null, has_children: profile.hasChildren ?? null,
+            islamic_background: profile.islamicBackground || null,
+            smoker: profile.smoker !== undefined ? profile.smoker : null,
+            place_of_birth: profile.placeOfBirth || null,
             status: 'pending', profile_complete: true, created_by_child: true,
             consent_given: true, terms_agreed: true, submitted_date: new Date().toISOString(),
           })
@@ -320,6 +326,9 @@ export async function POST(request: Request): Promise<Response> {
           open_to_partners_children: profile.openToPartnersChildren ?? null,
           marital_status:        profile.maritalStatus     ?? null,
           has_children:          profile.hasChildren       ?? null,
+          islamic_background:    profile.islamicBackground || null,
+          smoker:                profile.smoker !== undefined ? profile.smoker : null,
+          place_of_birth:        profile.placeOfBirth      || null,
           status:                'pending',
           profile_complete:      true,
           created_by_child:      true,

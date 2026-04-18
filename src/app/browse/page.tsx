@@ -77,7 +77,8 @@ export default async function BrowsePage({
        religiosity, prayer_regularity, wears_hijab, keeps_beard, wears_niqab, wears_abaya,
        quran_engagement_level, bio, open_to_relocation,
        open_to_partners_children, pref_age_min, pref_age_max, pref_location, pref_ethnicity,
-       pref_school_of_thought, pref_relocation, pref_partner_children, status, listed_at`
+       pref_school_of_thought, pref_relocation, pref_partner_children, status, listed_at,
+       islamic_background, smoker, place_of_birth`
     )
     .eq('id', activeProfileId)
     .single()
@@ -142,7 +143,8 @@ export default async function BrowsePage({
        religiosity, prayer_regularity, wears_hijab, keeps_beard, wears_niqab, wears_abaya,
        quran_engagement_level, bio, open_to_relocation,
        open_to_partners_children, pref_age_min, pref_age_max, pref_location, pref_ethnicity,
-       pref_school_of_thought, pref_relocation, pref_partner_children, status, listed_at`
+       pref_school_of_thought, pref_relocation, pref_partner_children, status, listed_at,
+       islamic_background, smoker, place_of_birth`
     )
     .eq('status', 'approved')
     .not('id', 'in', `(${siblingIds.join(',')})`)
@@ -169,6 +171,9 @@ export default async function BrowsePage({
     has_children: p.has_children ?? null,
     pref_school_of_thought: p.pref_school_of_thought ?? null,
     open_to_partners_children: p.open_to_partners_children ?? null,
+    islamic_background: p.islamic_background ?? null,
+    smoker: p.smoker ?? null,
+    place_of_birth: p.place_of_birth ?? null,
   }))
 
   // 4b. Get all profiles linked to this account (for profile switcher)
@@ -286,6 +291,9 @@ export default async function BrowsePage({
     has_children: viewerProfile.has_children ?? null,
     pref_school_of_thought: viewerProfile.pref_school_of_thought ?? null,
     open_to_partners_children: viewerProfile.open_to_partners_children ?? null,
+    islamic_background: (viewerProfile as Record<string, unknown>).islamic_background as string | null ?? null,
+    smoker: (viewerProfile as Record<string, unknown>).smoker as boolean | null ?? null,
+    place_of_birth: (viewerProfile as Record<string, unknown>).place_of_birth as string | null ?? null,
   }
 
   return (

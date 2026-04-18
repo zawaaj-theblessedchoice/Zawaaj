@@ -43,6 +43,9 @@ interface Profile {
   approved_date: string | null
   created_at: string | null
   duplicate_flag: boolean
+  islamic_background: string | null
+  smoker: boolean | null
+  place_of_birth: string | null
 }
 
 // Common attributes / preferences options
@@ -194,6 +197,9 @@ export default function ProfileEditPage({
         duplicate_flag: form.duplicate_flag,
         withdrawal_reason: form.withdrawal_reason,
         interests_this_month: form.interests_this_month,
+        islamic_background: form.islamic_background ?? null,
+        smoker: form.smoker ?? null,
+        place_of_birth: form.place_of_birth ?? null,
       })
       .eq('id', id)
 
@@ -400,6 +406,26 @@ export default function ProfileEditPage({
 
             <Field label="Location">
               <input className="field" value={form.location ?? ''} onChange={e => set('location', e.target.value)} />
+            </Field>
+
+            <Field label="Place of Birth">
+              <input className="field" value={form.place_of_birth ?? ''} onChange={e => set('place_of_birth', e.target.value)} />
+            </Field>
+
+            <Field label="Islamic Background">
+              <select className="field" value={form.islamic_background ?? ''} onChange={e => set('islamic_background', e.target.value || null)}>
+                <option value="">—</option>
+                <option value="born_muslim">Born Muslim</option>
+                <option value="reverted">Reverted to Islam</option>
+              </select>
+            </Field>
+
+            <Field label="Smoker">
+              <select className="field" value={form.smoker === true ? 'yes' : form.smoker === false ? 'no' : ''} onChange={e => set('smoker', e.target.value === 'yes' ? true : e.target.value === 'no' ? false : null)}>
+                <option value="">—</option>
+                <option value="no">No</option>
+                <option value="yes">Yes</option>
+              </select>
             </Field>
 
             {/* ── Education ── */}

@@ -47,6 +47,9 @@ export interface ProfileRecord {
   open_to_relocation: string | null
   open_to_partners_children: string | null
   listed_at: string | null
+  islamic_background: string | null
+  smoker: boolean | null
+  place_of_birth: string | null
 }
 
 interface ProfileModalProps {
@@ -594,10 +597,18 @@ export default function ProfileModal({
                     : profile.age_display ?? null
                 }
               />
-              {/* Location + school of thought visible to all — these appear on browse cards too */}
+              {/* Location + school of thought + islamic background visible to all */}
               <FieldRow label="Location" value={profile.location} />
               <FieldRow label="School of thought" value={profile.school_of_thought} />
               <FieldRow label="Ethnicity" value={profile.ethnicity} />
+              <FieldRow
+                label="Islamic background"
+                value={
+                  profile.islamic_background === 'born_muslim' ? 'Born Muslim'
+                  : profile.islamic_background === 'reverted' ? 'Reverted to Islam'
+                  : null
+                }
+              />
 
               {/* ── Profession & Education — visible to all tiers ────────── */}
               <FieldRow label="Profession" value={profile.profession_detail} />
@@ -667,6 +678,7 @@ export default function ProfileModal({
                 <>
                   <FieldRow label="Languages" value={profile.languages_spoken?.join(', ') ?? null} />
                   <FieldRow label="Nationality" value={profile.nationality} />
+                  <FieldRow label="Place of birth" value={profile.place_of_birth} />
                   <FieldRow
                     label="Marital status"
                     value={displayMaritalStatus(profile.marital_status)}
@@ -748,6 +760,10 @@ export default function ProfileModal({
                       }
                     />
                   )}
+                  <FieldRow
+                    label="Smoker"
+                    value={profile.smoker === true ? 'Yes' : profile.smoker === false ? 'No' : null}
+                  />
                   {profile.quran_engagement_level && (
                     <FieldRow
                       label="Qur\u2019an engagement"

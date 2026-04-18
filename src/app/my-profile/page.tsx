@@ -50,6 +50,9 @@ interface Profile {
   status: string
   is_admin: boolean
   interests_this_month: number
+  islamic_background: string | null
+  smoker: boolean | null
+  place_of_birth: string | null
 }
 
 interface IntroRequest {
@@ -242,6 +245,9 @@ export default function MyProfilePage() {
     prefSchoolOfThought: '',
     prefPartnerChildren: '',
     prefRelocation: '',
+    islamicBackground: '',
+    placeOfBirth: '',
+    smoker: '',
   })
   const [editLoading, setEditLoading] = useState(false)
   const [editError, setEditError] = useState<string | null>(null)
@@ -265,7 +271,7 @@ export default function MyProfilePage() {
 
       const { data: profileRows } = await supabase
         .from('zawaaj_profiles')
-        .select('id, display_initials, first_name, last_name, gender, date_of_birth, age_display, height, ethnicity, nationality, school_of_thought, education_level, education_detail, profession_detail, location, bio, religiosity, prayer_regularity, wears_hijab, wears_niqab, wears_abaya, keeps_beard, quran_engagement_level, marital_status, has_children, languages_spoken, living_situation, open_to_relocation, open_to_partners_children, polygamy_openness, pref_age_min, pref_age_max, pref_location, pref_ethnicity, pref_school_of_thought, pref_partner_children, pref_relocation, status, is_admin, interests_this_month')
+        .select('id, display_initials, first_name, last_name, gender, date_of_birth, age_display, height, ethnicity, nationality, school_of_thought, education_level, education_detail, profession_detail, location, bio, religiosity, prayer_regularity, wears_hijab, wears_niqab, wears_abaya, keeps_beard, quran_engagement_level, marital_status, has_children, languages_spoken, living_situation, open_to_relocation, open_to_partners_children, polygamy_openness, pref_age_min, pref_age_max, pref_location, pref_ethnicity, pref_school_of_thought, pref_partner_children, pref_relocation, status, is_admin, interests_this_month, islamic_background, smoker, place_of_birth')
         .eq('user_id', user.id)
 
       if (!profileRows?.length) { setLoading(false); return }
@@ -360,6 +366,9 @@ export default function MyProfilePage() {
       prefSchoolOfThought: profile.pref_school_of_thought?.join(', ') ?? '',
       prefPartnerChildren: profile.pref_partner_children ?? '',
       prefRelocation: profile.pref_relocation ?? '',
+      islamicBackground: profile.islamic_background ?? '',
+      placeOfBirth: profile.place_of_birth ?? '',
+      smoker: profile.smoker === true ? 'yes' : profile.smoker === false ? 'no' : '',
     })
     setEditError(null)
     setEditSection('about')
@@ -400,6 +409,9 @@ export default function MyProfilePage() {
       pref_school_of_thought: sotPref.length > 0 ? sotPref : null,
       pref_partner_children: editForm.prefPartnerChildren || null,
       pref_relocation: editForm.prefRelocation || null,
+      islamic_background: editForm.islamicBackground || null,
+      smoker: editForm.smoker === 'yes' ? true : editForm.smoker === 'no' ? false : null,
+      place_of_birth: editForm.placeOfBirth || null,
     }).eq('id', profile.id)
     if (error) { setEditError(error.message); setEditLoading(false); return }
     setProfile({
@@ -432,6 +444,9 @@ export default function MyProfilePage() {
       pref_school_of_thought: sotPref.length > 0 ? sotPref : null,
       pref_partner_children: editForm.prefPartnerChildren || null,
       pref_relocation: editForm.prefRelocation || null,
+      islamic_background: editForm.islamicBackground || null,
+      smoker: editForm.smoker === 'yes' ? true : editForm.smoker === 'no' ? false : null,
+      place_of_birth: editForm.placeOfBirth || null,
     })
     setEditLoading(false)
     setShowEditModal(false)
@@ -544,6 +559,7 @@ export default function MyProfilePage() {
             <FieldRow label="Age" value={age ? `${age} years old` : profile.age_display} />
             <FieldRow label="Location" value={profile.location} />
             <FieldRow label="Nationality" value={profile.nationality} />
+            <FieldRow label="Place of birth" value={profile.place_of_birth} />
             <FieldRow label="Ethnicity" value={profile.ethnicity} />
             <FieldRow label="Marital status" value={displayValue({ never_married: 'Never married', divorced: 'Divorced', widowed: 'Widowed' }, profile.marital_status)} />
             <FieldRow label="Has children" value={profile.has_children === true ? 'Yes' : profile.has_children === false ? 'No' : null} />
@@ -567,12 +583,18 @@ export default function MyProfilePage() {
           <SectionLabel>Faith & practice</SectionLabel>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 24px' }}>
             <FieldRow label="School of thought" value={profile.school_of_thought} />
+            <FieldRow label="Islamic background" value={
+              profile.islamic_background === 'born_muslim' ? 'Born Muslim'
+              : profile.islamic_background === 'reverted' ? 'Reverted to Islam'
+              : null
+            } />
             <FieldRow label="Religiosity" value={profile.religiosity} />
             <FieldRow label="Prayer regularity" value={displayValue({ yes_regularly: 'Yes, regularly', most_of_time: 'Most of the time', working_on_it: 'Working on it', not_currently: 'Not currently' }, profile.prayer_regularity)} />
             {profile.gender === 'female' && <FieldRow label="Wears hijab" value={profile.wears_hijab === true ? 'Yes' : profile.wears_hijab === false ? 'No' : null} />}
             {profile.gender === 'female' && profile.wears_niqab && <FieldRow label="Wears niqab" value={displayValue({ yes: 'Yes', no: 'No', sometimes: 'Sometimes' }, profile.wears_niqab)} />}
             {profile.gender === 'female' && profile.wears_abaya && <FieldRow label="Wears abaya" value={displayValue({ yes: 'Yes', no: 'No', sometimes: 'Sometimes' }, profile.wears_abaya)} />}
             {profile.gender === 'male' && <FieldRow label="Keeps beard" value={profile.keeps_beard === true ? 'Yes' : profile.keeps_beard === false ? 'No' : null} />}
+            <FieldRow label="Smoker" value={profile.smoker === true ? 'Yes' : profile.smoker === false ? 'No' : null} />
             {profile.quran_engagement_level && <FieldRow label="Quran engagement" value={displayValue({ memorised: 'Hafiz/Hafiza', regularly: 'Read regularly', occasionally: 'Occasionally', learning: 'Currently learning', not_currently: 'Not currently' }, profile.quran_engagement_level)} />}
           </div>
 
@@ -777,6 +799,7 @@ export default function MyProfilePage() {
               {editSection === 'about' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                   <EditField label="Location" placeholder="e.g. London, UK" value={editForm.location} onChange={v => setEditForm(f => ({ ...f, location: v }))} />
+                  <EditField label="Place of birth" placeholder="e.g. Lahore, Pakistan" value={editForm.placeOfBirth} onChange={v => setEditForm(f => ({ ...f, placeOfBirth: v }))} />
                   <EditField label="Height" placeholder="e.g. 5'8&quot;" value={editForm.height} onChange={v => setEditForm(f => ({ ...f, height: v }))} />
                   <EditChips label="Languages spoken" selected={editForm.languagesSpoken} onChange={v => setEditForm(f => ({ ...f, languagesSpoken: v }))} />
                   <EditSelect label="Living situation" value={editForm.livingSituation} onChange={v => setEditForm(f => ({ ...f, livingSituation: v }))} options={[
@@ -788,6 +811,11 @@ export default function MyProfilePage() {
                   <EditField label="Open to relocation?" placeholder="e.g. Yes, No, Maybe" value={editForm.openToRelocation} onChange={v => setEditForm(f => ({ ...f, openToRelocation: v }))} />
                   <EditField label="Open to partner&apos;s children?" placeholder="e.g. Yes, Open to discuss" value={editForm.openToPartnersChildren} onChange={v => setEditForm(f => ({ ...f, openToPartnersChildren: v }))} />
                   <EditField label="Polygamy openness" placeholder="e.g. Not open, Open to discuss" value={editForm.polygamyOpenness} onChange={v => setEditForm(f => ({ ...f, polygamyOpenness: v }))} />
+                  <EditSelect label="Smoker" value={editForm.smoker} onChange={v => setEditForm(f => ({ ...f, smoker: v }))} options={[
+                    { value: '', label: 'Select…' },
+                    { value: 'no', label: 'No' },
+                    { value: 'yes', label: 'Yes' },
+                  ]} />
                 </div>
               )}
 
@@ -805,6 +833,11 @@ export default function MyProfilePage() {
               {/* FAITH */}
               {editSection === 'faith' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  <EditSelect label="Islamic background" value={editForm.islamicBackground} onChange={v => setEditForm(f => ({ ...f, islamicBackground: v }))} options={[
+                    { value: '', label: 'Not specified' },
+                    { value: 'born_muslim', label: 'Born Muslim' },
+                    { value: 'reverted', label: 'Reverted to Islam' },
+                  ]} />
                   <EditField label="School of thought" placeholder="e.g. Sunni, Deobandi, Barelwi" value={editForm.schoolOfThought} onChange={v => setEditForm(f => ({ ...f, schoolOfThought: v }))} />
                   <EditField label="Religiosity" placeholder="e.g. Practising, Moderately practising" value={editForm.religiosity} onChange={v => setEditForm(f => ({ ...f, religiosity: v }))} />
                   <EditSelect label="Prayer regularity" value={editForm.prayerRegularity} onChange={v => setEditForm(f => ({ ...f, prayerRegularity: v }))} options={[
