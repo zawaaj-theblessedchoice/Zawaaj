@@ -47,17 +47,25 @@ export const viewport: Viewport = {
 // Inline script runs synchronously before first paint — no theme flash.
 // Public marketing pages are always dark.
 // All other pages: use stored preference, fall back to prefers-color-scheme.
+// Public/pre-auth pages are always dark — no user preference applies yet.
+// Member/admin pages follow stored preference, then OS preference.
 const themeInitScript = `
   try {
     var p = window.location.pathname;
-    var isPublic = (
+    var isAlwaysDark = (
       p === '/' ||
       p.startsWith('/pricing') ||
       p.startsWith('/terms') ||
       p.startsWith('/help') ||
-      p.startsWith('/privacy')
+      p.startsWith('/privacy') ||
+      p.startsWith('/register') ||
+      p.startsWith('/login') ||
+      p.startsWith('/signup') ||
+      p.startsWith('/forgot-password') ||
+      p.startsWith('/pending') ||
+      p.startsWith('/auth')
     );
-    if (isPublic) {
+    if (isAlwaysDark) {
       document.documentElement.setAttribute('data-theme', 'dark');
     } else {
       var m = localStorage.getItem('zawaaj-theme');
@@ -86,6 +94,7 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} ${amiri.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
       {/* eslint-disable-next-line @next/next/no-before-interactive-script-component */}
       <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
