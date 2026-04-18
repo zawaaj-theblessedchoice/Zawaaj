@@ -76,7 +76,7 @@ function SettingsContent() {
   const [checkoutError, setCheckoutError] = useState<string | null>(null)
   const [profile, setProfile] = useState<{ display_initials: string; gender: string | null; first_name: string | null } | null>(null)
   const [annual, setAnnual] = useState(false)
-  const [themeMode, setThemeMode] = useState<ThemeMode>('dark')
+  const [themeMode, setThemeMode] = useState<ThemeMode>('system')
 
   // Data rights state
   const [exportLoading, setExportLoading] = useState(false)
@@ -93,7 +93,7 @@ function SettingsContent() {
   useEffect(() => {
     try {
       const saved = localStorage.getItem('zawaaj-theme') as ThemeMode | null
-      setThemeMode(saved ?? 'light')
+      setThemeMode(saved ?? 'system')
     } catch { /* localStorage unavailable */ }
   }, [])
 

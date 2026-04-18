@@ -44,21 +44,36 @@ export const viewport: Viewport = {
   initialScale: 1,
 }
 
-// Inline script runs synchronously before first paint to avoid theme flash.
-// HTML element defaults to data-theme="dark". Script removes it only if user
-// explicitly chose light.
+// Inline script runs synchronously before first paint — no theme flash.
+// Public marketing pages are always dark.
+// All other pages: use stored preference, fall back to prefers-color-scheme.
 const themeInitScript = `
   try {
-    var mode = localStorage.getItem('zawaaj-theme');
-    if (mode === 'light') {
-      document.documentElement.removeAttribute('data-theme');
-    } else if (mode === 'system') {
-      if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+    var p = window.location.pathname;
+    var isPublic = (
+      p === '/' ||
+      p.startsWith('/pricing') ||
+      p.startsWith('/terms') ||
+      p.startsWith('/help') ||
+      p.startsWith('/privacy')
+    );
+    if (isPublic) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    } else {
+      var m = localStorage.getItem('zawaaj-theme');
+      if (m === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      } else if (m === 'light') {
         document.documentElement.removeAttribute('data-theme');
+      } else {
+        // 'system' or no stored preference — follow OS
+        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        } else {
+          document.documentElement.removeAttribute('data-theme');
+        }
       }
-      // system+dark or system — keep data-theme="dark" (already set on element)
     }
-    // 'dark', null (no preference) — keep data-theme="dark" (already set on element)
   } catch(e) {}
 `;
 
@@ -70,7 +85,6 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      data-theme="dark"
       className={`${geistSans.variable} ${geistMono.variable} ${amiri.variable} h-full antialiased`}
     >
       {/* eslint-disable-next-line @next/next/no-before-interactive-script-component */}
