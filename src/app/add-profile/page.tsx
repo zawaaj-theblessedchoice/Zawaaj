@@ -952,6 +952,7 @@ export default function AddProfilePage() {
   const [authChecked, setAuthChecked] = useState(false)
   const [profileCount, setProfileCount] = useState(0)
   const [blocked, setBlocked] = useState(false)
+  const [isChildPath, setIsChildPath] = useState(false)
   const [currentPlan, setCurrentPlan] = useState<Plan>('free')
 
   const [step, setStep] = useState(0)
@@ -984,6 +985,19 @@ export default function AddProfilePage() {
       setActiveProfileId(activeId)
       setManagedProfiles(profileRows.map(p => ({ id: p.id, display_initials: p.display_initials, first_name: p.first_name, gender: p.gender, status: p.status })))
       setProfileCount(profileRows.length)
+
+      // Check registration path — child-path users are self-registered candidates;
+      // "Add family member" is not applicable to them (it's for guardian-managed accounts).
+      const { data: familyAccount } = await supabase
+        .from('zawaaj_family_accounts')
+        .select('registration_path')
+        .eq('primary_user_id', user.id)
+        .maybeSingle()
+      if (familyAccount?.registration_path === 'child') {
+        setIsChildPath(true)
+        setAuthChecked(true)
+        return
+      }
 
       // Fetch subscription to determine plan and check family member limit
       const { data: subRow } = await supabase
@@ -1057,6 +1071,53 @@ export default function AddProfilePage() {
         <Sidebar activeRoute="/add-profile" shortlistCount={0} introRequestsCount={0} profile={null} />
         <main style={{ marginLeft: 200, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>Loading…</span>
+        </main>
+      </div>
+    )
+  }
+
+  if (isChildPath) {
+    return (
+      <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
+        <Sidebar
+          activeRoute="/add-profile"
+          shortlistCount={shortlistCount}
+          introRequestsCount={introCount}
+          profile={sidebarProfile}
+          managedProfiles={managedProfiles}
+          activeProfileId={activeProfileId}
+        />
+        <main style={{ marginLeft: 200, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ textAlign: 'center', padding: '60px 24px', maxWidth: 440 }}>
+            <div style={{
+              width: 52, height: 52, borderRadius: '50%',
+              background: 'var(--gold-muted)', border: '0.5px solid var(--border-gold)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px',
+            }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="8" r="4" stroke="var(--gold)" strokeWidth="1.5" />
+                <path d="M4 20c0-4 3.582-7 8-7s8 3 8 7" stroke="var(--gold)" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+            </div>
+            <h2 style={{ fontSize: 18, fontWeight: 600, marginBottom: 10, color: 'var(--text-primary)' }}>
+              Your profile is already set up
+            </h2>
+            <p style={{ color: 'var(--text-secondary)', fontSize: 13.5, lineHeight: 1.6, marginBottom: 24 }}>
+              Adding extra profiles is for guardian accounts that manage multiple family members.
+              As a self-registered member, your account is linked to a single candidate profile — yours.
+            </p>
+            <p style={{ color: 'var(--text-muted)', fontSize: 12.5, lineHeight: 1.6, marginBottom: 28 }}>
+              If a family member needs their own profile, they can register separately at{' '}
+              <a href="/signup" style={{ color: 'var(--gold)', textDecoration: 'none' }}>zawaaj.uk/signup</a>.
+            </p>
+            <a href="/my-profile" style={{
+              display: 'inline-block', padding: '10px 24px', borderRadius: 10,
+              background: 'var(--gold-muted)', border: '0.5px solid var(--border-gold)',
+              color: 'var(--gold)', fontWeight: 500, fontSize: 13.5, textDecoration: 'none',
+            }}>
+              View my profile
+            </a>
+          </div>
         </main>
       </div>
     )

@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import ZawaajLogo from '@/components/ZawaajLogo'
+import { createClient } from '@/lib/supabase/client'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -264,6 +265,14 @@ function RegisterChildPageInner() {
   const [familyAccountId, setFamilyAccountId] = useState<string>('')
   const [resending, setResending] = useState(false)
   const [resendDone, setResendDone] = useState(false)
+
+  // ── Auth escape hatch — detect logged-in users who are stuck ─────────────
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  useEffect(() => {
+    createClient().auth.getSession().then(({ data }) => {
+      setIsLoggedIn(!!data.session)
+    })
+  }, [])
 
   // ── Invite token state ────────────────────────────────────────────────────
   const [inviteToken, setInviteToken] = useState<string | null>(null)
@@ -1283,8 +1292,17 @@ function RegisterChildPageInner() {
         </div>
 
         <p style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center', margin: 0 }}>
-          Already have an account?{' '}
-          <a href="/login" style={{ color: 'var(--gold)', textDecoration: 'none' }}>Sign in</a>
+          {isLoggedIn ? (
+            <>
+              Wrong account?{' '}
+              <a href="/api/auth/signout" style={{ color: 'var(--gold)', textDecoration: 'none' }}>Sign out</a>
+            </>
+          ) : (
+            <>
+              Already have an account?{' '}
+              <a href="/login" style={{ color: 'var(--gold)', textDecoration: 'none' }}>Sign in</a>
+            </>
+          )}
         </p>
       </div>
       </div>

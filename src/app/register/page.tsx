@@ -25,6 +25,24 @@ export default function RegisterLandingPage() {
           gap: 16,
         }}
       >
+        {/* Back to website */}
+        <div style={{ width: '100%', marginBottom: 4 }}>
+          <Link
+            href="/"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 5,
+              fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-secondary)')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
+          >
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M7.5 2L3.5 6l4 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            Back to website
+          </Link>
+        </div>
+
         <ZawaajLogo height={220} />
 
         <div style={{ textAlign: 'center' }}>
