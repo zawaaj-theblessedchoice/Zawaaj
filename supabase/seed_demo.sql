@@ -110,7 +110,7 @@ VALUES
     '{"provider":"email","providers":["email"]}'::jsonb, '{}'::jsonb,
     'authenticated', 'authenticated', now(), now()
   )
-ON CONFLICT (email) DO NOTHING;
+ON CONFLICT DO NOTHING;
 
 
 -- ============================================================
@@ -152,7 +152,7 @@ VALUES
     '11000000-0000-0000-0000-000000000004',
     'active', 'child', true, now(), 'activated', false, '', now(), now()
   )
-ON CONFLICT (id) DO NOTHING;
+ON CONFLICT DO NOTHING;
 
 
 -- ============================================================
@@ -273,7 +273,7 @@ VALUES
     true, true, true, true,
     'demo_seed_v1', now(), now()
   )
-ON CONFLICT (id) DO NOTHING;
+ON CONFLICT DO NOTHING;
 
 
 -- ============================================================
@@ -286,7 +286,7 @@ VALUES
   ('11000000-0000-0000-0000-000000000002', '33000000-0000-0000-0000-000000000002', now(), now()),
   ('11000000-0000-0000-0000-000000000003', '33000000-0000-0000-0000-000000000003', now(), now()),
   ('11000000-0000-0000-0000-000000000004', '33000000-0000-0000-0000-000000000004', now(), now())
-ON CONFLICT (user_id) DO NOTHING;
+ON CONFLICT DO NOTHING;
 
 
 -- ============================================================
@@ -434,7 +434,7 @@ VALUES
     'approved', now() - interval '20 days',
     true, true, 'demo_seed_v1', now(), now()
   )
-ON CONFLICT (id) DO NOTHING;
+ON CONFLICT DO NOTHING;
 
 
 -- ── Male profiles (seen by female testers: Amira, Fatima) ───
@@ -578,7 +578,7 @@ VALUES
     'approved', now() - interval '22 days',
     true, true, 'demo_seed_v1', now(), now()
   )
-ON CONFLICT (id) DO NOTHING;
+ON CONFLICT DO NOTHING;
 
 
 -- ============================================================
@@ -618,7 +618,7 @@ VALUES
     '55000000-0000-0000-0000-000000000002',
     'declined', now() - interval '10 days', now() + interval '20 days', now() - interval '8 days'
   )
-ON CONFLICT (requesting_profile_id, target_profile_id) DO NOTHING;
+ON CONFLICT DO NOTHING;
 
 
 -- ============================================================
