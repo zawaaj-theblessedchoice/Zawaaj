@@ -706,11 +706,23 @@ function RegisterChildPageInner() {
             </Field>
             <Field label="Password" required>
               <div style={{ position: 'relative' }}>
-                <input type={showPassword ? 'text' : 'password'} placeholder="At least 8 characters" value={form.password}
-                  onChange={e => set('password', e.target.value)} style={{ ...inputStyle, paddingRight: 40 }} autoComplete="new-password" />
-                <button type="button" onClick={() => setShowPassword(p => !p)}
-                  style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: showPassword ? 'var(--gold)' : 'var(--text-muted)', display: 'flex', alignItems: 'center' }}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}>
+                <input
+                  id="reg-password"
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="At least 8 characters"
+                  value={form.password}
+                  autoComplete="new-password"
+                  style={{ ...inputStyle, paddingRight: 44 }}
+                  onChange={e => set('password', e.target.value)}
+                  onInput={e => set('password', (e.target as HTMLInputElement).value)}
+                />
+                <button
+                  type="button"
+                  onMouseDown={e => { e.preventDefault(); setShowPassword(p => !p) }}
+                  style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 44, background: 'none', border: 'none', cursor: 'pointer', color: showPassword ? 'var(--gold)' : 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
                   {showPassword
                     ? <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
                     : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -720,11 +732,23 @@ function RegisterChildPageInner() {
             </Field>
             <Field label="Confirm password" required>
               <div style={{ position: 'relative' }}>
-                <input type={showConfirmPassword ? 'text' : 'password'} placeholder="Repeat password" value={form.confirmPassword}
-                  onChange={e => set('confirmPassword', e.target.value)} style={{ ...inputStyle, paddingRight: 40 }} autoComplete="new-password" />
-                <button type="button" onClick={() => setShowConfirmPassword(p => !p)}
-                  style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: showConfirmPassword ? 'var(--gold)' : 'var(--text-muted)', display: 'flex', alignItems: 'center' }}
-                  aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}>
+                <input
+                  id="reg-confirm-password"
+                  name="confirm-password"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  placeholder="Repeat password"
+                  value={form.confirmPassword}
+                  autoComplete="new-password"
+                  style={{ ...inputStyle, paddingRight: 44 }}
+                  onChange={e => set('confirmPassword', e.target.value)}
+                  onInput={e => set('confirmPassword', (e.target as HTMLInputElement).value)}
+                />
+                <button
+                  type="button"
+                  onMouseDown={e => { e.preventDefault(); setShowConfirmPassword(p => !p) }}
+                  style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 44, background: 'none', border: 'none', cursor: 'pointer', color: showConfirmPassword ? 'var(--gold)' : 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                >
                   {showConfirmPassword
                     ? <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
                     : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
