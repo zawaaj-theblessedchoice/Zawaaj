@@ -7,7 +7,7 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 // Require authentication AND an approved profile
-const PROTECTED_PATHS = ['/directory', '/browse', '/profile', '/my-profile', '/events', '/introductions', '/add-profile']
+const PROTECTED_PATHS = ['/directory', '/browse', '/profile', '/my-profile', '/introductions', '/add-profile']
 // Require authentication AND admin role (checked server-side in page/layout)
 const ADMIN_PATHS     = ['/admin']
 // Pages that redirect already-authenticated users away

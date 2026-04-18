@@ -239,9 +239,123 @@ function PlanCard({ plan, annual }: { plan: typeof PLANS[number]; annual: boolea
   )
 }
 
+// ─── Homepage events types ────────────────────────────────────────────────────
+
+export interface HomepageEvent {
+  id: string
+  title: string
+  event_date: string
+  location_text: string | null
+  is_online: boolean
+  event_category: string | null
+  organiser: string | null
+  organiser_label: string | null
+  price_gbp: number
+}
+
+const CATEGORY_LABELS: Record<string, string> = {
+  workshop: 'Workshop',
+  webinar: 'Webinar',
+  matrimonial: 'Matrimonial',
+  community: 'Community',
+}
+
+function formatHomepageEventDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString('en-GB', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
+}
+
+function HomepageEventCard({ event }: { event: HomepageEvent }) {
+  const showRohBadge = event.organiser === 'radiance_of_hope' || event.organiser === 'both'
+  const categoryLabel = event.event_category ? CATEGORY_LABELS[event.event_category] : null
+  const locationLabel = event.is_online ? 'Online' : (event.location_text ?? null)
+
+  return (
+    <div
+      style={{
+        background: 'var(--surface)',
+        border: '0.5px solid var(--border-default)',
+        borderTop: '3px solid var(--gold)',
+        borderRadius: 14,
+        padding: '20px 22px 18px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 10,
+      }}
+    >
+      {/* Badges */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+        {categoryLabel && (
+          <span style={{
+            fontSize: 10,
+            fontWeight: 600,
+            textTransform: 'uppercase',
+            letterSpacing: '0.07em',
+            color: 'var(--gold)',
+            background: 'var(--gold-muted)',
+            border: '0.5px solid var(--border-gold)',
+            borderRadius: 999,
+            padding: '2px 8px',
+          }}>
+            {categoryLabel}
+          </span>
+        )}
+        {showRohBadge && (
+          <span style={{
+            fontSize: 10,
+            fontWeight: 600,
+            textTransform: 'uppercase',
+            letterSpacing: '0.07em',
+            color: '#0d9488',
+            background: 'rgba(13,148,136,0.1)',
+            border: '0.5px solid rgba(13,148,136,0.3)',
+            borderRadius: 999,
+            padding: '2px 8px',
+          }}>
+            {event.organiser_label ?? 'Radiance of Hope'}
+          </span>
+        )}
+      </div>
+
+      <h3 style={{ fontSize: 14.5, fontWeight: 600, color: 'var(--text-primary)', margin: 0, lineHeight: 1.4 }}>
+        {event.title}
+      </h3>
+
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 14px' }}>
+        <span style={{ fontSize: 12, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 5 }}>
+          <svg width="12" height="12" viewBox="0 0 13 13" fill="none" style={{ flexShrink: 0 }}>
+            <rect x="1" y="2.5" width="11" height="9.5" rx="1.5" stroke="currentColor" strokeWidth="1.1" />
+            <path d="M1 5.5h11M4.5 1v3M8.5 1v3" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" />
+          </svg>
+          {formatHomepageEventDate(event.event_date)}
+        </span>
+        {locationLabel && (
+          <span style={{ fontSize: 12, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 4 }}>
+            <svg width="11" height="12" viewBox="0 0 12 13" fill="none" style={{ flexShrink: 0 }}>
+              <path d="M6 1a3.5 3.5 0 0 1 3.5 3.5C9.5 7.5 6 12 6 12S2.5 7.5 2.5 4.5A3.5 3.5 0 0 1 6 1Z" stroke="currentColor" strokeWidth="1.1" />
+              <circle cx="6" cy="4.5" r="1.2" stroke="currentColor" strokeWidth="1.1" />
+            </svg>
+            {locationLabel}
+          </span>
+        )}
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 2 }}>
+        <span style={{ fontSize: 13, fontWeight: 600, color: event.price_gbp > 0 ? 'var(--text-primary)' : '#0d9488' }}>
+          {event.price_gbp > 0 ? `£${event.price_gbp}` : 'Free'}
+        </span>
+      </div>
+    </div>
+  )
+}
+
 // ─── Main landing page ────────────────────────────────────────────────────────
 
-export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
+export default function LandingPage({ isLoggedIn = false, featuredEvents = [] }: { isLoggedIn?: boolean; featuredEvents?: HomepageEvent[] }) {
   const [annual, setAnnual] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
 
@@ -576,6 +690,29 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
         </div>
       </section>
 
+      {/* ── Events ── */}
+      {featuredEvents.length > 0 && (
+        <section id="events" className="max-w-5xl mx-auto px-4 md:px-5 py-12 md:py-24">
+          <div className="text-center mb-12">
+            <p className="text-xs font-semibold text-gold uppercase tracking-widest mb-3">Community</p>
+            <h2 className="text-3xl font-bold text-ink mb-4">Upcoming events</h2>
+            <p className="text-muted text-sm max-w-xl mx-auto">
+              Our workshops and community sessions are delivered in partnership with Radiance of Hope — a charity committed to strengthening Muslim families.
+            </p>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+            {featuredEvents.map(ev => (
+              <HomepageEventCard key={ev.id} event={ev} />
+            ))}
+          </div>
+          <div className="text-center">
+            <Link href="/events" className="inline-block px-6 py-3 rounded-xl text-sm font-medium border border-br text-dim hover:text-ink hover:border-gold transition-colors">
+              View all events →
+            </Link>
+          </div>
+        </section>
+      )}
+
       {/* ── FAQ ── */}
       <section id="faq" className="max-w-3xl mx-auto px-4 md:px-5 py-12 md:py-24">
         <div className="text-center mb-14">
@@ -617,6 +754,11 @@ export default function LandingPage({ isLoggedIn = false }: { isLoggedIn?: boole
             <Link href="/help" className="hover:text-ink transition-colors">Help</Link>
             <Link href="/login" className="hover:text-ink transition-colors">Sign in</Link>
           </div>
+        </div>
+        <div className="border-t border-br">
+          <p className="max-w-5xl mx-auto px-4 md:px-5 py-4 text-xs text-muted text-center md:text-left">
+            Zawaaj is operated by Ingenious Education Ltd. Net proceeds support Radiance of Hope, a charitable organisation currently undergoing registration.
+          </p>
         </div>
       </footer>
     </div>

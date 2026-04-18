@@ -19,13 +19,20 @@ async function assertAdmin() {
   return profile?.is_admin ? user : null
 }
 
+const EVENT_FIELDS = `
+  id, title, event_date, location_text, registration_url, status,
+  attendance_note, show_in_history, is_online, description, capacity,
+  event_category, organiser, organiser_label, is_featured, price_gbp, tags,
+  created_at
+`
+
 export async function GET() {
   const admin = await assertAdmin()
   if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const { data, error } = await supabaseAdmin
     .from('zawaaj_events')
-    .select('id, title, event_date, location_text, registration_url, status, attendance_note, show_in_history, created_at')
+    .select(EVENT_FIELDS)
     .order('event_date', { ascending: false })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
@@ -44,6 +51,15 @@ export async function POST(request: Request) {
     status?: string
     attendance_note?: string
     show_in_history?: boolean
+    is_online?: boolean
+    description?: string
+    capacity?: number | null
+    event_category?: string | null
+    organiser?: string
+    organiser_label?: string | null
+    is_featured?: boolean
+    price_gbp?: number
+    tags?: string[]
   }
 
   if (!body.title?.trim() || !body.event_date) {
@@ -60,6 +76,15 @@ export async function POST(request: Request) {
       status: body.status ?? 'upcoming',
       attendance_note: body.attendance_note?.trim() || null,
       show_in_history: body.show_in_history ?? false,
+      is_online: body.is_online ?? false,
+      description: body.description?.trim() || null,
+      capacity: body.capacity ?? null,
+      event_category: body.event_category || null,
+      organiser: body.organiser ?? 'zawaaj',
+      organiser_label: body.organiser_label?.trim() || null,
+      is_featured: body.is_featured ?? false,
+      price_gbp: body.price_gbp ?? 0,
+      tags: body.tags ?? [],
     })
     .select()
     .single()

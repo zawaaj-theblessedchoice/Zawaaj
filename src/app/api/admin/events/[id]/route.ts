@@ -35,6 +35,15 @@ export async function PATCH(
     status: string
     attendance_note: string | null
     show_in_history: boolean
+    is_online: boolean
+    description: string | null
+    capacity: number | null
+    event_category: string | null
+    organiser: string
+    organiser_label: string | null
+    is_featured: boolean
+    price_gbp: number
+    tags: string[]
   }>
 
   const patch: Record<string, unknown> = {}
@@ -45,6 +54,15 @@ export async function PATCH(
   if (body.status !== undefined) patch.status = body.status
   if (body.attendance_note !== undefined) patch.attendance_note = body.attendance_note?.trim() || null
   if (body.show_in_history !== undefined) patch.show_in_history = body.show_in_history
+  if (body.is_online !== undefined) patch.is_online = body.is_online
+  if (body.description !== undefined) patch.description = body.description?.trim() || null
+  if (body.capacity !== undefined) patch.capacity = body.capacity
+  if (body.event_category !== undefined) patch.event_category = body.event_category || null
+  if (body.organiser !== undefined) patch.organiser = body.organiser
+  if (body.organiser_label !== undefined) patch.organiser_label = body.organiser_label?.trim() || null
+  if (body.is_featured !== undefined) patch.is_featured = body.is_featured
+  if (body.price_gbp !== undefined) patch.price_gbp = body.price_gbp
+  if (body.tags !== undefined) patch.tags = body.tags
 
   const { data, error } = await supabaseAdmin
     .from('zawaaj_events')
