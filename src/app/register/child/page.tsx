@@ -434,8 +434,10 @@ function RegisterChildPageInner() {
         step4Errs.contact_relationship = 'Please select a relationship'
       if (!form.guardianNumber.trim())
         step4Errs.contact_number = 'Please enter a contact number'
-      if (!form.guardianEmail.trim())
-        step4Errs.guardian_email = 'Guardian email address is required'
+      if (!form.guardianEmail.trim() || !/\S+@\S+\.\S+/.test(form.guardianEmail))
+        step4Errs.contact_email = 'Please enter a valid email address'
+      if (form.noFemaleContactFlag && !form.fatherExplanation.trim())
+        step4Errs.father_explanation = 'Please explain why no female contact is available'
       if (Object.keys(step4Errs).length > 0) {
         setFieldErrors(step4Errs)
         const firstKey = Object.keys(step4Errs)[0]
@@ -502,6 +504,7 @@ function RegisterChildPageInner() {
           contactNumber:         form.guardianNumber,
           contactEmail:          form.guardianEmail || form.email,
           noFemaleContactFlag:   form.noFemaleContactFlag,
+          fatherExplanation:     form.fatherExplanation || undefined,
         }),
         termsAgreed:             true,
         profile: {
@@ -1165,11 +1168,22 @@ function RegisterChildPageInner() {
                 onChange={e => { set('guardianNumber', e.target.value); clearFieldError('contact_number') }}
                 style={{ ...inputStyle, borderColor: fieldErrors.contact_number ? 'var(--status-error, #f87171)' : undefined }} />
             </Field>
-            <Field label="Guardian's email address" required fieldId="field-guardian_email" error={fieldErrors.guardian_email} hint="Your guardian will receive an invitation to link to your account.">
+            <Field label="Guardian's email address" required fieldId="field-contact_email" error={fieldErrors.contact_email} hint="Your guardian will receive an invitation to link to your account.">
               <input type="email" placeholder="guardian@email.com" value={form.guardianEmail}
-                onChange={e => { set('guardianEmail', e.target.value); clearFieldError('guardian_email') }}
-                style={{ ...inputStyle, borderColor: fieldErrors.guardian_email ? 'var(--status-error, #f87171)' : undefined }} />
+                onChange={e => { set('guardianEmail', e.target.value); clearFieldError('contact_email') }}
+                style={{ ...inputStyle, borderColor: fieldErrors.contact_email ? 'var(--status-error, #f87171)' : undefined }} />
             </Field>
+            {form.noFemaleContactFlag && (
+              <Field label="Please briefly explain why no female contact is available" required fieldId="field-father_explanation" error={fieldErrors.father_explanation} hint="Seen by our team only — never shared with other families.">
+                <textarea
+                  placeholder="e.g. The candidate's mother is not available. Father is the family representative."
+                  value={form.fatherExplanation}
+                  onChange={e => { set('fatherExplanation', e.target.value); clearFieldError('father_explanation') }}
+                  rows={3}
+                  style={{ ...inputStyle, resize: 'vertical', borderColor: fieldErrors.father_explanation ? 'var(--status-error, #f87171)' : undefined }}
+                />
+              </Field>
+            )}
           </div>
         )}
 

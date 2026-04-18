@@ -316,7 +316,15 @@ export default function RegisterParentPage() {
       <main style={{ minHeight: '100vh', background: 'var(--surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px' }}>
         <div style={{ width: '100%', maxWidth: 440, background: 'var(--surface-2)', border: '1px solid var(--border-gold)', borderRadius: 12, padding: '40px 36px', textAlign: 'center' }}>
           <ZawaajLogo size={56} tagline={false} />
-          <div style={{ marginTop: 24, marginBottom: 8, width: 52, height: 52, borderRadius: '50%', background: 'var(--gold-muted)', border: '0.5px solid var(--border-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '24px auto 0' }}>
+          <div style={{ marginTop: 12, marginBottom: 4 }}>
+            <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}
+              onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-secondary)')}
+              onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M7.5 2L3.5 6l4 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              Back to website
+            </Link>
+          </div>
+          <div style={{ marginTop: 16, marginBottom: 8, width: 52, height: 52, borderRadius: '50%', background: 'var(--gold-muted)', border: '0.5px solid var(--border-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '16px auto 0' }}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="2" y="4" width="20" height="16" rx="2" stroke="var(--gold)" strokeWidth="1.5"/><path d="M2 7l10 7 10-7" stroke="var(--gold)" strokeWidth="1.5" strokeLinecap="round"/></svg>
           </div>
           <h1 style={{ fontSize: 18, fontWeight: 600, color: 'var(--text-primary)', margin: '20px 0 8px' }}>Check your inbox</h1>
@@ -401,15 +409,20 @@ export default function RegisterParentPage() {
             <Field label="Password" required>
               <div style={{ position: 'relative' }}>
                 <input
+                  id="reg-password"
+                  name="password"
                   type={showPassword ? 'text' : 'password'}
                   placeholder="At least 8 characters"
                   value={form.password}
                   onChange={e => set('password', e.target.value)}
-                  style={{ ...inputStyle, paddingRight: 40 }}
+                  onInput={e => set('password', (e.target as HTMLInputElement).value)}
+                  style={{ ...inputStyle, paddingRight: 44 }}
                   autoComplete="new-password"
                 />
-                <button type="button" onClick={() => setShowPassword(p => !p)}
-                  style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: showPassword ? 'var(--gold)' : 'var(--text-muted)', display: 'flex', alignItems: 'center' }}
+                <button
+                  type="button"
+                  onMouseDown={e => { e.preventDefault(); setShowPassword(p => !p) }}
+                  style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 44, background: 'none', border: 'none', cursor: 'pointer', color: showPassword ? 'var(--gold)' : 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}>
                   {showPassword
                     ? <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
@@ -421,15 +434,20 @@ export default function RegisterParentPage() {
             <Field label="Confirm password" required>
               <div style={{ position: 'relative' }}>
                 <input
+                  id="reg-confirm-password"
+                  name="confirm-password"
                   type={showConfirmPassword ? 'text' : 'password'}
                   placeholder="Repeat password"
                   value={form.confirmPassword}
                   onChange={e => set('confirmPassword', e.target.value)}
-                  style={{ ...inputStyle, paddingRight: 40 }}
+                  onInput={e => set('confirmPassword', (e.target as HTMLInputElement).value)}
+                  style={{ ...inputStyle, paddingRight: 44 }}
                   autoComplete="new-password"
                 />
-                <button type="button" onClick={() => setShowConfirmPassword(p => !p)}
-                  style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: showConfirmPassword ? 'var(--gold)' : 'var(--text-muted)', display: 'flex', alignItems: 'center' }}
+                <button
+                  type="button"
+                  onMouseDown={e => { e.preventDefault(); setShowConfirmPassword(p => !p) }}
+                  style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 44, background: 'none', border: 'none', cursor: 'pointer', color: showConfirmPassword ? 'var(--gold)' : 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                   aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}>
                   {showConfirmPassword
                     ? <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>

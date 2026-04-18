@@ -10,10 +10,12 @@ export async function POST(request: Request): Promise<Response> {
       return NextResponse.json({ error: 'familyAccountId is required' }, { status: 400 })
     }
 
-    // Fetch the family account to get contact email
+    // Fetch the family account — include registration_path and primary_user_id so we
+    // can determine which email to verify: for child path it's the candidate's own auth
+    // email; for parent path it's the guardian's contact email (same person).
     const { data: account, error: accountError } = await supabaseAdmin
       .from('zawaaj_family_accounts')
-      .select('id, contact_email, status')
+      .select('id, contact_email, status, registration_path, primary_user_id')
       .eq('id', familyAccountId)
       .maybeSingle()
 
@@ -24,6 +26,16 @@ export async function POST(request: Request): Promise<Response> {
     if (account.status !== 'pending_email_verification') {
       // Already verified — no need to resend
       return NextResponse.json({ ok: true })
+    }
+
+    // For the child (self-registration) path the verification email must go to the
+    // candidate's own account email, not the guardian's contact email.
+    let verificationEmail = account.contact_email
+    if (account.registration_path === 'child' && account.primary_user_id) {
+      const { data: authUser } = await supabaseAdmin.auth.admin.getUserById(account.primary_user_id)
+      if (authUser?.user?.email) {
+        verificationEmail = authUser.user.email
+      }
     }
 
     // Expire any existing unused verification tokens for this account
@@ -40,7 +52,7 @@ export async function POST(request: Request): Promise<Response> {
       .insert({
         family_account_id: familyAccountId,
         purpose: 'email_verification',
-        invited_email: account.contact_email,
+        invited_email: verificationEmail,
         expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
       })
       .select('token')
@@ -53,9 +65,9 @@ export async function POST(request: Request): Promise<Response> {
 
     const verifyLink = `https://www.zawaaj.uk/register/verify?token=${tokenRow.token}`
     await sendEmail({
-      to: account.contact_email,
+      to: verificationEmail,
       subject: 'Verify your Zawaaj account',
-      html: emailVerificationTemplate(verifyLink, account.contact_email),
+      html: emailVerificationTemplate(verifyLink, verificationEmail),
     })
 
     return NextResponse.json({ ok: true })

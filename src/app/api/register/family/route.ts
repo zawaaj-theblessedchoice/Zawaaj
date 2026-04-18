@@ -321,7 +321,7 @@ export async function POST(request: Request): Promise<Response> {
           pref_age_max:          profile.prefAgeMax        ?? null,
           pref_location:         profile.prefLocation      ?? null,
           pref_ethnicity:        profile.prefEthnicity     ?? null,
-          pref_school_of_thought: profile.prefSchoolOfThought ?? null,
+          pref_school_of_thought: profile.prefSchoolOfThought ? [profile.prefSchoolOfThought] : null,
           open_to_relocation:    profile.openToRelocation  ?? null,
           open_to_partners_children: profile.openToPartnersChildren ?? null,
           marital_status:        profile.maritalStatus     ?? null,
@@ -369,13 +369,17 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     // ── 5. Create email verification token ───────────────────────────────────
+    //
+    // child path: verify the candidate's own account email (form.email / `email`)
+    // parent path: verify the guardian's contact email (same person, just stored as contactEmail)
+    const verificationEmail = path === 'child' ? email : contactEmail
 
     const { data: tokenRow, error: tokenError } = await supabaseAdmin
       .from('zawaaj_invite_tokens')
       .insert({
         family_account_id: familyAccountId,
         purpose: 'email_verification',
-        invited_email: contactEmail,
+        invited_email: verificationEmail,
         created_by: userId,
         expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
       })
@@ -387,16 +391,17 @@ export async function POST(request: Request): Promise<Response> {
       // Don't block registration — user can resend from holding screen.
       // But signal to client so it can log a warning if needed.
       return NextResponse.json({
-        success: true, path, familyAccountId, profileId, contactEmail,
+        success: true, path, familyAccountId, profileId,
+        contactEmail: verificationEmail,
         emailSent: false, emailError: 'token_create_failed',
       })
     }
 
     const verifyLink = `https://www.zawaaj.uk/register/verify?token=${tokenRow.token}`
     const emailResult = await sendEmail({
-      to: contactEmail,
+      to: verificationEmail,
       subject: 'Verify your Zawaaj account',
-      html: emailVerificationTemplate(verifyLink, contactEmail),
+      html: emailVerificationTemplate(verifyLink, verificationEmail),
     })
 
     if (!emailResult.ok) {
@@ -404,7 +409,8 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     return NextResponse.json({
-      success: true, path, familyAccountId, profileId, contactEmail,
+      success: true, path, familyAccountId, profileId,
+      contactEmail: verificationEmail,
       emailSent: emailResult.ok,
     })
   } catch (err) {
