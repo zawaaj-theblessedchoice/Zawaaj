@@ -307,20 +307,23 @@ export default function Sidebar({
         zIndex: 100,
       }}
     >
-      {/* Logo header — full brand image, links to home */}
+      {/* Logo header — wordmark left, notification bell right */}
       <div
         style={{
           borderBottom: '1px solid rgba(196,154,16,0.18)',
           background: 'linear-gradient(180deg, rgba(196,154,16,0.06) 0%, transparent 100%)',
+          display: 'flex',
+          alignItems: 'center',
+          padding: '0 10px 0 12px',
         }}
       >
         <Link
           href="/"
           style={{
+            flex: 1,
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            padding: '10px 12px',
+            padding: '10px 0',
             textDecoration: 'none',
           }}
         >
@@ -330,6 +333,9 @@ export default function Sidebar({
             style={{ height: 26, width: 'auto', maxWidth: '100%' }}
           />
         </Link>
+        {profileApproved && (
+          <NotificationBell />
+        )}
       </div>
 
       {/* Nav sections */}
@@ -395,12 +401,6 @@ export default function Sidebar({
                   </IconTile>
                   <span style={{ flex: 1 }}>{item.label}</span>
                   {item.badge !== undefined && <Badge count={item.badge} />}
-                  {item.href === '/introductions' && profileApproved && (
-                    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
-                    <span onClick={e => e.stopPropagation()} style={{ display: 'flex', flexShrink: 0 }}>
-                      <NotificationBell />
-                    </span>
-                  )}
                 </Link>
               )
             })}
