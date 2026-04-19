@@ -78,15 +78,7 @@ export async function POST(
       )
     }
 
-    // ── 6. Visibility check ───────────────────────────────────────────────────
-    if (req.visible_at && new Date(req.visible_at as string) > new Date()) {
-      return NextResponse.json(
-        { error: 'This request is not yet visible' },
-        { status: 422 }
-      )
-    }
-
-    // ── 7. Look up user plan ──────────────────────────────────────────────────
+    // ── 6. Look up user plan ──────────────────────────────────────────────────
     const { data: subRow } = await supabase
       .from('zawaaj_subscriptions')
       .select('plan')

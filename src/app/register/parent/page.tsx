@@ -459,12 +459,12 @@ export default function RegisterParentPage() {
           </div>
         )}
 
-        {/* ── Step 1: Contact details ───────────────────────────────────── */}
+        {/* ── Step 1: Account holder details ───────────────────────────── */}
         {step === 1 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div>
               <h2 style={{ fontSize: 17, fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 5px' }}>
-                Your contact details
+                Account holder details
               </h2>
               <p style={{ fontSize: 12.5, color: 'var(--text-muted)', margin: 0, lineHeight: 1.5 }}>
                 These details will be used by our team when facilitating introductions. They are never shared with other families until a verified match is confirmed.
@@ -515,12 +515,12 @@ export default function RegisterParentPage() {
           </div>
         )}
 
-        {/* ── Step 2: Female contact (male primary only) ────────────────── */}
+        {/* ── Step 2: Representative contact for introductions (male primary only) ── */}
         {step === 2 && isMale && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div>
               <h2 style={{ fontSize: 17, fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 5px' }}>
-                Female contact
+                Contact for introductions
               </h2>
               <p style={{ fontSize: 12.5, color: 'var(--text-muted)', margin: 0, lineHeight: 1.5 }}>
                 Where possible, we ask male guardians to also provide a female family contact. This allows our team to carry out introductions in the most appropriate and dignified way for both families.

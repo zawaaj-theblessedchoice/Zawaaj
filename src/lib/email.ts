@@ -160,13 +160,9 @@ export function emailVerificationTemplate(verifyLink: string, contactEmail: stri
 // Sent to each family when admin facilitates an introduction.
 
 interface ContactInfo {
-  name: string        // other family's contact full name
-  phone: string       // other family's contact number
+  name: string        // resolved representative contact name (female-preferred)
+  phone: string       // resolved representative contact number (female-preferred)
   email?: string      // other family's contact email (optional to share)
-  femaleContact?: {   // female contact if provided
-    name: string
-    phone: string
-  }
   profile: {          // public profile snippet
     displayName: string
     ageDisplay: string | null
@@ -180,10 +176,6 @@ export function contactSharingTemplate(
   otherContact: ContactInfo,
   adminMessage?: string,
 ): string {
-  const femaleRow = otherContact.femaleContact
-    ? `<tr><td style="padding:6px 0;color:#9ca3af;font-size:13px;">Female contact</td><td style="padding:6px 0;color:#e5e7eb;font-size:13px;font-weight:500;">${otherContact.femaleContact.name} — ${otherContact.femaleContact.phone}</td></tr>`
-    : ''
-
   const profileSnippet = [
     otherContact.profile.ageDisplay,
     otherContact.profile.location,
@@ -226,14 +218,13 @@ export function contactSharingTemplate(
               <div style="background:#111111;border:1px solid #2a2a2a;border-radius:10px;padding:20px 24px;margin-bottom:20px;">
                 <table width="100%" cellpadding="0" cellspacing="0">
                   <tr>
-                    <td style="padding:6px 0;color:#9ca3af;font-size:13px;width:140px;">Primary contact</td>
+                    <td style="padding:6px 0;color:#9ca3af;font-size:13px;width:140px;">Representative</td>
                     <td style="padding:6px 0;color:#e5e7eb;font-size:13px;font-weight:600;">${otherContact.name}</td>
                   </tr>
                   <tr>
                     <td style="padding:6px 0;color:#9ca3af;font-size:13px;">Phone</td>
                     <td style="padding:6px 0;color:#e5e7eb;font-size:13px;font-weight:500;"><a href="tel:${otherContact.phone}" style="color:#B8960C;text-decoration:none;">${otherContact.phone}</a></td>
                   </tr>
-                  ${femaleRow}
                 </table>
               </div>
 

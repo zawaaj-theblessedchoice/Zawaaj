@@ -40,13 +40,8 @@ export default async function FamiliesPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase
-    .from('zawaaj_profiles')
-    .select('is_admin')
-    .eq('user_id', user.id)
-    .maybeSingle()
-
-  if (!profile?.is_admin) redirect('/admin')
+  const { data: role } = await supabase.rpc('zawaaj_get_role')
+  if (role !== 'super_admin' && role !== 'manager') redirect('/admin')
 
   const { data: families } = await supabaseAdmin
     .from('zawaaj_family_accounts')

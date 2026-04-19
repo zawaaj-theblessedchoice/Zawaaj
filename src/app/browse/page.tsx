@@ -150,11 +150,16 @@ export default async function BrowsePage({
        islamic_background, smoker, place_of_birth`
     )
     .eq('status', 'approved')
-    .not('id', 'in', `(${siblingIds.join(',')})`)
     .order('listed_at', { ascending: false })
 
   if (oppositeGender) {
     profilesQuery = profilesQuery.eq('gender', oppositeGender)
+  }
+
+  // Exclude all profiles linked to the same family account (siblings).
+  // Only applied when there are siblings — an empty IN() is invalid SQL.
+  if (siblingIds.length > 0) {
+    profilesQuery = profilesQuery.not('id', 'in', `(${siblingIds.join(',')})`)
   }
 
   const { data: rawProfiles, error: profilesError } = await profilesQuery

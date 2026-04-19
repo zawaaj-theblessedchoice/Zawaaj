@@ -83,12 +83,12 @@ const COMPACT_COMPARISON = [
 ]
 
 const HOW_IT_WORKS = [
-  { n: 1, title: 'Create your family account', body: 'A parent, guardian, or the candidate themselves registers and manages the family account.' },
-  { n: 2, title: 'Admin review', body: 'Our team personally reviews every profile before it goes live — keeping the platform trusted and the community high quality.' },
-  { n: 3, title: 'Browse & express interest', body: 'When a profile feels right, express interest. One-sided interest remains completely private — the other family is not notified at this stage.' },
-  { n: 4, title: 'Mutual interest', body: 'When both families have independently expressed interest in each other, our admin team is notified.' },
-  { n: 5, title: 'Admin reaches out', body: 'Our team contacts both families separately to introduce the situation and learn whether they\'d like to proceed.' },
-  { n: 6, title: 'Introduction made', body: 'If both families are ready, our admin connects the guardian families directly. Contact details are only shared at this final stage.' },
+  { n: '01', title: 'Create your family account', body: 'Register as a parent, guardian, or candidate.\nYour verified family account becomes the secure base for all activity.' },
+  { n: '02', title: 'Add a candidate profile', body: 'Create a profile for the person seeking marriage.\nEvery profile is personally reviewed before appearing live.' },
+  { n: '03', title: 'Browse privately', body: 'View suitable profiles discreetly and express interest.\nNo direct communication takes place at this stage.' },
+  { n: '04', title: 'Private response', body: 'The receiving family reviews the interest privately.\nThey may accept or decline respectfully within seven days.' },
+  { n: '05', title: 'Mutual interest confirmed', body: 'If both sides wish to proceed, our team is notified.\nWe confirm mutual interest with both families.' },
+  { n: '06', title: 'Introduction made', body: 'After verification and consent, contact details are shared.\nNothing is ever released automatically.' },
 ]
 
 const VALUES = [
@@ -578,8 +578,9 @@ export default function LandingPage({ isLoggedIn = false, featuredEvents = [] }:
       {/* ── How it works ── */}
       <section id="how-it-works" className="max-w-5xl mx-auto px-4 md:px-5 py-12 md:py-24">
         <div className="text-center mb-14">
-          <p className="text-xs font-semibold text-gold uppercase tracking-widest mb-3">The process</p>
-          <h2 className="text-3xl font-bold text-ink">How Zawaaj works</h2>
+          <p className="text-xs font-semibold text-gold uppercase tracking-widest mb-3">The Zawaaj Process</p>
+          <h2 className="text-3xl font-bold text-ink mb-4">A Dignified Path to Marriage</h2>
+          <p className="text-sm text-muted max-w-lg mx-auto leading-relaxed">A private, family-led journey in six simple steps — built on trust, dignity, and sincere intent.</p>
         </div>
         <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
           {HOW_IT_WORKS.map(s => (
@@ -590,7 +591,7 @@ export default function LandingPage({ isLoggedIn = false, featuredEvents = [] }:
                 </span>
               </div>
               <p className="font-semibold text-ink mb-2">{s.title}</p>
-              <p className="text-sm text-muted leading-relaxed">{s.body}</p>
+              <p className="text-sm text-muted leading-relaxed" style={{ whiteSpace: 'pre-line' }}>{s.body}</p>
             </div>
           ))}
         </div>

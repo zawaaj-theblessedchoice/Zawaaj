@@ -1140,26 +1140,23 @@ function RegisterChildPageInner() {
         {/* ── Step 4: Guardian details (skipped when using invite token) ─── */}
         {step === 4 && !inviteToken && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <div
-              style={{
-                padding: '12px 14px',
-                borderRadius: 8,
-                background: 'var(--gold-muted)',
-                border: '0.5px solid var(--border-gold)',
-                fontSize: 12.5,
-                color: 'var(--text-secondary)',
-                lineHeight: 1.6,
-              }}
-            >
-              A guardian is required. The preferred guardian is the candidate&apos;s mother — if unavailable, please select the closest available female relative, or a male relative as a last resort.
-              Guardian details are used by our team when connecting families and are never shared publicly.
+
+            {/* ── Section A: Account holder ─────────────────────────────── */}
+            <div>
+              <h2 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 4px' }}>
+                Account holder
+              </h2>
+              <p style={{ fontSize: 12.5, color: 'var(--text-muted)', margin: 0, lineHeight: 1.5 }}>
+                The preferred account holder is the candidate&apos;s mother — if unavailable, the closest available female relative, or a male relative as a last resort.
+              </p>
             </div>
-            <Field label="Guardian's full name" required fieldId="field-contact_full_name" error={fieldErrors.contact_full_name}>
+
+            <Field label="Full name" required fieldId="field-contact_full_name" error={fieldErrors.contact_full_name}>
               <input type="text" placeholder="e.g. Fatima Hussain" value={form.guardianFullName}
                 onChange={e => { set('guardianFullName', e.target.value); clearFieldError('contact_full_name') }}
                 style={{ ...inputStyle, borderColor: fieldErrors.contact_full_name ? 'var(--status-error, #f87171)' : undefined }} />
             </Field>
-            <Field label="Guardian's relationship to candidate" required fieldId="field-contact_relationship" error={fieldErrors.contact_relationship}>
+            <Field label="Relationship to candidate" required fieldId="field-contact_relationship" error={fieldErrors.contact_relationship}>
               <select value={form.guardianRelationship}
                 onChange={e => { set('guardianRelationship', e.target.value); clearFieldError('contact_relationship') }}
                 style={{ ...inputStyle, cursor: 'pointer', borderColor: fieldErrors.contact_relationship ? 'var(--status-error, #f87171)' : undefined }}>
@@ -1167,17 +1164,28 @@ function RegisterChildPageInner() {
                 {GUARDIAN_RELATIONSHIP_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
             </Field>
+
+            {/* ── Section B: Contact for introductions ──────────────────── */}
+            <div style={{ marginTop: 6 }}>
+              <h2 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 4px' }}>
+                Contact for introductions
+              </h2>
+              <p style={{ fontSize: 12.5, color: 'var(--text-muted)', margin: 0, lineHeight: 1.5 }}>
+                Our team will use these details when facilitating an introduction. They are never shared with other families until a verified match is confirmed.
+              </p>
+            </div>
+
             {form.noFemaleContactFlag && (
               <div style={{ padding: '10px 14px', borderRadius: 8, background: 'var(--status-warning-bg)', border: '0.5px solid var(--status-warning-br)', fontSize: 12, color: 'var(--status-warning)', lineHeight: 1.5 }}>
                 ⚠ A male guardian has been selected. Our team will be notified and will coordinate accordingly.
               </div>
             )}
-            <Field label="Guardian's contact number (WhatsApp preferred)" required fieldId="field-contact_number" error={fieldErrors.contact_number}>
+            <Field label="Contact number (WhatsApp preferred)" required fieldId="field-contact_number" error={fieldErrors.contact_number}>
               <input type="tel" placeholder="e.g. 07700 900000" value={form.guardianNumber}
                 onChange={e => { set('guardianNumber', e.target.value); clearFieldError('contact_number') }}
                 style={{ ...inputStyle, borderColor: fieldErrors.contact_number ? 'var(--status-error, #f87171)' : undefined }} />
             </Field>
-            <Field label="Guardian's email address" required fieldId="field-contact_email" error={fieldErrors.contact_email} hint="Your guardian will receive an invitation to link to your account.">
+            <Field label="Email address" required fieldId="field-contact_email" error={fieldErrors.contact_email} hint="This address will receive account-related correspondence from Zawaaj.">
               <input type="email" placeholder="guardian@email.com" value={form.guardianEmail}
                 onChange={e => { set('guardianEmail', e.target.value); clearFieldError('contact_email') }}
                 style={{ ...inputStyle, borderColor: fieldErrors.contact_email ? 'var(--status-error, #f87171)' : undefined }} />

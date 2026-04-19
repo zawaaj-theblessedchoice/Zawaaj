@@ -155,13 +155,17 @@ function daysLeft(expiresAt: string | null): number | null {
   return Math.max(0, Math.ceil(diff / 86_400_000))
 }
 
+/**
+ * Returns initials in "R.K." format for privacy — never the full name.
+ * "RK" → "R.K."  |  "R" → "R."
+ */
 function buildDisplayName(
-  first_name: string | null,
-  last_name: string | null,
+  _first_name: string | null,
+  _last_name: string | null,
   display_initials: string
 ): string {
-  const name = `${first_name ?? ''} ${last_name ? last_name[0] + '.' : ''}`.trim()
-  return name || display_initials
+  if (!display_initials) return '—'
+  return display_initials.split('').join('.') + '.'
 }
 
 // ─── StatusBadge ─────────────────────────────────────────────────────────────

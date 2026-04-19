@@ -180,11 +180,8 @@ export async function POST(request: Request): Promise<Response> {
       return NextResponse.json({ error: 'Already requested' }, { status: 422 })
     }
 
-    // 5. Compute visible_at based on sender's plan (visibility delay from config)
-    const delayMs = planConfig.visibilityDelayHours * 60 * 60 * 1000
-    const visibleAt = delayMs > 0
-      ? new Date(Date.now() + delayMs).toISOString()
-      : null // null = immediately visible
+    // 5. visible_at — always immediate (no plan-based delay)
+    const visibleAt = new Date().toISOString()
 
     // 6. Insert new request — set 7-day response deadline per Section 5 spec
     const now = Date.now()

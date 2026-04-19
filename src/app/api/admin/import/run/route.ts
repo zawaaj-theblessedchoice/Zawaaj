@@ -227,13 +227,9 @@ export async function POST(req: NextRequest): Promise<Response> {
       const displayInitials = computeInitials(firstName, lastName)
       const ageDisplay      = dobRaw ? computeAgeDisplay(dobRaw) : null
       const location        = [city, country].filter(Boolean).join(', ') || null
-      // wears_hijab is TEXT in DB ('yes'|'no'|'sometimes') — accept true/false strings or direct values
-      const wearsHijab: string | null = wearsHijabRaw !== ''
-        ? (['yes', 'true'].includes(wearsHijabRaw.toLowerCase())
-            ? 'yes'
-            : wearsHijabRaw.toLowerCase() === 'sometimes'
-              ? 'sometimes'
-              : 'no')
+      // wears_hijab is BOOLEAN in DB — 'true'/'yes' → true, anything else → false, blank → null
+      const wearsHijab: boolean | null = wearsHijabRaw !== ''
+        ? ['true', 'yes'].includes(wearsHijabRaw.toLowerCase())
         : null
       const keepsBeard      = keepsBeardRaw !== '' ? keepsBeardRaw.toLowerCase() === 'true' : null
       const hasChildren     = hasChildrenRaw !== '' ? hasChildrenRaw.toLowerCase() === 'true' : null

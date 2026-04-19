@@ -56,11 +56,14 @@ const PROFILE_STATUS_LABEL: Record<string, string> = {
   introduced: 'Introduced',
 }
 
-type AccountStatus = 'Active' | 'Invited' | 'Inactive'
+type AccountStatus = 'Active' | 'Pending' | 'Invited' | 'Suspended' | 'Inactive'
 
 function accountStatus(raw: string): AccountStatus {
   if (raw === 'active') return 'Active'
-  if (raw === 'pending_email_verification' || raw === 'pending_contact_details') return 'Invited'
+  if (raw === 'pending_email_verification') return 'Pending'
+  if (raw === 'pending_approval') return 'Pending'
+  if (raw === 'pending_contact_details') return 'Invited'
+  if (raw === 'suspended') return 'Suspended'
   return 'Inactive'
 }
 
@@ -117,9 +120,11 @@ function fmtRelative(iso: string | null): string {
 
 function AccountStatusBadge({ status }: { status: AccountStatus }) {
   const styles: Record<AccountStatus, React.CSSProperties> = {
-    Active:   { background: 'rgba(34,197,94,0.12)',  color: '#4ade80',  border: '0.5px solid rgba(34,197,94,0.3)'  },
-    Invited:  { background: 'rgba(96,165,250,0.12)', color: '#60a5fa',  border: '0.5px solid rgba(96,165,250,0.3)' },
-    Inactive: { background: 'rgba(148,163,184,0.1)', color: '#94a3b8',  border: '0.5px solid rgba(148,163,184,0.2)' },
+    Active:    { background: 'rgba(34,197,94,0.12)',  color: '#4ade80',  border: '0.5px solid rgba(34,197,94,0.3)'   },
+    Pending:   { background: 'rgba(251,191,36,0.15)', color: '#f59e0b',  border: '0.5px solid rgba(251,191,36,0.35)' },
+    Invited:   { background: 'rgba(96,165,250,0.12)', color: '#60a5fa',  border: '0.5px solid rgba(96,165,250,0.3)'  },
+    Suspended: { background: 'rgba(239,68,68,0.12)',  color: '#ef4444',  border: '0.5px solid rgba(239,68,68,0.3)'   },
+    Inactive:  { background: 'rgba(148,163,184,0.1)', color: '#94a3b8',  border: '0.5px solid rgba(148,163,184,0.2)' },
   }
   return (
     <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 20, whiteSpace: 'nowrap' as const, ...styles[status] }}>
@@ -436,7 +441,7 @@ function AccountRowCard({ account, isDark }: { account: AccountRow; isDark: bool
 
 // ─── AccountsClient ───────────────────────────────────────────────────────────
 
-type FilterTab = 'all' | 'active' | 'invited' | 'inactive'
+type FilterTab = 'all' | 'pending' | 'active' | 'invited' | 'suspended' | 'inactive'
 
 export function AccountsClient({ accounts }: Props) {
   const [tab, setTab] = useState<FilterTab>('all')
@@ -449,16 +454,20 @@ export function AccountsClient({ accounts }: Props) {
 
   const statusForFilter = (a: AccountRow): FilterTab => {
     const s = accountStatus(a.status)
-    if (s === 'Active')  return 'active'
-    if (s === 'Invited') return 'invited'
+    if (s === 'Active')    return 'active'
+    if (s === 'Pending')   return 'pending'
+    if (s === 'Invited')   return 'invited'
+    if (s === 'Suspended') return 'suspended'
     return 'inactive'
   }
 
   const counts = {
     all:      accounts.length,
-    active:   accounts.filter(a => accountStatus(a.status) === 'Active').length,
-    invited:  accounts.filter(a => accountStatus(a.status) === 'Invited').length,
-    inactive: accounts.filter(a => accountStatus(a.status) === 'Inactive').length,
+    pending:   accounts.filter(a => accountStatus(a.status) === 'Pending').length,
+    active:    accounts.filter(a => accountStatus(a.status) === 'Active').length,
+    invited:   accounts.filter(a => accountStatus(a.status) === 'Invited').length,
+    suspended: accounts.filter(a => accountStatus(a.status) === 'Suspended').length,
+    inactive:  accounts.filter(a => accountStatus(a.status) === 'Inactive').length,
   }
 
   const candidateCount = accounts.reduce((n, a) => n + a.profiles.length, 0)
@@ -481,10 +490,12 @@ export function AccountsClient({ accounts }: Props) {
   const gold = '#B8960C'
 
   const tabs: { key: FilterTab; label: string }[] = [
-    { key: 'all',      label: `All (${counts.all})` },
-    { key: 'active',   label: `Active (${counts.active})` },
-    { key: 'invited',  label: `Invited (${counts.invited})` },
-    { key: 'inactive', label: `Inactive (${counts.inactive})` },
+    { key: 'all',       label: `All (${counts.all})` },
+    { key: 'pending',   label: `Awaiting (${counts.pending})` },
+    { key: 'active',    label: `Active (${counts.active})` },
+    { key: 'invited',   label: `Invited (${counts.invited})` },
+    { key: 'suspended', label: `Suspended (${counts.suspended})` },
+    { key: 'inactive',  label: `Inactive (${counts.inactive})` },
   ]
 
   return (

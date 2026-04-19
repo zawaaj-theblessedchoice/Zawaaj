@@ -871,6 +871,7 @@ export function FamiliesClient({ families: initial }: Props) {
   const counts = {
     all: families.length,
     pending_email_verification: families.filter(f => f.status === 'pending_email_verification').length,
+    pending_approval: families.filter(f => f.status === 'pending_approval').length,
     active: families.filter(f => f.status === 'active').length,
     suspended: families.filter(f => f.status === 'suspended').length,
   }
@@ -912,7 +913,7 @@ export function FamiliesClient({ families: initial }: Props) {
           }}
         />
         <div style={{ display: 'flex', gap: 6 }}>
-          {(['all', 'pending_email_verification', 'active', 'suspended'] as const).map(s => (
+          {(['all', 'pending_email_verification', 'pending_approval', 'active', 'suspended'] as const).map(s => (
             <button
               key={s}
               onClick={() => setStatusFilter(s)}
@@ -923,7 +924,11 @@ export function FamiliesClient({ families: initial }: Props) {
                 color: statusFilter === s ? '#111' : 'var(--admin-muted)',
               }}
             >
-              {s === 'all' ? 'All' : s.replace(/_/g, ' ')} ({counts[s] ?? filtered.length})
+              {s === 'all' ? `All (${families.length})`
+                : s === 'pending_email_verification' ? `Verifying email (${counts.pending_email_verification})`
+                : s === 'pending_approval' ? `Awaiting approval (${counts.pending_approval})`
+                : s === 'active' ? `Active (${counts.active})`
+                : `Suspended (${counts.suspended})`}
             </button>
           ))}
         </div>
@@ -1077,6 +1082,10 @@ export function FamiliesClient({ families: initial }: Props) {
                           {f.status === 'pending_email_verification' && (
                             <ActionBtn label="↺ Resend verification email" color="#ea580c" bg="rgba(251,146,60,0.12)"
                               loading={actionLoading === f.id} onClick={() => resendVerification(f.id)} />
+                          )}
+                          {f.status === 'pending_approval' && (
+                            <ActionBtn label="Activate" color="#16a34a" bg="rgba(34,197,94,0.12)"
+                              loading={actionLoading === f.id} onClick={() => updateStatus(f.id, 'active')} />
                           )}
                           {f.status === 'active' && (
                             <ActionBtn label="Suspend" color="#dc2626" bg="rgba(239,68,68,0.12)"

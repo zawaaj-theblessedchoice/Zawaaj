@@ -2444,8 +2444,8 @@ export default function AdminPage() {
       setCurrentUserId(user.id)
       const { data: role } = await supabase.rpc('zawaaj_get_role')
       if (role === 'manager') {
-        // Managers have a scoped admin role — redirect to their page
-        window.location.href = '/admin/introductions'
+        // Managers use the Operations console (scoped access)
+        window.location.href = '/admin/operations'
         return
       }
       setIsAdmin(role === 'super_admin')

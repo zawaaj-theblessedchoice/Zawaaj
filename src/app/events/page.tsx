@@ -420,8 +420,6 @@ export default function EventsPage() {
         flex: 1,
         padding: loggedIn ? '28px 28px 60px' : '40px 24px 60px',
         minHeight: '100vh',
-        maxWidth: loggedIn ? undefined : 760,
-        margin: loggedIn ? undefined : '0 auto',
       }}
     >
       {/* Back to website */}

@@ -324,7 +324,7 @@ export async function PATCH(
             first_name, last_name, display_initials, age_display, location, school_of_thought, gender,
             family_account:zawaaj_family_accounts!family_account_id(
               contact_full_name, contact_number, contact_email,
-              female_contact_name, female_contact_number
+              female_contact_name, female_contact_number, no_female_contact_flag
             )
           `)
           .eq('id', req.requesting_profile_id)
@@ -335,7 +335,7 @@ export async function PATCH(
             first_name, last_name, display_initials, age_display, location, school_of_thought, gender,
             family_account:zawaaj_family_accounts!family_account_id(
               contact_full_name, contact_number, contact_email,
-              female_contact_name, female_contact_number
+              female_contact_name, female_contact_number, no_female_contact_flag
             )
           `)
           .eq('id', req.target_profile_id)
@@ -348,6 +348,7 @@ export async function PATCH(
         contact_email: string
         female_contact_name: string | null
         female_contact_number: string | null
+        no_female_contact_flag: boolean | null
       }
 
       const reqFA = (reqProfile?.family_account as FamilyAccount | FamilyAccount[] | null)
@@ -367,13 +368,35 @@ export async function PATCH(
         return name || p.display_initials
       }
 
-      // Build contact objects for each family to share with the other
+      // Resolve the single representative contact for each family.
+      // Priority 1 — female contact (when no_female_contact_flag is not set and female_contact_number is present)
+      // Priority 2 — primary contact_number (when no_female_contact_flag = true)
+      // null        — neither is available; facilitation must be blocked
+      function resolveRepresentativeContact(fa: FamilyAccount): { name: string; phone: string } | null {
+        if (!fa.no_female_contact_flag && fa.female_contact_number) {
+          return { name: fa.female_contact_name ?? fa.contact_full_name, phone: fa.female_contact_number }
+        }
+        if (fa.contact_number) {
+          return { name: fa.contact_full_name, phone: fa.contact_number }
+        }
+        return null
+      }
+
+      const reqResolved = resolveRepresentativeContact(reqFamilyAccount)
+      const tgtResolved = resolveRepresentativeContact(tgtFamilyAccount)
+
+      if (!reqResolved || !tgtResolved) {
+        return NextResponse.json(
+          { error: 'Cannot facilitate: one or both families have no resolvable representative contact. Please ensure a valid phone number is recorded on the family account.' },
+          { status: 422 }
+        )
+      }
+
+      // Build contact objects for each family to share with the other.
+      // 'name' and 'phone' are already the resolved representative (female-preferred).
       const reqContactForTarget = {
-        name: reqFamilyAccount.contact_full_name,
-        phone: reqFamilyAccount.contact_number,
-        femaleContact: reqFamilyAccount.female_contact_name && reqFamilyAccount.female_contact_number
-          ? { name: reqFamilyAccount.female_contact_name, phone: reqFamilyAccount.female_contact_number }
-          : undefined,
+        name: reqResolved.name,
+        phone: reqResolved.phone,
         profile: {
           displayName: profileDisplayName(reqProfile!),
           ageDisplay: (reqProfile as { age_display?: string | null })?.age_display ?? null,
@@ -383,11 +406,8 @@ export async function PATCH(
       }
 
       const tgtContactForRequester = {
-        name: tgtFamilyAccount.contact_full_name,
-        phone: tgtFamilyAccount.contact_number,
-        femaleContact: tgtFamilyAccount.female_contact_name && tgtFamilyAccount.female_contact_number
-          ? { name: tgtFamilyAccount.female_contact_name, phone: tgtFamilyAccount.female_contact_number }
-          : undefined,
+        name: tgtResolved.name,
+        phone: tgtResolved.phone,
         profile: {
           displayName: profileDisplayName(tgtProfile!),
           ageDisplay: (tgtProfile as { age_display?: string | null })?.age_display ?? null,

@@ -90,10 +90,11 @@ export function OperationsConsole() {
     loadMetrics()
     loadProfiles(filters, page)
     // Fetch pending family account registrations (not profile rows — shown in Families tab)
+    // Count all family accounts that haven't completed activation yet
     supabase
       .from('zawaaj_family_accounts')
       .select('id', { count: 'exact', head: true })
-      .eq('status', 'pending_approval')
+      .in('status', ['pending_email_verification', 'pending_approval'])
       .then(({ count }) => setPendingFamilyCount(count ?? 0))
     supabase
       .from('zawaaj_family_accounts')
@@ -368,9 +369,10 @@ export function OperationsConsole() {
             </svg>
             <span style={{ fontSize: 13, fontWeight: 500 }}>
               <span style={{ color: 'var(--gold)', fontWeight: 700 }}>{pendingFamilyCount}</span>
-              {' '}pending family registration{pendingFamilyCount !== 1 ? 's' : ''} awaiting approval —{' '}
+              {' '}family account{pendingFamilyCount !== 1 ? 's' : ''} pending activation
+              {pendingEmailVerificationCount > 0 ? ` (${pendingEmailVerificationCount} awaiting email verification)` : ''} —{' '}
               <span style={{ color: 'var(--gold)', textDecoration: 'underline', textUnderlineOffset: 2 }}>
-                review in Families tab →
+                review in Families →
               </span>
             </span>
           </Link>
