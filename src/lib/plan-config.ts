@@ -123,8 +123,10 @@ export const PLAN_PRICES: Record<Plan, { monthly: number; annual: number }> = {
  *   const config = getPlanConfig(user.plan)
  *   if (activeRequests >= config.activeLimit) { ... }
  */
-export function getPlanConfig(plan: Plan) {
-  return PLAN_CONFIG[plan]
+export function getPlanConfig(plan: Plan | string | null | undefined) {
+  // 'voluntary' is a legacy DB value that maps to the free tier.
+  // Any other unknown value also falls back to free so we never return undefined.
+  return PLAN_CONFIG[plan as Plan] ?? PLAN_CONFIG.free
 }
 
 // ─── DB-driven plan config ────────────────────────────────────────────────────

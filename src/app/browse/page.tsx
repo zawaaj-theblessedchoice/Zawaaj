@@ -258,7 +258,9 @@ export default async function BrowsePage({
     .eq('user_id', user.id)
     .eq('status', 'active')
     .maybeSingle()
-  const plan: Plan = (subData?.plan ?? 'free') as Plan
+  // Normalise legacy 'voluntary' plan key → 'free'; guard against any unknown value
+  const rawPlan = (subData?.plan as string | null) ?? 'free'
+  const plan: Plan = (['free', 'plus', 'premium'].includes(rawPlan) ? rawPlan : 'free') as Plan
 
   // Active (pending) introduction request count for this profile
   const { count: activeCountRaw } = await supabase

@@ -95,7 +95,8 @@ export default async function IntroductionsPage() {
       .maybeSingle(),
   ])
 
-  const plan: Plan = ((subData as { plan?: string } | null)?.plan ?? 'free') as Plan
+  const rawPlan = ((subData as { plan?: string } | null)?.plan) ?? 'free'
+  const plan: Plan = (['free', 'plus', 'premium'].includes(rawPlan) ? rawPlan : 'free') as Plan
 
   const managedProfiles: ManagedProfile[] = (profileRows ?? []).map(p => ({
     id: p.id,

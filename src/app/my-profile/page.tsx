@@ -304,7 +304,8 @@ export default function MyProfilePage() {
         .eq('user_id', user.id)
         .eq('status', 'active')
         .maybeSingle()
-      setPlan((subData?.plan ?? 'free') as 'free' | 'plus' | 'premium')
+      const rawPlanValue = (subData?.plan as string | null) ?? 'free'
+      setPlan((['free', 'plus', 'premium'].includes(rawPlanValue) ? rawPlanValue : 'free') as 'free' | 'plus' | 'premium')
 
       // Sidebar counts
       const [slResult, irCountResult] = await Promise.all([
