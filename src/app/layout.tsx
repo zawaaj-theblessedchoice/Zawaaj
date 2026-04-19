@@ -21,11 +21,11 @@ const amiri = Amiri({
 
 export const metadata: Metadata = {
   title: "Zawaaj — The Blessed Choice",
-  description: "A private Muslim matrimonial platform. Family-first, admin-mediated introductions. Mothers connect with mothers. Free to join.",
+  description: "Meet serious, family-led matrimonial profiles on Zawaaj — a private, dignified platform where every profile is reviewed and introductions are admin-facilitated.",
   metadataBase: new URL("https://www.zawaaj.uk"),
   openGraph: {
     title: 'Zawaaj — The Blessed Choice',
-    description: 'A private Muslim matrimonial platform. Family-first, admin-mediated introductions. Mothers connect with mothers. Free to join.',
+    description: 'Meet serious, family-led matrimonial profiles on Zawaaj — a private, dignified platform where every profile is reviewed and introductions are admin-facilitated.',
     url: 'https://www.zawaaj.uk',
     siteName: 'Zawaaj',
     type: 'website',
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Zawaaj — The Blessed Choice',
-    description: 'A private Muslim matrimonial platform. Family-first, admin-mediated introductions. Mothers connect with mothers. Free to join.',
+    description: 'Meet serious, family-led matrimonial profiles on Zawaaj — a private, dignified platform where every profile is reviewed and introductions are admin-facilitated.',
     // twitter:image is auto-derived from opengraph-image.tsx
   },
 };
