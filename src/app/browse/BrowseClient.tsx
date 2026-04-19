@@ -10,6 +10,7 @@ import AvatarInitials from '@/components/AvatarInitials'
 import CompatibilityBar from '@/components/CompatibilityBar'
 import Toast from '@/components/Toast'
 import UpgradeModal from '@/components/UpgradeModal'
+import NotificationBell from '@/components/NotificationBell'
 import { scoreCompatibility } from '@/lib/compatibility'
 import { getPlanConfig } from '@/lib/plan-config'
 import type { Plan } from '@/lib/plan-config'
@@ -1643,6 +1644,9 @@ export default function BrowseClient({
                 <option value="age_desc">Age: oldest first</option>
               </select>
             </div>
+
+            {/* Notification bell */}
+            <NotificationBell />
           </div>
         </div>
 
@@ -1750,7 +1754,7 @@ export default function BrowseClient({
               >
                 <div style={{ fontSize: 22, marginBottom: 12 }}>✨</div>
                 <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 8 }}>
-                  Recommendations available with Plus
+                  Recommendations available with Premium
                 </div>
                 <div style={{ fontSize: 12.5, color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: 20 }}>
                   Upgrade to see profiles chosen for you based on your preferences — no manual searching needed.
@@ -1768,7 +1772,7 @@ export default function BrowseClient({
                     cursor: 'pointer',
                   }}
                 >
-                  Upgrade to Plus →
+                  Upgrade to Premium →
                 </button>
               </div>
             )}

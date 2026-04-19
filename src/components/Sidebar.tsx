@@ -307,23 +307,20 @@ export default function Sidebar({
         zIndex: 100,
       }}
     >
-      {/* Logo header — wordmark left, notification bell right */}
+      {/* Logo header — centred wordmark */}
       <div
         style={{
           borderBottom: '1px solid rgba(196,154,16,0.18)',
           background: 'linear-gradient(180deg, rgba(196,154,16,0.06) 0%, transparent 100%)',
-          display: 'flex',
-          alignItems: 'center',
-          padding: '0 10px 0 12px',
         }}
       >
         <Link
           href="/"
           style={{
-            flex: 1,
             display: 'flex',
             alignItems: 'center',
-            padding: '10px 0',
+            justifyContent: 'center',
+            padding: '10px 12px',
             textDecoration: 'none',
           }}
         >
@@ -333,9 +330,6 @@ export default function Sidebar({
             style={{ height: 26, width: 'auto', maxWidth: '100%' }}
           />
         </Link>
-        {profileApproved && (
-          <NotificationBell />
-        )}
       </div>
 
       {/* Nav sections */}
