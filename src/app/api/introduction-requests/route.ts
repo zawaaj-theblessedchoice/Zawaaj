@@ -58,16 +58,18 @@ export async function POST(request: Request): Promise<Response> {
       return NextResponse.json({ error: 'Your profile must be approved to express interest' }, { status: 403 })
     }
 
-    // 4c2. Family account must be active (if profile is linked to one)
+    // 4c2. Only block if the family account is explicitly suspended.
+    // pending_approval / pending_contact_details are non-terminal — the profile
+    // approval is the real gate for member access, not the family account status.
     if (requesterProfile.family_account_id) {
       const { data: familyAccount } = await supabase
         .from('zawaaj_family_accounts')
         .select('status')
         .eq('id', requesterProfile.family_account_id)
         .maybeSingle()
-      if (familyAccount && familyAccount.status !== 'active') {
+      if (familyAccount?.status === 'suspended') {
         return NextResponse.json(
-          { error: 'Your family account is not active. Please contact support.' },
+          { error: 'Your account has been suspended. Please contact support.' },
           { status: 403 }
         )
       }
