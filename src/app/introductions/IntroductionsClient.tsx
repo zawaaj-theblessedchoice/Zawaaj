@@ -9,8 +9,8 @@ import type { Plan } from '@/lib/plan-config'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-// Family Model v2 — 6-value status enum
-export type IntroStatus = 'pending' | 'accepted' | 'facilitated' | 'declined' | 'expired' | 'withdrawn'
+// Family Model v2 — status enum aligned with DB CHECK constraint (migration 019)
+export type IntroStatus = 'pending' | 'accepted' | 'declined' | 'expired' | 'withdrawn'
 
 interface TargetProfile {
   id: string
@@ -86,8 +86,8 @@ interface IntroductionsClientProps {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-// 'accepted' = team will facilitate; 'facilitated' = contacts already shared
-const MATCH_STATUSES: IntroStatus[] = ['accepted', 'facilitated']
+// 'accepted' = team will facilitate introduction
+const MATCH_STATUSES: IntroStatus[] = ['accepted']
 
 const PAST_STATUSES: IntroStatus[] = ['declined', 'expired', 'withdrawn']
 
@@ -111,11 +111,6 @@ const STATUS_CONFIG: Record<IntroStatus, BadgeConfig> = {
     text: 'var(--gold)',
     label: 'Accepted — team notified',
     pulse: true,
-  },
-  facilitated: {
-    bg: 'var(--status-success-bg)',
-    text: 'var(--status-success)',
-    label: 'Contacts shared',
   },
   declined: {
     bg: 'var(--surface-3)',
@@ -702,16 +697,13 @@ function MatchCard({ req }: { req: IntroRequest }) {
     ? buildDisplayName(target.first_name, target.last_name, target.display_initials)
     : '—'
 
-  const isFacilitated = req.status === 'facilitated'
-  const helpText = isFacilitated
-    ? 'Alhamdulillah — contact details have been shared with both families by the Zawaaj team. Please reach out directly and may Allah bless your journey.'
-    : 'Your interest has been accepted. Our team is coordinating the introduction — you will hear from us soon, in shaa Allah.'
+  const helpText = 'Your interest has been accepted. Our team is coordinating the introduction — you will hear from us soon, in shaa Allah.'
 
   return (
     <div
       style={{
-        background: isFacilitated ? 'var(--status-success-bg)' : 'var(--surface-2)',
-        border: `0.5px solid ${isFacilitated ? 'var(--status-success-br)' : 'var(--border-gold)'}`,
+        background: 'var(--surface-2)',
+        border: '0.5px solid var(--border-gold)',
         borderRadius: 13,
         padding: '16px 18px',
         display: 'flex',
@@ -886,11 +878,11 @@ export default function IntroductionsClient({
   plan = 'free',
 }: IntroductionsClientProps) {
   // Derive counts for default tab selection
-  // Priority: facilitated matches > pending received > sent
-  const facilitatedCount = requests.filter(r => r.status === 'facilitated').length
+  // Priority: accepted matches > pending received > sent
+  const matchCount = requests.filter(r => MATCH_STATUSES.includes(r.status)).length
   const pendingReceivedCount = receivedRequests.filter(r => r.status === 'pending').length
   const defaultTab: 'sent' | 'received' | 'matches' =
-    facilitatedCount > 0 ? 'matches' :
+    matchCount > 0 ? 'matches' :
     pendingReceivedCount > 0 ? 'received' : 'sent'
 
   const [activeTab, setActiveTab] = useState<'sent' | 'received' | 'matches'>(defaultTab)
@@ -917,10 +909,8 @@ export default function IntroductionsClient({
   const receivedCount = receivedRequests.length
   const matchesCount = matchRequests.length
 
-  // Sidebar mutual count — accepted (team notified) + facilitated (contacts shared)
+  // Sidebar mutual count — accepted (team notified)
   const mutualCount = requests.filter(r => MATCH_STATUSES.includes(r.status)).length
-
-  const hasAnything = requests.length > 0 || receivedRequests.length > 0
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
@@ -1011,41 +1001,8 @@ export default function IntroductionsClient({
           />
         </div>
 
-        {/* Empty state (only when no activity at all) */}
-        {!hasAnything && (
-          <div
-            style={{
-              background: 'var(--surface-2)',
-              border: '0.5px solid var(--border-default)',
-              borderLeft: '3px solid var(--border-gold)',
-              borderRadius: 13,
-              padding: '48px 24px',
-              textAlign: 'center',
-            }}
-          >
-            <div style={{ fontSize: 13.5, color: 'var(--text-muted)', marginBottom: 16 }}>
-              No introduction activity yet.
-            </div>
-            <Link
-              href="/browse"
-              style={{
-                display: 'inline-block',
-                padding: '8px 18px',
-                borderRadius: 8,
-                background: 'var(--gold)',
-                color: 'var(--surface)',
-                fontSize: 13,
-                fontWeight: 500,
-                textDecoration: 'none',
-              }}
-            >
-              Browse profiles
-            </Link>
-          </div>
-        )}
-
         {/* ── Received tab ── */}
-        {activeTab === 'received' && hasAnything && (
+        {activeTab === 'received' && (
           <div>
             {activeReceived.length === 0 && pastReceived.length === 0 && (
               <div style={{ fontSize: 13, color: 'var(--text-muted)', padding: '16px 0' }}>
@@ -1101,7 +1058,7 @@ export default function IntroductionsClient({
         )}
 
         {/* ── Sent tab ── */}
-        {activeTab === 'sent' && hasAnything && (
+        {activeTab === 'sent' && (
           <div>
             {activeSent.length === 0 && pastSent.length === 0 && (
               <div style={{ fontSize: 13, color: 'var(--text-muted)', padding: '16px 0' }}>
@@ -1138,7 +1095,7 @@ export default function IntroductionsClient({
         )}
 
         {/* ── Matches tab ── */}
-        {activeTab === 'matches' && hasAnything && (
+        {activeTab === 'matches' && (
           <div>
             {matchRequests.length === 0 ? (
               <div style={{ fontSize: 13, color: 'var(--text-muted)', padding: '16px 0' }}>

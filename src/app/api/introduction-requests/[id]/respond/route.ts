@@ -51,8 +51,8 @@ export async function POST(
       return NextResponse.json({ error: 'No active profile found' }, { status: 400 })
     }
 
-    // ── 3. Load the interest row ──────────────────────────────────────────────
-    const { data: req, error: reqError } = await supabase
+    // ── 3. Load the interest row (admin client — target_profile_id check follows) ─
+    const { data: req, error: reqError } = await supabaseAdmin
       .from('zawaaj_introduction_requests')
       .select('id, requesting_profile_id, target_profile_id, status, visible_at')
       .eq('id', requestId)

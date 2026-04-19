@@ -659,16 +659,30 @@ export default function MyProfilePage() {
         </div>
 
         {/* Monthly introduction allowance */}
-        <div style={{ background: 'var(--surface-2)', border: '0.5px solid var(--border-default)', borderRadius: 13, padding: 24, marginBottom: 16 }}>
-          <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)', marginBottom: 12 }}>Introduction requests this month</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
-            <div style={{ flex: 1, height: 4, borderRadius: 2, background: 'var(--surface-4)', overflow: 'hidden' }}>
-              <div style={{ height: '100%', width: `${Math.min((monthlyUsed / getPlanConfig(plan as Plan).monthlyLimit) * 100, 100)}%`, background: 'var(--gold)', borderRadius: 2 }} />
+        {(() => {
+          const cfg = getPlanConfig(plan as Plan)
+          const limit = cfg.monthlyLimit === Infinity ? null : cfg.monthlyLimit
+          const pct = limit ? Math.min((monthlyUsed / limit) * 100, 100) : 0
+          const atLimit = limit !== null && monthlyUsed >= limit
+          return (
+            <div style={{ background: 'var(--surface-2)', border: `0.5px solid ${atLimit ? 'var(--status-error)' : 'var(--border-default)'}`, borderRadius: 13, padding: 24, marginBottom: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)' }}>Introduction requests this month</div>
+                <span style={{ fontSize: 12.5, fontWeight: 600, color: atLimit ? 'var(--status-error)' : 'var(--text-primary)' }}>
+                  {limit !== null ? `${monthlyUsed} of ${limit} used` : `${monthlyUsed} sent`}
+                </span>
+              </div>
+              {limit !== null && (
+                <div style={{ height: 4, borderRadius: 2, background: 'var(--surface-4)', overflow: 'hidden', marginBottom: 8 }}>
+                  <div style={{ height: '100%', width: `${pct}%`, background: atLimit ? 'var(--status-error)' : 'var(--gold)', borderRadius: 2, transition: 'width 0.3s ease' }} />
+                </div>
+              )}
+              <div style={{ fontSize: 11, color: atLimit ? 'var(--status-error)' : 'var(--text-muted)' }}>
+                {atLimit ? 'Limit reached — resets on the 1st of next month' : 'Resets on the 1st of each month'}
+              </div>
             </div>
-            <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text-primary)' }}>{monthlyUsed} / {getPlanConfig(plan as Plan).monthlyLimit}</span>
-          </div>
-          <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Resets on the 1st of each month</div>
-        </div>
+          )
+        })()}
 
         {/* Who viewed your profile — teaser for voluntary/plus, data for premium */}
         <div style={{ background: 'var(--surface-2)', border: '0.5px solid var(--border-default)', borderRadius: 13, padding: 24, marginBottom: 16 }}>
