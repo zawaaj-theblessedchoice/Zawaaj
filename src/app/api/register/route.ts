@@ -97,6 +97,7 @@ export async function POST(request: Request): Promise<Response> {
         .from('zawaaj_profiles')
         .insert({
           ...sharedFields,
+          imported_email: email, // store auth email so admin Members tab can search by it
           status: 'pending',
           submitted_date: new Date().toISOString(),
         })

@@ -168,6 +168,7 @@ export async function POST(request: Request): Promise<Response> {
             islamic_background: profile.islamicBackground || null,
             smoker: profile.smoker !== undefined ? profile.smoker : null,
             place_of_birth: profile.placeOfBirth || null,
+            imported_email: email, // store auth email for admin search
             status: 'pending', profile_complete: true, created_by_child: true,
             consent_given: true, terms_agreed: true, submitted_date: new Date().toISOString(),
           })
@@ -329,6 +330,7 @@ export async function POST(request: Request): Promise<Response> {
           islamic_background:    profile.islamicBackground || null,
           smoker:                profile.smoker !== undefined ? profile.smoker : null,
           place_of_birth:        profile.placeOfBirth      || null,
+          imported_email:        email, // store auth email for admin search
           status:                'pending',
           profile_complete:      true,
           created_by_child:      true,
