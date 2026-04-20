@@ -73,6 +73,7 @@ const MALE_GUARDIAN_RELATIONSHIPS = new Set([
   'father', 'brother', 'uncle', 'male_guardian',
 ])
 
+// Data steps: 0=Account, 1=Personal, 2=Faith, 3=Preferences, 4=Guardian, 5=Terms
 const STEP_TITLES = [
   'Create your account',
   "Candidate's personal details",
@@ -81,6 +82,8 @@ const STEP_TITLES = [
   "Guardian's contact details",
   'Terms & confirmation',
 ]
+
+const TOTAL_STEPS = 6  // data steps 0–5
 
 // ─── Shared UI ────────────────────────────────────────────────────────────────
 
@@ -247,13 +250,13 @@ const EMPTY: FormData = {
   termsAgreed: false, detailsAccurate: false, guardianConsents: false,
 }
 
-const TOTAL_STEPS = 6  // 0–5
-
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 function RegisterChildPageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
+
+  // step is always the DATA step (0–5), regardless of which steps are skipped.
   const [step, setStep] = useState(0)
   const [form, setForm] = useState<FormData>(EMPTY)
   const [error, setError] = useState<string | null>(null)
@@ -266,11 +269,30 @@ function RegisterChildPageInner() {
   const [resending, setResending] = useState(false)
   const [resendDone, setResendDone] = useState(false)
 
-  // ── Auth escape hatch — detect logged-in users who are stuck ─────────────
+  // ── Auth state — detect logged-in users ───────────────────────────────────
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  // If the logged-in user already has a family account, store its ID here.
+  // When set, steps 0 (account creation) and 4 (guardian details) are skipped —
+  // they already exist on the family account.
+  const [loggedInFamilyAccountId, setLoggedInFamilyAccountId] = useState<string | null>(null)
+
   useEffect(() => {
-    createClient().auth.getSession().then(({ data }) => {
+    const supabase = createClient()
+    supabase.auth.getSession().then(async ({ data }) => {
       setIsLoggedIn(!!data.session)
+      if (!data.session) return
+      const userId = data.session.user.id
+      const { data: fa } = await supabase
+        .from('zawaaj_family_accounts')
+        .select('id')
+        .eq('primary_user_id', userId)
+        .maybeSingle()
+      if (fa?.id) {
+        setLoggedInFamilyAccountId(fa.id)
+        // Skip account-creation step — start at personal details.
+        // Use functional update to respect any step already set by sessionStorage restore.
+        setStep(s => s === 0 ? 1 : s)
+      }
     })
   }, [])
 
@@ -323,16 +345,14 @@ function RegisterChildPageInner() {
       .catch(() => setTokenStatus('invalid'))
   }, [searchParams])
 
-  // Restore saved progress from sessionStorage on first mount (after token check settled)
+  // Restore saved progress from sessionStorage on first mount
   useEffect(() => {
-    // Only restore if there's no invite token pre-filling form data
     try {
       const saved = sessionStorage.getItem('zawaaj-register-child')
       if (saved) {
         const parsed = JSON.parse(saved) as Partial<FormData> & { _step?: number }
         const { password: _p, confirmPassword: _c, _step: savedStep, ...safe } = parsed
         setForm(prev => ({ ...prev, ...safe }))
-        // Restore step so a refresh puts the user back where they were
         if (typeof savedStep === 'number' && savedStep > 0) {
           setStep(savedStep)
         }
@@ -348,23 +368,40 @@ function RegisterChildPageInner() {
     } catch { /* ignore */ }
   }, [form, step])
 
-  // When using an invite token, step 4 (guardian details) is skipped
-  // because the family account already has those details.
-  const EFFECTIVE_TOTAL = inviteToken ? TOTAL_STEPS - 1 : TOTAL_STEPS
-  // Map display step to data step (skip step 4 when using token)
-  function dataStep(displayStep: number): number {
-    if (!inviteToken || displayStep < 4) return displayStep
-    return displayStep + 1  // skip guardian step
-  }
+  // ── Step display helpers ──────────────────────────────────────────────────
+  //
+  // Three possible flows and which DATA steps they include:
+  //   loggedInFamilyAccountId → steps 1, 2, 3, 5  (skip 0=account, 4=guardian)
+  //   inviteToken             → steps 0, 1, 2, 3, 5 (skip 4=guardian)
+  //   normal                  → steps 0, 1, 2, 3, 4, 5
+  //
+  // `step` is always the DATA step. We convert to a display step index for
+  // the dots, progress text, and title lookup.
+
+  const EFFECTIVE_TOTAL = loggedInFamilyAccountId
+    ? TOTAL_STEPS - 2   // 4 steps: personal, faith, prefs, terms
+    : inviteToken
+      ? TOTAL_STEPS - 1 // 5 steps: account, personal, faith, prefs, terms
+      : TOTAL_STEPS     // 6 steps: all
+
+  // Convert data step → 0-based display index
+  const currentDisplayStep = loggedInFamilyAccountId
+    ? (step <= 1 ? 0 : step <= 3 ? step - 1 : step - 2)
+    : step  // for inviteToken / normal, step equals display index
+
+  // Filtered titles for each mode
+  const displayStepTitles = loggedInFamilyAccountId
+    ? STEP_TITLES.filter((_, i) => i !== 0 && i !== 4)  // remove account + guardian
+    : inviteToken
+      ? STEP_TITLES.filter((_, i) => i !== 4)            // remove guardian
+      : STEP_TITLES
 
   function set<K extends keyof FormData>(key: K, value: FormData[K]) {
     setForm(prev => {
       const next = { ...prev, [key]: value }
-      // Never-married implies no children — clear the field so it's not asked/sent.
       if (key === 'maritalStatus' && value === 'never_married') {
         next.hasChildren = ''
       }
-      // Auto-flag male guardian — no manual checkbox needed.
       if (key === 'guardianRelationship') {
         next.noFemaleContactFlag = MALE_GUARDIAN_RELATIONSHIPS.has(value as string)
       }
@@ -391,15 +428,15 @@ function RegisterChildPageInner() {
   }
 
   function validateStep(): string | null {
-    const ds = dataStep(step)
-    if (ds === 0) {
+    // Validate based on the current DATA step
+    if (step === 0) {
       if (!form.email.trim())               return 'Email is required.'
       if (!/\S+@\S+\.\S+/.test(form.email)) return 'Enter a valid email address.'
       if (!form.password)                   return 'Password is required.'
       if (form.password.length < 8)         return 'Password must be at least 8 characters.'
       if (form.password !== form.confirmPassword) return 'Passwords do not match.'
     }
-    if (ds === 1) {
+    if (step === 1) {
       if (!form.firstName.trim())       return 'First name is required.'
       if (!form.lastName.trim())        return 'Last name is required.'
       if (!form.dateOfBirth)            return 'Date of birth is required.'
@@ -412,7 +449,7 @@ function RegisterChildPageInner() {
       if (form.maritalStatus !== 'never_married' && !form.hasChildren)
         return 'Please indicate whether you currently have children.'
     }
-    if (ds === 2) {
+    if (step === 2) {
       if (!form.educationLevel)              return 'Education level is required.'
       if (!form.educationDetail.trim())      return 'Field of study / detail is required.'
       if (!form.professionDetail.trim())     return 'Profession / occupation is required.'
@@ -428,14 +465,14 @@ function RegisterChildPageInner() {
       if (!form.quranEngagementLevel)        return "Please select your Qur'an engagement level."
       if (!form.bio.trim())                  return 'About / bio is required.'
     }
-    if (ds === 3) {
+    if (step === 3) {
       if (!form.prefAgeMin)                  return 'Minimum preferred age is required.'
       if (!form.prefAgeMax)                  return 'Maximum preferred age is required.'
       if (!form.prefLocation.trim())         return 'Preferred location is required.'
       if (!form.openToRelocation)            return 'Please indicate whether you are open to relocation.'
       if (!form.openToPartnersChildren)      return "Please indicate whether you are open to a partner's children."
     }
-    if (ds === 4) {
+    if (step === 4) {
       const step4Errs: Record<string, string> = {}
       if (!form.guardianFullName.trim())
         step4Errs.contact_full_name = 'Please enter the full name of the primary contact'
@@ -455,7 +492,7 @@ function RegisterChildPageInner() {
         return 'Please complete all required fields.'
       }
     }
-    if (ds === 5) {
+    if (step === 5) {
       if (!form.termsAgreed)     return 'You must agree to the Terms of Use.'
       if (!form.detailsAccurate) return 'Please confirm that all details are accurate.'
       if (!form.guardianConsents) return "Please confirm your guardian's consent."
@@ -467,13 +504,23 @@ function RegisterChildPageInner() {
     const err = validateStep()
     if (err) { setError(err); return }
     setError(null)
-    setStep(s => s + 1)
+    // Logged-in parents skip step 4 (guardian details — already on file)
+    if (loggedInFamilyAccountId && step === 3) {
+      setStep(5)
+    } else {
+      setStep(s => s + 1)
+    }
   }
 
-  // Step titles adjusted for token flow (drop the guardian step label)
-  const displayStepTitles = inviteToken
-    ? STEP_TITLES.filter((_, i) => i !== 4)
-    : STEP_TITLES
+  function handleBack() {
+    setError(null)
+    // Logged-in parents skip step 4 going backwards too
+    if (loggedInFamilyAccountId && step === 5) {
+      setStep(3)
+    } else {
+      setStep(s => s - 1)
+    }
+  }
 
   async function handleSubmit() {
     const err = validateStep()
@@ -487,7 +534,6 @@ function RegisterChildPageInner() {
     const keepsBeardBool = form.gender === 'male'
       ? (form.keepsBeard === 'yes' ? true : form.keepsBeard === 'no' ? false : null)
       : null
-    // Never married → no children implicitly; otherwise use the form selection.
     const hasChildrenBool = form.maritalStatus === 'never_married'
       ? false
       : form.hasChildren === 'yes' ? true
@@ -495,27 +541,37 @@ function RegisterChildPageInner() {
     const languages = form.languagesSpoken.trim()
       ? form.languagesSpoken.split(',').map(s => s.trim()).filter(Boolean)
       : []
-
     const heightCmValue = getHeightCmValue()
+
+    // Build auth / account fields based on registration mode:
+    //   loggedInFamilyAccountId → use existing account (no email/password needed)
+    //   inviteToken             → new auth user, existing family account
+    //   normal                  → new auth user + new family account
+    const accountFields = loggedInFamilyAccountId
+      ? { logged_in_family_account_id: loggedInFamilyAccountId }
+      : {
+          email:    form.email,
+          password: form.password,
+          ...(inviteToken
+            ? { invite_token: inviteToken }
+            : {
+                contactFullName:     form.guardianFullName,
+                contactRelationship: form.guardianRelationship,
+                contactNumber:       form.guardianNumber,
+                contactEmail:        form.guardianEmail || form.email,
+                noFemaleContactFlag: form.noFemaleContactFlag,
+                fatherExplanation:   form.fatherExplanation || undefined,
+              }
+          ),
+        }
 
     const res = await fetch('/api/register/family', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        path:                    'child',
-        email:                   form.email,
-        password:                form.password,
-        // When using an invite token, guardian fields come from the existing
-        // family account (pre-filled and not editable by the user)
-        ...(inviteToken ? { invite_token: inviteToken } : {
-          contactFullName:       form.guardianFullName,
-          contactRelationship:   form.guardianRelationship,
-          contactNumber:         form.guardianNumber,
-          contactEmail:          form.guardianEmail || form.email,
-          noFemaleContactFlag:   form.noFemaleContactFlag,
-          fatherExplanation:     form.fatherExplanation || undefined,
-        }),
-        termsAgreed:             true,
+        path: 'child',
+        ...accountFields,
+        termsAgreed: true,
         profile: {
           firstName:             form.firstName,
           lastName:              form.lastName,
@@ -565,7 +621,7 @@ function RegisterChildPageInner() {
           el.scrollIntoView({ behavior: 'smooth', block: 'center' })
         } else {
           // Error field is on a previous step — navigate back so it becomes visible
-          const guardianStep = inviteToken ? 3 : 4
+          const guardianStep = (inviteToken || loggedInFamilyAccountId) ? 3 : 4
           setStep(guardianStep)
           setError('Some details need to be corrected. Please review the highlighted fields.')
         }
@@ -582,6 +638,14 @@ function RegisterChildPageInner() {
 
     // Clear saved progress now that registration succeeded
     try { sessionStorage.removeItem('zawaaj-register-child') } catch { /* ignore */ }
+
+    // Logged-in parents don't need email verification — redirect straight to browse.
+    // The new profile will appear in their account switcher once approved.
+    if (loggedInFamilyAccountId) {
+      router.push('/browse')
+      return
+    }
+
     setVerificationEmail(json.contactEmail ?? form.guardianEmail ?? form.email)
     setFamilyAccountId(json.familyAccountId ?? '')
     setSubmitting(false)
@@ -667,12 +731,21 @@ function RegisterChildPageInner() {
     >
       <div style={{ width: '100%', maxWidth: 520 }}>
         <div style={{ textAlign: 'center', marginBottom: 8 }}>
-          <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}
-            onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-secondary)')}
-            onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}>
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M7.5 2L3.5 6l4 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            Back to website
-          </Link>
+          {loggedInFamilyAccountId ? (
+            <Link href="/browse" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}
+              onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-secondary)')}
+              onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M7.5 2L3.5 6l4 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              Back to browse
+            </Link>
+          ) : (
+            <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}
+              onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-secondary)')}
+              onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M7.5 2L3.5 6l4 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              Back to website
+            </Link>
+          )}
         </div>
       <div
         style={{
@@ -690,23 +763,28 @@ function RegisterChildPageInner() {
       >
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
           <ZawaajLogo height={220} />
-          <StepDots total={EFFECTIVE_TOTAL} current={step} />
+          <StepDots total={EFFECTIVE_TOTAL} current={currentDisplayStep} />
           {inviteToken && (
             <span style={{ fontSize: 11, color: 'var(--gold)', background: 'var(--gold-muted)', border: '0.5px solid var(--border-gold)', padding: '3px 10px', borderRadius: 999, letterSpacing: '0.06em' }}>
               Invited registration
             </span>
           )}
+          {loggedInFamilyAccountId && (
+            <span style={{ fontSize: 11, color: 'var(--gold)', background: 'var(--gold-muted)', border: '0.5px solid var(--border-gold)', padding: '3px 10px', borderRadius: 999, letterSpacing: '0.06em' }}>
+              Adding a candidate profile
+            </span>
+          )}
           <div style={{ textAlign: 'center' }}>
             <h2 style={{ fontSize: 17, fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 4px' }}>
-              {displayStepTitles[step]}
+              {displayStepTitles[currentDisplayStep]}
             </h2>
             <p style={{ fontSize: 11.5, color: 'var(--text-muted)', margin: 0 }}>
-              Step {step + 1} of {EFFECTIVE_TOTAL}
+              Step {currentDisplayStep + 1} of {EFFECTIVE_TOTAL}
             </p>
           </div>
         </div>
 
-        {/* ── Step 0: Account ───────────────────────────────────────────── */}
+        {/* ── Step 0: Account (only for unauthenticated users) ──────────── */}
         {step === 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <div style={{ padding: '10px 14px', borderRadius: 8, background: 'var(--gold-muted)', border: '0.5px solid var(--border-gold)', fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.55 }}>
@@ -1137,8 +1215,8 @@ function RegisterChildPageInner() {
           </div>
         )}
 
-        {/* ── Step 4: Guardian details (skipped when using invite token) ─── */}
-        {step === 4 && !inviteToken && (
+        {/* ── Step 4: Guardian details (skipped for logged-in parents + invite tokens) */}
+        {step === 4 && !inviteToken && !loggedInFamilyAccountId && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
 
             {/* ── Section A: Account holder ─────────────────────────────── */}
@@ -1216,7 +1294,10 @@ function RegisterChildPageInner() {
               </p>
             </div>
             <div style={{ padding: '12px 14px', borderRadius: 8, background: 'var(--surface-3)', border: '0.5px solid var(--border-default)', fontSize: 12.5, color: 'var(--text-muted)', lineHeight: 1.6 }}>
-              Your profile will be submitted for review. Our team will be in touch insha&apos;Allah. Your profile will only be visible to other families once approved.
+              {loggedInFamilyAccountId
+                ? "The candidate's profile will be submitted for review. Our team will be in touch insha'Allah. The profile will only be visible to other families once approved."
+                : "Your profile will be submitted for review. Our team will be in touch insha'Allah. Your profile will only be visible to other families once approved."
+              }
             </div>
             <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', cursor: 'pointer' }}>
               <input type="checkbox" checked={form.termsAgreed}
@@ -1240,7 +1321,10 @@ function RegisterChildPageInner() {
                 onChange={e => set('guardianConsents', e.target.checked)}
                 style={{ marginTop: 3, flexShrink: 0 }} />
               <span style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                My guardian consents to being contacted by the Zawaaj team when an introduction is being facilitated
+                {loggedInFamilyAccountId
+                  ? 'I consent to the Zawaaj team contacting me when an introduction is being facilitated for this candidate'
+                  : "My guardian consents to being contacted by the Zawaaj team when an introduction is being facilitated"
+                }
               </span>
             </label>
           </div>
@@ -1262,8 +1346,8 @@ function RegisterChildPageInner() {
 
         {/* ── Navigation ────────────────────────────────────────────────── */}
         <div style={{ display: 'flex', gap: 10 }}>
-          {step > 0 && (
-            <button onClick={() => { setStep(s => s - 1); setError(null) }}
+          {currentDisplayStep > 0 && (
+            <button onClick={handleBack}
               style={{
                 flex: 1, padding: '10px 0', borderRadius: 8,
                 border: '0.5px solid var(--border-default)',
@@ -1274,7 +1358,7 @@ function RegisterChildPageInner() {
               Back
             </button>
           )}
-          {step < EFFECTIVE_TOTAL - 1 ? (
+          {currentDisplayStep < EFFECTIVE_TOTAL - 1 ? (
             <button onClick={handleNext}
               style={{
                 flex: 1, padding: '10px 0', borderRadius: 8, border: 'none',
@@ -1294,7 +1378,7 @@ function RegisterChildPageInner() {
                 cursor: submitting ? 'not-allowed' : 'pointer',
               }}
             >
-              {submitting ? 'Submitting…' : 'Submit my profile →'}
+              {submitting ? 'Submitting…' : 'Submit profile →'}
             </button>
           )}
         </div>

@@ -11,6 +11,7 @@
 
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { createClient } from '@/lib/supabase/server'
 import { validateFamilyAccount } from '@/lib/zawaaj/validateFamilyAccount'
 import { sendEmail, emailVerificationTemplate } from '@/lib/email'
 
@@ -74,6 +75,9 @@ interface FamilyRegistrationPayload {
   // Invite token — when provided the family account already exists;
   // skip creation and link the new profile to the existing account instead.
   invite_token?:           string
+  // Logged-in parent adding a profile — family account already exists and the
+  // caller is authenticated. Skip auth user creation entirely.
+  logged_in_family_account_id?: string
 }
 
 // ─── Handler ──────────────────────────────────────────────────────────────────
@@ -88,9 +92,11 @@ export async function POST(request: Request): Promise<Response> {
       contactFullName, contactRelationship, contactNumber, contactEmail,
       femaleContactName, femaleContactNumber, femaleContactRelationship,
       fatherExplanation, noFemaleContactFlag,
-      termsAgreed, profile, invite_token } = body
+      termsAgreed, profile, invite_token, logged_in_family_account_id } = body
 
-    if (!email || !password)
+    // Email/password are not required when a logged-in parent adds a profile —
+    // they already have an auth session. All other paths need them.
+    if (!logged_in_family_account_id && (!email || !password))
       return NextResponse.json({ error: 'Email and password are required.' }, { status: 400 })
 
     if (!termsAgreed)
@@ -193,6 +199,90 @@ export async function POST(request: Request): Promise<Response> {
       return NextResponse.json({
         success: true, path, familyAccountId: existingFamilyAccountId,
         profileId, contactEmail: email, emailSent: false,
+      })
+    }
+
+    // ── Logged-in parent path ─────────────────────────────────────────────────
+    // The caller is already authenticated and already has a family account.
+    // Skip auth user creation — use the session's existing user.
+    if (logged_in_family_account_id) {
+      // Verify the caller is authenticated
+      const supabase = await createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        return NextResponse.json({ error: 'Not authenticated.' }, { status: 401 })
+      }
+
+      // Verify the user actually owns the claimed family account
+      const { data: faRow, error: faErr } = await supabaseAdmin
+        .from('zawaaj_family_accounts')
+        .select('id, primary_user_id')
+        .eq('id', logged_in_family_account_id)
+        .eq('primary_user_id', user.id)
+        .maybeSingle()
+
+      if (faErr || !faRow) {
+        return NextResponse.json({ error: 'Family account not found or access denied.' }, { status: 403 })
+      }
+
+      if (path === 'child') {
+        if (!profile) {
+          return NextResponse.json({ error: 'Profile details are required.' }, { status: 400 })
+        }
+        if (!profile.firstName || !profile.lastName || !profile.dateOfBirth || !profile.gender || !profile.location || !profile.schoolOfThought) {
+          return NextResponse.json({ error: 'Required profile fields are missing.' }, { status: 400 })
+        }
+      }
+
+      // Create profile row linked to the existing family account
+      let profileId: string | null = null
+      if (path === 'child' && profile) {
+        const initials = ((profile.firstName?.[0] ?? '') + (profile.lastName?.[0] ?? '')).toUpperCase() || '??'
+        const { data: newProfile, error: profileError } = await supabaseAdmin
+          .from('zawaaj_profiles')
+          .insert({
+            user_id: user.id, family_account_id: logged_in_family_account_id,
+            display_initials: initials, first_name: profile.firstName, last_name: profile.lastName,
+            date_of_birth: profile.dateOfBirth, gender: profile.gender, height: profile.height ?? null,
+            location: profile.location, ethnicity: profile.ethnicity ?? null, nationality: profile.nationality ?? null,
+            languages_spoken: profile.languagesSpoken ?? null, education_level: profile.educationLevel ?? null,
+            education_detail: profile.educationDetail ?? null, profession_detail: profile.professionDetail ?? null,
+            school_of_thought: profile.schoolOfThought, religiosity: profile.religiosity ?? null,
+            prayer_regularity: profile.prayerRegularity ?? null,
+            wears_hijab: profile.gender === 'female' ? (profile.wearsHijab ?? null) : null,
+            wears_niqab: profile.gender === 'female' ? (profile.wearsNiqab ?? null) : null,
+            wears_abaya: profile.gender === 'female' ? (profile.wearsAbaya ?? null) : null,
+            keeps_beard: profile.gender === 'male' ? (profile.keepsBeard ?? null) : null,
+            quran_engagement_level: profile.quranEngagementLevel ?? null,
+            bio: profile.bio ?? null,
+            pref_age_min: profile.prefAgeMin ?? null, pref_age_max: profile.prefAgeMax ?? null,
+            pref_location: profile.prefLocation ?? null, pref_ethnicity: profile.prefEthnicity ?? null,
+            pref_school_of_thought: profile.prefSchoolOfThought ? [profile.prefSchoolOfThought] : null,
+            open_to_relocation: profile.openToRelocation ?? null,
+            open_to_partners_children: profile.openToPartnersChildren ?? null,
+            marital_status: profile.maritalStatus ?? null, has_children: profile.hasChildren ?? null,
+            islamic_background: profile.islamicBackground || null,
+            smoker: profile.smoker !== undefined ? profile.smoker : null,
+            place_of_birth: profile.placeOfBirth || null,
+            imported_email: user.email ?? null,
+            status: 'pending', profile_complete: true, created_by_child: true,
+            consent_given: true, terms_agreed: true, submitted_date: new Date().toISOString(),
+          })
+          .select('id')
+          .single()
+
+        if (profileError || !newProfile) {
+          return NextResponse.json({ error: profileError?.message ?? 'Failed to create profile.' }, { status: 500 })
+        }
+        profileId = newProfile.id
+      }
+
+      // Update user settings to point active_profile_id at the new profile
+      await supabaseAdmin.from('zawaaj_user_settings')
+        .upsert({ user_id: user.id, active_profile_id: profileId }, { onConflict: 'user_id' })
+
+      return NextResponse.json({
+        success: true, path, familyAccountId: logged_in_family_account_id, profileId,
       })
     }
 
