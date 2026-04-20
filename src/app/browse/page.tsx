@@ -139,7 +139,7 @@ export default async function BrowsePage({
        quran_engagement_level, bio, open_to_relocation,
        open_to_partners_children, pref_age_min, pref_age_max, pref_location, pref_ethnicity,
        pref_school_of_thought, pref_relocation, pref_partner_children, status, listed_at,
-       islamic_background, smoker, place_of_birth`
+       islamic_background, smoker, place_of_birth, marriage_reason, open_to_marital_status`
     )
     .eq('id', activeProfileId)
     .single()
@@ -205,7 +205,7 @@ export default async function BrowsePage({
        quran_engagement_level, bio, open_to_relocation,
        open_to_partners_children, pref_age_min, pref_age_max, pref_location, pref_ethnicity,
        pref_school_of_thought, pref_relocation, pref_partner_children, status, listed_at,
-       islamic_background, smoker, place_of_birth`
+       islamic_background, smoker, place_of_birth, marriage_reason, open_to_marital_status`
     )
     .eq('status', 'approved')
     .order('listed_at', { ascending: false })
@@ -240,6 +240,8 @@ export default async function BrowsePage({
     islamic_background: p.islamic_background ?? null,
     smoker: p.smoker ?? null,
     place_of_birth: p.place_of_birth ?? null,
+    marriage_reason: p.marriage_reason ?? null,
+    open_to_marital_status: p.open_to_marital_status ?? null,
   }))
 
   // 4b. Get all profiles linked to this account (for profile switcher)

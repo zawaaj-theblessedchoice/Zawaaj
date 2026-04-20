@@ -626,11 +626,15 @@ function BrowsingAsBanner({
   )
 }
 
-const SOT_OPTIONS = ['Hanafi', "Shafi'i", 'Maliki', 'Hanbali', 'Any']
+const SOT_OPTIONS = [
+  'Hanafi', "Shafi'i", 'Maliki', 'Hanbali', 'General Sunni',
+  'Salafi / Athari', 'Revert / Learning', 'No preference', 'Prefer not to say', 'Any',
+]
 const MARITAL_OPTIONS = [
   { label: 'Never married', value: 'never_married' },
-  { label: 'Divorced', value: 'divorced' },
-  { label: 'Widowed', value: 'widowed' },
+  { label: 'Divorced',      value: 'divorced' },
+  { label: 'Widowed',       value: 'widowed' },
+  { label: 'Married',       value: 'married' },
 ]
 const CHILDREN_OPTIONS = [
   { label: 'No children', value: 'no_children' },
@@ -787,6 +791,17 @@ export default function BrowseClient({
           s => s.toLowerCase() === 'any' || s.toLowerCase() === p.school_of_thought?.toLowerCase()
         )
       ) return false
+
+      // Female viewer preference filter — apply if the viewer is female and has a preference set.
+      // Only filters male profiles (already the opposite-gender pool for female viewers).
+      if (viewerProfile?.gender === 'female') {
+        const pref = viewerProfile.open_to_marital_status
+        const ms = p.marital_status
+        if (pref === 'never_married_only' && ms !== 'never_married') return false
+        if (pref === 'divorced_widowed_only' && ms !== 'divorced' && ms !== 'widowed') return false
+        // 'married_men_considered' and 'case_by_case' include all — no filter needed
+      }
+
       return true
     })
   }

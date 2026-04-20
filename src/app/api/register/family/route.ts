@@ -39,6 +39,8 @@ interface ProfileFields {
   keepsBeard?:          boolean | null
   quranEngagementLevel?: string
   bio?:                 string
+  marriageReason?:      string
+  openToMaritalStatus?: string
   prefAgeMin?:          number | null
   prefAgeMax?:          number | null
   prefLocation?:        string
@@ -174,6 +176,8 @@ export async function POST(request: Request): Promise<Response> {
             islamic_background: profile.islamicBackground || null,
             smoker: profile.smoker !== undefined ? profile.smoker : null,
             place_of_birth: profile.placeOfBirth || null,
+            marriage_reason: profile.gender === 'male' && profile.maritalStatus === 'married' ? (profile.marriageReason ?? null) : null,
+            open_to_marital_status: profile.gender === 'female' ? (profile.openToMaritalStatus ?? null) : null,
             imported_email: email, // store auth email for admin search
             status: 'pending', profile_complete: true, created_by_child: true,
             consent_given: true, terms_agreed: true, submitted_date: new Date().toISOString(),
@@ -264,6 +268,8 @@ export async function POST(request: Request): Promise<Response> {
             islamic_background: profile.islamicBackground || null,
             smoker: profile.smoker !== undefined ? profile.smoker : null,
             place_of_birth: profile.placeOfBirth || null,
+            marriage_reason: profile.gender === 'male' && profile.maritalStatus === 'married' ? (profile.marriageReason ?? null) : null,
+            open_to_marital_status: profile.gender === 'female' ? (profile.openToMaritalStatus ?? null) : null,
             imported_email: user.email ?? null,
             status: 'pending', profile_complete: true, created_by_child: true,
             consent_given: true, terms_agreed: true, submitted_date: new Date().toISOString(),
@@ -420,6 +426,8 @@ export async function POST(request: Request): Promise<Response> {
           islamic_background:    profile.islamicBackground || null,
           smoker:                profile.smoker !== undefined ? profile.smoker : null,
           place_of_birth:        profile.placeOfBirth      || null,
+          marriage_reason:       profile.gender === 'male' && profile.maritalStatus === 'married' ? (profile.marriageReason ?? null) : null,
+          open_to_marital_status: profile.gender === 'female' ? (profile.openToMaritalStatus ?? null) : null,
           imported_email:        email, // store auth email for admin search
           status:                'pending',
           profile_complete:      true,

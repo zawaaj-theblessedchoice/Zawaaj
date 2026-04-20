@@ -29,20 +29,29 @@ export const PRAYER_REGULARITY_OPTIONS = [
 ] as const
 
 export const SCHOOL_OF_THOUGHT_OPTIONS = [
-  { value: 'hanafi',        label: 'Hanafi' },
-  { value: 'maliki',        label: 'Maliki' },
-  { value: 'shafii',        label: "Shafi'i" },
-  { value: 'hanbali',       label: 'Hanbali' },
-  { value: 'salafi',        label: 'Salafi' },
-  { value: 'quran_sunnah',  label: 'Quran & Sunnah' },
-  { value: 'open',          label: 'Open / not specified' },
+  { value: 'Hanafi',              label: 'Hanafi' },
+  { value: "Shafi'i",             label: "Shafi'i" },
+  { value: 'Maliki',              label: 'Maliki' },
+  { value: 'Hanbali',             label: 'Hanbali' },
+  { value: 'General Sunni',       label: 'General Sunni' },
+  { value: 'Salafi / Athari',     label: 'Salafi / Athari' },
+  { value: 'Revert / Learning',   label: 'Revert / Learning' },
+  { value: 'No preference',       label: 'No preference' },
+  { value: 'Prefer not to say',   label: 'Prefer not to say' },
 ] as const
 
 export const MARITAL_STATUS_OPTIONS = [
   { value: 'never_married', label: 'Never married' },
   { value: 'divorced',      label: 'Divorced' },
   { value: 'widowed',       label: 'Widowed' },
-  { value: 'annulled',      label: 'Annulled' },
+  { value: 'married',       label: 'Married' },
+] as const
+
+export const OPEN_TO_MARITAL_STATUS_OPTIONS = [
+  { value: 'never_married_only',       label: 'Never married only' },
+  { value: 'divorced_widowed_only',    label: 'Divorced / widowed only' },
+  { value: 'married_men_considered',   label: 'Married men considered' },
+  { value: 'case_by_case',             label: 'Case by case' },
 ] as const
 
 export const LIVING_SITUATION_OPTIONS = [

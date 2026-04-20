@@ -53,6 +53,8 @@ interface Profile {
   islamic_background: string | null
   smoker: boolean | null
   place_of_birth: string | null
+  marriage_reason: string | null
+  open_to_marital_status: string | null
 }
 
 interface IntroRequest {
@@ -248,6 +250,8 @@ export default function MyProfilePage() {
     islamicBackground: '',
     placeOfBirth: '',
     smoker: '',
+    marriageReason: '',
+    openToMaritalStatus: '',
   })
   const [editLoading, setEditLoading] = useState(false)
   const [editError, setEditError] = useState<string | null>(null)
@@ -271,7 +275,7 @@ export default function MyProfilePage() {
 
       const { data: profileRows } = await supabase
         .from('zawaaj_profiles')
-        .select('id, display_initials, first_name, last_name, gender, date_of_birth, age_display, height, ethnicity, nationality, school_of_thought, education_level, education_detail, profession_detail, location, bio, religiosity, prayer_regularity, wears_hijab, wears_niqab, wears_abaya, keeps_beard, quran_engagement_level, marital_status, has_children, languages_spoken, living_situation, open_to_relocation, open_to_partners_children, polygamy_openness, pref_age_min, pref_age_max, pref_location, pref_ethnicity, pref_school_of_thought, pref_partner_children, pref_relocation, status, is_admin, interests_this_month, islamic_background, smoker, place_of_birth')
+        .select('id, display_initials, first_name, last_name, gender, date_of_birth, age_display, height, ethnicity, nationality, school_of_thought, education_level, education_detail, profession_detail, location, bio, religiosity, prayer_regularity, wears_hijab, wears_niqab, wears_abaya, keeps_beard, quran_engagement_level, marital_status, has_children, languages_spoken, living_situation, open_to_relocation, open_to_partners_children, polygamy_openness, pref_age_min, pref_age_max, pref_location, pref_ethnicity, pref_school_of_thought, pref_partner_children, pref_relocation, status, is_admin, interests_this_month, islamic_background, smoker, place_of_birth, marriage_reason, open_to_marital_status')
         .eq('user_id', user.id)
 
       if (!profileRows?.length) { setLoading(false); return }
@@ -370,6 +374,8 @@ export default function MyProfilePage() {
       islamicBackground: profile.islamic_background ?? '',
       placeOfBirth: profile.place_of_birth ?? '',
       smoker: profile.smoker === true ? 'yes' : profile.smoker === false ? 'no' : '',
+      marriageReason: profile.marriage_reason ?? '',
+      openToMaritalStatus: profile.open_to_marital_status ?? '',
     })
     setEditError(null)
     setEditSection('about')
@@ -413,6 +419,8 @@ export default function MyProfilePage() {
       islamic_background: editForm.islamicBackground || null,
       smoker: editForm.smoker === 'yes' ? true : editForm.smoker === 'no' ? false : null,
       place_of_birth: editForm.placeOfBirth || null,
+      marriage_reason: profile.gender === 'male' && editForm.marriageReason ? editForm.marriageReason : null,
+      open_to_marital_status: profile.gender === 'female' ? (editForm.openToMaritalStatus || null) : null,
     }).eq('id', profile.id)
     if (error) { setEditError(error.message); setEditLoading(false); return }
     setProfile({
@@ -448,6 +456,8 @@ export default function MyProfilePage() {
       islamic_background: editForm.islamicBackground || null,
       smoker: editForm.smoker === 'yes' ? true : editForm.smoker === 'no' ? false : null,
       place_of_birth: editForm.placeOfBirth || null,
+      marriage_reason: profile.gender === 'male' && editForm.marriageReason ? editForm.marriageReason : null,
+      open_to_marital_status: profile.gender === 'female' ? (editForm.openToMaritalStatus || null) : null,
     })
     setEditLoading(false)
     setShowEditModal(false)
@@ -562,7 +572,13 @@ export default function MyProfilePage() {
             <FieldRow label="Nationality" value={profile.nationality} />
             <FieldRow label="Place of birth" value={profile.place_of_birth} />
             <FieldRow label="Ethnicity" value={profile.ethnicity} />
-            <FieldRow label="Marital status" value={displayValue({ never_married: 'Never married', divorced: 'Divorced', widowed: 'Widowed' }, profile.marital_status)} />
+            <FieldRow label="Marital status" value={displayValue({ never_married: 'Never married', divorced: 'Divorced', widowed: 'Widowed', married: 'Married' }, profile.marital_status)} />
+            {profile.gender === 'male' && profile.marriage_reason && (
+              <FieldRow label="Reason for seeking marriage" value={profile.marriage_reason} />
+            )}
+            {profile.gender === 'female' && profile.open_to_marital_status && (
+              <FieldRow label="Open to proposals from" value={displayValue({ never_married_only: 'Never married only', divorced_widowed_only: 'Divorced / widowed only', married_men_considered: 'Married men considered', case_by_case: 'Case by case' }, profile.open_to_marital_status)} />
+            )}
             <FieldRow label="Has children" value={profile.has_children === true ? 'Yes' : profile.has_children === false ? 'No' : null} />
             <FieldRow label="Height" value={profile.height} />
             <FieldRow label="Living situation" value={displayValue({ independent: 'Independent', with_family: 'With family', shared: 'Shared accommodation' }, profile.living_situation)} />
@@ -937,6 +953,15 @@ export default function MyProfilePage() {
                   </div>
                   <EditField label="Open to partner relocating?" placeholder="e.g. Yes, Flexible" value={editForm.prefRelocation} onChange={v => setEditForm(f => ({ ...f, prefRelocation: v }))} />
                   <EditField label="Partner&apos;s existing children" placeholder="e.g. Open to it, Prefer not" value={editForm.prefPartnerChildren} onChange={v => setEditForm(f => ({ ...f, prefPartnerChildren: v }))} />
+                  {profile?.gender === 'female' && (
+                    <EditSelect label="Open to proposals from" value={editForm.openToMaritalStatus} onChange={v => setEditForm(f => ({ ...f, openToMaritalStatus: v }))} options={[
+                      { value: '', label: 'Not specified' },
+                      { value: 'never_married_only',     label: 'Never married only' },
+                      { value: 'divorced_widowed_only',  label: 'Divorced / widowed only' },
+                      { value: 'married_men_considered', label: 'Married men considered' },
+                      { value: 'case_by_case',           label: 'Case by case' },
+                    ]} />
+                  )}
                 </div>
               )}
             </div>

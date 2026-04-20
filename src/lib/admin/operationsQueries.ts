@@ -55,6 +55,9 @@ export interface ProfileRow {
   approved_date: string | null
   created_at: string | null
   is_admin: boolean
+  marital_status: string | null
+  marriage_reason: string | null
+  open_to_marital_status: string | null
   family_account: ZawaajFamilyAccount | null
 }
 
@@ -111,7 +114,7 @@ export async function fetchProfiles(
   let q = supabase
     .from('zawaaj_profiles')
     .select(
-      'id,display_initials,first_name,last_name,gender,age_display,location,status,school_of_thought,religiosity,profession_sector,guardian_name,contact_number,admin_notes,duplicate_flag,submitted_date,approved_date,created_at,is_admin,family_account:zawaaj_family_accounts(id,contact_full_name,contact_relationship,contact_number,contact_email,female_contact_name,female_contact_number,no_female_contact_flag,status)',
+      'id,display_initials,first_name,last_name,gender,age_display,location,status,school_of_thought,religiosity,profession_sector,guardian_name,contact_number,admin_notes,duplicate_flag,submitted_date,approved_date,created_at,is_admin,marital_status,marriage_reason,open_to_marital_status,family_account:zawaaj_family_accounts(id,contact_full_name,contact_relationship,contact_number,contact_email,female_contact_name,female_contact_number,no_female_contact_flag,status)',
       { count: 'exact' }
     )
     .eq('is_admin', false)

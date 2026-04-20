@@ -8,7 +8,10 @@ import { createClient } from '@/lib/supabase/client'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const SCHOOL_OPTIONS   = ['Hanafi', "Shafi'i", 'Maliki', 'Hanbali', 'General Sunni', 'No preference']
+const SCHOOL_OPTIONS   = [
+  'Hanafi', "Shafi'i", 'Maliki', 'Hanbali', 'General Sunni',
+  'Salafi / Athari', 'Revert / Learning', 'No preference', 'Prefer not to say',
+]
 const RELIGIOSITY_OPTIONS = [
   { value: 'steadfast',   label: 'Steadfast',   helper: 'Consistently fulfilling religious obligations with structure and commitment' },
   { value: 'practising',  label: 'Practising',  helper: 'Regularly practising and actively working to maintain and improve' },
@@ -35,6 +38,14 @@ const MARITAL_OPTIONS = [
   { value: 'never_married', label: 'Single (never married)' },
   { value: 'divorced',      label: 'Divorced' },
   { value: 'widowed',       label: 'Widowed' },
+  { value: 'married',       label: 'Married' },
+]
+
+const OPEN_TO_MARITAL_OPTIONS = [
+  { value: 'never_married_only',     label: 'Never married only' },
+  { value: 'divorced_widowed_only',  label: 'Divorced / widowed only' },
+  { value: 'married_men_considered', label: 'Married men considered' },
+  { value: 'case_by_case',           label: 'Case by case' },
 ]
 const RELOCATION_OPTIONS = [
   { value: 'yes_open',      label: 'Yes, open to relocation' },
@@ -220,7 +231,9 @@ interface FormData {
   openToRelocation:   string
   openToPartnersChildren: string
   maritalStatus:      string
+  marriageReason:     string   // required when maritalStatus === 'married' and gender === 'male'
   hasChildren:        string   // 'yes' | 'no' | ''
+  openToMaritalStatus: string  // female only — open_to_marital_status preference
   // Step 4 — Guardian
   guardianFullName:   string
   guardianRelationship: string
@@ -244,7 +257,7 @@ const EMPTY: FormData = {
   keepsBeard: '', educationLevel: '', educationDetail: '', professionDetail: '', bio: '',
   prefAgeMin: '', prefAgeMax: '', prefLocation: '', prefEthnicity: '',
   prefSchoolOfThought: '', openToRelocation: '', openToPartnersChildren: '',
-  maritalStatus: '', hasChildren: '',
+  maritalStatus: '', marriageReason: '', hasChildren: '', openToMaritalStatus: '',
   guardianFullName: '', guardianRelationship: '', guardianNumber: '', guardianEmail: '',
   noFemaleContactFlag: false, fatherExplanation: '',
   termsAgreed: false, detailsAccurate: false, guardianConsents: false,
@@ -399,8 +412,9 @@ function RegisterChildPageInner() {
   function set<K extends keyof FormData>(key: K, value: FormData[K]) {
     setForm(prev => {
       const next = { ...prev, [key]: value }
-      if (key === 'maritalStatus' && value === 'never_married') {
-        next.hasChildren = ''
+      if (key === 'maritalStatus') {
+        if (value === 'never_married') next.hasChildren = ''
+        if (value !== 'married') next.marriageReason = ''
       }
       if (key === 'guardianRelationship') {
         next.noFemaleContactFlag = MALE_GUARDIAN_RELATIONSHIPS.has(value as string)
@@ -448,6 +462,11 @@ function RegisterChildPageInner() {
       if (!form.maritalStatus)          return 'Marital status is required.'
       if (form.maritalStatus !== 'never_married' && !form.hasChildren)
         return 'Please indicate whether you currently have children.'
+      if (form.gender === 'male' && form.maritalStatus === 'married') {
+        if (!form.marriageReason.trim()) return 'Please provide a reason for seeking marriage.'
+        if (form.marriageReason.trim().length < 15) return 'Reason must be at least 15 characters.'
+        if (form.marriageReason.trim().length > 250) return 'Reason must be 250 characters or fewer.'
+      }
     }
     if (step === 2) {
       if (!form.educationLevel)              return 'Education level is required.'
@@ -606,6 +625,8 @@ function RegisterChildPageInner() {
           islamicBackground:     form.islamicBackground || undefined,
           placeOfBirth:          form.placeOfBirth.trim() || undefined,
           smoker:                form.smoker === 'yes' ? true : form.smoker === 'no' ? false : undefined,
+          marriageReason:        form.gender === 'male' && form.maritalStatus === 'married' ? (form.marriageReason.trim() || undefined) : undefined,
+          openToMaritalStatus:   form.gender === 'female' ? (form.openToMaritalStatus || undefined) : undefined,
         },
       }),
     })
@@ -969,6 +990,26 @@ function RegisterChildPageInner() {
                 </Field>
               )}
             </div>
+            {/* Conditional — married male must explain */}
+            {form.gender === 'male' && form.maritalStatus === 'married' && (
+              <Field
+                label="Reason for seeking marriage"
+                required
+                hint="Please give a brief, respectful explanation. Min 15 chars, max 250."
+              >
+                <textarea
+                  value={form.marriageReason}
+                  onChange={e => set('marriageReason', e.target.value)}
+                  placeholder="e.g. My current wife is unwell and unable to fulfil the marital role…"
+                  rows={3}
+                  maxLength={250}
+                  style={{ ...inputStyle, resize: 'vertical' }}
+                />
+                <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: '4px 0 0' }}>
+                  {form.marriageReason.length} / 250
+                </p>
+              </Field>
+            )}
             <SectionLabel label="Lifestyle" />
             <Field label="Smoker">
               <select value={form.smoker} onChange={e => set('smoker', e.target.value)}
@@ -1212,6 +1253,35 @@ function RegisterChildPageInner() {
                 </select>
               </Field>
             </div>
+
+            {/* Female-only: open to proposals from (marital status of potential spouse) */}
+            {form.gender === 'female' && (
+              <>
+                <SectionLabel label="Proposals from" />
+                <Field label="Open to proposals from" hint="Which marital backgrounds would you consider?">
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {OPEN_TO_MARITAL_OPTIONS.map(opt => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => set('openToMaritalStatus', form.openToMaritalStatus === opt.value ? '' : opt.value)}
+                        style={{
+                          padding: '9px 12px', borderRadius: 8, textAlign: 'left', cursor: 'pointer',
+                          border: `0.5px solid ${form.openToMaritalStatus === opt.value ? 'var(--gold)' : 'var(--border-default)'}`,
+                          background: form.openToMaritalStatus === opt.value ? 'var(--gold-muted)' : 'var(--surface-3)',
+                          color: form.openToMaritalStatus === opt.value ? 'var(--gold)' : 'var(--text-secondary)',
+                          fontWeight: form.openToMaritalStatus === opt.value ? 600 : 400,
+                          fontSize: 13,
+                          transition: 'all 0.15s',
+                        }}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </Field>
+              </>
+            )}
           </div>
         )}
 

@@ -50,6 +50,8 @@ export interface ProfileRecord {
   islamic_background: string | null
   smoker: boolean | null
   place_of_birth: string | null
+  marriage_reason: string | null
+  open_to_marital_status: string | null
 }
 
 interface ProfileModalProps {
@@ -92,6 +94,18 @@ function displayMaritalStatus(v: string | null): string | null {
     never_married: 'Never married',
     divorced: 'Divorced',
     widowed: 'Widowed',
+    married: 'Married',
+  }
+  return map[v] ?? v
+}
+
+function displayOpenToMaritalStatus(v: string | null): string | null {
+  if (!v) return null
+  const map: Record<string, string> = {
+    never_married_only:     'Never married only',
+    divorced_widowed_only:  'Divorced / widowed only',
+    married_men_considered: 'Married men considered',
+    case_by_case:           'Case by case',
   }
   return map[v] ?? v
 }
@@ -679,10 +693,27 @@ export default function ProfileModal({
                   <FieldRow label="Languages" value={profile.languages_spoken?.join(', ') ?? null} />
                   <FieldRow label="Nationality" value={profile.nationality} />
                   <FieldRow label="Place of birth" value={profile.place_of_birth} />
+                  {profile.marital_status === 'married' && (
+                    <div style={{ marginBottom: 10 }}>
+                      <span style={{
+                        display: 'inline-block', fontSize: 11, fontWeight: 600,
+                        padding: '3px 10px', borderRadius: 999,
+                        background: 'rgba(251,191,36,0.1)',
+                        border: '1px solid rgba(251,191,36,0.4)',
+                        color: '#ca8a04',
+                        letterSpacing: '0.03em',
+                      }}>
+                        Currently Married
+                      </span>
+                    </div>
+                  )}
                   <FieldRow
                     label="Marital status"
                     value={displayMaritalStatus(profile.marital_status)}
                   />
+                  {profile.gender === 'male' && profile.marriage_reason && (
+                    <FieldRow label="Reason for seeking marriage" value={profile.marriage_reason} />
+                  )}
                   <FieldRow
                     label="Has children"
                     value={
@@ -829,6 +860,12 @@ export default function ProfileModal({
                   />
                   <FieldRow label="Relocation" value={profile.pref_relocation} />
                   <FieldRow label="Partner&apos;s children" value={profile.pref_partner_children} />
+                  {profile.gender === 'female' && (
+                    <FieldRow
+                      label="Open to proposals from"
+                      value={displayOpenToMaritalStatus(profile.open_to_marital_status)}
+                    />
+                  )}
                 </>
               )}
             </div>

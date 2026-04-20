@@ -173,6 +173,31 @@ export function ProfilePanel({
         <DetailRow label="School of thought" value={profile.school_of_thought} />
         <DetailRow label="Religiosity" value={profile.religiosity} />
         <DetailRow label="Profession" value={profile.profession_sector} />
+        <DetailRow
+          label="Marital status"
+          value={
+            profile.marital_status === 'never_married' ? 'Never married'
+            : profile.marital_status === 'divorced'    ? 'Divorced'
+            : profile.marital_status === 'widowed'     ? 'Widowed'
+            : profile.marital_status === 'married'     ? 'Married'
+            : profile.marital_status ?? undefined
+          }
+        />
+        {profile.marital_status === 'married' && profile.marriage_reason && (
+          <DetailRow label="Marriage reason" value={profile.marriage_reason} />
+        )}
+        {profile.gender === 'female' && profile.open_to_marital_status && (
+          <DetailRow
+            label="Open to proposals from"
+            value={
+              profile.open_to_marital_status === 'never_married_only'     ? 'Never married only'
+              : profile.open_to_marital_status === 'divorced_widowed_only' ? 'Divorced / widowed only'
+              : profile.open_to_marital_status === 'married_men_considered'? 'Married men considered'
+              : profile.open_to_marital_status === 'case_by_case'          ? 'Case by case'
+              : profile.open_to_marital_status
+            }
+          />
+        )}
         <DetailRow label="Submitted" value={fmtDate(profile.submitted_date ?? profile.created_at)} />
         {profile.approved_date && (
           <DetailRow label="Approved" value={fmtDate(profile.approved_date)} />
