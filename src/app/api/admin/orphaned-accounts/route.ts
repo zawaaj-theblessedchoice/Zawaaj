@@ -28,11 +28,22 @@ export async function GET(): Promise<Response> {
 
     if (profileError) return NextResponse.json({ error: profileError.message }, { status: 500 })
 
-    const profileUserIds = new Set((profileRows ?? []).map(p => p.user_id as string))
+    // Get all primary_user_ids that have a zawaaj_family_accounts row.
+    // Parent accounts legitimately have no profile yet (candidate added separately),
+    // so they must NOT be counted as orphaned.
+    const { data: familyRows, error: familyError } = await supabaseAdmin
+      .from('zawaaj_family_accounts')
+      .select('primary_user_id')
+      .not('primary_user_id', 'is', null)
 
-    // Return auth users that have no profile row
+    if (familyError) return NextResponse.json({ error: familyError.message }, { status: 500 })
+
+    const profileUserIds = new Set((profileRows ?? []).map(p => p.user_id as string))
+    const familyUserIds  = new Set((familyRows  ?? []).map(f => f.primary_user_id as string))
+
+    // Return auth users that have neither a profile row nor a family account row
     const orphaned = users
-      .filter(u => !profileUserIds.has(u.id))
+      .filter(u => !profileUserIds.has(u.id) && !familyUserIds.has(u.id))
       .map(u => ({
         id: u.id,
         email: u.email ?? null,

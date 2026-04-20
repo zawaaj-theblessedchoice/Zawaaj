@@ -220,6 +220,15 @@ export async function POST(req: NextRequest): Promise<Response> {
       const prefReloc     = get(values, 'pref_relocation')
       const bio           = get(values, 'bio')
       const statusRaw     = get(values, 'status') || 'pending'
+      // Newer profile fields (optional — blank = null)
+      const placeOfBirth       = get(values, 'place_of_birth')
+      const smokerRaw          = get(values, 'smoker')
+      const islamicBackground  = get(values, 'islamic_background')
+      const wearsNiqabRaw      = get(values, 'wears_niqab')
+      const wearsAbayaRaw      = get(values, 'wears_abaya')
+      const quranEngagement    = get(values, 'quran_engagement_level')
+      const contactNumber      = get(values, 'contact_number')
+      const guardianName       = get(values, 'guardian_name')
       // Normalise DD/MM/YYYY → YYYY-MM-DD so storage and age calc are always ISO
       const dobRaw        = get(values, 'date_of_birth') ? normaliseDOB(get(values, 'date_of_birth')) : ''
 
@@ -231,8 +240,11 @@ export async function POST(req: NextRequest): Promise<Response> {
       const wearsHijab: boolean | null = wearsHijabRaw !== ''
         ? ['true', 'yes'].includes(wearsHijabRaw.toLowerCase())
         : null
-      const keepsBeard      = keepsBeardRaw !== '' ? keepsBeardRaw.toLowerCase() === 'true' : null
-      const hasChildren     = hasChildrenRaw !== '' ? hasChildrenRaw.toLowerCase() === 'true' : null
+      const keepsBeard      = keepsBeardRaw  !== '' ? ['true', 'yes'].includes(keepsBeardRaw.toLowerCase())  : null
+      const hasChildren     = hasChildrenRaw !== '' ? ['true', 'yes'].includes(hasChildrenRaw.toLowerCase()) : null
+      const smoker          = smokerRaw      !== '' ? ['true', 'yes'].includes(smokerRaw.toLowerCase())      : null
+      const wearsNiqab      = wearsNiqabRaw  !== '' ? ['true', 'yes'].includes(wearsNiqabRaw.toLowerCase())  : null
+      const wearsAbaya      = wearsAbayaRaw  !== '' ? ['true', 'yes'].includes(wearsAbayaRaw.toLowerCase())  : null
       const prefAgeMin      = prefAgeMinRaw !== '' ? parseInt(prefAgeMinRaw, 10) || null : null
       const prefAgeMax      = prefAgeMaxRaw !== '' ? parseInt(prefAgeMaxRaw, 10) || null : null
       const now             = new Date().toISOString()
@@ -319,6 +331,14 @@ export async function POST(req: NextRequest): Promise<Response> {
         pref_school_of_thought: prefSchool ? [prefSchool] : null,
         pref_relocation:        prefReloc || null,
         bio:                    bio || null,
+        place_of_birth:         placeOfBirth || null,
+        smoker:                 smoker,
+        islamic_background:     islamicBackground || null,
+        wears_niqab:            gender === 'female' ? wearsNiqab : null,
+        wears_abaya:            gender === 'female' ? wearsAbaya : null,
+        quran_engagement_level: quranEngagement || null,
+        contact_number:         contactNumber || null,
+        guardian_name:          guardianName  || null,
         status:                 statusRaw,
         consent_given:          true,
         terms_agreed:           true,

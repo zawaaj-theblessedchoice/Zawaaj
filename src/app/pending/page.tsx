@@ -22,31 +22,37 @@ export default async function PendingPage() {
     .maybeSingle()
   if (adminProfile) redirect('/admin')
 
-  // Fetch family account status so the client can show the right message
-  const { data: familyAccount } = await supabase
-    .from('zawaaj_family_accounts')
-    .select('id, status, contact_email')
-    .eq('primary_user_id', user.id)
-    .maybeSingle()
-
-  // Active family account with no candidate profile yet → prompt to add one
-  if (familyAccount?.status === 'active') {
-    const { data: settings } = await supabase
+  // Fetch family account + user settings so the client can show the right message
+  const [{ data: familyAccount }, { data: userSettings }] = await Promise.all([
+    supabase
+      .from('zawaaj_family_accounts')
+      .select('id, status, registration_path, contact_email')
+      .eq('primary_user_id', user.id)
+      .maybeSingle(),
+    supabase
       .from('zawaaj_user_settings')
       .select('active_profile_id')
       .eq('user_id', user.id)
-      .maybeSingle()
+      .maybeSingle(),
+  ])
 
-    if (!settings?.active_profile_id) {
-      redirect('/register/child')
-    }
+  // Active parent account with no candidate profile yet → redirect to browse
+  // (browse page now shows a friendly onboarding prompt instead of hard-redirecting to /register/child)
+  if (
+    familyAccount?.status === 'active' &&
+    familyAccount?.registration_path === 'parent' &&
+    !userSettings?.active_profile_id
+  ) {
+    redirect('/browse')
   }
 
   return (
     <PendingClient
       status={familyAccount?.status ?? null}
+      registrationPath={(familyAccount?.registration_path as 'parent' | 'child' | null) ?? null}
       familyAccountId={familyAccount?.id ?? null}
       contactEmail={familyAccount?.contact_email ?? null}
+      hasProfile={!!userSettings?.active_profile_id}
     />
   )
 }

@@ -43,10 +43,10 @@ interface Batch {
 // ─── CSV template ─────────────────────────────────────────────────────────────
 
 const CSV_HEADERS =
-  'email,first_name,last_name,date_of_birth,gender,city,country,nationality,ethnicity,languages,profession,education,institution,school_of_thought,religiosity,prayer_regularity,wears_hijab,keeps_beard,marital_status,has_children,height,living_situation,open_to_relocating,open_to_partners_children,pref_age_min,pref_age_max,pref_location,pref_ethnicity,pref_school_of_thought,pref_relocation,bio,status'
+  'email,first_name,last_name,date_of_birth,gender,city,country,nationality,ethnicity,languages,profession,education,institution,school_of_thought,religiosity,prayer_regularity,wears_hijab,keeps_beard,wears_niqab,wears_abaya,marital_status,has_children,height,living_situation,open_to_relocating,open_to_partners_children,pref_age_min,pref_age_max,pref_location,pref_ethnicity,pref_school_of_thought,pref_relocation,bio,status,place_of_birth,smoker,islamic_background,quran_engagement_level,contact_number,guardian_name'
 
 const CSV_EXAMPLE =
-  "john@example.com,John,Smith,1990-05-15,male,London,UK,British,British Pakistani,English,Finance,Bachelor's,UCL,Sunni,practising,yes_regularly,,,never_married,false,5ft10,With family,open,open,22,32,London,Any,Sunni,open,A brief bio here,pending"
+  "john@example.com,John,Smith,1990-05-15,male,London,UK,British,British Pakistani,English,Finance,Bachelor's,UCL,Sunni,practising,yes_regularly,,,,,never_married,false,5ft10,With family,open,open,22,32,London,Any,Sunni,open,A brief bio here,pending,,,,,,,"
 
 const CSV_TEMPLATE = `${CSV_HEADERS}\n${CSV_EXAMPLE}\n`
 

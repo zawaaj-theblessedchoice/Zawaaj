@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Zawaaj — Tester Brief</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #1a1a1a;
+    background: #f9f8f6;
+    padding: 40px 20px 80px;
+  }
+  .page { max-width: 760px; margin: 0 auto; }
+
+  /* Header */
+  .header {
+    border-bottom: 2px solid #C49A10;
+    padding-bottom: 20px;
+    margin-bottom: 32px;
+  }
+  .header-logo {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: #1a1a1a;
+  }
+  .header-logo span { color: #C49A10; }
+  .header-sub {
+    font-size: 12px;
+    color: #888;
+    margin-top: 3px;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+  .header-meta {
+    font-size: 12.5px;
+    color: #555;
+    margin-top: 12px;
+    background: #fff;
+    border: 1px solid #e5e2da;
+    border-radius: 6px;
+    padding: 10px 14px;
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .header-meta span { display: flex; align-items: center; gap: 5px; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: #C49A10; flex-shrink: 0; }
+
+  /* Before-you-start box */
+  .before-box {
+    background: #fff;
+    border: 1px solid #e5e2da;
+    border-left: 3px solid #C49A10;
+    border-radius: 6px;
+    padding: 16px 20px;
+    margin-bottom: 32px;
+  }
+  .before-box h3 {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #888;
+    margin-bottom: 12px;
+  }
+  .cred-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .cred-block {
+    background: #f9f8f6;
+    border: 1px solid #e5e2da;
+    border-radius: 5px;
+    padding: 10px 12px;
+  }
+  .cred-role {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #C49A10;
+    margin-bottom: 4px;
+  }
+  .cred-line { font-size: 12.5px; color: #333; line-height: 1.7; }
+  .cred-note { font-size: 11.5px; color: #888; margin-top: 2px; }
+  .rules {
+    font-size: 12.5px;
+    color: #555;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    border-top: 1px solid #ece9e0;
+    padding-top: 12px;
+    margin-top: 12px;
+  }
+  .rule { display: flex; align-items: baseline; gap: 6px; }
+  .rule-icon { color: #C49A10; font-size: 11px; flex-shrink: 0; }
+
+  /* Scenario */
+  .scenario {
+    background: #fff;
+    border: 1px solid #e5e2da;
+    border-radius: 8px;
+    margin-bottom: 24px;
+    overflow: hidden;
+  }
+  .scenario-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 20px;
+    border-bottom: 1px solid #ece9e0;
+    background: #faf9f7;
+  }
+  .scenario-num {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: #C49A10;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .scenario-title { font-size: 15px; font-weight: 600; color: #1a1a1a; }
+  .scenario-sub { font-size: 12px; color: #888; margin-top: 1px; }
+  .scenario-role {
+    margin-left: auto;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #C49A10;
+    background: rgba(196,154,16,0.08);
+    border: 1px solid rgba(196,154,16,0.25);
+    border-radius: 4px;
+    padding: 3px 8px;
+    white-space: nowrap;
+  }
+  .steps { padding: 4px 0 8px; }
+  .step {
+    display: flex;
+    gap: 14px;
+    padding: 12px 20px;
+    border-bottom: 1px solid #f0ede6;
+  }
+  .step:last-child { border-bottom: none; }
+  .step-num {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: #f0ede6;
+    color: #888;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .step-body { flex: 1; min-width: 0; }
+  .step-action { font-size: 13.5px; color: #222; line-height: 1.5; }
+  .step-expected {
+    font-size: 12px;
+    color: #666;
+    margin-top: 5px;
+    padding: 5px 10px;
+    background: #f5f2eb;
+    border-left: 2px solid #C49A10;
+    border-radius: 0 4px 4px 0;
+    line-height: 1.5;
+  }
+  .step-expected strong { color: #C49A10; font-weight: 600; }
+
+  /* Watch for */
+  .watchfor {
+    background: #fff;
+    border: 1px solid #e5e2da;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .watchfor-header {
+    padding: 14px 20px;
+    background: #faf9f7;
+    border-bottom: 1px solid #ece9e0;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #555;
+  }
+  .watch-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+  }
+  .watch-item {
+    display: flex;
+    gap: 10px;
+    padding: 11px 20px;
+    border-bottom: 1px solid #f0ede6;
+    border-right: 1px solid #f0ede6;
+    font-size: 12.5px;
+    color: #444;
+    line-height: 1.5;
+    align-items: flex-start;
+  }
+  .watch-item:nth-child(even) { border-right: none; }
+  .watch-item:nth-last-child(-n+2) { border-bottom: none; }
+  .watch-letter {
+    font-size: 11px;
+    font-weight: 700;
+    color: #C49A10;
+    flex-shrink: 0;
+    margin-top: 1px;
+    width: 14px;
+  }
+
+  @media (max-width: 560px) {
+    .cred-grid { grid-template-columns: 1fr; }
+    .watch-grid { grid-template-columns: 1fr; }
+    .watch-item { border-right: none !important; }
+    .watch-item:nth-last-child(-n+2) { border-bottom: 1px solid #f0ede6; }
+    .watch-item:last-child { border-bottom: none; }
+    .scenario-role { display: none; }
+  }
+  @media print {
+    body { background: #fff; padding: 20px; font-size: 12px; }
+    .scenario, .before-box, .watchfor { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-logo">Zawaaj <span>·</span> Tester Brief</div>
+    <div class="header-sub">Usability &amp; QA — Internal use only</div>
+    <div class="header-meta">
+      <span><span class="dot"></span> 3 scenarios</span>
+      <span><span class="dot"></span> 20–30 min each</span>
+      <span><span class="dot"></span> Complete in order — each builds on the last</span>
+    </div>
+  </div>
+
+  <!-- Before you start -->
+  <div class="before-box">
+    <h3>Before you start — credentials</h3>
+    <div class="cred-grid">
+      <div class="cred-block">
+        <div class="cred-role">Family user (free)</div>
+        <div class="cred-line">tester1@zawaaj.uk</div>
+        <div class="cred-line">Password: <em>provided separately</em></div>
+        <div class="cred-note">Voluntary plan · 1 approved profile</div>
+      </div>
+      <div class="cred-block">
+        <div class="cred-role">Admin / manager</div>
+        <div class="cred-line">admin@zawaaj.uk</div>
+        <div class="cred-line">Password: <em>provided separately</em></div>
+        <div class="cred-note">Manager role · scoped to London</div>
+      </div>
+    </div>
+    <div class="rules">
+      <div class="rule"><span class="rule-icon">▸</span> Use Chrome or Safari. Do not use private/incognito — session storage is required.</div>
+      <div class="rule"><span class="rule-icon">▸</span> If you get stuck: note exactly what you clicked and what happened, then move on.</div>
+    </div>
+  </div>
+
+  <!-- Scenario 1 -->
+  <div class="scenario">
+    <div class="scenario-header">
+      <div class="scenario-num">1</div>
+      <div>
+        <div class="scenario-title">Register as a new family</div>
+        <div class="scenario-sub">Register → verify → create profile → browse</div>
+      </div>
+      <div class="scenario-role">Family user — new account</div>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-action">Go to <strong>zawaaj.uk</strong> and click <em>Create your profile</em>. You should see a choice: <em>I'm a parent or guardian registering for a family member</em> vs <em>I'm registering for myself</em>.</div>
+          <div class="step-expected"><strong>Expected:</strong> two clear options with distinct descriptions</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-action">Choose <em>Parent or guardian</em> and complete the contact details form. Use your real email address — you will receive a verification email.</div>
+          <div class="step-expected"><strong>Expected:</strong> multi-step form with progress indicator; required fields validated before proceeding</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-action">Submit the form. You should see a <em>Check your inbox</em> screen with your email address shown.</div>
+          <div class="step-expected"><strong>Expected:</strong> holding screen with resend option; no redirect to dashboard yet</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-action">Open your email and click the verification link. You should be redirected back to the platform.</div>
+          <div class="step-expected"><strong>Expected:</strong> brief success message, then redirect to profile creation prompt</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <div class="step-action">Create a candidate profile — fill in all fields across the steps (personal details, faith, preferences, bio) and submit.</div>
+          <div class="step-expected"><strong>Expected:</strong> profile submitted confirmation; dashboard shows <em>Your profile is being reviewed</em> with greyed-out Browse/Introductions nav</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">6</div>
+        <div class="step-body">
+          <div class="step-action">Note the time and pause here. The admin tester must approve this profile in Scenario 2 before you can browse.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scenario 2 -->
+  <div class="scenario">
+    <div class="scenario-header">
+      <div class="scenario-num">2</div>
+      <div>
+        <div class="scenario-title">Admin reviews and facilitates</div>
+        <div class="scenario-sub">Approve profile → handle introduction → share contacts</div>
+      </div>
+      <div class="scenario-role">Manager</div>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-action">Log in as admin and go to <strong>/admin/operations</strong>. The <em>Needs action</em> section should show the profile from Scenario 1 at the top of the queue.</div>
+          <div class="step-expected"><strong>Expected:</strong> profile card visible with Pending badge; joined date shows as today</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-action">Click the profile row to open the side panel. Review the profile details and the Family account section — check contact name, relationship, and email verified status.</div>
+          <div class="step-expected"><strong>Expected:</strong> panel opens without page navigation; Family account shows contact name and <em>Email verified</em> in green</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-action">Add an internal note in the notes section. Type anything and click <em>Add note</em>.</div>
+          <div class="step-expected"><strong>Expected:</strong> note appears with your admin name and timestamp; persists on refresh</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-action">Click <em>Approve</em>.</div>
+          <div class="step-expected"><strong>Expected:</strong> instant row update; toast notification <em>Profile approved</em>; pending queue count decreases by 1</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <div class="step-action">Have the family user log back in. The <em>being reviewed</em> screen should be gone. They should see the browse page and be able to express interest in a profile.</div>
+          <div class="step-expected"><strong>Expected:</strong> full browse page visible; Express interest button works; monthly counter shows (e.g. 1/5 for free plan)</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">6</div>
+        <div class="step-body">
+          <div class="step-action">Back in admin: go to the Introductions section. Click <em>Facilitate</em> on the interest expressed in step 5.</div>
+          <div class="step-expected"><strong>Expected:</strong> both families receive an email; introduction status updates to Facilitated; notification bell updates for the member</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scenario 3 -->
+  <div class="scenario">
+    <div class="scenario-header">
+      <div class="scenario-num">3</div>
+      <div>
+        <div class="scenario-title">Super admin oversight</div>
+        <div class="scenario-sub">Platform metrics → manager appointment → funnel review</div>
+      </div>
+      <div class="scenario-role">Super admin</div>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-action">Log in as super admin and navigate to <strong>/admin</strong>. You should see the platform overview dashboard — not the operations queue.</div>
+          <div class="step-expected"><strong>Expected:</strong> metrics row (active members, approved this week, matches in progress); onboarding funnel; subscription breakdown; manager list</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-action">Review the onboarding funnel. Numbers should reflect Scenario 1 — at minimum: 1 registered, 1 verified, 1 profile created, 1 approved.</div>
+          <div class="step-expected"><strong>Expected:</strong> funnel shows real numbers; drop-off between <em>verified</em> and <em>profile created</em> is visible</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-action">Go to <em>Managers</em> and click <em>Appoint new manager</em>. Fill in the details and assign a scope (e.g. London, female profiles).</div>
+          <div class="step-expected"><strong>Expected:</strong> new manager appears in the list with their scope displayed</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-action">Navigate to <strong>/admin/operations</strong>. As super admin you should see the full unscoped queue. Verify the sidebar link takes you there directly.</div>
+          <div class="step-expected"><strong>Expected:</strong> <em>Go to operations</em> in SA sidebar works; all profiles and matches visible regardless of scope</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Watch for -->
+  <div class="watchfor">
+    <div class="watchfor-header">Things to specifically watch for — note and report each one</div>
+    <div class="watch-grid">
+      <div class="watch-item"><span class="watch-letter">A</span> Any page that shows a loading spinner and never resolves</div>
+      <div class="watch-item"><span class="watch-letter">B</span> Any action button that clicks but nothing visibly changes</div>
+      <div class="watch-item"><span class="watch-letter">C</span> The notification bell — does it show a count after interest is sent and after approval?</div>
+      <div class="watch-item"><span class="watch-letter">D</span> The monthly interest counter — does it show the correct limit for the plan?</div>
+      <div class="watch-item"><span class="watch-letter">E</span> The profile pending screen — does it show before approval, and disappear after?</div>
+      <div class="watch-item"><span class="watch-letter">F</span> Any text that says "coming soon", "alert", or triggers a browser popup</div>
+      <div class="watch-item"><span class="watch-letter">G</span> Mobile: does the navigation work correctly on a phone screen?</div>
+      <div class="watch-item"><span class="watch-letter">H</span> Back to website link — present on registration and verification screens?</div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

@@ -7,11 +7,14 @@ import { createClient } from '@/lib/supabase/client'
 
 interface Props {
   status: string | null
+  registrationPath: 'parent' | 'child' | null
   familyAccountId: string | null
   contactEmail: string | null
+  /** Whether the user already has an active candidate profile (profile may be pending approval) */
+  hasProfile: boolean
 }
 
-export default function PendingClient({ status, familyAccountId, contactEmail }: Props) {
+export default function PendingClient({ status, registrationPath, familyAccountId, contactEmail, hasProfile }: Props) {
   const router = useRouter()
   const [resending, setResending] = useState(false)
   const [resendDone, setResendDone] = useState(false)
@@ -47,30 +50,40 @@ export default function PendingClient({ status, familyAccountId, contactEmail }:
     }
   }
 
-  // ── Determine content by status ──────────────────────────────────────────────
+  // ── Determine content by status + registration path ─────────────────────────
 
   const isEmailVerification = status === 'pending_email_verification'
 
-  const icon = isEmailVerification ? (
-    // Envelope icon
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-      <rect x="2" y="4" width="20" height="16" rx="2" stroke="var(--gold)" strokeWidth="1.5" />
-      <path d="M2 8l10 7 10-7" stroke="var(--gold)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  ) : (
-    // Clock icon
+  // Role-aware state:
+  //   A) parent + has profile → "Family account active. Candidate profile under review."
+  //   B) parent + no profile  → redirected to /browse by page.tsx, but guard here too
+  //   C) email verification    → verify email prompt
+  //   D) everything else       → generic pending approval
+  const isParentWithProfile = registrationPath === 'parent' && hasProfile
+
+  const clockIcon = (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
       <circle cx="12" cy="12" r="10" stroke="var(--gold)" strokeWidth="1.5" />
       <path d="M12 7v5l3 3" stroke="var(--gold)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
+  const envelopeIcon = (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <rect x="2" y="4" width="20" height="16" rx="2" stroke="var(--gold)" strokeWidth="1.5" />
+      <path d="M2 8l10 7 10-7" stroke="var(--gold)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
 
-  const heading = isEmailVerification
-    ? 'Verify your email address'
-    : 'Application submitted'
+  let icon: React.ReactNode
+  let heading: string
+  let body: React.ReactNode
+  let badge: string
 
-  const body = isEmailVerification
-    ? (
+  if (isEmailVerification) {
+    icon = envelopeIcon
+    heading = 'Verify your email address'
+    badge = 'Awaiting email verification'
+    body = (
       <>
         <p style={{ fontSize: 13.5, color: 'var(--text-secondary)', lineHeight: 1.6, margin: '0 0 6px' }}>
           We sent a verification link to{' '}
@@ -85,16 +98,27 @@ export default function PendingClient({ status, familyAccountId, contactEmail }:
         </p>
       </>
     )
-    : (
+  } else if (isParentWithProfile) {
+    icon = clockIcon
+    heading = 'Candidate profile under review'
+    badge = 'Pending approval'
+    body = (
+      <p style={{ fontSize: 13.5, color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0 }}>
+        Your family account is active. The candidate profile you added is being reviewed by our team.
+        You will be notified by email once approved, in shaa Allah.
+      </p>
+    )
+  } else {
+    icon = clockIcon
+    heading = 'Application submitted'
+    badge = 'Pending approval'
+    body = (
       <p style={{ fontSize: 13.5, color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0 }}>
         JazakAllahu Khayran. Your application is being reviewed by our team.
         We will be in touch in shaa Allah.
       </p>
     )
-
-  const badge = isEmailVerification
-    ? 'Awaiting email verification'
-    : 'Pending approval'
+  }
 
   return (
     <main

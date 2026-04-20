@@ -50,6 +50,8 @@ export interface BrowseClientProps {
   managedProfiles?: ManagedProfile[]
   /** Currently active profile id */
   activeProfileId?: string
+  /** Whether the user has a family account — gates the BrowsingAs banner */
+  hasFamilyAccount?: boolean
   /** Member's current subscription plan */
   plan?: 'free' | 'plus' | 'premium'
   /** Number of currently active (pending) introduction requests */
@@ -527,26 +529,28 @@ function BrowsingAsBanner({
             {activeName}
           </strong>
         </span>
-        <button
-          onClick={() => setOpen(o => !o)}
-          style={{
-            background: 'var(--surface-3)',
-            border: '0.5px solid var(--border-default)',
-            borderRadius: 6,
-            padding: '2px 8px',
-            fontSize: 11,
-            color: 'var(--gold)',
-            cursor: 'pointer',
-            fontWeight: 500,
-            lineHeight: 1.6,
-          }}
-        >
-          Switch {open ? '▲' : '▼'}
-        </button>
+        {managedProfiles.length > 1 && (
+          <button
+            onClick={() => setOpen(o => !o)}
+            style={{
+              background: 'var(--surface-3)',
+              border: '0.5px solid var(--border-default)',
+              borderRadius: 6,
+              padding: '2px 8px',
+              fontSize: 11,
+              color: 'var(--gold)',
+              cursor: 'pointer',
+              fontWeight: 500,
+              lineHeight: 1.6,
+            }}
+          >
+            Switch {open ? '▲' : '▼'}
+          </button>
+        )}
       </div>
 
-      {/* Dropdown */}
-      {open && (
+      {/* Dropdown — only renders when there are multiple profiles to switch between */}
+      {open && managedProfiles.length > 1 && (
         <div
           style={{
             position: 'absolute',
@@ -643,6 +647,7 @@ export default function BrowseClient({
   newSince,
   managedProfiles,
   activeProfileId,
+  hasFamilyAccount = false,
   plan = 'free',
   activeCount = 0,
   activeLimit = null,
@@ -1009,8 +1014,10 @@ export default function BrowseClient({
           padding: '28px 28px 60px',
         }}
       >
-        {/* Browsing-As banner — only shown when account manages multiple profiles */}
-        {(managedProfiles?.length ?? 0) > 1 && activeProfileId && (
+        {/* Browsing-As banner — shown for family-account holders (even with a single profile) so
+             parents/guardians always see which candidate they are currently browsing as.
+             hasFamilyAccount gates it so standard (non-family) members never see it. */}
+        {hasFamilyAccount && (managedProfiles?.length ?? 0) >= 1 && activeProfileId && (
           <BrowsingAsBanner
             managedProfiles={managedProfiles!}
             activeProfileId={activeProfileId}

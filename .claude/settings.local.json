@@ -156,7 +156,18 @@
       "Bash(node test-cases/generate-end-user-tests.js)",
       "Bash(node test-cases/generate-manager-tests.js)",
       "Bash(node test-cases/generate-admin-tests.js)",
-      "Bash(grep -E \"\\\\.\\(sql|ts|js\\)$\")"
+      "Bash(grep -E \"\\\\.\\(sql|ts|js\\)$\")",
+      "Bash(node node_modules\\\\next\\\\dist\\\\bin\\\\next build)",
+      "Bash(copy \"C:\\\\Users\\\\mrkha\\\\OneDrive\\\\Desktop\\\\Zawaaj-MVP\\\\public\\\\Zawaaj_Logo_Transparent.png\" \"C:\\\\Users\\\\mrkha\\\\OneDrive\\\\Desktop\\\\Zawaaj-MVP\\\\src\\\\app\\\\icon.png\")",
+      "Bash(node \"node_modules/next/dist/bin/next\" build)",
+      "mcp__58a316d2-c175-4e7f-a435-861528786001__list_projects",
+      "Bash(findstr -i \"logo\\\\|zawaaj\\\\|png\\\\|jpg\\\\|svg\\\\|webp\")",
+      "Bash(dir \"C:\\\\Users\\\\mrkha\\\\OneDrive\\\\Desktop\\\\Zawaaj-MVP\\\\public\")",
+      "Bash(vercel deploy:*)",
+      "Bash(grep -n \"pending_email_verification\\\\|status.*CHECK\\\\|zfa_status_check\" \"C:/Users/mrkha/OneDrive/Desktop/Zawaaj-MVP/supabase/migrations\"/*.sql)",
+      "Bash(grep -n \"pending_email_verification\" \"C:/Users/mrkha/OneDrive/Desktop/Zawaaj-MVP/supabase/migrations\"/*.sql)",
+      "Bash(tail -20 cat \"C:/Users/mrkha/OneDrive/Desktop/Zawaaj-MVP/supabase/migrations/035_\"*)",
+      "mcp__50fe9e92-bb5c-48b5-bd51-cefe4f004add__get_project"
     ]
   }
 }

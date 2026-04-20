@@ -6,6 +6,7 @@ import type { ProfileRecord } from '@/components/ProfileModal'
 import type { FilterState } from '@/lib/filter-types'
 import { getPlanConfig } from '@/lib/plan-config'
 import type { Plan } from '@/lib/plan-config'
+import Link from 'next/link'
 
 const FILTER_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000 // 7 days
 
@@ -45,28 +46,85 @@ export default async function BrowsePage({
 
   if (!settings?.active_profile_id) {
     // Check if they have a family account so we can route them correctly.
-    // parent path + active account → they haven't added their child's profile yet → /register/child
-    // child path + active account → registration failed mid-way or profile deleted → /pending
-    // anything else (pending_email_verification, no account) → /pending
     const { data: familyAccount } = await supabase
       .from('zawaaj_family_accounts')
-      .select('status, registration_path')
+      .select('id, status, registration_path')
       .eq('primary_user_id', user.id)
       .maybeSingle()
 
+    // Parent account that is active but has no candidate profile yet →
+    // show a role-aware onboarding prompt inside the sidebar layout instead of hard-redirecting.
     if (familyAccount?.status === 'active' && familyAccount?.registration_path === 'parent') {
-      redirect('/register/child')
+      return (
+        <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
+          <Sidebar
+            activeRoute="/browse"
+            shortlistCount={0}
+            introRequestsCount={0}
+            profile={{ display_initials: 'FA', gender: null, first_name: null }}
+            profileApproved={false}
+          />
+          <main style={{ marginLeft: 200, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px' }}>
+            <div style={{ maxWidth: 460, textAlign: 'center' }}>
+              {/* Icon */}
+              <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'var(--gold-muted)', border: '0.5px solid var(--border-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="8" r="4" stroke="var(--gold)" strokeWidth="1.5"/>
+                  <path d="M4 20c0-4 3.582-7 8-7s8 3 8 7" stroke="var(--gold)" strokeWidth="1.5" strokeLinecap="round"/>
+                </svg>
+              </div>
+
+              <h1 style={{ fontSize: 20, fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 10px' }}>
+                Add a candidate profile
+              </h1>
+              <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.7, margin: '0 0 6px' }}>
+                Your family account is set up. The next step is to create a candidate profile so you can begin browsing.
+              </p>
+              <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6, margin: '0 0 32px' }}>
+                You can also complete this later — your account will remain active.
+              </p>
+
+              <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+                <Link
+                  href="/register/child"
+                  style={{ padding: '10px 22px', borderRadius: 8, border: '0.5px solid var(--border-gold)', background: 'var(--gold-muted)', color: 'var(--gold)', fontSize: 13.5, fontWeight: 500, textDecoration: 'none' }}
+                >
+                  Create candidate profile
+                </Link>
+                <a
+                  href="mailto:hello@zawaaj.uk?subject=Family%20account%20enquiry"
+                  style={{ padding: '10px 22px', borderRadius: 8, border: '0.5px solid var(--border-default)', background: 'var(--surface-3)', color: 'var(--text-secondary)', fontSize: 13.5, textDecoration: 'none' }}
+                >
+                  Contact us
+                </a>
+              </div>
+            </div>
+          </main>
+        </div>
+      )
     }
+
+    // All other no-profile cases (child path, pending email verification, no account) → /pending
     redirect('/pending')
   }
 
   const activeProfileId = settings.active_profile_id
 
-  // 3b. Get all profile IDs linked to this account (siblings) so we can exclude them all from browse
-  const { data: siblingRows } = await supabase
-    .from('zawaaj_profiles')
+  // 3b. Get family account id (if any) — used for sibling exclusion and profile switcher
+  const { data: activeFamilyAccount } = await supabase
+    .from('zawaaj_family_accounts')
     .select('id')
-    .eq('user_id', user.id)
+    .eq('primary_user_id', user.id)
+    .maybeSingle()
+  const familyAccountId: string | null = activeFamilyAccount?.id ?? null
+
+  // 3c. Get all profile IDs linked to this family account (or this user) so we can exclude
+  //     siblings from browse. Uses family_account_id when available so cross-user linked
+  //     profiles (e.g. child registered under their own auth account) are also excluded.
+  const siblingQuery = familyAccountId
+    ? supabase.from('zawaaj_profiles').select('id').eq('family_account_id', familyAccountId)
+    : supabase.from('zawaaj_profiles').select('id').eq('user_id', user.id)
+  const { data: siblingRows } = await siblingQuery
 
   const siblingIds: string[] = (siblingRows ?? []).map(r => r.id as string)
 
@@ -185,12 +243,13 @@ export default async function BrowsePage({
   }))
 
   // 4b. Get all profiles linked to this account (for profile switcher)
-  // Minimal fields only — used for the Sidebar switcher UI
-  const { data: managedProfilesRaw } = await supabase
-    .from('zawaaj_profiles')
-    .select('id, display_initials, first_name, gender, status')
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: true })
+  // Minimal fields only — used for the Sidebar switcher UI.
+  // Prefer querying by family_account_id so cross-user linked profiles (e.g. a child
+  // who registered under their own auth account) appear in the switcher for the parent.
+  const managedQuery = familyAccountId
+    ? supabase.from('zawaaj_profiles').select('id, display_initials, first_name, gender, status').eq('family_account_id', familyAccountId)
+    : supabase.from('zawaaj_profiles').select('id, display_initials, first_name, gender, status').eq('user_id', user.id)
+  const { data: managedProfilesRaw } = await managedQuery.order('created_at', { ascending: true })
 
   const managedProfiles = (managedProfilesRaw ?? []).map(p => ({
     id: p.id as string,
@@ -317,6 +376,7 @@ export default async function BrowsePage({
       newSince={lastBrowsedAt}
       managedProfiles={managedProfiles}
       activeProfileId={activeProfileId}
+      hasFamilyAccount={!!familyAccountId}
       plan={plan}
       activeCount={activeCount}
       activeLimit={activeLimit}

@@ -111,7 +111,7 @@ interface ZawaajEvent {
   created_at: string | null
 }
 
-type Tab = 'queue' | 'mutual' | 'introduced' | 'members' | 'withdrawn' | 'events' | 'import'
+type Tab = 'queue' | 'mutual' | 'introduced' | 'members' | 'withdrawn' | 'events' | 'import' | 'orphaned'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -2510,6 +2510,7 @@ export default function AdminPage() {
     { key: 'withdrawn',  label: 'Withdrawn',       badge: withdrawnCount },
     { key: 'events',     label: 'Events',          badge: events.length },
     { key: 'import',     label: 'Import' },
+    { key: 'orphaned',   label: 'Orphaned' },
   ]
 
   if (!accessChecked) {
@@ -2638,6 +2639,7 @@ export default function AdminPage() {
             {tab === 'withdrawn'  && <WithdrawnTab   profiles={profiles} onRefresh={loadData} />}
             {tab === 'events'     && <EventsTab      events={events}     onRefresh={loadData} />}
             {tab === 'import'     && <ImportTab />}
+            {tab === 'orphaned'   && <OrphanedTab />}
           </>
         )}
       </main>
