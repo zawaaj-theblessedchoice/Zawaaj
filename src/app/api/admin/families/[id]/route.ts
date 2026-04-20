@@ -6,12 +6,8 @@ async function requireAdmin() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
-  const { data: profile } = await supabase
-    .from('zawaaj_profiles')
-    .select('is_admin')
-    .eq('user_id', user.id)
-    .maybeSingle()
-  return profile?.is_admin ? user : null
+  const { data: role } = await supabase.rpc('zawaaj_get_role')
+  return role === 'super_admin' ? user : null
 }
 
 // DELETE /api/admin/families/[id]

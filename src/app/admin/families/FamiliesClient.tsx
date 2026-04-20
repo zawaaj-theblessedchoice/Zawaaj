@@ -853,6 +853,24 @@ export function FamiliesClient({ families: initial }: Props) {
     if (res.ok) setFamilies(prev => prev.map(f => f.id === id ? { ...f, status } : f))
   }
 
+  async function deleteAccount(f: FamilyRow) {
+    const profileCount = f.profiles?.length ?? 0
+    const warning = profileCount > 0
+      ? `This will permanently delete the family account, ${profileCount} linked profile(s), and the auth login. This cannot be undone.`
+      : 'This will permanently delete the family account and its auth login. This cannot be undone.'
+    if (!window.confirm(warning)) return
+    setActionLoading(f.id)
+    const res = await fetch(`/api/admin/families/${f.id}`, { method: 'DELETE' })
+    setActionLoading(null)
+    if (res.ok) {
+      setFamilies(prev => prev.filter(x => x.id !== f.id))
+      setExpandedId(null)
+    } else {
+      const json = await res.json().catch(() => ({})) as { error?: string }
+      alert(json.error ?? 'Delete failed')
+    }
+  }
+
   function handleCreated(row: FamilyRow) {
     setFamilies(prev => [row, ...prev])
     setExpandedId(row.id)
@@ -1101,6 +1119,8 @@ export function FamiliesClient({ families: initial }: Props) {
                             loading={false} onClick={() => setLinkFamily(f)} />
                           <ActionBtn label="✉ Email family" color="var(--admin-text)" bg="rgba(255,255,255,0.05)"
                             loading={false} onClick={() => setEmailFamily(f)} />
+                          <ActionBtn label="🗑 Delete account" color="#dc2626" bg="rgba(239,68,68,0.08)"
+                            loading={actionLoading === f.id} onClick={() => deleteAccount(f)} />
                         </div>
                       </td>
                     </tr>
