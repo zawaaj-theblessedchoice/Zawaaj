@@ -12,6 +12,32 @@ type Tab = 'membership' | 'account' | 'privacy'
 type ThemeMode = 'light' | 'dark' | 'system'
 type EraseStep = 'idle' | 'confirming' | 'submitting' | 'done' | 'cancelled'
 
+interface FamilyRepInfo {
+  readiness_state: string
+  contact_full_name: string
+  contact_email: string
+}
+
+function maskEmail(email: string): string {
+  const [local, domain] = email.split('@')
+  if (!domain) return email
+  const masked = local.length <= 2
+    ? `${local[0]}***`
+    : `${local[0]}${local[1]}***`
+  const [tld, ...rest] = domain.split('.').reverse()
+  const domainMasked = rest.length > 0
+    ? `***.${rest.reverse().join('.')}.${tld}`
+    : `***.${tld}`
+  return `${masked}@${domainMasked}`
+}
+
+const READINESS_LABELS: Record<string, { label: string; color: string; bg: string }> = {
+  candidate_only:         { label: 'Representative not yet joined', color: '#dc2626', bg: 'rgba(239,68,68,0.1)' },
+  representative_invited: { label: 'Invite sent — awaiting join',  color: '#ca8a04', bg: 'rgba(234,179,8,0.12)' },
+  representative_linked:  { label: 'Representative linked',        color: '#818cf8', bg: 'rgba(99,102,241,0.12)' },
+  intro_ready:            { label: 'Fully set up',                  color: '#16a34a', bg: 'rgba(34,197,94,0.12)' },
+}
+
 interface Subscription {
   plan: Plan
   status: string
@@ -77,6 +103,13 @@ function SettingsContent() {
   const [profile, setProfile] = useState<{ display_initials: string; gender: string | null; first_name: string | null } | null>(null)
   const [annual, setAnnual] = useState(false)
   const [themeMode, setThemeMode] = useState<ThemeMode>('system')
+
+  // Family rep section (candidates only)
+  const [familyRep, setFamilyRep] = useState<FamilyRepInfo | null>(null)
+  const [repEmailEdit, setRepEmailEdit] = useState('')
+  const [repEmailSaving, setRepEmailSaving] = useState(false)
+  const [repEmailMsg, setRepEmailMsg] = useState<string | null>(null)
+  const [familyAccountId, setFamilyAccountId] = useState<string | null>(null)
 
   // Data rights state
   const [exportLoading, setExportLoading] = useState(false)
@@ -150,6 +183,46 @@ function SettingsContent() {
         .maybeSingle()
 
       setSub(subData ?? { plan: 'free', status: 'active', current_period_end: null, cancel_at_period_end: false })
+
+      // Check if this user is a candidate (has a family account via their profile but is NOT the rep)
+      if (settings?.active_profile_id) {
+        const { data: profRow } = await supabase
+          .from('zawaaj_profiles')
+          .select('family_account_id')
+          .eq('id', settings.active_profile_id)
+          .maybeSingle()
+
+        const famId = (profRow as { family_account_id?: string | null } | null)?.family_account_id ?? null
+
+        if (famId) {
+          // Check if the user is the primary_user_id of this family account
+          const { data: famRow } = await supabase
+            .from('zawaaj_family_accounts')
+            .select('id, primary_user_id, contact_full_name, contact_email, readiness_state')
+            .eq('id', famId)
+            .maybeSingle()
+
+          const fam = famRow as {
+            id: string
+            primary_user_id: string | null
+            contact_full_name: string
+            contact_email: string
+            readiness_state: string
+          } | null
+
+          // Only show to candidates (not the rep themselves)
+          if (fam && fam.primary_user_id !== user.id) {
+            setFamilyAccountId(fam.id)
+            setFamilyRep({
+              readiness_state: fam.readiness_state ?? 'candidate_only',
+              contact_full_name: fam.contact_full_name ?? '',
+              contact_email: fam.contact_email ?? '',
+            })
+            setRepEmailEdit(fam.contact_email ?? '')
+          }
+        }
+      }
+
       setLoading(false)
     }
     void load()
@@ -201,6 +274,27 @@ function SettingsContent() {
       setExportMsg('Something went wrong — please try again.')
     } finally {
       setExportLoading(false)
+    }
+  }
+
+  async function handleRepEmailSave() {
+    if (!familyAccountId || !repEmailEdit.trim()) return
+    setRepEmailSaving(true)
+    setRepEmailMsg(null)
+    try {
+      const supabase = createClient()
+      const { error } = await supabase
+        .from('zawaaj_family_accounts')
+        .update({ contact_email: repEmailEdit.trim() })
+        .eq('id', familyAccountId)
+      if (error) throw error
+      setFamilyRep(prev => prev ? { ...prev, contact_email: repEmailEdit.trim() } : prev)
+      setRepEmailMsg('Email updated.')
+      setTimeout(() => setRepEmailMsg(null), 3000)
+    } catch {
+      setRepEmailMsg('Could not update — please try again.')
+    } finally {
+      setRepEmailSaving(false)
     }
   }
 
@@ -468,6 +562,87 @@ function SettingsContent() {
                 Go to My Profile →
               </Link>
             </div>
+
+            {/* Family representative — candidates only */}
+            {familyRep && (() => {
+              const rs = READINESS_LABELS[familyRep.readiness_state] ?? READINESS_LABELS.candidate_only
+              const needsRep = familyRep.readiness_state === 'candidate_only' || familyRep.readiness_state === 'representative_invited'
+              return (
+                <div style={{ background: 'var(--surface-2)', border: '0.5px solid var(--border-default)', borderRadius: 16, padding: 20 }}>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>Family representative</p>
+                  <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 14, lineHeight: 1.6 }}>
+                    Your account is managed by a family representative. They handle introductions and communications with other families on your behalf.
+                  </p>
+
+                  {/* Status badge */}
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 20, marginBottom: 14, background: rs.bg, border: `0.5px solid ${rs.color}40` }}>
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: rs.color, flexShrink: 0 }} />
+                    <span style={{ fontSize: 11.5, fontWeight: 600, color: rs.color }}>{rs.label}</span>
+                  </div>
+
+                  {/* Masked contact info */}
+                  {familyRep.contact_full_name && (
+                    <div style={{ display: 'flex', gap: 8, marginBottom: 6, alignItems: 'baseline' }}>
+                      <span style={{ fontSize: 11, color: 'var(--text-muted)', minWidth: 60 }}>Name</span>
+                      <span style={{ fontSize: 13, color: 'var(--text-primary)' }}>
+                        {familyRep.contact_full_name.split(' ').map((w, i) =>
+                          i === 0 ? w : `${w[0] ?? ''}***`
+                        ).join(' ')}
+                      </span>
+                    </div>
+                  )}
+                  {familyRep.contact_email && (
+                    <div style={{ display: 'flex', gap: 8, marginBottom: 16, alignItems: 'baseline' }}>
+                      <span style={{ fontSize: 11, color: 'var(--text-muted)', minWidth: 60 }}>Email</span>
+                      <span style={{ fontSize: 13, color: 'var(--text-primary)' }}>{maskEmail(familyRep.contact_email)}</span>
+                    </div>
+                  )}
+
+                  {/* Change email — only if rep hasn't joined yet */}
+                  {needsRep && (
+                    <div>
+                      <p style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase' as const, letterSpacing: '0.07em', color: 'var(--text-muted)', marginBottom: 8 }}>
+                        Update representative email
+                      </p>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <input
+                          type="email"
+                          value={repEmailEdit}
+                          onChange={e => setRepEmailEdit(e.target.value)}
+                          placeholder="representative@email.com"
+                          style={{
+                            flex: 1, padding: '9px 12px', borderRadius: 8, fontSize: 12,
+                            background: 'var(--surface-3)', border: '0.5px solid var(--border-default)',
+                            color: 'var(--text-primary)', outline: 'none',
+                          }}
+                        />
+                        <button
+                          onClick={handleRepEmailSave}
+                          disabled={repEmailSaving || !repEmailEdit.trim() || repEmailEdit.trim() === familyRep.contact_email}
+                          style={{
+                            flexShrink: 0, padding: '9px 16px', borderRadius: 8, fontSize: 12, fontWeight: 600,
+                            background: 'var(--gold-muted)', border: '0.5px solid var(--border-gold)',
+                            color: 'var(--gold)', cursor: 'pointer',
+                            opacity: (repEmailSaving || !repEmailEdit.trim() || repEmailEdit.trim() === familyRep.contact_email) ? 0.5 : 1,
+                            transition: 'opacity 0.15s',
+                          }}
+                        >
+                          {repEmailSaving ? 'Saving…' : 'Save'}
+                        </button>
+                      </div>
+                      {repEmailMsg && (
+                        <p style={{ fontSize: 12, color: repEmailMsg === 'Email updated.' ? 'var(--status-success)' : 'var(--status-error)', marginTop: 8 }}>
+                          {repEmailMsg}
+                        </p>
+                      )}
+                      <p style={{ fontSize: 11.5, color: 'var(--text-muted)', lineHeight: 1.5, marginTop: 10 }}>
+                        If the original invite was sent to the wrong address, update it here so your representative receives the correct link.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )
+            })()}
 
             {/* Appearance */}
             <div style={{ background: 'var(--surface-2)', border: '0.5px solid var(--border-default)', borderRadius: 16, padding: 20 }}>

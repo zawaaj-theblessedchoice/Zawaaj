@@ -22,7 +22,7 @@ function chipStyle(active: boolean): React.CSSProperties {
 }
 
 export function FilterBar({ filters, onChange }: FilterBarProps) {
-  const hasActiveFilters = !!(filters.status || filters.gender || filters.location || filters.search)
+  const hasActiveFilters = !!(filters.status || filters.gender || filters.location || filters.search || filters.noFamily)
 
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
@@ -80,6 +80,36 @@ export function FilterBar({ filters, onChange }: FilterBarProps) {
           {g.l}
         </button>
       ))}
+
+      {/* Divider */}
+      <span
+        style={{ width: 1, height: 20, background: 'var(--admin-border)', margin: '0 4px' }}
+      />
+
+      {/* Divider */}
+      <span
+        style={{ width: 1, height: 20, background: 'var(--admin-border)', margin: '0 4px' }}
+      />
+
+      {/* Guardian label */}
+      <span
+        style={{
+          fontSize: 11,
+          color: 'var(--admin-muted)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.08em',
+        }}
+      >
+        Guardian
+      </span>
+
+      {/* No-guardian chip */}
+      <button
+        onClick={() => onChange({ ...filters, noFamily: filters.noFamily ? undefined : true })}
+        style={chipStyle(!!filters.noFamily)}
+      >
+        No guardian
+      </button>
 
       {/* Divider */}
       <span

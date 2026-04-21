@@ -18,6 +18,7 @@ interface DashboardCounts {
   matchesThisWeek: number
   profilesNoFamily: number
   familiesNoProfile: number
+  accountsNeedingRep: number
 }
 
 interface InboxItem {
@@ -49,6 +50,7 @@ export default function AdminDashboard() {
     matchesThisWeek: 0,
     profilesNoFamily: 0,
     familiesNoProfile: 0,
+    accountsNeedingRep: 0,
   })
 
   useEffect(() => {
@@ -79,6 +81,7 @@ export default function AdminDashboard() {
         matchesRes,
         noFamilyRes,
         famWithProfilesRes,
+        needsRepRes,
       ] = await Promise.all([
         supabase.from('zawaaj_profiles').select('id', { count: 'exact', head: true })
           .eq('status', 'pending').eq('is_admin', false),
@@ -99,6 +102,10 @@ export default function AdminDashboard() {
           .is('family_account_id', null).eq('is_admin', false)
           .not('status', 'in', '(rejected,withdrawn)'),
         supabase.from('zawaaj_family_accounts').select('id, profiles:zawaaj_profiles(id)'),
+        // Active family accounts where no representative has joined yet
+        supabase.from('zawaaj_family_accounts').select('id', { count: 'exact', head: true })
+          .eq('status', 'active')
+          .in('readiness_state', ['candidate_only', 'representative_invited']),
       ])
 
       // Count family accounts with no profiles
@@ -119,6 +126,7 @@ export default function AdminDashboard() {
         matchesThisWeek: matchesRes.count ?? 0,
         profilesNoFamily: noFamilyRes.count ?? 0,
         familiesNoProfile,
+        accountsNeedingRep: needsRepRes.count ?? 0,
       })
       setLoading(false)
     }
@@ -224,6 +232,16 @@ export default function AdminDashboard() {
       label: `${counts.mutualIntros} mutual intro${counts.mutualIntros !== 1 ? 's' : ''} awaiting facilitation`,
       sublabel: 'Both parties interested — contact families to progress',
       href: '/admin/introductions',
+    },
+    {
+      key: 'needsRep',
+      show: counts.accountsNeedingRep > 0,
+      priority: 3,
+      accent: 'var(--status-warning)',
+      count: counts.accountsNeedingRep,
+      label: `${counts.accountsNeedingRep} active account${counts.accountsNeedingRep !== 1 ? 's' : ''} awaiting a representative`,
+      sublabel: 'Candidate registered but no representative has joined yet',
+      href: '/admin/families',
     },
     {
       key: 'noFamily',

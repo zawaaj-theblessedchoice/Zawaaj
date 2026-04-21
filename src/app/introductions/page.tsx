@@ -54,6 +54,15 @@ export default async function IntroductionsPage() {
 
   if (!profile || profile.status !== 'approved') redirect('/pending')
 
+  // Check if the current user is the family representative (primary_user_id).
+  // Determines whether to show the respond UI (rep) or candidate preference UI (candidate).
+  const { data: repAccountRow } = await supabase
+    .from('zawaaj_family_accounts')
+    .select('id')
+    .eq('primary_user_id', user.id)
+    .maybeSingle()
+  const isRepresentative = !!repAccountRow
+
   // Fetch everything in parallel
   const [
     { data: profileRows },
@@ -228,6 +237,7 @@ export default async function IntroductionsPage() {
       activeProfileId={activeProfileId}
       responseTemplates={responseTemplates}
       plan={plan}
+      isRepresentative={isRepresentative}
     />
   )
 }

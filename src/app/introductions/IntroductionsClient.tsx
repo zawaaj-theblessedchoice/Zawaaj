@@ -82,6 +82,9 @@ interface IntroductionsClientProps {
   activeProfileId?: string
   responseTemplates: ResponseTemplate[]
   plan?: string
+  /** True when the current user is the family representative (primary_user_id).
+   *  Representatives see the full Accept/Decline UI; candidates see the preference note UI. */
+  isRepresentative?: boolean
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -344,16 +347,117 @@ function SentRequestCard({ req }: { req: IntroRequest }) {
   )
 }
 
+// ─── CandidatePreferenceSection ───────────────────────────────────────────────
+// Shown to candidates (non-representatives) on pending received requests.
+// Records a personal preference note — does NOT constitute an official response.
+
+function CandidatePreferenceSection({ requestId }: { requestId: string }) {
+  const [selected, setSelected] = useState<string | null>(null)
+  const [submitting, setSubmitting] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const options = [
+    { value: 'interested',          label: 'Interested' },
+    { value: 'not_interested',       label: 'Not interested' },
+    { value: 'needs_family_review',  label: 'Needs family review' },
+  ] as const
+
+  async function handleSubmit() {
+    if (!selected) return
+    setSubmitting(true)
+    setError(null)
+    try {
+      const res = await fetch(`/api/introduction-requests/${requestId}/candidate-preference`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ preference: selected }),
+      })
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as { error?: string }
+        throw new Error(data.error ?? 'Something went wrong. Please try again.')
+      }
+      setSubmitted(true)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong.')
+      setSubmitting(false)
+    }
+  }
+
+  if (submitted) {
+    return (
+      <div style={{ marginTop: 8, fontSize: 12, color: 'var(--gold)' }}>
+        ✓ Preference noted — your representative will make the official response.
+      </div>
+    )
+  }
+
+  return (
+    <div style={{ marginTop: 8 }}>
+      <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginBottom: 6 }}>
+        Your representative will respond on your behalf — you can note your personal preference:
+      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+        {options.map(opt => (
+          <button
+            key={opt.value}
+            onClick={() => setSelected(selected === opt.value ? null : opt.value)}
+            style={{
+              padding: '4px 12px', borderRadius: 7, fontSize: 12, fontWeight: 500, cursor: 'pointer',
+              border: selected === opt.value ? '1.5px solid var(--border-gold)' : '0.5px solid var(--border-default)',
+              background: selected === opt.value ? 'var(--gold-muted)' : 'transparent',
+              color: selected === opt.value ? 'var(--gold)' : 'var(--text-secondary)',
+              transition: 'all 0.13s',
+            }}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+      {selected && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+          <button
+            onClick={handleSubmit}
+            disabled={submitting}
+            style={{
+              padding: '5px 14px', borderRadius: 7, border: 'none',
+              background: 'var(--gold)', color: 'var(--surface)',
+              fontSize: 12, fontWeight: 600,
+              cursor: submitting ? 'not-allowed' : 'pointer',
+              opacity: submitting ? 0.6 : 1,
+            }}
+          >
+            {submitting ? 'Saving…' : 'Save preference'}
+          </button>
+          <button
+            onClick={() => setSelected(null)}
+            disabled={submitting}
+            style={{
+              background: 'none', border: 'none', fontSize: 12,
+              color: 'var(--text-muted)', cursor: 'pointer', textDecoration: 'underline',
+            }}
+          >
+            Cancel
+          </button>
+        </div>
+      )}
+      {error && <div style={{ fontSize: 11, color: 'var(--status-error)', marginTop: 4 }}>{error}</div>}
+    </div>
+  )
+}
+
 // ─── ReceivedRequestCard ──────────────────────────────────────────────────────
 
 function ReceivedRequestCard({
   req,
   responseTemplates,
   plan,
+  isRepresentative = true,
 }: {
   req: ReceivedRequest
   responseTemplates: ResponseTemplate[]
   plan: string
+  isRepresentative?: boolean
 }) {
   const requester = req.requester
   const displayName = requester
@@ -522,8 +626,13 @@ function ReceivedRequestCard({
             </div>
           )}
 
-          {/* Response UI */}
-          {isPending && (
+          {/* Candidate preference UI — for non-representatives viewing received requests */}
+          {isPending && !isRepresentative && (
+            <CandidatePreferenceSection requestId={req.id} />
+          )}
+
+          {/* Response UI — only the family representative may officially respond */}
+          {isPending && isRepresentative && (
             <div style={{ marginTop: 8 }}>
               {isFreeUser ? (
                 // ── Free: simple Accept / Decline ──────────────────────────
@@ -880,6 +989,7 @@ export default function IntroductionsClient({
   activeProfileId,
   responseTemplates,
   plan = 'free',
+  isRepresentative = true,
 }: IntroductionsClientProps) {
   // Derive counts for default tab selection
   // Priority: accepted matches > pending received > sent
@@ -1037,6 +1147,7 @@ export default function IntroductionsClient({
                       req={r}
                       responseTemplates={responseTemplates}
                       plan={plan}
+                      isRepresentative={isRepresentative}
                     />
                   ))}
                 </div>
@@ -1053,6 +1164,7 @@ export default function IntroductionsClient({
                       req={r}
                       responseTemplates={responseTemplates}
                       plan={plan}
+                      isRepresentative={isRepresentative}
                     />
                   ))}
                 </div>

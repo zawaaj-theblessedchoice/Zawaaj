@@ -113,7 +113,7 @@ export default async function BrowsePage({
   // 3b. Get family account id (if any) — used for sibling exclusion and profile switcher
   const { data: activeFamilyAccount } = await supabase
     .from('zawaaj_family_accounts')
-    .select('id')
+    .select('id, readiness_state')
     .eq('primary_user_id', user.id)
     .maybeSingle()
   const familyAccountId: string | null = activeFamilyAccount?.id ?? null
@@ -185,6 +185,28 @@ export default async function BrowsePage({
         </main>
       </div>
     )
+  }
+
+  // 3d. Determine family readiness state for limited-mode banner (3a).
+  //     Representatives: readiness_state already fetched in activeFamilyAccount above.
+  //     Candidates: look up via the profile's own family_account_id.
+  let familyReadinessState: string | null =
+    (activeFamilyAccount as { id: string; readiness_state?: string } | null)?.readiness_state ?? null
+  if (!familyReadinessState) {
+    const { data: pfa } = await supabase
+      .from('zawaaj_profiles')
+      .select('family_account_id')
+      .eq('id', activeProfileId)
+      .single()
+    const profileFamilyAccountId = (pfa as { family_account_id?: string | null } | null)?.family_account_id ?? null
+    if (profileFamilyAccountId) {
+      const { data: fa } = await supabase
+        .from('zawaaj_family_accounts')
+        .select('readiness_state')
+        .eq('id', profileFamilyAccountId)
+        .single()
+      familyReadinessState = (fa as { readiness_state?: string } | null)?.readiness_state ?? null
+    }
   }
 
   // 4. Get all approved profiles (excluding own, filtered by opposite gender)
@@ -383,6 +405,7 @@ export default async function BrowsePage({
       activeCount={activeCount}
       activeLimit={activeLimit}
       initialFilters={initialFilters}
+      familyReadinessState={familyReadinessState ?? undefined}
     />
   )
 }

@@ -62,12 +62,35 @@ export async function POST(
       return NextResponse.json({ error: 'Request not found' }, { status: 404 })
     }
 
-    // ── 4. Only recipient can respond ─────────────────────────────────────────
-    if (req.target_profile_id !== activeProfileId) {
+    // ── 4. Only the family representative may respond ─────────────────────────
+    // Fetch the target profile's family account to verify caller is primary_user_id.
+    const { data: targetProfileRow } = await supabaseAdmin
+      .from('zawaaj_profiles')
+      .select('family_account_id')
+      .eq('id', req.target_profile_id)
+      .single()
+
+    const { data: targetFamilyAccount } = targetProfileRow?.family_account_id
+      ? await supabaseAdmin
+          .from('zawaaj_family_accounts')
+          .select('primary_user_id, readiness_state')
+          .eq('id', targetProfileRow.family_account_id)
+          .single()
+      : { data: null }
+
+    // Strict: only primary_user_id (the representative) may officially respond.
+    if (targetFamilyAccount?.primary_user_id !== user.id) {
       return NextResponse.json(
-        { error: 'Only the recipient of a request can respond to it' },
+        {
+          error: 'representative_only',
+          message: 'Only the family representative may respond to introductions.',
+        },
         { status: 403 }
       )
+    }
+
+    if (targetFamilyAccount?.readiness_state !== 'intro_ready') {
+      return NextResponse.json({ error: 'not_intro_ready' }, { status: 403 })
     }
 
     // ── 5. Only pending requests can be responded to ──────────────────────────

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import ZawaajLogo from '@/components/ZawaajLogo'
 import { PLAN_CONFIG, PLAN_PRICES, PLAN_LABELS } from '@/lib/plan-config'
@@ -353,11 +353,55 @@ function HomepageEventCard({ event }: { event: HomepageEvent }) {
   )
 }
 
+// ─── Hook: stagger-reveal animation via IntersectionObserver ─────────────────
+// Returns a ref to attach to a container. Children with data-step="N" will
+// fade-in and slide up sequentially as they enter the viewport.
+
+function useStepAnimation() {
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+
+    const cards = Array.from(container.querySelectorAll<HTMLElement>('[data-step]'))
+
+    // Set initial hidden state
+    cards.forEach(card => {
+      card.style.opacity = '0'
+      card.style.transform = 'translateY(28px)'
+      card.style.transition = 'opacity 0.55s ease, transform 0.55s ease'
+    })
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting) return
+          const card = entry.target as HTMLElement
+          const stepIdx = parseInt(card.getAttribute('data-step') ?? '0', 10)
+          setTimeout(() => {
+            card.style.opacity = '1'
+            card.style.transform = 'translateY(0)'
+          }, stepIdx * 90) // 90ms stagger per card
+          observer.unobserve(card)
+        })
+      },
+      { threshold: 0.12 }
+    )
+
+    cards.forEach(card => observer.observe(card))
+    return () => observer.disconnect()
+  }, [])
+
+  return containerRef
+}
+
 // ─── Main landing page ────────────────────────────────────────────────────────
 
 export default function LandingPage({ isLoggedIn = false, featuredEvents = [] }: { isLoggedIn?: boolean; featuredEvents?: HomepageEvent[] }) {
   const [annual, setAnnual] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const stepGridRef = useStepAnimation()
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--surface)', color: 'var(--text-primary)' }}>
@@ -512,40 +556,7 @@ export default function LandingPage({ isLoggedIn = false, featuredEvents = [] }:
         </div>
       </section>
 
-      {/* ── Quranic ayah ── */}
-      <section style={{ background: 'var(--gold-muted)', borderTop: '0.5px solid var(--border-gold)', borderBottom: '0.5px solid var(--border-gold)' }}>
-        <div className="max-w-3xl mx-auto px-4 md:px-6 py-10 md:py-20 text-center flex flex-col items-center gap-6">
-          {/* Arabic */}
-          <p
-            dir="rtl"
-            lang="ar"
-            style={{
-              fontFamily: 'var(--font-amiri), "Amiri", "Scheherazade New", serif',
-              fontSize: 'clamp(1.35rem, 3vw, 1.95rem)',
-              lineHeight: 2,
-              color: 'var(--gold)',
-              fontWeight: 400,
-              textAlign: 'center',
-              letterSpacing: '0.01em',
-              maxWidth: '44rem',
-            }}
-          >
-            وَمِنۡ اٰيٰتِهٖۤ اَنۡ خَلَقَ لَكُمۡ مِّنۡ اَنۡفُسِكُمۡ اَزۡوَاجًا لِّتَسۡكُنُوۡۤا اِلَيۡهَا وَجَعَلَ بَيۡنَكُمۡ مَّوَدَّةً وَّرَحۡمَةً ؕ اِنَّ فِىۡ ذٰلِكَ لَاٰيٰتٍ لِّقَوۡمٍ يَّتَفَكَّرُوۡنَ ٢١
-          </p>
-          {/* Divider */}
-          <div style={{ width: 40, height: 1, background: 'var(--border-gold)', flexShrink: 0 }} />
-          {/* English translation */}
-          <p style={{ fontSize: 15, color: 'var(--text-secondary)', lineHeight: 1.8, fontStyle: 'italic', maxWidth: '36rem', fontWeight: 400 }}>
-            &ldquo;And among His Signs is that He created for you mates from amongst yourselves, that you may dwell in tranquillity with them, and He has put love and mercy between your hearts. Verily in that are Signs for those who reflect.&rdquo;
-          </p>
-          {/* Reference */}
-          <p style={{ fontSize: 12, color: 'var(--text-muted)', letterSpacing: '0.06em', fontWeight: 500 }}>
-            — Surah Ar-Rum, 30:21
-          </p>
-        </div>
-      </section>
-
-      {/* ── Trust bar ── */}
+      {/* ── Trust bar ── (credibility signals immediately below hero) */}
       <section className="border-y border-br bg-surface-2">
         <div className="max-w-5xl mx-auto px-4 md:px-5 py-10 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           {[
@@ -575,6 +586,20 @@ export default function LandingPage({ isLoggedIn = false, featuredEvents = [] }:
         </div>
       </section>
 
+      {/* ── Quranic ayah ── */}
+      <section style={{ background: 'var(--gold-muted)', borderTop: '0.5px solid var(--border-gold)', borderBottom: '0.5px solid var(--border-gold)' }}>
+        <div className="max-w-3xl mx-auto px-4 md:px-6 py-10 md:py-20 text-center flex flex-col items-center gap-6">
+          <p dir="rtl" lang="ar" style={{ fontFamily: 'var(--font-amiri, Georgia, serif)', fontSize: 'clamp(1.35rem, 3vw, 1.95rem)', lineHeight: 2, color: 'var(--gold)', fontWeight: 400, letterSpacing: '0.01em' }}>
+            وَمِنۡ اٰيٰتِهٖۤ اَنۡ خَلَقَ لَكُمۡ مِّنۡ اَنۡفُسِكُمۡ اَزۡوَاجًا لِّتَسۡكُنُوۡۤا اِلَيۡهَا وَجَعَلَ بَيۡنَكُمۡ مَّوَدَّةً وَّرَحۡمَةً ؕ اِنَّ فِىۡ ذٰلِكَ لَاٰيٰتٍ لِّقَوۡمٍ يَّتَفَكَّرُوۡنَ ٢١
+          </p>
+          <div style={{ width: 40, height: 1, background: 'var(--border-gold)', flexShrink: 0 }} />
+          <p style={{ fontSize: 15, color: 'var(--text-secondary)', lineHeight: 1.8, fontStyle: 'italic', maxWidth: '36rem' }}>
+            &ldquo;And among His Signs is that He created for you mates from amongst yourselves, that you may dwell in tranquillity with them, and He placed between you love and mercy.&rdquo;
+          </p>
+          <p style={{ fontSize: 12, color: 'var(--text-muted)', letterSpacing: '0.04em' }}>— Surah Ar-Rum, 30:21</p>
+        </div>
+      </section>
+
       {/* ── How it works ── */}
       <section id="how-it-works" className="max-w-5xl mx-auto px-4 md:px-5 py-12 md:py-24">
         <div className="text-center mb-14">
@@ -582,9 +607,9 @@ export default function LandingPage({ isLoggedIn = false, featuredEvents = [] }:
           <h2 className="text-3xl font-bold text-ink mb-4">A Dignified Path to Marriage</h2>
           <p className="text-sm text-muted max-w-lg mx-auto leading-relaxed">A private, family-led journey in six simple steps — built on trust, dignity, and sincere intent.</p>
         </div>
-        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {HOW_IT_WORKS.map(s => (
-            <div key={s.n} className="bg-surface-2 rounded-2xl p-6 border border-br">
+        <div ref={stepGridRef} className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
+          {HOW_IT_WORKS.map((s, index) => (
+            <div key={s.n} data-step={index} className="bg-surface-2 rounded-2xl p-6 border border-br">
               <div style={{ marginBottom: 10 }}>
                 <span style={{ fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 700, background: 'var(--gold-muted)', border: '1px solid var(--border-gold)', borderRadius: 999, padding: '3px 10px', display: 'inline-block' }}>
                   Step {s.n}

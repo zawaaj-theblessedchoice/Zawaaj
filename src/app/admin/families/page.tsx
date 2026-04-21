@@ -17,6 +17,7 @@ export interface FamilyRow {
   father_explanation: string
   plan: string
   status: string
+  readiness_state: string
   registration_path: string
   terms_agreed: boolean
   terms_agreed_at: string | null
@@ -49,7 +50,7 @@ export default async function FamiliesPage() {
     .select(`
       id, contact_full_name, contact_relationship, contact_number, contact_email,
       female_contact_name, female_contact_number, no_female_contact_flag, father_explanation,
-      plan, status, registration_path, terms_agreed, terms_agreed_at,
+      plan, status, readiness_state, registration_path, terms_agreed, terms_agreed_at,
       approved_at, created_at, updated_at, primary_user_id,
       profiles:zawaaj_profiles(
         id, display_initials, first_name, last_name, gender, status, duplicate_flag

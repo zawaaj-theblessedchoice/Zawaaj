@@ -960,6 +960,11 @@ export default function AddProfilePage() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
+  // Post-submit invite flow
+  const [inviteStep, setInviteStep] = useState<'prompt' | 'loading' | 'link' | null>(null)
+  const [inviteUrl, setInviteUrl] = useState<string | null>(null)
+  const [inviteCopied, setInviteCopied] = useState(false)
+  const [inviteError, setInviteError] = useState<string | null>(null)
 
   useEffect(() => {
     async function load() {
@@ -1062,7 +1067,37 @@ export default function AddProfilePage() {
     setLoading(false)
     if (!res.ok) { setError(json.error ?? 'Something went wrong.'); return }
     setSuccess(true)
-    setTimeout(() => router.push('/browse'), 2500)
+    setInviteStep('prompt')
+  }
+
+  async function handleGenerateInvite() {
+    setInviteStep('loading')
+    setInviteError(null)
+    try {
+      const res = await fetch('/api/family/invite-candidate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ invited_name: form.firstName || null }),
+      })
+      const json = await res.json() as { url?: string; error?: string }
+      if (!res.ok || !json.url) {
+        setInviteError(json.error ?? 'Could not create invite link.')
+        setInviteStep('prompt')
+        return
+      }
+      setInviteUrl(json.url)
+      setInviteStep('link')
+    } catch {
+      setInviteError('Something went wrong — please try again.')
+      setInviteStep('prompt')
+    }
+  }
+
+  function handleCopyInvite() {
+    if (!inviteUrl) return
+    navigator.clipboard.writeText(inviteUrl).catch(() => {/* ignore */})
+    setInviteCopied(true)
+    setTimeout(() => setInviteCopied(false), 2000)
   }
 
   if (!authChecked) {
@@ -1195,10 +1230,92 @@ export default function AddProfilePage() {
               <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>You can manage up to 4 profiles per account. Please contact admin if you need assistance.</p>
             </div>
           ) : success ? (
-            <div style={{ padding: '24px', borderRadius: 13, background: 'rgba(74,222,128,0.08)', border: '0.5px solid rgba(74,222,128,0.25)', textAlign: 'center' }}>
-              <div style={{ fontSize: 24, marginBottom: 12 }}>&#x2713;</div>
-              <p style={{ fontSize: 14, fontWeight: 500, color: 'var(--status-success)', marginBottom: 6 }}>Profile submitted</p>
-              <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Redirecting you back to browse…</p>
+            <div style={{ padding: 28, borderRadius: 13, background: 'var(--surface-2)', border: '0.5px solid var(--border-default)' }}>
+              {/* Submitted confirmation */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20, padding: '12px 14px', borderRadius: 9, background: 'rgba(74,222,128,0.08)', border: '0.5px solid rgba(74,222,128,0.25)' }}>
+                <span style={{ fontSize: 18, color: 'var(--status-success)' }}>✓</span>
+                <div>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--status-success)', margin: 0 }}>Profile submitted for review</p>
+                  <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: '2px 0 0' }}>The admin team will review and approve the profile shortly.</p>
+                </div>
+              </div>
+
+              {inviteStep === 'prompt' && (
+                <>
+                  <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 6 }}>
+                    Invite {form.firstName || 'them'} to access their profile?
+                  </p>
+                  <p style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: 20 }}>
+                    You can send {form.firstName || 'them'} a private link so they can create their own login, track introductions, and see their profile as others see it.
+                  </p>
+                  {inviteError && (
+                    <p style={{ fontSize: 12, color: 'var(--status-error)', marginBottom: 12 }}>{inviteError}</p>
+                  )}
+                  <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      onClick={handleGenerateInvite}
+                      style={{ flex: '1 1 auto', padding: '11px 16px', borderRadius: 9, fontSize: 13.5, fontWeight: 600, background: 'linear-gradient(135deg, var(--gold), var(--gold-light))', border: 'none', color: 'var(--surface)', cursor: 'pointer' }}
+                    >
+                      Yes, create invite link
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => router.push('/browse')}
+                      style={{ flex: '1 1 auto', padding: '11px 16px', borderRadius: 9, fontSize: 13.5, fontWeight: 500, background: 'var(--surface-3)', border: '0.5px solid var(--border-default)', color: 'var(--text-secondary)', cursor: 'pointer' }}
+                    >
+                      Skip for now
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {inviteStep === 'loading' && (
+                <p style={{ fontSize: 13, color: 'var(--text-muted)', textAlign: 'center', padding: '20px 0' }}>Creating invite link…</p>
+              )}
+
+              {inviteStep === 'link' && inviteUrl && (
+                <>
+                  <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 6 }}>
+                    Share this link with {form.firstName || 'them'}
+                  </p>
+                  <p style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: 14 }}>
+                    This link expires in 7 days. The candidate will be able to create a login and access their profile.
+                  </p>
+                  <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+                    <input
+                      readOnly
+                      value={inviteUrl}
+                      style={{
+                        flex: 1, padding: '9px 12px', borderRadius: 8, fontSize: 12,
+                        background: 'var(--surface-3)', border: '0.5px solid var(--border-default)',
+                        color: 'var(--text-secondary)', outline: 'none', overflow: 'hidden', textOverflow: 'ellipsis',
+                      }}
+                      onFocus={e => e.currentTarget.select()}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleCopyInvite}
+                      style={{
+                        flexShrink: 0, padding: '9px 16px', borderRadius: 8, fontSize: 12, fontWeight: 600,
+                        background: inviteCopied ? 'rgba(74,222,128,0.12)' : 'var(--gold-muted)',
+                        border: inviteCopied ? '0.5px solid rgba(74,222,128,0.3)' : '0.5px solid var(--border-gold)',
+                        color: inviteCopied ? 'var(--status-success)' : 'var(--gold)',
+                        cursor: 'pointer', transition: 'all 0.15s',
+                      }}
+                    >
+                      {inviteCopied ? 'Copied!' : 'Copy'}
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => router.push('/browse')}
+                    style={{ width: '100%', padding: '11px', borderRadius: 9, fontSize: 13.5, fontWeight: 600, background: 'var(--surface-3)', border: '0.5px solid var(--border-default)', color: 'var(--text-primary)', cursor: 'pointer' }}
+                  >
+                    Done
+                  </button>
+                </>
+              )}
             </div>
           ) : (
             <>

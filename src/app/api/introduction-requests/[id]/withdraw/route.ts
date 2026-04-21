@@ -42,9 +42,31 @@ export async function POST(
       return NextResponse.json({ error: 'Request not found' }, { status: 404 })
     }
 
-    // 4. Only the sender can withdraw
+    // 4. Only the sender can withdraw — and they must be the family representative.
     if (req.requesting_profile_id !== activeProfileId) {
       return NextResponse.json({ error: 'You can only withdraw your own requests' }, { status: 403 })
+    }
+
+    // Verify caller is primary_user_id of the requesting profile's family account.
+    const { data: reqProfileRow } = await supabase
+      .from('zawaaj_profiles')
+      .select('family_account_id')
+      .eq('id', req.requesting_profile_id)
+      .single()
+
+    if (reqProfileRow?.family_account_id) {
+      const { data: reqFamilyAccount } = await supabaseAdmin
+        .from('zawaaj_family_accounts')
+        .select('primary_user_id')
+        .eq('id', reqProfileRow.family_account_id)
+        .single()
+
+      if (reqFamilyAccount && reqFamilyAccount.primary_user_id !== user.id) {
+        return NextResponse.json(
+          { error: 'representative_only', message: 'Only the family representative may withdraw requests.' },
+          { status: 403 }
+        )
+      }
     }
 
     // 5. Only pending requests can be withdrawn

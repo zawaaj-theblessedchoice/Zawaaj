@@ -64,6 +64,25 @@ function PlanBadge({ plan }: { plan: string }) {
   )
 }
 
+const READINESS_CONFIG: Record<string, { label: string; bg: string; text: string }> = {
+  candidate_only:           { label: 'Candidate only',        bg: 'rgba(239,68,68,0.12)',    text: '#dc2626' },
+  representative_invited:   { label: 'Rep invited',           bg: 'rgba(234,179,8,0.15)',    text: '#ca8a04' },
+  representative_linked:    { label: 'Rep linked',            bg: 'rgba(99,102,241,0.15)',   text: '#818cf8' },
+  intro_ready:              { label: 'Intro ready',           bg: 'rgba(34,197,94,0.15)',    text: '#16a34a' },
+}
+
+function ReadinessBadge({ state }: { state: string }) {
+  const c = READINESS_CONFIG[state] ?? { label: state.replace(/_/g, ' '), bg: 'rgba(255,255,255,0.08)', text: 'var(--admin-muted)' }
+  return (
+    <span style={{
+      fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 99,
+      background: c.bg, color: c.text, whiteSpace: 'nowrap',
+    }}>
+      {c.label}
+    </span>
+  )
+}
+
 function fmtDate(d: string | null) {
   if (!d) return '—'
   return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
@@ -820,6 +839,7 @@ export function FamiliesClient({ families: initial }: Props) {
   const [families, setFamilies]           = useState(initial)
   const [search, setSearch]               = useState('')
   const [statusFilter, setStatusFilter]   = useState<string>('all')
+  const [readinessFilter, setReadinessFilter] = useState<string>('all')
   const [expandedId, setExpandedId]       = useState<string | null>(null)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
 
@@ -831,13 +851,14 @@ export function FamiliesClient({ families: initial }: Props) {
 
   const filtered = families.filter(f => {
     const matchStatus = statusFilter === 'all' || f.status === statusFilter
+    const matchReadiness = readinessFilter === 'all' || f.readiness_state === readinessFilter
     const q = search.toLowerCase()
     const matchSearch = !q ||
       f.contact_full_name.toLowerCase().includes(q) ||
       f.contact_email.toLowerCase().includes(q) ||
       f.contact_number.includes(q) ||
       f.profiles.some(p => [p.first_name, p.last_name].filter(Boolean).join(' ').toLowerCase().includes(q))
-    return matchStatus && matchSearch
+    return matchStatus && matchReadiness && matchSearch
   })
 
   async function resendVerification(id: string) {
@@ -945,7 +966,7 @@ export function FamiliesClient({ families: initial }: Props) {
             color: 'var(--admin-text)', outline: 'none',
           }}
         />
-        <div style={{ display: 'flex', gap: 6 }}>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           {(['all', 'pending_email_verification', 'pending_approval', 'active', 'suspended'] as const).map(s => (
             <button
               key={s}
@@ -964,6 +985,30 @@ export function FamiliesClient({ families: initial }: Props) {
                 : `Suspended (${counts.suspended})`}
             </button>
           ))}
+        </div>
+
+        {/* Readiness state filter chips */}
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
+          <span style={{ fontSize: 11, color: 'var(--admin-muted)', alignSelf: 'center', marginRight: 2 }}>Readiness:</span>
+          {(['all', 'candidate_only', 'representative_invited', 'representative_linked', 'intro_ready'] as const).map(r => {
+            const cfg = r !== 'all' ? READINESS_CONFIG[r] : null
+            const isActive = readinessFilter === r
+            const rCount = r === 'all' ? families.length : families.filter(f => f.readiness_state === r).length
+            return (
+              <button
+                key={r}
+                onClick={() => setReadinessFilter(r)}
+                style={{
+                  padding: '4px 10px', borderRadius: 8, fontSize: 11, fontWeight: 500,
+                  border: 'none', cursor: 'pointer',
+                  background: isActive ? (cfg?.bg ?? '#B8960C') : 'var(--admin-surface)',
+                  color: isActive ? (cfg?.text ?? '#111') : 'var(--admin-muted)',
+                }}
+              >
+                {r === 'all' ? `All (${rCount})` : `${cfg?.label ?? r} (${rCount})`}
+              </button>
+            )
+          })}
         </div>
       </div>
 
@@ -986,7 +1031,7 @@ export function FamiliesClient({ families: initial }: Props) {
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--admin-border)' }}>
-                {['Contact', 'Relationship', 'Email / Phone', 'Plan', 'Status', 'Members', 'Last active', 'Created', ''].map(h => (
+                {['Contact', 'Relationship', 'Email / Phone', 'Plan', 'Status', 'Readiness', 'Members', 'Last active', 'Created', ''].map(h => (
                   <th key={h} style={{
                     padding: '10px 14px', textAlign: 'left', fontSize: 11,
                     fontWeight: 600, color: 'var(--admin-muted)',
@@ -1019,6 +1064,7 @@ export function FamiliesClient({ families: initial }: Props) {
                     </td>
                     <td style={{ padding: '12px 14px' }}><PlanBadge plan={f.plan} /></td>
                     <td style={{ padding: '12px 14px' }}><StatusBadge status={f.status} /></td>
+                    <td style={{ padding: '12px 14px' }}><ReadinessBadge state={f.readiness_state} /></td>
                     <td style={{ padding: '12px 14px', fontSize: 13, color: 'var(--admin-muted)' }}>
                       {f.profiles.length}
                     </td>
@@ -1044,7 +1090,7 @@ export function FamiliesClient({ families: initial }: Props) {
 
                   {expandedId === f.id && (
                     <tr key={`${f.id}-expand`} style={{ borderBottom: i < filtered.length - 1 ? '1px solid var(--admin-border)' : 'none' }}>
-                      <td colSpan={9} style={{ padding: '0 14px 16px' }}>
+                      <td colSpan={10} style={{ padding: '0 14px 16px' }}>
                         <div style={{
                           background: 'rgba(255,255,255,0.03)', borderRadius: 10,
                           border: '1px solid var(--admin-border)', padding: 16,
@@ -1067,6 +1113,10 @@ export function FamiliesClient({ families: initial }: Props) {
                               )}
                               <Detail label="Registration path" value={f.registration_path} />
                               <Detail label="Terms agreed" value={f.terms_agreed ? `Yes — ${fmtDate(f.terms_agreed_at)}` : 'No'} />
+                              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                                <span style={{ fontSize: 12, color: 'var(--admin-muted)', minWidth: 130, flexShrink: 0 }}>Readiness state</span>
+                                <ReadinessBadge state={f.readiness_state} />
+                              </div>
                             </div>
                           </div>
 
@@ -1130,6 +1180,13 @@ export function FamiliesClient({ families: initial }: Props) {
                           {f.status === 'suspended' && (
                             <ActionBtn label="Reinstate" color="#16a34a" bg="rgba(34,197,94,0.12)"
                               loading={actionLoading === f.id} onClick={() => updateStatus(f.id, 'active')} />
+                          )}
+                          {(f.readiness_state === 'candidate_only' || f.readiness_state === 'representative_invited') && (
+                            <ActionBtn
+                              label={f.readiness_state === 'representative_invited' ? '↺ Resend rep invite' : '✉ Send rep invite'}
+                              color="#dc2626" bg="rgba(239,68,68,0.10)"
+                              loading={false} onClick={() => setInviteFamily(f)}
+                            />
                           )}
                           <ActionBtn label="Generate invite link" color="#B8960C" bg="rgba(184,150,12,0.12)"
                             loading={false} onClick={() => setInviteFamily(f)} />

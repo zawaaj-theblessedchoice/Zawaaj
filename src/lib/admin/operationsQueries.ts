@@ -66,6 +66,7 @@ export interface ProfileFilters {
   gender?: string // 'all' | 'female' | 'male'
   location?: string
   search?: string // searches display_initials, first_name, location
+  noFamily?: boolean // true = only profiles with no linked family account
 }
 
 export interface Metrics {
@@ -134,6 +135,9 @@ export async function fetchProfiles(
     q = q.or(
       `display_initials.ilike.%${filters.search}%,first_name.ilike.%${filters.search}%,location.ilike.%${filters.search}%`
     )
+  }
+  if (filters.noFamily === true) {
+    q = q.is('family_account_id', null)
   }
 
   const { data, count, error } = await q

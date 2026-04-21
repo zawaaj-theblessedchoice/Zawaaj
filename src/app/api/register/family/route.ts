@@ -363,6 +363,7 @@ export async function POST(request: Request): Promise<Response> {
         terms_agreed:                true,
         terms_agreed_at:             new Date().toISOString(),
         status:                      'pending_email_verification',
+        readiness_state:             'candidate_only', // upgraded to intro_ready after email verification (parent path) or guardian invite accepted (child path)
       })
       .select('id')
       .single()

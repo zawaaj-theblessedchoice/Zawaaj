@@ -64,11 +64,23 @@ export async function POST(request: Request): Promise<Response> {
 
     // 3. Activate family account — no manual approval needed for family accounts,
     //    only profiles require admin approval.
+    //
+    //    readiness_state logic:
+    //    - parent path: parent IS the representative, so set intro_ready immediately
+    //    - child path: guardian invite still pending, stay at candidate_only
+    const { data: familyAccountRow } = await supabaseAdmin
+      .from('zawaaj_family_accounts')
+      .select('registration_path')
+      .eq('id', invite.family_account_id)
+      .single()
+
+    const isParentPath = familyAccountRow?.registration_path === 'parent'
+
     const { error: accountUpdateErr } = await supabaseAdmin
       .from('zawaaj_family_accounts')
       .update({
         status: 'active',
-        onboarding_state: 'contact_added',
+        readiness_state: isParentPath ? 'intro_ready' : 'candidate_only',
         approved_at: new Date().toISOString(),
       })
       .eq('id', invite.family_account_id)

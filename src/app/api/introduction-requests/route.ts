@@ -58,18 +58,29 @@ export async function POST(request: Request): Promise<Response> {
       return NextResponse.json({ error: 'Your profile must be approved to express interest' }, { status: 403 })
     }
 
-    // 4c2. Only block if the family account is explicitly suspended.
-    // pending_approval / pending_contact_details are non-terminal — the profile
-    // approval is the real gate for member access, not the family account status.
+    // 4c2. Family account checks — suspension and readiness_state.
     if (requesterProfile.family_account_id) {
       const { data: familyAccount } = await supabase
         .from('zawaaj_family_accounts')
-        .select('status')
+        .select('status, readiness_state')
         .eq('id', requesterProfile.family_account_id)
         .maybeSingle()
+
       if (familyAccount?.status === 'suspended') {
         return NextResponse.json(
           { error: 'Your account has been suspended. Please contact support.' },
+          { status: 403 }
+        )
+      }
+
+      // Representative must have joined before introductions can be sent.
+      if (familyAccount?.readiness_state !== 'intro_ready') {
+        return NextResponse.json(
+          {
+            error: 'representative_required',
+            message: 'To express interest, your representative must first join your family account.',
+            readiness_state: familyAccount?.readiness_state,
+          },
           { status: 403 }
         )
       }

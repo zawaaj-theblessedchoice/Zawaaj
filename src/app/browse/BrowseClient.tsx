@@ -60,6 +60,11 @@ export interface BrowseClientProps {
   activeLimit?: number | null
   /** Persisted filter state from previous session (Plus/Premium only; null for Free) */
   initialFilters?: FilterState | null
+  /**
+   * Family account readiness state. When not 'intro_ready', browse is in limited mode:
+   * shortlisting is allowed but expressing interest is blocked until a representative joins.
+   */
+  familyReadinessState?: string | null
 }
 
 // FilterState, MustHaveableKey, and EMPTY_FILTERS are imported from '@/lib/filter-types'
@@ -670,6 +675,7 @@ export default function BrowseClient({
   activeCount = 0,
   activeLimit = null,
   initialFilters = null,
+  familyReadinessState = null,
 }: BrowseClientProps) {
   const planConfig = getPlanConfig((plan ?? 'free') as Plan)
   const canFilter      = planConfig.advancedFilters   // false for Free
@@ -971,6 +977,16 @@ export default function BrowseClient({
 
   // Handle intro request — routes through the API to enforce all business rules
   async function handleRequestIntro(profileId: string) {
+    // Guard: family must be intro_ready to express interest
+    if (familyReadinessState && familyReadinessState !== 'intro_ready') {
+      const msg =
+        familyReadinessState === 'representative_invited'
+          ? 'Your representative has been invited. Once they join and complete setup, you can express interest.'
+          : 'Your family representative must join your account before you can express interest.'
+      setToast(msg)
+      return
+    }
+
     const res = await fetch('/api/introduction-requests', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1058,6 +1074,29 @@ export default function BrowseClient({
             activeGender={viewerProfile.gender ?? null}
             activeInitials={viewerProfile.display_initials}
           />
+        )}
+
+        {/* Limited mode banner — shown when family readiness_state blocks interest expression */}
+        {familyReadinessState && familyReadinessState !== 'intro_ready' && (
+          <div
+            style={{
+              marginBottom: 16,
+              padding: '12px 16px',
+              borderRadius: 10,
+              background: 'var(--surface-2)',
+              border: '0.5px solid var(--border-default)',
+              borderLeft: '3px solid var(--gold)',
+            }}
+          >
+            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 3 }}>
+              Browsing in limited mode
+            </div>
+            <div style={{ fontSize: 12.5, color: 'var(--text-secondary)', lineHeight: 1.55 }}>
+              {familyReadinessState === 'representative_invited'
+                ? 'Your representative has been sent an invite. Once they join and complete setup, you will be able to express interest in profiles.'
+                : 'You can browse and shortlist profiles. To express interest, your family representative needs to join your account first.'}
+            </div>
+          </div>
         )}
 
         {/* Top bar */}
