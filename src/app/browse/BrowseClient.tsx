@@ -310,6 +310,20 @@ function ProfileCard({
               {profile.ethnicity}
             </span>
           )}
+          {profile.gender === 'male' && profile.marital_status === 'married' && (
+            <span
+              style={{
+                fontSize: 10.5,
+                padding: '2px 7px',
+                borderRadius: 20,
+                background: 'rgba(251,191,36,0.08)',
+                color: '#ca8a04',
+                border: '0.5px solid rgba(251,191,36,0.35)',
+              }}
+            >
+              Married
+            </span>
+          )}
           {suggested && (
             <span
               style={{

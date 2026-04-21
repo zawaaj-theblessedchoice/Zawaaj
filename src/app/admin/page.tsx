@@ -65,6 +65,8 @@ interface Profile {
   pref_school_of_thought: string[] | null
   pref_relocation: string | null
   pref_partner_children: string | null
+  marriage_reason: string | null
+  open_to_marital_status: string | null
   is_banned: boolean
   ban_id: string | null
 }
@@ -457,6 +459,8 @@ function ProfileEditModal({ profile, onClose, onSave, onDeleteProfile, onDeleteA
         legacy_ref: form.legacy_ref,
         imported_email: form.imported_email,
         status: form.status,
+        marriage_reason: form.marriage_reason ?? null,
+        open_to_marital_status: form.open_to_marital_status ?? null,
       })
       .eq('id', profile.id)
 
@@ -524,6 +528,24 @@ function ProfileEditModal({ profile, onClose, onSave, onDeleteProfile, onDeleteA
               <span className="text-xs mb-1 block" style={{ color: 'var(--admin-muted)' }}>Location</span>
               <input className="field" value={form.location ?? ''} onChange={e => set('location', e.target.value)} />
             </label>
+            {form.gender === 'male' && (
+              <label className="block col-span-2">
+                <span className="text-xs mb-1 block" style={{ color: 'var(--admin-muted)' }}>Reason for seeking marriage (married males only)</span>
+                <textarea className="field resize-none" rows={2} value={form.marriage_reason ?? ''} onChange={e => set('marriage_reason', e.target.value || null)} />
+              </label>
+            )}
+            {form.gender === 'female' && (
+              <label className="block col-span-2">
+                <span className="text-xs mb-1 block" style={{ color: 'var(--admin-muted)' }}>Open to proposals from (marital status preference)</span>
+                <select className="field" value={form.open_to_marital_status ?? ''} onChange={e => set('open_to_marital_status', e.target.value || null)}>
+                  <option value="">—</option>
+                  <option value="never_married_only">Never married only</option>
+                  <option value="divorced_widowed_only">Divorced / widowed only</option>
+                  <option value="married_men_considered">Married men considered</option>
+                  <option value="case_by_case">Case by case</option>
+                </select>
+              </label>
+            )}
           </div>
 
           <div className="pt-4" style={{ borderTop: '1px solid var(--admin-border)' }}>
@@ -977,6 +999,9 @@ function QueueTab({ profiles, onRefresh, currentUserId }: { profiles: Profile[];
                     <DetailRow label="Nationality" value={p.nationality} />
                     <DetailRow label="Height" value={p.height} />
                     <DetailRow label="Marital Status" value={p.marital_status} />
+                    {p.gender === 'male' && p.marital_status === 'married' && (
+                      <DetailRow label="Reason for Marriage" value={p.marriage_reason} />
+                    )}
                     <DetailRow label="Has Children" value={p.has_children} />
                     <DetailRow label="Living Situation" value={p.living_situation} />
                   </div>
@@ -1050,6 +1075,9 @@ function QueueTab({ profiles, onRefresh, currentUserId }: { profiles: Profile[];
                     <DetailRow label="Pref School" value={p.pref_school_of_thought?.join(', ')} />
                     <DetailRow label="Pref Relocation" value={p.pref_relocation} />
                     <DetailRow label="Pref Partner Kids" value={p.pref_partner_children} />
+                    {p.gender === 'female' && p.open_to_marital_status && (
+                      <DetailRow label="Open to Proposals From" value={p.open_to_marital_status.replace(/_/g, ' ')} />
+                    )}
                   </div>
 
                   {/* Admin Notes */}

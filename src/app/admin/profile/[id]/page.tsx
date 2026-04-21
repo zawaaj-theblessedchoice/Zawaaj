@@ -46,6 +46,9 @@ interface Profile {
   islamic_background: string | null
   smoker: boolean | null
   place_of_birth: string | null
+  marriage_reason: string | null
+  open_to_marital_status: string | null
+  marital_status: string | null
 }
 
 // Common attributes / preferences options
@@ -200,6 +203,8 @@ export default function ProfileEditPage({
         islamic_background: form.islamic_background ?? null,
         smoker: form.smoker ?? null,
         place_of_birth: form.place_of_birth ?? null,
+        marriage_reason: form.marriage_reason ?? null,
+        open_to_marital_status: form.open_to_marital_status ?? null,
       })
       .eq('id', id)
 
@@ -427,6 +432,36 @@ export default function ProfileEditPage({
                 <option value="yes">Yes</option>
               </select>
             </Field>
+
+            <Field label="Marital Status">
+              <select className="field" value={form.marital_status ?? ''} onChange={e => set('marital_status', e.target.value || null)}>
+                <option value="">—</option>
+                <option value="never_married">Single (never married)</option>
+                <option value="divorced">Divorced</option>
+                <option value="widowed">Widowed</option>
+                <option value="married">Married</option>
+              </select>
+            </Field>
+
+            {/* Conditional fields */}
+            {form.gender === 'male' && (
+              <div className="col-span-full">
+                <Field label="Reason for seeking marriage (married males only)">
+                  <textarea className="field resize-none" rows={3} value={form.marriage_reason ?? ''} onChange={e => set('marriage_reason', e.target.value || null)} />
+                </Field>
+              </div>
+            )}
+            {form.gender === 'female' && (
+              <Field label="Open to proposals from">
+                <select className="field" value={form.open_to_marital_status ?? ''} onChange={e => set('open_to_marital_status', e.target.value || null)}>
+                  <option value="">—</option>
+                  <option value="never_married_only">Never married only</option>
+                  <option value="divorced_widowed_only">Divorced / widowed only</option>
+                  <option value="married_men_considered">Married men considered</option>
+                  <option value="case_by_case">Case by case</option>
+                </select>
+              </Field>
+            )}
 
             {/* ── Education ── */}
             <SectionHeading>Education &amp; Profession</SectionHeading>
