@@ -147,7 +147,7 @@ const NAV_SECTIONS = [
     items: [
       { href: '/admin',               label: 'Dashboard',     icon: <DashboardIcon />,     superOnly: true  },
       { href: '/admin/operations',    label: 'Operations',    icon: <OperationsIcon />,    superOnly: true  },
-      { href: '/admin/accounts',      label: 'Accounts',      icon: <AccountsIcon />,      superOnly: true  },
+      { href: '/admin/families',       label: 'Families',      icon: <AccountsIcon />,      superOnly: true  },
     ],
   },
   {

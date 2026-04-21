@@ -9,6 +9,7 @@ interface OperationsTableProps {
   loading: boolean
   selectedIds: Set<string>
   openProfileId: string | null
+  sinceTimestamp: number
   onSelect: (id: string, checked: boolean) => void
   onSelectAll: (checked: boolean) => void
   onOpenProfile: (id: string | null) => void
@@ -237,6 +238,7 @@ export function OperationsTable({
   loading,
   selectedIds,
   openProfileId,
+  sinceTimestamp,
   onSelect,
   onSelectAll,
   onOpenProfile,
@@ -320,8 +322,7 @@ export function OperationsTable({
                 const isOpen = openProfileId === p.id
                 const isSelected = selectedIds.has(p.id)
                 const isNew =
-                  !!p.created_at &&
-                  Date.now() - new Date(p.created_at).getTime() < 3 * 24 * 60 * 60 * 1000
+                  !!p.submitted_date && new Date(p.submitted_date).getTime() > sinceTimestamp
 
                 return (
                   <tr
@@ -382,9 +383,6 @@ export function OperationsTable({
                             }}
                           >
                             {p.first_name ?? p.display_initials}
-                          </div>
-                          <div style={{ fontSize: 11, color: 'var(--admin-muted)' }}>
-                            {p.display_initials}
                           </div>
                         </div>
                       </div>
@@ -464,6 +462,11 @@ export function OperationsTable({
                             }}
                           >
                             ⚑ Flag
+                          </span>
+                        )}
+                        {!p.family_account && (
+                          <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 4, background: 'rgba(148,163,184,0.12)', color: 'var(--admin-muted)' }}>
+                            No family
                           </span>
                         )}
                       </div>

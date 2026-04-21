@@ -48,6 +48,7 @@ export function OperationsConsole() {
   const [introModalProfileId, setIntroModalProfileId] = useState<string | null>(null)
   const [pendingFamilyCount, setPendingFamilyCount] = useState(0)
   const [pendingEmailVerificationCount, setPendingEmailVerificationCount] = useState(0)
+  const [sinceTimestamp, setSinceTimestamp] = useState<number>(Date.now() - 7 * 24 * 60 * 60 * 1000)
 
   // ─── Toast helpers ──────────────────────────────────────────────────────────
 
@@ -87,6 +88,12 @@ export function OperationsConsole() {
 
   // Initial load
   useEffect(() => {
+    // Track since-last-visit for "New" badge
+    const storedTs = localStorage.getItem('ops_last_visit')
+    const lastVisit = storedTs ? parseInt(storedTs, 10) : Date.now() - 7 * 24 * 60 * 60 * 1000
+    localStorage.setItem('ops_last_visit', String(Date.now()))
+    setSinceTimestamp(lastVisit)
+
     loadMetrics()
     loadProfiles(filters, page)
     // Fetch pending family account registrations (not profile rows — shown in Families tab)
@@ -407,6 +414,7 @@ export function OperationsConsole() {
               loading={loading}
               selectedIds={selectedIds}
               openProfileId={openProfileId}
+              sinceTimestamp={sinceTimestamp}
               onSelect={handleSelect}
               onSelectAll={handleSelectAll}
               onOpenProfile={setOpenProfileId}

@@ -24,6 +24,7 @@ export interface FamilyRow {
   created_at: string
   updated_at: string
   primary_user_id: string | null
+  last_active: string | null
   profiles: {
     id: string
     display_initials: string
@@ -56,5 +57,23 @@ export default async function FamiliesPage() {
     `)
     .order('created_at', { ascending: false })
 
-  return <FamiliesClient families={(families as FamilyRow[]) ?? []} />
+  // Fetch last_sign_in_at from auth.users to show "last active" per family account
+  let lastSeenMap: Record<string, string | null> = {}
+  try {
+    const { data: authData } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 })
+    if (authData?.users) {
+      for (const u of authData.users) {
+        lastSeenMap[u.id] = u.last_sign_in_at ?? null
+      }
+    }
+  } catch {
+    // Non-critical — last active will show as unknown
+  }
+
+  const rows: FamilyRow[] = (families ?? []).map(f => ({
+    ...(f as unknown as FamilyRow),
+    last_active: f.primary_user_id ? (lastSeenMap[f.primary_user_id] ?? null) : null,
+  }))
+
+  return <FamiliesClient families={rows} />
 }

@@ -69,6 +69,21 @@ function fmtDate(d: string | null) {
   return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
+function fmtRelative(iso: string | null): string {
+  if (!iso) return '—'
+  const diff = Date.now() - new Date(iso).getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 2) return 'Just now'
+  if (mins < 60) return `${mins}m ago`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24) return `${hrs}h ago`
+  const days = Math.floor(hrs / 24)
+  if (days < 30) return `${days}d ago`
+  const months = Math.floor(days / 30)
+  if (months < 12) return `${months}mo ago`
+  return `${Math.floor(months / 12)}y ago`
+}
+
 function Detail({ label, value, warning }: { label: string; value: string; warning?: boolean }) {
   return (
     <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
@@ -971,7 +986,7 @@ export function FamiliesClient({ families: initial }: Props) {
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--admin-border)' }}>
-                {['Contact', 'Relationship', 'Email / Phone', 'Plan', 'Status', 'Members', 'Created', ''].map(h => (
+                {['Contact', 'Relationship', 'Email / Phone', 'Plan', 'Status', 'Members', 'Last active', 'Created', ''].map(h => (
                   <th key={h} style={{
                     padding: '10px 14px', textAlign: 'left', fontSize: 11,
                     fontWeight: 600, color: 'var(--admin-muted)',
@@ -1008,6 +1023,9 @@ export function FamiliesClient({ families: initial }: Props) {
                       {f.profiles.length}
                     </td>
                     <td style={{ padding: '12px 14px', fontSize: 12, color: 'var(--admin-muted)' }}>
+                      {fmtRelative(f.last_active)}
+                    </td>
+                    <td style={{ padding: '12px 14px', fontSize: 12, color: 'var(--admin-muted)' }}>
                       {fmtDate(f.created_at)}
                     </td>
                     <td style={{ padding: '12px 14px' }}>
@@ -1026,7 +1044,7 @@ export function FamiliesClient({ families: initial }: Props) {
 
                   {expandedId === f.id && (
                     <tr key={`${f.id}-expand`} style={{ borderBottom: i < filtered.length - 1 ? '1px solid var(--admin-border)' : 'none' }}>
-                      <td colSpan={8} style={{ padding: '0 14px 16px' }}>
+                      <td colSpan={9} style={{ padding: '0 14px 16px' }}>
                         <div style={{
                           background: 'rgba(255,255,255,0.03)', borderRadius: 10,
                           border: '1px solid var(--admin-border)', padding: 16,
