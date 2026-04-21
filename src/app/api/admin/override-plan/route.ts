@@ -17,9 +17,13 @@ export async function POST(req: NextRequest) {
 
   // ─── Payload ──────────────────────────────────────────────────────────────
   const body = await req.json().catch(() => ({}))
-  const { subscription_id, plan } = body as { subscription_id?: string; plan?: string }
+  const { subscription_id, user_id, plan } = body as {
+    subscription_id?: string | null
+    user_id?: string
+    plan?: string
+  }
 
-  if (!subscription_id || !plan) {
+  if ((!subscription_id && !user_id) || !plan) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
   }
 
@@ -27,13 +31,31 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid plan' }, { status: 400 })
   }
 
-  const { error } = await supabaseAdmin
-    .from('zawaaj_subscriptions')
-    .update({ plan, updated_at: new Date().toISOString() })
-    .eq('id', subscription_id)
+  const now = new Date().toISOString()
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+  if (subscription_id) {
+    // Existing subscription row — simple update
+    const { error } = await supabaseAdmin
+      .from('zawaaj_subscriptions')
+      .update({ plan, updated_at: now })
+      .eq('id', subscription_id)
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  } else {
+    // No subscription row yet — create one (virtual free account override)
+    const { error } = await supabaseAdmin
+      .from('zawaaj_subscriptions')
+      .upsert(
+        {
+          user_id,
+          plan,
+          status: 'active',
+          cancel_at_period_end: false,
+          created_at: now,
+          updated_at: now,
+        },
+        { onConflict: 'user_id', ignoreDuplicates: false }
+      )
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
   return NextResponse.json({ ok: true })

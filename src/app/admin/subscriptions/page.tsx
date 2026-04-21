@@ -4,7 +4,8 @@ import { supabaseAdmin } from '@/lib/supabase/admin'
 import AdminSubscriptionsClient from './AdminSubscriptionsClient'
 
 export interface SubscriptionRow {
-  id: string
+  /** null = no subscription row exists yet (virtual free account) */
+  id: string | null
   user_id: string
   plan: 'free' | 'plus' | 'premium'
   status: 'active' | 'cancelled' | 'past_due' | 'trialing'
@@ -33,35 +34,97 @@ export default async function AdminSubscriptionsPage() {
   const { data: isAdmin } = await supabase.rpc('zawaaj_is_admin')
   if (!isAdmin) redirect('/')
 
-  // ─── Fetch all subscriptions with linked profile ─────────────────────────
-  const { data: rawSubs } = await supabaseAdmin
-    .from('zawaaj_subscriptions')
-    .select(`
-      id, user_id, plan, status, stripe_customer_id, stripe_subscription_id,
-      current_period_start, current_period_end, cancel_at_period_end, created_at, updated_at
-    `)
-    .order('created_at', { ascending: false })
+  // ─── Fetch in 3 parallel queries then merge client-side ─────────────────
+  //
+  // We intentionally start from profiles (not subscriptions) so that every
+  // member appears here — including imported accounts and anyone who signed
+  // up before the subscription row was created.
 
-  // ─── For each sub, find the active profile via zawaaj_user_settings ──────
-  const subs: SubscriptionRow[] = []
-  for (const sub of rawSubs ?? []) {
-    const { data: settings } = await supabaseAdmin
+  const [profilesRes, subsRes, settingsRes] = await Promise.all([
+    // All non-admin profiles that are active enough to be visible
+    supabaseAdmin
+      .from('zawaaj_profiles')
+      .select('id, user_id, display_initials, first_name, last_name, gender, created_at')
+      .eq('is_admin', false)
+      .not('status', 'in', '(rejected,withdrawn)')
+      .order('created_at', { ascending: false }),
+
+    // All subscription rows
+    supabaseAdmin
+      .from('zawaaj_subscriptions')
+      .select('id, user_id, plan, status, stripe_customer_id, stripe_subscription_id, current_period_start, current_period_end, cancel_at_period_end, created_at, updated_at'),
+
+    // Active profile per user
+    supabaseAdmin
       .from('zawaaj_user_settings')
-      .select('active_profile_id')
-      .eq('user_id', sub.user_id)
-      .maybeSingle()
+      .select('user_id, active_profile_id'),
+  ])
 
-    let profile = null
-    if (settings?.active_profile_id) {
-      const { data: p } = await supabaseAdmin
-        .from('zawaaj_profiles')
-        .select('id, display_initials, first_name, last_name, gender')
-        .eq('id', settings.active_profile_id)
-        .maybeSingle()
-      profile = p ?? null
-    }
+  // Build lookup maps
+  type RawSub = NonNullable<typeof subsRes.data>[number]
+  const subByUserId = new Map<string, RawSub>()
+  for (const s of subsRes.data ?? []) subByUserId.set(s.user_id, s)
 
-    subs.push({ ...(sub as Omit<SubscriptionRow, 'profile'>), profile })
+  const activeProfileByUserId = new Map<string, string>()
+  for (const s of settingsRes.data ?? []) {
+    if (s.active_profile_id) activeProfileByUserId.set(s.user_id, s.active_profile_id)
+  }
+
+  // One row per unique user_id — prefer the profile that matches user_settings
+  const seenUserIds = new Set<string>()
+  const subs: SubscriptionRow[] = []
+
+  for (const profile of profilesRes.data ?? []) {
+    if (!profile.user_id || seenUserIds.has(profile.user_id)) continue
+
+    const activeId = activeProfileByUserId.get(profile.user_id)
+    // Skip this profile row if it's not the active one (a later row will match)
+    if (activeId && activeId !== profile.id) continue
+
+    seenUserIds.add(profile.user_id)
+
+    const sub = subByUserId.get(profile.user_id)
+
+    subs.push({
+      id:                    sub?.id                    ?? null,
+      user_id:               profile.user_id,
+      plan:                  (sub?.plan as SubscriptionRow['plan']) ?? 'free',
+      status:                (sub?.status as SubscriptionRow['status']) ?? 'active',
+      stripe_customer_id:    sub?.stripe_customer_id    ?? null,
+      stripe_subscription_id:sub?.stripe_subscription_id ?? null,
+      current_period_start:  sub?.current_period_start  ?? null,
+      current_period_end:    sub?.current_period_end     ?? null,
+      cancel_at_period_end:  sub?.cancel_at_period_end  ?? false,
+      created_at:            sub?.created_at             ?? profile.created_at,
+      updated_at:            sub?.updated_at             ?? profile.created_at,
+      profile: {
+        id:               profile.id,
+        display_initials: profile.display_initials,
+        first_name:       profile.first_name,
+        last_name:        profile.last_name,
+        gender:           profile.gender,
+      },
+    })
+  }
+
+  // Any user with a sub row but no matching active profile still shows up
+  for (const sub of subsRes.data ?? []) {
+    if (seenUserIds.has(sub.user_id)) continue
+    seenUserIds.add(sub.user_id)
+    subs.push({
+      id:                    sub.id,
+      user_id:               sub.user_id,
+      plan:                  sub.plan as SubscriptionRow['plan'],
+      status:                sub.status as SubscriptionRow['status'],
+      stripe_customer_id:    sub.stripe_customer_id    ?? null,
+      stripe_subscription_id:sub.stripe_subscription_id ?? null,
+      current_period_start:  sub.current_period_start  ?? null,
+      current_period_end:    sub.current_period_end     ?? null,
+      cancel_at_period_end:  sub.cancel_at_period_end  ?? false,
+      created_at:            sub.created_at,
+      updated_at:            sub.updated_at,
+      profile: null,
+    })
   }
 
   return <AdminSubscriptionsClient subs={subs} />

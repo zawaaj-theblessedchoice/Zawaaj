@@ -52,15 +52,19 @@ function OverrideModal({
   async function save() {
     setLoading(true)
     setError(null)
+    // If the account has no subscription row yet, pass user_id so the API can upsert one
+    const payload = sub.id
+      ? { subscription_id: sub.id, plan }
+      : { user_id: sub.user_id, plan }
     const res = await fetch('/api/admin/override-plan', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ subscription_id: sub.id, plan }),
+      body: JSON.stringify(payload),
     })
     const json = await res.json().catch(() => ({}))
     setLoading(false)
     if (!res.ok) { setError(json.error ?? 'Failed to update'); return }
-    onSaved(sub.id, plan)
+    onSaved(sub.user_id, plan)
     onClose()
   }
 
@@ -135,8 +139,11 @@ export default function AdminSubscriptionsClient({ subs: initialSubs }: { subs: 
 
   const filtered = statusFilter === 'all' ? subs : subs.filter(s => s.status === statusFilter)
 
-  function handleOverrideSaved(id: string, newPlan: string) {
-    setSubs(prev => prev.map(s => s.id === id ? { ...s, plan: newPlan as SubscriptionRow['plan'] } : s))
+  // handleOverrideSaved now receives user_id (stable across virtual/real rows)
+  function handleOverrideSaved(userId: string, newPlan: string) {
+    setSubs(prev => prev.map(s =>
+      s.user_id === userId ? { ...s, plan: newPlan as SubscriptionRow['plan'] } : s
+    ))
   }
 
   return (
@@ -206,7 +213,7 @@ export default function AdminSubscriptionsClient({ subs: initialSubs }: { subs: 
             const statusBadge = STATUS_BADGE[sub.status] ?? STATUS_BADGE.cancelled
             return (
               <div
-                key={sub.id}
+                key={sub.user_id}
                 style={{
                   display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1.4fr 1.4fr 1fr',
                   padding: '13px 20px', alignItems: 'center',
