@@ -173,7 +173,8 @@
       "Bash(Remove-Item -Path \"C:\\\\Users\\\\mrkha\\\\OneDrive\\\\Desktop\\\\Zawaaj-MVP\\\\src\\\\app\\\\admin\\\\accounts\\\\AccountsClient.tsx\" -Force)",
       "Bash(del \"C:\\\\Users\\\\mrkha\\\\OneDrive\\\\Desktop\\\\Zawaaj-MVP\\\\src\\\\app\\\\admin\\\\accounts\\\\AccountsClient.tsx\")",
       "Bash(grep -c \"^$\" \"C:\\\\Users\\\\mrkha\\\\OneDrive\\\\Desktop\\\\Zawaaj-MVP\\\\src\\\\app\\\\admin\\\\page.tsx\")",
-      "Bash(dir src\\\\app\\\\admin /b /s)"
+      "Bash(dir src\\\\app\\\\admin /b /s)",
+      "Bash(vercel --prod)"
     ]
   }
 }

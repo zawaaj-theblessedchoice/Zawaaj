@@ -708,6 +708,15 @@ export default function BrowseClient({
   const [introRequests, setIntroRequests] = useState<IntroRequest[]>(initialIntroRequests)
   const [monthlyUsed, setMonthlyUsed] = useState(initialMonthlyUsed)
   const [openProfileId, setOpenProfileId] = useState<string | null>(null)
+
+  /** Fire-and-forget view record when a profile card is opened */
+  function recordProfileView(profileId: string) {
+    fetch('/api/profile-views', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ viewed_profile_id: profileId }),
+    }).catch(() => {}) // silent failure — never surface view errors to user
+  }
   const [toast, setToast] = useState<string | null>(null)
   const [showUpgrade, setShowUpgrade] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -1917,7 +1926,7 @@ export default function BrowseClient({
                                 score={entry.compatScore}
                                 showCompatBar={true}
                                 suggested={true}
-                                onOpen={() => setOpenProfileId(entry.profile.id)}
+                                onOpen={() => { setOpenProfileId(entry.profile.id); recordProfileView(entry.profile.id) }}
                                 onToggleSave={() => handleToggleSave(entry.profile.id)}
                               />
                             )
@@ -1960,7 +1969,7 @@ export default function BrowseClient({
                                     score={entry.compatScore}
                                     showCompatBar={true}
                                     suggested={true}
-                                    onOpen={() => setOpenProfileId(entry.profile.id)}
+                                    onOpen={() => { setOpenProfileId(entry.profile.id); recordProfileView(entry.profile.id) }}
                                     onToggleSave={() => handleToggleSave(entry.profile.id)}
                                   />
                                 )
@@ -1994,7 +2003,7 @@ export default function BrowseClient({
                               score={entry.compatScore}
                               showCompatBar={true}
                               suggested={true}
-                              onOpen={() => setOpenProfileId(entry.profile.id)}
+                              onOpen={() => { setOpenProfileId(entry.profile.id); recordProfileView(entry.profile.id) }}
                               onToggleSave={() => handleToggleSave(entry.profile.id)}
                             />
                           )
@@ -2058,7 +2067,7 @@ export default function BrowseClient({
                     introStatus={introStatus}
                     score={score}
                     showCompatBar={showCompatBar}
-                    onOpen={() => setOpenProfileId(profile.id)}
+                    onOpen={() => { setOpenProfileId(profile.id); recordProfileView(profile.id) }}
                     onToggleSave={() => handleToggleSave(profile.id)}
                   />
                 )

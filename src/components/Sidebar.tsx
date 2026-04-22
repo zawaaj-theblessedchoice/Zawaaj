@@ -281,7 +281,11 @@ export default function Sidebar({
     {
       section: 'Account',
       items: [
-        { label: 'My profile', href: '/my-profile', icon: <ProfileIcon /> },
+        {
+          label: activeProfileId ? 'My profile' : 'Family account',
+          href: activeProfileId ? '/my-profile' : '/family-account',
+          icon: <ProfileIcon />,
+        },
         { label: 'Add family member', href: '/add-profile', icon: <AddFamilyIcon /> },
         { label: 'Settings', href: '/settings', icon: <SettingsIcon /> },
       ],
@@ -405,7 +409,7 @@ export default function Sidebar({
       {/* Upgrade — Premium CTA */}
       <div style={{ padding: '6px 12px 10px' }}>
         <Link
-          href="/pricing"
+          href="/settings?tab=membership"
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -427,10 +431,6 @@ export default function Sidebar({
             <span style={{ color: 'var(--gold-light)', display: 'flex' }}><TrophyIcon /></span>
           </span>
           <span style={{ flex: 1, fontSize: 12.5, fontWeight: 500, color: 'var(--gold-light)' }}>Zawaaj Premium</span>
-          <span style={{
-            fontSize: 9, fontWeight: 600, color: 'var(--surface)', background: 'var(--gold-light)',
-            borderRadius: 4, padding: '1px 5px', flexShrink: 0,
-          }}>New</span>
         </Link>
       </div>
 

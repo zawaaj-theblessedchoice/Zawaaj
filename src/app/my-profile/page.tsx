@@ -5,7 +5,6 @@ import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Sidebar from '@/components/Sidebar'
 import AvatarInitials from '@/components/AvatarInitials'
-import UpgradeModal from '@/components/UpgradeModal'
 import { getPlanConfig } from '@/lib/plan-config'
 import type { Plan } from '@/lib/plan-config'
 
@@ -210,7 +209,11 @@ export default function MyProfilePage() {
   const [withdrawn, setWithdrawn] = useState(false)
   const [bioExpanded, setBioExpanded] = useState(false)
   const [plan, setPlan] = useState<'free' | 'plus' | 'premium'>('free')
-  const [showViewsUpgrade, setShowViewsUpgrade] = useState(false)
+  const [profileViewsData, setProfileViewsData] = useState<{
+    gated: boolean
+    count: number
+    views: Array<{ viewed_at: string; viewer: { display_initials: string; age_display: string | null; location: string | null; gender: string | null } | null }>
+  } | null>(null)
   const [showEditModal, setShowEditModal] = useState(false)
   const [editSection, setEditSection] = useState<string>('about')
   const [editForm, setEditForm] = useState({
@@ -310,6 +313,12 @@ export default function MyProfilePage() {
         .maybeSingle()
       const rawPlanValue = (subData?.plan as string | null) ?? 'free'
       setPlan((['free', 'plus', 'premium'].includes(rawPlanValue) ? rawPlanValue : 'free') as 'free' | 'plus' | 'premium')
+
+      // Profile views data
+      fetch('/api/profile-views')
+        .then(r => r.ok ? r.json() : null)
+        .then(data => { if (data) setProfileViewsData(data) })
+        .catch(() => {})
 
       // Sidebar counts
       const [slResult, irCountResult] = await Promise.all([
@@ -701,18 +710,24 @@ export default function MyProfilePage() {
           )
         })()}
 
-        {/* Who viewed your profile — teaser for voluntary/plus, data for premium */}
+        {/* Who viewed your profile — gated for non-premium, real data for premium */}
         <div style={{ background: 'var(--surface-2)', border: '0.5px solid var(--border-default)', borderRadius: 13, padding: 24, marginBottom: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
             <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)' }}>Who viewed your profile</div>
-            {getPlanConfig(plan as Plan).viewTracking && (
+            {profileViewsData && !profileViewsData.gated && (
               <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Last 30 days</span>
             )}
           </div>
 
-          {!getPlanConfig(plan as Plan).viewTracking ? (
-            /* Locked teaser */
+          {/* Gated — non-premium */}
+          {(!profileViewsData || profileViewsData.gated) && (
             <div>
+              {profileViewsData?.count != null && profileViewsData.count > 0 && (
+                <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 12 }}>
+                  <strong style={{ color: 'var(--text-primary)' }}>{profileViewsData.count}</strong>{' '}
+                  {profileViewsData.count === 1 ? 'person' : 'people'} viewed your profile in the last 30 days.
+                </p>
+              )}
               {/* Blurred ghost rows */}
               <div style={{ position: 'relative', marginBottom: 16 }}>
                 {[0, 1, 2].map(i => (
@@ -739,24 +754,77 @@ export default function MyProfilePage() {
               {/* Upgrade CTA */}
               <div style={{ textAlign: 'center', paddingTop: 4 }}>
                 <p style={{ fontSize: 12.5, color: 'var(--text-secondary)', marginBottom: 12 }}>
-                  Upgrade to Premium to see who viewed your profile — with timestamps.
+                  Upgrade to Premium to see exactly who viewed your profile — with timestamps.
                 </p>
-                <button
-                  onClick={() => setShowViewsUpgrade(true)}
+                <a
+                  href="/settings?tab=membership"
                   style={{
+                    display: 'inline-block',
                     padding: '8px 20px', borderRadius: 9, fontSize: 12.5, fontWeight: 600,
-                    background: 'var(--gold)', color: 'var(--surface)', border: 'none', cursor: 'pointer',
+                    background: 'var(--gold)', color: 'var(--surface)', textDecoration: 'none',
                   }}
                 >
                   👁 See who viewed you →
-                </button>
+                </a>
               </div>
             </div>
-          ) : (
-            /* Premium — actual view data placeholder */
+          )}
+
+          {/* Premium — no views yet */}
+          {profileViewsData && !profileViewsData.gated && profileViewsData.views.length === 0 && (
             <p style={{ fontSize: 12.5, color: 'var(--text-muted)' }}>
-              View tracking active. Data will appear as members visit your profile.
+              No profile views yet. Views will appear here as members discover your profile.
             </p>
+          )}
+
+          {/* Premium — real viewer cards */}
+          {profileViewsData && !profileViewsData.gated && profileViewsData.views.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+              {profileViewsData.views.map((v, i) => {
+                const viewer = v.viewer
+                const elapsed = (() => {
+                  const diffMs = Date.now() - new Date(v.viewed_at).getTime()
+                  const mins = Math.floor(diffMs / 60_000)
+                  const hours = Math.floor(diffMs / 3_600_000)
+                  const days = Math.floor(diffMs / 86_400_000)
+                  if (days > 0) return `${days} day${days !== 1 ? 's' : ''} ago`
+                  if (hours > 0) return `${hours} hour${hours !== 1 ? 's' : ''} ago`
+                  if (mins > 0) return `${mins} minute${mins !== 1 ? 's' : ''} ago`
+                  return 'Just now'
+                })()
+                return (
+                  <div
+                    key={i}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 12,
+                      padding: '10px 0',
+                      borderBottom: i < profileViewsData.views.length - 1 ? '0.5px solid var(--border-default)' : undefined,
+                    }}
+                  >
+                    <div style={{
+                      width: 32, height: 32, borderRadius: 8, flexShrink: 0,
+                      background: viewer?.gender === 'female' ? 'var(--avatar-female-bg)' : 'var(--avatar-male-bg)',
+                      color: viewer?.gender === 'female' ? 'var(--avatar-female-text)' : 'var(--avatar-male-text)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 10, fontWeight: 600,
+                    }}>
+                      {viewer?.display_initials ?? '?'}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 12.5, color: 'var(--text-primary)', fontWeight: 500 }}>
+                        {viewer?.display_initials ?? 'Anonymous'}
+                      </div>
+                      {(viewer?.age_display || viewer?.location) && (
+                        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
+                          {[viewer?.age_display, viewer?.location].filter(Boolean).join(' · ')}
+                        </div>
+                      )}
+                    </div>
+                    <span style={{ fontSize: 11, color: 'var(--text-muted)', flexShrink: 0 }}>{elapsed}</span>
+                  </div>
+                )
+              })}
+            </div>
           )}
         </div>
 
@@ -1040,9 +1108,6 @@ export default function MyProfilePage() {
       )}
 
       {/* Upgrade modal — "who viewed you" surface */}
-      {showViewsUpgrade && (
-        <UpgradeModal trigger="who_viewed" onClose={() => setShowViewsUpgrade(false)} />
-      )}
     </div>
   )
 }

@@ -276,32 +276,28 @@ export function UpgradeClient({ currentPlan, profileId }: Props) {
               }}
             />
             <button
-              onClick={validatePromo}
-              disabled={!promoCode.trim() || promoLoading}
+              disabled
+              title="Apply your code at checkout in Settings"
               style={{
                 padding: '8px 16px', borderRadius: 8, fontSize: 13, fontWeight: 600,
-                border: 'none', cursor: promoCode.trim() && !promoLoading ? 'pointer' : 'not-allowed',
-                background: promoCode.trim() && !promoLoading ? '#B8960C' : 'rgba(255,255,255,0.08)',
-                color: promoCode.trim() && !promoLoading ? '#111' : 'var(--text-secondary)',
+                border: 'none', cursor: 'not-allowed',
+                background: 'rgba(255,255,255,0.08)',
+                color: 'var(--text-secondary)',
+                opacity: 0.5,
                 transition: 'all 0.15s', whiteSpace: 'nowrap',
               }}
             >
-              {promoLoading ? 'Checking…' : 'Apply'}
+              Apply
             </button>
           </div>
 
-          {promoResult && (
-            <p style={{
-              marginTop: 8, fontSize: 12,
-              color: promoResult.valid ? '#16a34a' : '#ef4444',
-            }}>
-              {promoResult.valid
-                ? `✓ Code applied — ${promoResult.discount_type === 'percent'
-                    ? `${promoResult.discount_value}% off`
-                    : `£${promoResult.discount_value} off`}`
-                : `✗ ${promoResult.message}`}
-            </p>
-          )}
+          <p style={{ marginTop: 8, fontSize: 11.5, color: 'var(--text-muted)' }}>
+            Apply your code at checkout in{' '}
+            <a href="/settings?tab=membership" style={{ color: 'var(--gold)', textDecoration: 'none' }}>
+              Settings
+            </a>
+            .
+          </p>
         </div>
       </div>
 

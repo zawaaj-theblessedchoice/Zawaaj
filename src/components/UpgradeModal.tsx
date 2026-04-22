@@ -133,7 +133,7 @@ export default function UpgradeModal({ trigger, onClose }: UpgradeModalProps) {
                   )}
                 </div>
                 <Link
-                  href={p.key === 'free' ? '#' : '/pricing'}
+                  href={p.key === 'free' ? '#' : '/settings?tab=membership'}
                   onClick={p.key === 'free' ? onClose : undefined}
                   style={{
                     display: 'block', textAlign: 'center',
@@ -178,7 +178,7 @@ export default function UpgradeModal({ trigger, onClose }: UpgradeModalProps) {
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: 12, cursor: 'pointer' }}>
             Maybe later
           </button>
-          <Link href="/pricing" style={{
+          <Link href="/settings?tab=membership" style={{
             padding: '9px 20px', borderRadius: 10, fontSize: 13, fontWeight: 600,
             background: 'var(--gold)', color: 'var(--surface)', textDecoration: 'none',
           }}>
