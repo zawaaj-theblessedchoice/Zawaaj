@@ -1,16 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
-import { sendEmail, passwordResetTemplate } from '@/lib/email'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface RowResult {
   row: number
-  email: string
+  candidate_name: string
   success: boolean
   error: string | null
-  invite_link?: string
+  family_account_id?: string
+  profile_id?: string
+  action?: 'created_family' | 'linked_existing'
 }
 
 // ─── CSV parser (handles basic quoted fields) ─────────────────────────────────
@@ -48,83 +49,34 @@ function parseCSV(text: string): { headers: string[]; rows: string[][] } {
   return { headers, rows }
 }
 
-// ─── Validation ────────────────────────────────────────────────────────────────
+// ─── Phone normalisation ───────────────────────────────────────────────────────
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-// Accept YYYY-MM-DD (ISO) or DD/MM/YYYY (UK)
-const DATE_RE_ISO = /^\d{4}-\d{2}-\d{2}$/
-const DATE_RE_UK  = /^\d{2}\/\d{2}\/\d{4}$/
-const VALID_GENDERS  = ['male', 'female']
-const VALID_STATUSES = ['pending', 'approved', 'paused', 'rejected', 'withdrawn', 'suspended', 'introduced']
-
-/** Convert DD/MM/YYYY → YYYY-MM-DD; ISO dates pass through unchanged. */
-function normaliseDOB(dob: string): string {
-  if (DATE_RE_UK.test(dob)) {
-    const [dd, mm, yyyy] = dob.split('/')
-    return `${yyyy}-${mm}-${dd}`
-  }
-  return dob
+function normalisePhone(phone: string): string {
+  const digits = phone.replace(/\D/g, '')
+  if (digits.startsWith('0')) return '44' + digits.slice(1)
+  return digits
 }
 
-function isValidDOB(dob: string): boolean {
-  return DATE_RE_ISO.test(dob) || DATE_RE_UK.test(dob)
+// ─── Completeness scoring ──────────────────────────────────────────────────────
+
+const REQUIRED_FIELDS = ['candidate_name', 'age', 'gender', 'city', 'representative_phone', 'representative_email'] as const
+const OPTIONAL_FIELDS = ['ethnicity', 'profile_text', 'female_representative_name', 'female_representative_phone'] as const
+
+function computeCompletenessScore(row: Record<string, string>): { score: number; missing: string[] } {
+  const requiredScore = REQUIRED_FIELDS.filter(f => row[f]?.trim()).length / REQUIRED_FIELDS.length * 70
+  const optionalScore = OPTIONAL_FIELDS.filter(f => row[f]?.trim()).length / OPTIONAL_FIELDS.length * 30
+  const score = Math.round(requiredScore + optionalScore)
+  const missing = REQUIRED_FIELDS.filter(f => !row[f]?.trim()) as unknown as string[]
+  return { score, missing }
 }
 
-function validateRow(headers: string[], values: string[]): string | null {
-  const get = (col: string) => {
-    const idx = headers.indexOf(col)
-    return idx >= 0 ? (values[idx] ?? '').trim() : ''
-  }
-  const email  = get('email')
-  const gender = get('gender')
-  const status = get('status')
-  const dob    = get('date_of_birth')
+// ─── Compute display initials ─────────────────────────────────────────────────
 
-  if (!email)                return 'email is required'
-  if (!EMAIL_RE.test(email)) return `invalid email: "${email}"`
-  if (!gender)               return 'gender is required'
-  if (!VALID_GENDERS.includes(gender.toLowerCase()))
-    return `gender must be "male" or "female", got "${gender}"`
-  if (status && !VALID_STATUSES.includes(status.toLowerCase()))
-    return `invalid status: "${status}"`
-  if (dob && !isValidDOB(dob))
-    return `date_of_birth must be YYYY-MM-DD or DD/MM/YYYY, got "${dob}"`
-  return null
-}
-
-// ─── Normalise religiosity to accepted enum values ───────────────────────────
-
-function normaliseReligiosity(raw: string): string | null {
-  const v = raw.trim().toLowerCase()
-  if (!v) return null
-  if (['steadfast', 'very_practicing', 'very practicing', 'very practising'].includes(v)) return 'steadfast'
-  if (['practising', 'practicing', 'moderately_practising', 'moderately practising', 'moderately practicing'].includes(v)) return 'practising'
-  if (['striving', 'learning', 'still learning / growing', 'still learning'].includes(v)) return 'striving'
-  // cultural / unknown → null (no valid mapping)
-  return null
-}
-
-// ─── Compute display initials from first/last name ────────────────────────────
-
-function computeInitials(first: string, last: string): string {
-  const f = first.trim().charAt(0).toUpperCase()
-  const l = last.trim().charAt(0).toUpperCase()
-  if (f && l) return `${f}${l}`
-  if (f) return f
-  if (l) return l
+function computeInitials(name: string): string {
+  const parts = name.trim().split(/\s+/)
+  if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+  if (parts.length === 1 && parts[0]) return parts[0][0].toUpperCase()
   return 'XX'
-}
-
-// ─── Compute age display from date_of_birth ───────────────────────────────────
-
-function computeAgeDisplay(dob: string): string | null {
-  if (!DATE_RE_ISO.test(dob)) return null
-  const birth = new Date(dob)
-  const now   = new Date()
-  let age = now.getFullYear() - birth.getFullYear()
-  const m = now.getMonth() - birth.getMonth()
-  if (m < 0 || (m === 0 && now.getDate() < birth.getDate())) age--
-  return String(age)
 }
 
 // ─── Route handler ────────────────────────────────────────────────────────────
@@ -135,7 +87,8 @@ export async function POST(req: NextRequest): Promise<Response> {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const { data: _role } = await supabase.rpc('zawaaj_get_role'); const isSuperAdmin = _role === 'super_admin'
+    const { data: _role } = await supabase.rpc('zawaaj_get_role')
+    const isSuperAdmin = _role === 'super_admin'
     if (!isSuperAdmin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
     const csvText = await req.text()
@@ -153,14 +106,30 @@ export async function POST(req: NextRequest): Promise<Response> {
       return idx >= 0 ? (row[idx] ?? '').trim() : ''
     }
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://zawaaj.uk'
+    // ── Load existing phone → family_account_id map ────────────────────────────
+    const { data: existingFamilies } = await supabaseAdmin
+      .from('zawaaj_family_accounts')
+      .select('id, contact_number, female_contact_number')
+
+    const phoneToFamilyId = new Map<string, string>()
+    for (const fa of existingFamilies ?? []) {
+      if (fa.contact_number) {
+        phoneToFamilyId.set(normalisePhone(fa.contact_number as string), fa.id as string)
+      }
+      if (fa.female_contact_number) {
+        phoneToFamilyId.set(normalisePhone(fa.female_contact_number as string), fa.id as string)
+      }
+    }
+
+    // Track phones seen in this run to prevent intra-batch duplicates
+    const seenPhones = new Map<string, string>() // normalisedPhone → family_account_id
 
     // ── Create batch record ────────────────────────────────────────────────────
     const { data: batch, error: batchErr } = await supabaseAdmin
       .from('zawaaj_import_batches')
       .insert({
         imported_by:   user.id,
-        filename:      'csv-upload',
+        filename:      'family-csv-upload',
         row_count:     rows.length,
         success_count: 0,
         error_count:   0,
@@ -175,249 +144,141 @@ export async function POST(req: NextRequest): Promise<Response> {
     }
 
     const batchId = batch.id as string
+    const now = new Date().toISOString()
 
-    // ── Process rows one-by-one ────────────────────────────────────────────────
+    // ── Process rows ────────────────────────────────────────────────────────────
     const results: RowResult[] = []
 
     for (let i = 0; i < rows.length; i++) {
       const values = rows[i]
       const rowNum = i + 2
 
-      const validationError = validateRow(headers, values)
-      if (validationError) {
-        results.push({ row: rowNum, email: get(values, 'email'), success: false, error: validationError })
+      const rowMap: Record<string, string> = {
+        candidate_name:              get(values, 'candidate_name'),
+        age:                         get(values, 'age'),
+        gender:                      get(values, 'gender').toLowerCase(),
+        city:                        get(values, 'city'),
+        ethnicity:                   get(values, 'ethnicity'),
+        profile_text:                get(values, 'profile_text'),
+        representative_name:         get(values, 'representative_name'),
+        representative_relationship: get(values, 'representative_relationship') || 'mother',
+        representative_phone:        get(values, 'representative_phone'),
+        representative_email:        get(values, 'representative_email'),
+        female_representative_name:  get(values, 'female_representative_name'),
+        female_representative_phone: get(values, 'female_representative_phone'),
+      }
+
+      const repPhone = rowMap.representative_phone
+      const repEmail = rowMap.representative_email
+
+      // SKIP: critical contact info missing
+      if (!repPhone && !repEmail) {
+        results.push({ row: rowNum, candidate_name: rowMap.candidate_name || '—', success: false, error: 'Missing both representative phone and email — skipped' })
         continue
       }
 
-      const email        = get(values, 'email')
-      const firstName    = get(values, 'first_name')
-      const lastName     = get(values, 'last_name')
-      const gender       = get(values, 'gender').toLowerCase()
-      const city         = get(values, 'city')
-      const country      = get(values, 'country')
-      const nationality  = get(values, 'nationality')
-      const ethnicity    = get(values, 'ethnicity')
-      const languages    = get(values, 'languages')
-      const profession   = get(values, 'profession')
-      const education    = get(values, 'education')
-      const institution  = get(values, 'institution')
-      const schoolOfThought = get(values, 'school_of_thought')
-      const religiosity  = get(values, 'religiosity')
-      const prayerReg    = get(values, 'prayer_regularity')
-      const wearsHijabRaw = get(values, 'wears_hijab')
-      const keepsBeardRaw = get(values, 'keeps_beard')
-      const maritalStatus = get(values, 'marital_status')
-      const hasChildrenRaw = get(values, 'has_children')
-      const height        = get(values, 'height')
-      const livingSit     = get(values, 'living_situation')
-      const openReloc     = get(values, 'open_to_relocating')
-      const openPartnerChild = get(values, 'open_to_partners_children')
-      const prefAgeMinRaw = get(values, 'pref_age_min')
-      const prefAgeMaxRaw = get(values, 'pref_age_max')
-      const prefLocation  = get(values, 'pref_location')
-      const prefEthnicity = get(values, 'pref_ethnicity')
-      const prefSchool    = get(values, 'pref_school_of_thought')
-      const prefReloc     = get(values, 'pref_relocation')
-      const bio           = get(values, 'bio')
-      const statusRaw     = get(values, 'status') || 'pending'
-      // Newer profile fields (optional — blank = null)
-      const placeOfBirth       = get(values, 'place_of_birth')
-      const smokerRaw          = get(values, 'smoker')
-      const islamicBackground  = get(values, 'islamic_background')
-      const wearsNiqabRaw      = get(values, 'wears_niqab')
-      const wearsAbayaRaw      = get(values, 'wears_abaya')
-      const quranEngagement    = get(values, 'quran_engagement_level')
-      const contactNumber      = get(values, 'contact_number')
-      const guardianName       = get(values, 'guardian_name')
-      // Normalise DD/MM/YYYY → YYYY-MM-DD so storage and age calc are always ISO
-      const dobRaw        = get(values, 'date_of_birth') ? normaliseDOB(get(values, 'date_of_birth')) : ''
+      const { score, missing } = computeCompletenessScore(rowMap)
+      const normPhone = repPhone ? normalisePhone(repPhone) : null
 
-      // Derived fields
-      const displayInitials = computeInitials(firstName, lastName)
-      const ageDisplay      = dobRaw ? computeAgeDisplay(dobRaw) : null
-      const location        = [city, country].filter(Boolean).join(', ') || null
-      // wears_hijab is BOOLEAN in DB — 'true'/'yes' → true, anything else → false, blank → null
-      const wearsHijab: boolean | null = wearsHijabRaw !== ''
-        ? ['true', 'yes'].includes(wearsHijabRaw.toLowerCase())
-        : null
-      const keepsBeard      = keepsBeardRaw  !== '' ? ['true', 'yes'].includes(keepsBeardRaw.toLowerCase())  : null
-      const hasChildren     = hasChildrenRaw !== '' ? ['true', 'yes'].includes(hasChildrenRaw.toLowerCase()) : null
-      const smoker          = smokerRaw      !== '' ? ['true', 'yes'].includes(smokerRaw.toLowerCase())      : null
-      const wearsNiqab      = wearsNiqabRaw  !== '' ? ['true', 'yes'].includes(wearsNiqabRaw.toLowerCase())  : null
-      const wearsAbaya      = wearsAbayaRaw  !== '' ? ['true', 'yes'].includes(wearsAbayaRaw.toLowerCase())  : null
-      const prefAgeMin      = prefAgeMinRaw !== '' ? parseInt(prefAgeMinRaw, 10) || null : null
-      const prefAgeMax      = prefAgeMaxRaw !== '' ? parseInt(prefAgeMaxRaw, 10) || null : null
-      const now             = new Date().toISOString()
+      // ── Find or create family account ──────────────────────────────────────────
+      let familyAccountId: string
+      let action: 'created_family' | 'linked_existing' = 'created_family'
 
-      // ── 1. Create auth user (or link to existing on retry) ──────────────────
-      let newUserId: string
-      let isNewAuthUser = false
+      // Check DB existing
+      const existingFaId = normPhone ? (phoneToFamilyId.get(normPhone) ?? null) : null
+      // Check intra-batch
+      const batchFaId = normPhone ? (seenPhones.get(normPhone) ?? null) : null
 
-      const { data: authUser, error: authErr } = await supabaseAdmin.auth.admin.createUser({
-        email,
-        email_confirm: true,
-      })
-
-      if (authUser?.user) {
-        newUserId    = authUser.user.id
-        isNewAuthUser = true
+      if (existingFaId || batchFaId) {
+        familyAccountId = (existingFaId ?? batchFaId) as string
+        action = 'linked_existing'
       } else {
-        // Detect duplicate-email error and attempt to link to the existing user
-        const isDuplicate =
-          authErr?.message?.toLowerCase().includes('already') ||
-          authErr?.message?.toLowerCase().includes('registered')
+        // Determine if male relationship → need female rep (set no_female_contact_flag if none)
+        const MALE_RELATIONSHIPS = new Set(['father', 'brother', 'uncle', 'male_guardian'])
+        const isMaleRep = MALE_RELATIONSHIPS.has(rowMap.representative_relationship)
+        const hasFemaleContact = !!rowMap.female_representative_phone
 
-        if (!isDuplicate) {
-          results.push({ row: rowNum, email, success: false, error: authErr?.message ?? 'Failed to create auth user' })
-          continue
-        }
-
-        // Find the pre-existing auth user
-        const { data: { users } } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 })
-        const existingAuthUser = users.find(u => u.email?.toLowerCase() === email.toLowerCase())
-
-        if (!existingAuthUser) {
-          results.push({ row: rowNum, email, success: false, error: 'User already registered but could not be located — please delete from Auth and retry' })
-          continue
-        }
-
-        // Check for an existing profile so we do not create a duplicate
-        const { data: existingProfile } = await supabaseAdmin
-          .from('zawaaj_profiles')
+        const { data: newFa, error: faErr } = await supabaseAdmin
+          .from('zawaaj_family_accounts')
+          .insert({
+            contact_full_name:       rowMap.representative_name || null,
+            contact_relationship:    rowMap.representative_relationship,
+            contact_number:          repPhone || null,
+            contact_email:           repEmail || null,
+            female_contact_name:     rowMap.female_representative_name || null,
+            female_contact_number:   rowMap.female_representative_phone || null,
+            city:                    rowMap.city || null,
+            plan:                    'voluntary',
+            status:                  'pending_email_verification',
+            readiness_state:         'candidate_only',
+            no_female_contact_flag:  isMaleRep && !hasFemaleContact,
+            imported_user:           true,
+            terms_agreed:            false,
+            registration_path:       'parent',
+          })
           .select('id')
-          .eq('user_id', existingAuthUser.id)
-          .maybeSingle()
+          .single()
 
-        if (existingProfile) {
-          results.push({ row: rowNum, email, success: false, error: 'Profile already exists for this email — skipped' })
+        if (faErr || !newFa) {
+          results.push({ row: rowNum, candidate_name: rowMap.candidate_name || '—', success: false, error: faErr?.message ?? 'Failed to create family account' })
           continue
         }
 
-        newUserId = existingAuthUser.id
+        familyAccountId = newFa.id as string
+
+        // Add to phone map to prevent intra-batch duplicates
+        if (normPhone) {
+          phoneToFamilyId.set(normPhone, familyAccountId)
+          seenPhones.set(normPhone, familyAccountId)
+        }
       }
 
-      // ── 2. Insert profile ────────────────────────────────────────────────────
-      const profilePayload: Record<string, unknown> = {
-        user_id:                newUserId,
-        imported_email:         email,
-        display_initials:       displayInitials,
-        first_name:             firstName || null,
-        last_name:              lastName  || null,
-        gender,
-        date_of_birth:          dobRaw    || null,
-        age_display:            ageDisplay,
-        height:                 height    || null,
-        ethnicity:              ethnicity || null,
-        nationality:            nationality || null,
-        languages_spoken:       languages ? languages.split(',').map(s => s.trim()).filter(Boolean) : null,
-        school_of_thought:      schoolOfThought || null,
-        education_level:        education || null,
-        education_detail:       institution || null,
-        profession_detail:      profession || null,
-        location:               location,
-        religiosity:            religiosity ? normaliseReligiosity(religiosity) : null,
-        prayer_regularity:      prayerReg   || null,
-        wears_hijab:            gender === 'female' ? wearsHijab : null,
-        keeps_beard:            gender === 'male'   ? keepsBeard : null,
-        marital_status:         maritalStatus || null,
-        has_children:           hasChildren,
-        living_situation:       livingSit || null,
-        open_to_relocation:     openReloc || null,
-        open_to_partners_children: openPartnerChild || null,
-        pref_age_min:           prefAgeMin,
-        pref_age_max:           prefAgeMax,
-        pref_location:          prefLocation || null,
-        pref_ethnicity:         prefEthnicity || null,
-        pref_school_of_thought: prefSchool ? [prefSchool] : null,
-        pref_relocation:        prefReloc || null,
-        bio:                    bio || null,
-        place_of_birth:         placeOfBirth || null,
-        smoker:                 smoker,
-        islamic_background:     islamicBackground || null,
-        wears_niqab:            gender === 'female' ? wearsNiqab : null,
-        wears_abaya:            gender === 'female' ? wearsAbaya : null,
-        quran_engagement_level: quranEngagement || null,
-        contact_number:         contactNumber || null,
-        guardian_name:          guardianName  || null,
-        status:                 statusRaw,
-        consent_given:          true,
-        terms_agreed:           true,
-        submitted_date:         now,
-        approved_date:          statusRaw === 'approved' ? now : null,
-        listed_at:              statusRaw === 'approved' ? now : null,
-      }
+      // ── Create profile ─────────────────────────────────────────────────────────
+      const displayInitials = computeInitials(rowMap.candidate_name)
+      const nameParts = rowMap.candidate_name.trim().split(/\s+/)
+      const firstName = nameParts[0] ?? ''
+      const lastName  = nameParts.slice(1).join(' ') || ''
 
       const { data: profile, error: profileErr } = await supabaseAdmin
         .from('zawaaj_profiles')
-        .insert(profilePayload)
+        .insert({
+          family_account_id:     familyAccountId,
+          display_initials:      displayInitials,
+          first_name:            firstName || null,
+          last_name:             lastName  || null,
+          gender:                rowMap.gender || null,
+          age_display:           rowMap.age || null,
+          location:              rowMap.city || null,
+          ethnicity:             rowMap.ethnicity || null,
+          bio:                   rowMap.profile_text || null,
+          status:                'pending',
+          consent_given:         true,
+          terms_agreed:          true,
+          needs_claim:           true,
+          imported_user:         true,
+          imported_at:           now,
+          imported_by:           user.id,
+          data_completeness_score: score,
+          missing_fields_json:   missing.length > 0 ? JSON.stringify(missing) : null,
+          submitted_date:        now,
+        })
         .select('id')
         .single()
 
       if (profileErr || !profile) {
-        // Roll back auth user only if we created it — don't delete a pre-existing account
-        if (isNewAuthUser) await supabaseAdmin.auth.admin.deleteUser(newUserId)
-        results.push({
-          row: rowNum,
-          email,
-          success: false,
-          error: profileErr?.message ?? 'Failed to insert profile',
-        })
+        results.push({ row: rowNum, candidate_name: rowMap.candidate_name || '—', success: false, error: profileErr?.message ?? 'Failed to create profile' })
         continue
       }
 
-      const profileId = profile.id as string
-
-      // ── 3. Insert user settings ──────────────────────────────────────────────
-      const { error: settingsErr } = await supabaseAdmin
-        .from('zawaaj_user_settings')
-        .insert({ user_id: newUserId, active_profile_id: profileId })
-
-      if (settingsErr) {
-        // Non-fatal — log but continue
-        console.error(`[import] user_settings insert failed for ${email}:`, settingsErr.message)
-      }
-
-      // ── 4. Insert free subscription ──────────────────────────────────────────
-      const { error: subErr } = await supabaseAdmin
-        .from('zawaaj_subscriptions')
-        .insert({
-          user_id: newUserId,
-          plan:    'free',
-          status:  'active',
-        })
-
-      if (subErr) {
-        console.error(`[import] subscription insert failed for ${email}:`, subErr.message)
-      }
-
-      // ── 5. Generate invite link ──────────────────────────────────────────────
-      // We return the link to the admin UI rather than relying on email delivery
-      // (which is subject to rate limits and spam filters). The admin can share
-      // it directly via WhatsApp, SMS, or their own email.
-      let inviteLink: string | undefined
-      const { data: linkData, error: linkErr } = await supabaseAdmin.auth.admin.generateLink({
-        type:  'recovery',
-        email,
-        options: { redirectTo: `${siteUrl}/auth/reset-password` },
+      results.push({
+        row: rowNum,
+        candidate_name: rowMap.candidate_name,
+        success: true,
+        error: null,
+        family_account_id: familyAccountId,
+        profile_id: profile.id as string,
+        action,
       })
-      if (linkErr) {
-        console.error(`[import] generateLink failed for ${email}:`, linkErr.message)
-      } else {
-        inviteLink = linkData.properties?.action_link ?? undefined
-        // Also attempt to send the invite email directly via Resend
-        if (inviteLink) {
-          const emailResult = await sendEmail({
-            to: email,
-            subject: "You've been invited to Zawaaj",
-            html: passwordResetTemplate(inviteLink),
-          })
-          if (!emailResult.ok) {
-            console.error(`[import] Resend failed for ${email}:`, emailResult.error)
-          }
-        }
-      }
-
-      results.push({ row: rowNum, email, success: true, error: null, invite_link: inviteLink })
     }
 
     // ── Update batch record ────────────────────────────────────────────────────
@@ -432,20 +293,20 @@ export async function POST(req: NextRequest): Promise<Response> {
         error_count:   errorCount,
         status:        errorCount === results.length ? 'failed' : 'complete',
         errors:        errorRows.length > 0 ? errorRows : null,
-        completed_at:  new Date().toISOString(),
+        completed_at:  now,
       })
       .eq('id', batchId)
 
-    // Return invite links for successful rows so the admin can share them directly
-    const inviteLinks = results
-      .filter(r => r.success && r.invite_link)
-      .map(r => ({ email: r.email, link: r.invite_link as string }))
-
     return NextResponse.json({
-      success:  successCount,
-      errors:   errorCount,
+      success:     successCount,
+      errors:      errorCount,
       batchId,
-      inviteLinks,
+      results: results.filter(r => r.success).map(r => ({
+        candidate_name: r.candidate_name,
+        family_account_id: r.family_account_id,
+        profile_id: r.profile_id,
+        action: r.action,
+      })),
     })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Something went wrong'
