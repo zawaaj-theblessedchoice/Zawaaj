@@ -722,7 +722,7 @@ export default function MyProfilePage() {
           {/* Gated — non-premium */}
           {(!profileViewsData || profileViewsData.gated) && (
             <div>
-              {profileViewsData?.count != null && profileViewsData.count > 0 && (
+              {profileViewsData?.count !== null && profileViewsData?.count !== undefined && profileViewsData.count > 0 && (
                 <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 12 }}>
                   <strong style={{ color: 'var(--text-primary)' }}>{profileViewsData.count}</strong>{' '}
                   {profileViewsData.count === 1 ? 'person' : 'people'} viewed your profile in the last 30 days.

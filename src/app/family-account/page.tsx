@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Sidebar from '@/components/Sidebar'
+import BottomNav from '@/components/BottomNav'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -242,7 +243,7 @@ export default function FamilyAccountPage() {
         .eq('status', 'active')
         .maybeSingle()
       const plan = (sub?.plan as string | null) ?? 'free'
-      setPlanLabel(plan === 'premium' ? 'Premium' : plan === 'plus' ? 'Plus' : 'Community (Free)')
+      setPlanLabel(plan === 'premium' ? 'Premium' : plan === 'plus' ? 'Plus' : 'Voluntary (free)')
 
       // Sidebar counts using active candidate profile
       if (activeCand) {
@@ -588,6 +589,12 @@ export default function FamilyAccountPage() {
 
         </div>
       </main>
+
+      <BottomNav
+        activeRoute={pathname ?? ''}
+        introRequestsCount={introRequestsCount}
+        shortlistCount={shortlistCount}
+      />
     </div>
   )
 }

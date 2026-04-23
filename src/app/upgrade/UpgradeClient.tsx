@@ -46,14 +46,6 @@ export function UpgradeClient({ currentPlan, profileId }: Props) {
   const [billing, setBilling] = useState<'monthly' | 'annual'>('monthly')
   const [checkoutLoading, setCheckoutLoading] = useState(false)
   const [promoCode, setPromoCode] = useState('')
-  const [promoResult, setPromoResult] = useState<{
-    valid: boolean
-    message?: string
-    discount_type?: string
-    discount_value?: number
-    promo_code_id?: string
-  } | null>(null)
-  const [promoLoading, setPromoLoading] = useState(false)
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
 
   const prices = {
@@ -62,32 +54,10 @@ export function UpgradeClient({ currentPlan, profileId }: Props) {
     premium: { monthly: 19, annual: 15 },
   }
 
-  function applyDiscount(basePrice: number): number {
-    if (!promoResult?.valid || basePrice === 0) return basePrice
-    if (promoResult.discount_type === 'percent') {
-      return Math.max(0, basePrice - (basePrice * (promoResult.discount_value! / 100)))
-    }
-    return Math.max(0, basePrice - (promoResult.discount_value ?? 0))
-  }
-
-  async function validatePromo() {
-    if (!promoCode.trim()) return
-    setPromoLoading(true)
-    setPromoResult(null)
-    const res = await fetch('/api/promo-codes/validate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code: promoCode.trim(), plan: selectedPlan ?? '' }),
-    })
-    const json = await res.json().catch(() => ({}))
-    setPromoLoading(false)
-    setPromoResult(json)
-  }
-
   const PLANS = [
     {
       id: 'free',
-      label: 'Community',
+      label: 'Voluntary',
       monthly: prices.free.monthly,
       annual: prices.free.annual,
       color: 'var(--text-secondary)',
@@ -151,10 +121,6 @@ export function UpgradeClient({ currentPlan, profileId }: Props) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 40 }}>
         {PLANS.map(plan => {
           const basePrice = billing === 'monthly' ? plan.monthly : plan.annual
-          const discountedPrice = applyDiscount(basePrice)
-          const hasDiscount = promoResult?.valid && discountedPrice !== basePrice &&
-            (promoResult.discount_type === 'percent' ||
-              (Array.isArray(promoResult) ? false : true))
 
           return (
             <div
@@ -183,20 +149,9 @@ export function UpgradeClient({ currentPlan, profileId }: Props) {
                   {plan.label}
                 </p>
                 <div style={{ marginTop: 10, display: 'flex', alignItems: 'baseline', gap: 4 }}>
-                  {hasDiscount ? (
-                    <>
-                      <span style={{ fontSize: 13, color: 'var(--text-secondary)', textDecoration: 'line-through' }}>
-                        £{basePrice}
-                      </span>
-                      <span style={{ fontSize: 28, fontWeight: 700, color: 'var(--text-primary)' }}>
-                        £{discountedPrice % 1 === 0 ? discountedPrice : discountedPrice.toFixed(2)}
-                      </span>
-                    </>
-                  ) : (
-                    <span style={{ fontSize: 28, fontWeight: 700, color: 'var(--text-primary)' }}>
-                      {plan.monthly === 0 ? 'Free' : `£${basePrice}`}
-                    </span>
-                  )}
+                  <span style={{ fontSize: 28, fontWeight: 700, color: 'var(--text-primary)' }}>
+                    {plan.monthly === 0 ? 'Free' : `£${basePrice}`}
+                  </span>
                   {plan.monthly > 0 && (
                     <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>/mo</span>
                   )}
@@ -216,7 +171,6 @@ export function UpgradeClient({ currentPlan, profileId }: Props) {
                       body: JSON.stringify({
                         plan: plan.id,
                         billing,
-                        promo_code_id: promoResult?.valid ? promoResult.promo_code_id : undefined,
                       }),
                     })
                     const json = await res.json().catch(() => ({})) as { url?: string; error?: string }
@@ -266,8 +220,7 @@ export function UpgradeClient({ currentPlan, profileId }: Props) {
           <div style={{ display: 'flex', gap: 8 }}>
             <input
               value={promoCode}
-              onChange={e => { setPromoCode(e.target.value.toUpperCase()); setPromoResult(null) }}
-              onKeyDown={e => { if (e.key === 'Enter') validatePromo() }}
+              onChange={e => setPromoCode(e.target.value.toUpperCase())}
               placeholder="Enter code"
               style={{
                 flex: 1, padding: '8px 12px', borderRadius: 8, fontSize: 13,
@@ -310,7 +263,7 @@ export function UpgradeClient({ currentPlan, profileId }: Props) {
           <thead>
             <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
               <th style={{ padding: '14px 20px', textAlign: 'left', fontSize: 12, color: 'var(--text-secondary)', fontWeight: 600 }}>Feature</th>
-              {['Community', 'Plus', 'Premium'].map(h => (
+              {['Voluntary', 'Plus', 'Premium'].map(h => (
                 <th key={h} style={{ padding: '14px 16px', textAlign: 'center', fontSize: 12, color: 'var(--text-secondary)', fontWeight: 600 }}>{h}</th>
               ))}
             </tr>

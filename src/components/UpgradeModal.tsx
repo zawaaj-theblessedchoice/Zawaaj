@@ -132,20 +132,35 @@ export default function UpgradeModal({ trigger, onClose }: UpgradeModalProps) {
                     <p style={{ fontSize: 10, color: 'var(--gold)' }}>£{p.annual * 12}/yr</p>
                   )}
                 </div>
-                <Link
-                  href={p.key === 'free' ? '#' : '/settings?tab=membership'}
-                  onClick={p.key === 'free' ? onClose : undefined}
-                  style={{
-                    display: 'block', textAlign: 'center',
-                    padding: '7px 0', borderRadius: 8, fontSize: 12, fontWeight: 500,
-                    background: p.highlight ? 'var(--gold)' : 'transparent',
-                    color: p.highlight ? 'var(--surface)' : 'var(--text-secondary)',
-                    border: p.highlight ? 'none' : '0.5px solid var(--border-default)',
-                    textDecoration: 'none', transition: 'opacity 0.15s',
-                  }}
-                >
-                  {p.key === 'free' ? 'Current' : 'Upgrade →'}
-                </Link>
+                {p.key === 'free' ? (
+                  <button
+                    onClick={onClose}
+                    style={{
+                      display: 'block', width: '100%', textAlign: 'center',
+                      padding: '7px 0', borderRadius: 8, fontSize: 12, fontWeight: 500,
+                      background: 'transparent',
+                      color: 'var(--text-secondary)',
+                      border: '0.5px solid var(--border-default)',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Current
+                  </button>
+                ) : (
+                  <Link
+                    href="/settings?tab=membership"
+                    style={{
+                      display: 'block', textAlign: 'center',
+                      padding: '7px 0', borderRadius: 8, fontSize: 12, fontWeight: 500,
+                      background: 'var(--gold)',
+                      color: 'var(--surface)',
+                      border: 'none',
+                      textDecoration: 'none', transition: 'opacity 0.15s',
+                    }}
+                  >
+                    Upgrade →
+                  </Link>
+                )}
               </div>
             )
           })}

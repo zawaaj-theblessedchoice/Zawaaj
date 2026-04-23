@@ -1799,8 +1799,8 @@ export const ARTICLES: HelpArticle[] = [
       {
         type: 'step',
         number: 1,
-        title: 'Go to the Pricing page',
-        body: 'From the sidebar, click the "Zawaaj Premium" link, or navigate to /pricing directly.',
+        title: 'Go to Membership in Settings',
+        body: 'From the sidebar, click the "Zawaaj Premium" link, or go to Settings › Membership directly.',
       },
       {
         type: 'step',

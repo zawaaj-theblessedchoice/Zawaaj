@@ -424,7 +424,7 @@ function SettingsContent() {
                     </Link>
                   ) : (
                     <Link
-                      href="/pricing"
+                      href="/upgrade"
                       style={{
                         flexShrink: 0,
                         padding: '9px 18px',
