@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import Sidebar from '@/components/Sidebar'
 import { PLAN_LABELS, PLAN_PRICES, PLAN_CONFIG } from '@/lib/plan-config'
+import { planDisplayName } from '@/lib/zawaaj/planDisplayName'
 
 type Plan = 'free' | 'plus' | 'premium'
 type Tab = 'membership' | 'account' | 'privacy'
@@ -519,8 +520,10 @@ function SettingsContent() {
                   <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 12 }}>Full comparison</p>
                   <div style={{ borderRadius: 14, border: '0.5px solid var(--border-default)', overflow: 'hidden' }}>
                     <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', background: 'var(--surface-3)', padding: '8px 16px' }}>
-                      {['Feature', 'Free', 'Premium'].map(h => (
-                        <span key={h} style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: h === 'Feature' ? 'left' : 'center' }}>{h}</span>
+                      {(['Feature', 'voluntary', 'premium'] as const).map(h => (
+                        <span key={h} style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: h === 'Feature' ? 'left' : 'center' }}>
+                          {h === 'Feature' ? 'Feature' : planDisplayName(h)}
+                        </span>
                       ))}
                     </div>
                     {COMPARISON_ROWS.map((row, i) => (

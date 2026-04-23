@@ -123,7 +123,6 @@ INSERT INTO public.zawaaj_family_accounts (
   primary_user_id,
   status, registration_path,
   terms_agreed, terms_agreed_at,
-  onboarding_state,
   no_female_contact_flag, father_explanation,
   created_at, updated_at
 )
@@ -132,25 +131,25 @@ VALUES
     '22000000-0000-0000-0000-000000000001',
     'Amira Khan', 'mother', '+44 7700 900001', 'amira@demo.zawaaj.uk',
     '11000000-0000-0000-0000-000000000001',
-    'active', 'child', true, now(), 'activated', false, '', now(), now()
+    'active', 'child', true, now(), false, '', now(), now()
   ),
   (
     '22000000-0000-0000-0000-000000000002',
     'Fatima Rahman', 'mother', '+44 7700 900002', 'fatima@demo.zawaaj.uk',
     '11000000-0000-0000-0000-000000000002',
-    'active', 'child', true, now(), 'activated', false, '', now(), now()
+    'active', 'child', true, now(), false, '', now(), now()
   ),
   (
     '22000000-0000-0000-0000-000000000003',
     'Ibrahim Ahmed', 'mother', '+44 7700 900003', 'ibrahim@demo.zawaaj.uk',
     '11000000-0000-0000-0000-000000000003',
-    'active', 'child', true, now(), 'activated', false, '', now(), now()
+    'active', 'child', true, now(), false, '', now(), now()
   ),
   (
     '22000000-0000-0000-0000-000000000004',
     'Yusuf Malik', 'mother', '+44 7700 900004', 'yusuf@demo.zawaaj.uk',
     '11000000-0000-0000-0000-000000000004',
-    'active', 'child', true, now(), 'activated', false, '', now(), now()
+    'active', 'child', true, now(), false, '', now(), now()
   )
 ;
 

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { planDisplayName } from '@/lib/zawaaj/planDisplayName'
 
 interface Props {
   currentPlan: string
@@ -57,7 +58,7 @@ export function UpgradeClient({ currentPlan, profileId }: Props) {
   const PLANS = [
     {
       id: 'free',
-      label: 'Voluntary',
+      label: planDisplayName('voluntary'),
       monthly: prices.free.monthly,
       annual: prices.free.annual,
       color: 'var(--text-secondary)',
@@ -67,7 +68,7 @@ export function UpgradeClient({ currentPlan, profileId }: Props) {
     },
     {
       id: 'plus',
-      label: 'Zawaaj Plus',
+      label: planDisplayName('plus'),
       monthly: prices.plus.monthly,
       annual: prices.plus.annual,
       color: '#818cf8',
@@ -77,7 +78,7 @@ export function UpgradeClient({ currentPlan, profileId }: Props) {
     },
     {
       id: 'premium',
-      label: 'Zawaaj Premium',
+      label: planDisplayName('premium'),
       monthly: prices.premium.monthly,
       annual: prices.premium.annual,
       color: '#B8960C',
@@ -263,8 +264,8 @@ export function UpgradeClient({ currentPlan, profileId }: Props) {
           <thead>
             <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
               <th style={{ padding: '14px 20px', textAlign: 'left', fontSize: 12, color: 'var(--text-secondary)', fontWeight: 600 }}>Feature</th>
-              {['Voluntary', 'Plus', 'Premium'].map(h => (
-                <th key={h} style={{ padding: '14px 16px', textAlign: 'center', fontSize: 12, color: 'var(--text-secondary)', fontWeight: 600 }}>{h}</th>
+              {(['voluntary', 'plus', 'premium'] as const).map(slug => (
+                <th key={slug} style={{ padding: '14px 16px', textAlign: 'center', fontSize: 12, color: 'var(--text-secondary)', fontWeight: 600 }}>{planDisplayName(slug)}</th>
               ))}
             </tr>
           </thead>

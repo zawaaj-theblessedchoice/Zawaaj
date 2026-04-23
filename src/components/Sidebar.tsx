@@ -430,7 +430,7 @@ export default function Sidebar({
           }}>
             <span style={{ color: 'var(--gold-light)', display: 'flex' }}><TrophyIcon /></span>
           </span>
-          <span style={{ flex: 1, fontSize: 12.5, fontWeight: 500, color: 'var(--gold-light)' }}>Zawaaj Premium</span>
+          <span style={{ flex: 1, fontSize: 12.5, fontWeight: 500, color: 'var(--gold-light)' }}>Premium</span>
         </Link>
       </div>
 

@@ -666,7 +666,7 @@ export default function ProfileModal({
                           Full profile details
                         </p>
                         <p style={{ fontSize: 11.5, color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: 12 }}>
-                          Faith depth, lifestyle, bio and more — available on Zawaaj Premium.
+                          Faith depth, lifestyle, bio and more — available on Premium.
                         </p>
                         <button
                           onClick={() => setShowUpgrade(true)}

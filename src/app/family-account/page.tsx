@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Sidebar from '@/components/Sidebar'
 import BottomNav from '@/components/BottomNav'
+import { planDisplayName } from '@/lib/zawaaj/planDisplayName'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -242,8 +243,8 @@ export default function FamilyAccountPage() {
         .eq('user_id', user.id)
         .eq('status', 'active')
         .maybeSingle()
-      const plan = (sub?.plan as string | null) ?? 'free'
-      setPlanLabel(plan === 'premium' ? 'Premium' : plan === 'plus' ? 'Plus' : 'Voluntary (free)')
+      const plan = (sub?.plan as string | null) ?? 'voluntary'
+      setPlanLabel(planDisplayName(plan))
 
       // Sidebar counts using active candidate profile
       if (activeCand) {

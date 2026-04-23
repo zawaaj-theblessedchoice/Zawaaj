@@ -199,7 +199,7 @@ export default function AdminConciergeClient({
         <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--admin-muted)' }}>
           <div style={{ fontSize: 32, marginBottom: 12 }}>✦</div>
           <p style={{ fontSize: 14, fontWeight: 500, marginBottom: 6 }}>No Premium members yet</p>
-          <p style={{ fontSize: 12 }}>Members who subscribe to Zawaaj Premium will appear here.</p>
+          <p style={{ fontSize: 12 }}>Members who subscribe to Premium will appear here.</p>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>

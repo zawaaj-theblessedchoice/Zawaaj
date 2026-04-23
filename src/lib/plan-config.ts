@@ -101,8 +101,8 @@ export const INTRO_EXPIRY_DAYS = 7
 
 export const PLAN_LABELS: Record<Plan, string> = {
   free:    'Community Access',
-  plus:    'Zawaaj Plus',
-  premium: 'Zawaaj Premium',
+  plus:    'Plus',
+  premium: 'Premium',
 }
 
 // ─── Pricing ──────────────────────────────────────────────────────────────────
@@ -191,7 +191,7 @@ export async function fetchPlansFromDb(
       },
       {
         key: 'plus',
-        label: 'Zawaaj Plus',
+        label: 'Plus',
         price_monthly_gbp: 900,
         price_annual_gbp: 7200,
         monthly_interests: 15,
@@ -202,7 +202,7 @@ export async function fetchPlansFromDb(
       },
       {
         key: 'premium',
-        label: 'Zawaaj Premium',
+        label: 'Premium',
         price_monthly_gbp: 1900,
         price_annual_gbp: 18000,
         monthly_interests: null,

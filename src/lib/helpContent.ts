@@ -825,8 +825,8 @@ export const ARTICLES: HelpArticle[] = [
         type: 'ul',
         items: [
           'Voluntary: 5 interest expressions per month',
-          'Zawaaj Plus: 15 interest expressions per month',
-          'Zawaaj Premium: no monthly limit',
+          'Plus: 15 interest expressions per month',
+          'Premium: no monthly limit',
           'The counter resets on the 1st of each month',
           'Pending requests that expire do not restore your allowance',
           'Requests you withdraw do not restore your allowance either',
@@ -1767,7 +1767,7 @@ export const ARTICLES: HelpArticle[] = [
       },
       {
         type: 'h2',
-        text: 'Zawaaj Plus',
+        text: 'Plus',
       },
       {
         type: 'p',
@@ -1775,7 +1775,7 @@ export const ARTICLES: HelpArticle[] = [
       },
       {
         type: 'h2',
-        text: 'Zawaaj Premium',
+        text: 'Premium',
       },
       {
         type: 'p',
@@ -1800,7 +1800,7 @@ export const ARTICLES: HelpArticle[] = [
         type: 'step',
         number: 1,
         title: 'Go to Membership in Settings',
-        body: 'From the sidebar, click the "Zawaaj Premium" link, or go to Settings › Membership directly.',
+        body: 'From the sidebar, click the "Premium" link, or go to Settings › Membership directly.',
       },
       {
         type: 'step',

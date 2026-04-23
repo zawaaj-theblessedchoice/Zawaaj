@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import ZawaajLogo from '@/components/ZawaajLogo'
 import { PLAN_CONFIG, PLAN_PRICES } from '@/lib/plan-config'
+import { planDisplayName } from '@/lib/zawaaj/planDisplayName'
 
 // Helper — converts a numeric limit to a display string
 function limitStr(n: number) {
@@ -71,8 +72,8 @@ export default function PricingPage() {
   const [annual, setAnnual] = useState(false)
 
   const plans = [
-    { name: 'Voluntary', monthly: PLAN_PRICES.free.monthly, annual: PLAN_PRICES.free.annual, highlight: false, ctaLabel: 'Get started', cta: '/signup' },
-    { name: 'Zawaaj Premium', monthly: PLAN_PRICES.premium.monthly, annual: PLAN_PRICES.premium.annual, highlight: true, ctaLabel: 'Get Premium', cta: '/signup' },
+    { name: planDisplayName('voluntary'), monthly: PLAN_PRICES.free.monthly, annual: PLAN_PRICES.free.annual, highlight: false, ctaLabel: 'Get started', cta: '/signup' },
+    { name: planDisplayName('premium'), monthly: PLAN_PRICES.premium.monthly, annual: PLAN_PRICES.premium.annual, highlight: true, ctaLabel: 'Get Premium', cta: '/signup' },
   ]
 
   return (

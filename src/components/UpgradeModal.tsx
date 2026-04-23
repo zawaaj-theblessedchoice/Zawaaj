@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { planDisplayName } from '@/lib/zawaaj/planDisplayName'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -42,8 +43,8 @@ export default function UpgradeModal({ trigger, onClose }: UpgradeModalProps) {
   const copy = TRIGGER_COPY[trigger]
 
   const plans = [
-    { key: 'free',    name: 'Voluntary', monthly: 0,  annual: 0,  highlight: false, col: 0 },
-    { key: 'premium', name: 'Premium',   monthly: 19, annual: 15, highlight: true,  col: 1 },
+    { key: 'free',    name: planDisplayName('voluntary'), monthly: 0,  annual: 0,  highlight: false, col: 0 },
+    { key: 'premium', name: planDisplayName('premium'),   monthly: 19, annual: 15, highlight: true,  col: 1 },
   ]
 
   return (
@@ -170,8 +171,8 @@ export default function UpgradeModal({ trigger, onClose }: UpgradeModalProps) {
         <div style={{ margin: '0 16px', borderRadius: 10, border: '0.5px solid var(--border-default)', overflow: 'hidden' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', background: 'var(--surface-3)', padding: '8px 12px' }}>
             <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Feature</span>
-            {['Free', 'Premium'].map(h => (
-              <span key={h} style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 500, textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{h}</span>
+            {(['voluntary', 'premium'] as const).map(slug => (
+              <span key={slug} style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 500, textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{planDisplayName(slug)}</span>
             ))}
           </div>
           {KEY_ROWS.map((row, i) => (
