@@ -112,6 +112,17 @@ function OffersIcon() {
   )
 }
 
+function PaymentsIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
+      <rect x="1" y="3" width="12" height="8" rx="1.5" stroke="currentColor" strokeWidth="1.3" />
+      <path d="M1 6h12" stroke="currentColor" strokeWidth="1.3" />
+      <circle cx="4" cy="9" r="0.9" fill="currentColor" />
+      <path d="M6.5 9h3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+    </svg>
+  )
+}
+
 function ImportIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
@@ -165,6 +176,7 @@ const NAV_SECTIONS = [
       { href: '/admin/offers',        label: 'Offers',        icon: <OffersIcon />,         superOnly: true  },
       { href: '/admin/managers',      label: 'Managers',      icon: <ManagersIcon />,       superOnly: true  },
       { href: '/admin/subscriptions', label: 'Subscriptions', icon: <SubscriptionsIcon />,  superOnly: true  },
+      { href: '/admin/payments',      label: 'Payments',      icon: <PaymentsIcon />,       superOnly: true  },
       { href: '/admin/import',        label: 'Import',        icon: <ImportIcon />,         superOnly: true  },
     ],
   },

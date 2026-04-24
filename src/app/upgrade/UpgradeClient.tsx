@@ -162,7 +162,7 @@ export function UpgradeClient({ currentPlan, profileId }: Props) {
                 disabled={plan.ctaDisabled}
                 onClick={() => {
                   if (plan.ctaDisabled) return
-                  router.push('/upgrade/bank-transfer')
+                  router.push(`/upgrade/bank-transfer?plan=${plan.id}`)
                 }}
                 style={{
                   padding: '10px 0', borderRadius: 9, fontSize: 13, fontWeight: 600,
