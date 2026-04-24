@@ -123,11 +123,15 @@ function SettingsContent() {
   // Show success flash if returning from Stripe checkout
   const checkoutSuccess = searchParams.get('checkout') === 'success'
 
-  // Read saved theme on mount (default is light — same as CSS :root)
+  // Read saved theme on mount and immediately apply it so the DOM is always
+  // in sync with localStorage (handles back-button / bfcache restores where
+  // the themeInitScript may not have re-run).
   useEffect(() => {
     try {
       const saved = localStorage.getItem('zawaaj-theme') as ThemeMode | null
-      setThemeMode(saved ?? 'system')
+      const mode = saved ?? 'system'
+      setThemeMode(mode)
+      applyTheme(mode)
     } catch { /* localStorage unavailable */ }
   }, [])
 
