@@ -45,7 +45,7 @@ CREATE POLICY "Members can view own payment requests"
   USING (
     family_account_id IN (
       SELECT id FROM public.zawaaj_family_accounts
-      WHERE user_id = auth.uid()
+      WHERE primary_user_id = auth.uid()   -- correct column: zawaaj_family_accounts uses primary_user_id
     )
   );
 
