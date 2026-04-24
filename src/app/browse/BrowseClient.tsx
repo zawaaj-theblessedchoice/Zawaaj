@@ -346,12 +346,7 @@ function ProfileCard({
         </div>
       </div>
 
-      {/* Compat bar — hidden on mobile via CSS class */}
-      {showCompatBar && (
-        <div className="profile-card-compat" style={{ marginTop: 2 }}>
-          <CompatibilityBar score={score} />
-        </div>
-      )}
+      {/* Compat bar removed from cards — fit score visible in profile modal only */}
 
       {/* Status line — only show for meaningful states */}
       {introStatus === 'accepted' && (
@@ -1121,7 +1116,7 @@ export default function BrowseClient({
                 margin: 0,
               }}
             >
-              Find a Match
+              Discover Profiles
             </h1>
             {/* Active limit banner — calm gold tone, shown only when at limit */}
             {activeLimit !== null && activeCount >= activeLimit && (
@@ -1162,7 +1157,7 @@ export default function BrowseClient({
                 cursor: 'default',
               }}
             >
-              {monthlyUsed}/{monthlyLimit} requests
+              {monthlyUsed} of {monthlyLimit} interests this month
             </span>
 
             {/* Upgrade nudge — shown to members without templates who have used ≥ 1 request */}
@@ -1715,7 +1710,7 @@ export default function BrowseClient({
                   outline: 'none',
                 }}
               >
-                <option value="relevant">Most relevant</option>
+                <option value="relevant" title="Ordered by how well this profile matches your preferences.">Most relevant</option>
                 <option value="newest">Newest listed</option>
                 <option value="age_asc">Age: youngest first</option>
                 <option value="age_desc">Age: oldest first</option>
@@ -1809,7 +1804,7 @@ export default function BrowseClient({
                 background: 'var(--gold)',
               }}
             />
-            {newCount} new {newCount === 1 ? 'profile' : 'profiles'} since your last visit
+            {newCount} new {newCount === 1 ? 'profile' : 'profiles'} listed since your last visit
           </div>
         )}
 

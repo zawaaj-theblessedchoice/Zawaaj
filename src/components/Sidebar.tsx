@@ -289,7 +289,7 @@ export default function Sidebar({
           href: activeProfileId ? '/my-profile' : '/family-account',
           icon: <ProfileIcon />,
         },
-        { label: 'Add family member', href: '/add-profile', icon: <AddFamilyIcon /> },
+        { label: 'Add candidate profile', href: '/add-profile', icon: <AddFamilyIcon /> },
         { label: 'Settings', href: '/settings', icon: <SettingsIcon /> },
       ],
     },
@@ -618,7 +618,7 @@ export default function Sidebar({
                 }}
               >
                 <span style={{ fontSize: 14, lineHeight: 1 }}>+</span>
-                Add family member
+                Add candidate profile
               </Link>
             </div>
           )}

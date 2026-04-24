@@ -44,10 +44,8 @@ function Tick({ yes }: { yes: boolean | string }) {
 
 export function UpgradeClient({ currentPlan, profileId }: Props) {
   const router = useRouter()
-  const [billing, setBilling] = useState<'monthly' | 'annual'>('monthly')
-  const [checkoutLoading, setCheckoutLoading] = useState(false)
+  const [billing] = useState<'monthly' | 'annual'>('monthly') // toggle disabled — annual billing coming soon
   const [promoCode, setPromoCode] = useState('')
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
 
   const prices = {
     free:    { monthly: 0,  annual: 0 },
@@ -99,21 +97,22 @@ export function UpgradeClient({ currentPlan, profileId }: Props) {
           Unlock more introductions, filters, and features to find your match.
         </p>
 
-        {/* Billing toggle */}
-        <div style={{ display: 'inline-flex', gap: 0, marginTop: 24, borderRadius: 10, overflow: 'hidden', border: '1px solid var(--border-default)' }}>
+        {/* Billing toggle — disabled until annual billing is live */}
+        <div
+          title="Annual billing coming soon — contact us to arrange."
+          style={{ display: 'inline-flex', gap: 0, marginTop: 24, borderRadius: 10, overflow: 'hidden', border: '1px solid var(--border-default)', opacity: 0.7, cursor: 'default' }}
+        >
           {(['monthly', 'annual'] as const).map(b => (
-            <button
+            <span
               key={b}
-              onClick={() => setBilling(b)}
               style={{
-                padding: '8px 20px', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 500,
-                background: billing === b ? '#B8960C' : 'transparent',
-                color: billing === b ? '#111' : 'var(--text-secondary)',
-                transition: 'all 0.15s',
+                padding: '8px 20px', fontSize: 13, fontWeight: 500, userSelect: 'none',
+                background: b === 'monthly' ? '#B8960C' : 'transparent',
+                color: b === 'monthly' ? '#111' : 'var(--text-secondary)',
               }}
             >
               {b === 'monthly' ? 'Monthly' : 'Annual (save ~20%)'}
-            </button>
+            </span>
           ))}
         </div>
       </div>
@@ -160,53 +159,84 @@ export function UpgradeClient({ currentPlan, profileId }: Props) {
               </div>
 
               <button
-                disabled={plan.ctaDisabled || checkoutLoading}
-                onClick={async () => {
-                  if (plan.ctaDisabled || checkoutLoading) return
-                  setSelectedPlan(plan.id)
-                  setCheckoutLoading(true)
-                  try {
-                    const res = await fetch('/api/stripe/create-checkout', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({
-                        plan: plan.id,
-                        billing,
-                      }),
-                    })
-                    const json = await res.json().catch(() => ({})) as { url?: string; error?: string }
-                    if (json.url) {
-                      window.location.href = json.url
-                    } else {
-                      // Stripe not yet configured — fall back to settings tab
-                      router.push('/settings?tab=membership')
-                    }
-                  } catch {
-                    router.push('/settings?tab=membership')
-                  } finally {
-                    setCheckoutLoading(false)
-                  }
+                disabled={plan.ctaDisabled}
+                onClick={() => {
+                  if (plan.ctaDisabled) return
+                  router.push('/upgrade/bank-transfer')
                 }}
                 style={{
                   padding: '10px 0', borderRadius: 9, fontSize: 13, fontWeight: 600,
                   border: plan.highlight ? 'none' : '1px solid var(--border-default)',
-                  cursor: (plan.ctaDisabled || checkoutLoading) ? 'default' : 'pointer',
+                  cursor: plan.ctaDisabled ? 'default' : 'pointer',
                   background: plan.ctaDisabled
                     ? 'rgba(255,255,255,0.05)'
                     : plan.highlight ? '#B8960C' : 'transparent',
                   color: plan.ctaDisabled
                     ? 'var(--text-secondary)'
                     : plan.highlight ? '#111' : 'var(--text-primary)',
-                  opacity: (plan.ctaDisabled || checkoutLoading) ? 0.6 : 1,
+                  opacity: plan.ctaDisabled ? 0.6 : 1,
                   transition: 'all 0.15s',
                 }}
               >
-                {plan.id === currentPlan ? '✓ Current plan' : checkoutLoading && selectedPlan === plan.id ? 'Redirecting…' : plan.cta}
+                {plan.id === currentPlan ? '✓ Current plan' : 'Upgrade via Bank Transfer'}
               </button>
             </div>
           )
         })}
       </div>
+
+      {/* Payment options — bank transfer & direct debit (Stripe hidden pending re-enablement) */}
+      <div style={{
+        display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+        gap: 16, marginBottom: 24,
+      }}>
+        <div style={{
+          background: 'var(--surface-2)', border: '1px solid var(--border-default)',
+          borderRadius: 14, padding: '22px 20px', display: 'flex', flexDirection: 'column', gap: 10,
+        }}>
+          <p style={{ margin: 0, fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>Direct Debit</p>
+          <p style={{ margin: 0, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+            Set up a monthly Direct Debit. Secure, cancellable anytime.
+          </p>
+          <button
+            onClick={() => router.push('/upgrade/bank-transfer')}
+            style={{
+              marginTop: 4, padding: '9px 0', borderRadius: 9, fontSize: 13, fontWeight: 600,
+              border: 'none', cursor: 'pointer', background: '#B8960C', color: '#111', transition: 'opacity 0.15s',
+            }}
+          >
+            Set up Direct Debit →
+          </button>
+        </div>
+
+        <div style={{
+          background: 'var(--surface-2)', border: '1px solid var(--border-default)',
+          borderRadius: 14, padding: '22px 20px', display: 'flex', flexDirection: 'column', gap: 10,
+        }}>
+          <p style={{ margin: 0, fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>Bank Transfer</p>
+          <p style={{ margin: 0, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+            Pay by bank transfer. We&apos;ll activate your account within 1 working day.
+          </p>
+          <button
+            onClick={() => router.push('/upgrade/bank-transfer')}
+            style={{
+              marginTop: 4, padding: '9px 0', borderRadius: 9, fontSize: 13, fontWeight: 600,
+              border: '1px solid var(--border-default)', cursor: 'pointer',
+              background: 'transparent', color: 'var(--text-primary)', transition: 'opacity 0.15s',
+            }}
+          >
+            Pay by Bank Transfer →
+          </button>
+        </div>
+      </div>
+
+      <p style={{
+        fontSize: 12, color: 'var(--text-muted)', textAlign: 'center',
+        marginBottom: 32, lineHeight: 1.6,
+      }}>
+        Premium memberships are currently available via Direct Debit or Bank Transfer.
+        We do not accept card payments at this time.
+      </p>
 
       {/* Promo code */}
       <div style={{
