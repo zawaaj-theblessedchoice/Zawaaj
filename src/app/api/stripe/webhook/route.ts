@@ -243,4 +243,19 @@ async function upsertSubscription(args: UpsertArgs) {
     console.error('[stripe/webhook] upsertSubscription failed:', error.message)
     throw error
   }
+
+  // ── Keep zawaaj_family_accounts.plan in sync ──────────────────────────────
+  // The family account table has its own plan column used in the Operations
+  // Console. Sync it whenever a subscription changes so the two never diverge.
+  // Map Stripe plan slugs to DB plan slugs (free → voluntary).
+  const faplan = args.plan === 'free' ? 'voluntary' : args.plan
+  const { error: faErr } = await supabaseAdmin
+    .from('zawaaj_family_accounts')
+    .update({ plan: faplan })
+    .eq('primary_user_id', args.userId)
+
+  if (faErr) {
+    // Non-fatal — log but don't throw so the subscription row is still saved
+    console.warn('[stripe/webhook] family_account plan sync failed:', faErr.message)
+  }
 }

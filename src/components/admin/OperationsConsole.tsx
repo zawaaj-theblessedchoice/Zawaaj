@@ -38,6 +38,7 @@ export function OperationsConsole() {
     introductionsActive: 0,
     approvedMembers: 0,
     introducedThisWeek: 0,
+    needsClaim: 0,
   })
   const [loading, setLoading] = useState(true)
   const [filters, setFilters] = useState<ProfileFilters>({})
@@ -309,7 +310,7 @@ export function OperationsConsole() {
                 strokeLinejoin="round"
               />
             </svg>
-            {metrics.pendingReview > 0 && (
+            {(metrics.pendingReview > 0 || metrics.needsClaim > 0) && (
               <span
                 style={{
                   position: 'absolute',
@@ -318,7 +319,7 @@ export function OperationsConsole() {
                   width: 7,
                   height: 7,
                   borderRadius: '50%',
-                  background: 'var(--status-error)',
+                  background: metrics.pendingReview > 0 ? 'var(--status-error)' : '#ca8a04',
                 }}
               />
             )}
@@ -350,6 +351,7 @@ export function OperationsConsole() {
         <MetricsRow
           metrics={metrics}
           onFilter={status => handleSetFilters({ ...filters, status })}
+          onNeedsClaim={() => handleSetFilters({ needsClaim: true })}
         />
 
         {/* Pending family accounts notice */}
@@ -396,6 +398,28 @@ export function OperationsConsole() {
         <div style={{ height: 16 }} />
         <FilterBar filters={filters} onChange={handleSetFilters} />
         <div style={{ height: 12 }} />
+
+        {/* Batch-size guidance when browsing needs-claim queue */}
+        {filters.needsClaim && (
+          <div
+            style={{
+              marginBottom: 12,
+              padding: '10px 14px',
+              borderRadius: 9,
+              background: 'rgba(96,165,250,0.07)',
+              border: '1px solid rgba(96,165,250,0.2)',
+              borderLeft: '3px solid #60a5fa',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+            }}
+          >
+            <span style={{ fontSize: 18, flexShrink: 0 }}>💬</span>
+            <span style={{ fontSize: 13, color: 'var(--admin-text)', lineHeight: 1.5 }}>
+              <strong style={{ color: '#60a5fa' }}>Tip:</strong> Invite in batches of 5 — send magic links, copy the WhatsApp template for each, then snooze the rest to pace the queue.
+            </span>
+          </div>
+        )}
 
         {selectedIds.size > 0 && (
           <BulkActionBar

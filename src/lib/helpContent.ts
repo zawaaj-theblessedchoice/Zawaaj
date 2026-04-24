@@ -31,14 +31,14 @@ export const CATEGORIES: HelpCategory[] = [
     title: 'Getting started',
     description: 'How Zawaaj works, creating your account, and what to expect.',
     icon: 'clock',
-    articleCount: 6,
+    articleCount: 8,
   },
   {
     id: 'your-profile',
     title: 'Your profile',
     description: 'Building a strong profile and understanding the approval process.',
     icon: 'person',
-    articleCount: 7,
+    articleCount: 8,
   },
   {
     id: 'introductions',
@@ -59,7 +59,7 @@ export const CATEGORIES: HelpCategory[] = [
     title: 'Guidance for families',
     description: 'For parents and family members involved in the search.',
     icon: 'people',
-    articleCount: 6,
+    articleCount: 7,
   },
   {
     id: 'discovering',
@@ -71,9 +71,9 @@ export const CATEGORIES: HelpCategory[] = [
   {
     id: 'membership',
     title: 'Membership & billing',
-    description: 'Voluntary, Plus, and Premium plans — billing, upgrading, and what each tier includes.',
+    description: 'Community Access, Plus, and Premium plans — billing, upgrading, and what each tier includes.',
     icon: 'star',
-    articleCount: 6,
+    articleCount: 7,
   },
   {
     id: 'account',
@@ -824,7 +824,7 @@ export const ARTICLES: HelpArticle[] = [
       {
         type: 'ul',
         items: [
-          'Voluntary: 5 interest expressions per month',
+          'Community Access: 5 interest expressions per month',
           'Plus: 15 interest expressions per month',
           'Premium: no monthly limit',
           'The counter resets on the 1st of each month',
@@ -1747,7 +1747,7 @@ export const ARTICLES: HelpArticle[] = [
   // ─── membership ──────────────────────────────────────────────────────────────
   {
     slug: 'plans-overview',
-    title: 'Plans overview — Voluntary, Plus, and Premium',
+    title: 'Plans overview — Community Access, Plus, and Premium',
     deck: 'Zawaaj offers three membership tiers. Here is what each one includes and how to decide which is right for you.',
     category: 'membership',
     readTime: 3,
@@ -1755,15 +1755,15 @@ export const ARTICLES: HelpArticle[] = [
     blocks: [
       {
         type: 'p',
-        text: 'Zawaaj offers a free Voluntary tier alongside two paid plans. All members go through the same admin-facilitated introduction process — the tier you choose affects how many interest expressions you can send per month and which features are available to you.',
+        text: 'Zawaaj offers a free Community Access tier alongside two paid plans. All members go through the same admin-facilitated introduction process — the tier you choose affects how many interest expressions you can send per month and which features are available to you.',
       },
       {
         type: 'h2',
-        text: 'Voluntary (free)',
+        text: 'Community Access (free)',
       },
       {
         type: 'p',
-        text: 'Voluntary is free with no credit card required. You can browse approved profiles, shortlist people, and send up to 5 interest expressions per month. You will see a summary view of profiles — full profile details are available on Plus and above.',
+        text: 'Community Access is free with no credit card required. You can browse approved profiles, shortlist people, and send up to 5 interest expressions per month. You will see a summary view of profiles — full profile details are available on Plus and above.',
       },
       {
         type: 'h2',
@@ -1907,21 +1907,21 @@ export const ARTICLES: HelpArticle[] = [
       },
       {
         type: 'p',
-        text: 'After cancellation, your account reverts to the Voluntary tier automatically. No further charges will be made.',
+        text: 'After cancellation, your account reverts to Community Access automatically. No further charges will be made.',
       },
     ],
   },
   {
     slug: 'voluntary-contribution-explained',
-    title: 'Why the Voluntary tier is free',
-    deck: 'The Voluntary tier is genuinely free. Here is our thinking behind it.',
+    title: 'Why Community Access is free',
+    deck: 'Community Access is genuinely free. Here is our thinking behind it.',
     category: 'membership',
     readTime: 2,
     related: ['plans-overview', 'upgrading-your-plan', 'billing-faq'],
     blocks: [
       {
         type: 'p',
-        text: 'We believe that cost should never be a barrier to finding a spouse. The Voluntary tier gives every approved family the ability to browse, shortlist, and express interest at no cost. It is not a trial or a stripped-down taster — it is a genuine tier.',
+        text: 'We believe that cost should never be a barrier to finding a spouse. Community Access gives every approved family the ability to browse, shortlist, and express interest at no cost. It is not a trial or a stripped-down taster — it is a genuine tier.',
       },
       {
         type: 'h2',
@@ -1934,7 +1934,7 @@ export const ARTICLES: HelpArticle[] = [
       {
         type: 'callout',
         title: 'Supporting the platform',
-        body: 'Paid memberships help keep Zawaaj running for everyone, including families on the Voluntary tier who cannot or choose not to pay. If the platform has been useful to you, upgrading is one way to give back.',
+        body: 'Paid memberships help keep Zawaaj running for everyone, including families on Community Access who cannot or choose not to pay. If the platform has been useful to you, upgrading is one way to give back.',
       },
     ],
   },
@@ -2107,6 +2107,246 @@ export const ARTICLES: HelpArticle[] = [
       {
         type: 'p',
         text: 'If you have an active subscription, please cancel it before deleting your account to avoid any future charges.',
+      },
+    ],
+  },
+  // ─── New articles — Sprint 5 ─────────────────────────────────────────────────
+  {
+    slug: 'your-profile-was-set-up-for-you',
+    title: 'Your profile has already been set up',
+    deck: 'If you received a WhatsApp message with an activation link, someone from our team has already created your family account. Here is what that means and what to do next.',
+    category: 'getting-started',
+    readTime: 3,
+    related: ['claiming-your-account', 'how-it-works-overview', 'guide-for-parents'],
+    blocks: [
+      {
+        type: 'p',
+        text: 'Our managers sometimes create family accounts on behalf of families they have spoken with directly — for example, at an event or through a referral. If this happened to you, your family\'s details and your candidate\'s profile are already in our system, waiting to be activated.',
+      },
+      {
+        type: 'h2',
+        text: 'What has already been done',
+      },
+      {
+        type: 'ul',
+        items: [
+          'A family account has been created with the contact details provided',
+          'A candidate profile has been set up with the basic information we were given',
+          'An activation link has been sent to the contact email or via WhatsApp',
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'What you need to do',
+      },
+      {
+        type: 'p',
+        text: 'Click the activation link in your message. You will be taken to a page where you can confirm your email and create a password. Once you have done this, your account is live and you can browse, shortlist, and request introductions.',
+      },
+      {
+        type: 'callout',
+        title: 'The link expires after 30 days',
+        body: 'Your activation link is valid for 30 days from when it was sent. If your link has expired, please contact us at hello@zawaaj.uk or ask your manager to send a new one.',
+      },
+      {
+        type: 'h2',
+        text: 'What if some details are missing?',
+      },
+      {
+        type: 'p',
+        text: 'If we did not have all of your candidate\'s details when we set up the profile, it may show as incomplete. You can fill in any missing information once you have activated your account by going to the profile editing page.',
+      },
+    ],
+  },
+  {
+    slug: 'claiming-your-account',
+    title: 'Claiming your account — step by step',
+    deck: 'You received an activation link. Here is exactly what to do, what you will see, and what happens after you activate.',
+    category: 'getting-started',
+    readTime: 3,
+    related: ['your-profile-was-set-up-for-you', 'how-it-works-overview', 'creating-a-good-profile'],
+    blocks: [
+      {
+        type: 'step',
+        number: 1,
+        title: 'Click the activation link',
+        body: 'The link takes you to a Zawaaj page that shows a summary of your family\'s profile and asks you to set a password. The page also shows your contact email — confirm it is correct.',
+      },
+      {
+        type: 'step',
+        number: 2,
+        title: 'Create a password',
+        body: 'Choose a password of at least 8 characters. This will be how you sign in to Zawaaj going forward. Choose something you will remember but would not be easy for others to guess.',
+      },
+      {
+        type: 'step',
+        number: 3,
+        title: 'Click "Activate my account"',
+        body: 'After clicking the button, your account is created and you are signed in automatically. You will be taken to the Browse page.',
+      },
+      {
+        type: 'step',
+        number: 4,
+        title: 'Complete your profile',
+        body: 'If your profile shows as incomplete, go to My Profile and fill in the missing details. A complete profile makes it easier for our team to review and approve your candidate.',
+      },
+      {
+        type: 'callout',
+        title: 'Already have an account?',
+        body: 'If an account already exists with your email address, you will see an error message. In this case, sign in to your existing account and contact us so we can link your existing account to the family profile.',
+      },
+      {
+        type: 'p',
+        text: 'Once activated, you can browse approved profiles of opposite-gender members, shortlist those who look suitable, and request introductions — all within the limits of your membership tier.',
+      },
+    ],
+  },
+  {
+    slug: 'community-access-explained',
+    title: 'Community Access — what is included',
+    deck: 'Community Access is Zawaaj\'s free tier. Here is exactly what you get and how to make the most of it.',
+    category: 'membership',
+    readTime: 3,
+    related: ['plans-overview', 'upgrading-your-plan', 'monthly-request-limits'],
+    blocks: [
+      {
+        type: 'p',
+        text: 'Community Access is the free membership tier on Zawaaj. It is not a limited trial — it is a fully functional way to use the platform. Many families find a match without ever upgrading.',
+      },
+      {
+        type: 'h2',
+        text: 'What Community Access includes',
+      },
+      {
+        type: 'ul',
+        items: [
+          'Full access to browse approved profiles of opposite-gender members',
+          'Up to 5 introduction requests per calendar month',
+          'The ability to shortlist profiles',
+          'The ability to view and respond to introduction requests you receive',
+          'All admin-facilitated introduction support',
+          'Full access to the Help Centre',
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'What is not included',
+      },
+      {
+        type: 'ul',
+        items: [
+          'Full profile detail view (Plus and above)',
+          'More than 5 monthly introduction requests (Plus: 15, Premium: unlimited)',
+          'Profile boosts (Plus and above)',
+          'Concierge matching — where our team proactively suggests profiles for you (Premium only)',
+          'A dedicated manager (Premium only)',
+        ],
+      },
+      {
+        type: 'callout',
+        title: 'No credit card required',
+        body: 'Community Access is completely free. You do not need to enter payment details to use it. There is no hidden trial period or automatic upgrade.',
+      },
+      {
+        type: 'p',
+        text: 'If you find you are running through your 5 monthly requests quickly or want more features, you can upgrade to Plus or Premium at any time from the Membership section in Settings.',
+      },
+    ],
+  },
+  {
+    slug: 'what-is-a-completeness-score',
+    title: 'What is a profile completeness score?',
+    deck: 'Some profiles show a completeness percentage. Here is what it means, which fields count, and why it matters.',
+    category: 'your-profile',
+    readTime: 2,
+    related: ['creating-a-good-profile', 'profile-fields-explained', 'editing-your-profile'],
+    blocks: [
+      {
+        type: 'p',
+        text: 'When a profile is created by our team on your behalf — for example, as part of our import process — we track how complete it is based on the information we were given. The completeness score is a percentage that shows how much of the core profile has been filled in.',
+      },
+      {
+        type: 'h2',
+        text: 'What counts towards the score',
+      },
+      {
+        type: 'ul',
+        items: [
+          'Candidate name — required',
+          'Age — required',
+          'Gender — required',
+          'City — required',
+          'Representative phone number — required',
+          'Representative email — required',
+          'Ethnicity — optional',
+          'Profile text / bio — optional',
+          'Female representative name and number — optional (if applicable)',
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'How the score is calculated',
+      },
+      {
+        type: 'p',
+        text: 'Required fields account for 70% of the score and optional fields account for 30%. A profile with all required fields filled in scores at least 70%, even if no optional fields are present. A fully complete profile scores 100%.',
+      },
+      {
+        type: 'callout',
+        title: 'Scores below 60% may delay approval',
+        body: 'Our team reviews completeness before approving a profile. A low score — particularly if key fields like age or city are missing — may mean we contact you to fill in the gaps before the profile goes live.',
+      },
+      {
+        type: 'p',
+        text: 'You can improve your score at any time by signing in and going to My Profile to fill in any missing details.',
+      },
+    ],
+  },
+  {
+    slug: 'family-account-explained',
+    title: 'What is a family account?',
+    deck: 'Zawaaj uses family accounts to link a representative to one or more candidate profiles. Here is how it works.',
+    category: 'families',
+    readTime: 3,
+    related: ['guide-for-parents', 'parent-managed-profiles', 'the-family-role'],
+    blocks: [
+      {
+        type: 'p',
+        text: 'A family account is the wrapper that holds everything together on Zawaaj. It stores the contact details of the primary representative — usually a parent or guardian — and links to one or more candidate profiles. When our team facilitates an introduction, we contact the representative on the family account.',
+      },
+      {
+        type: 'h2',
+        text: 'Who is the representative?',
+      },
+      {
+        type: 'p',
+        text: 'The representative is the person who manages the family account. This might be a father, mother, or other guardian. For some families, the candidate themselves manages their own account — that is also perfectly fine.',
+      },
+      {
+        type: 'h2',
+        text: 'What the family account stores',
+      },
+      {
+        type: 'ul',
+        items: [
+          'The representative\'s full name and their relationship to the candidate',
+          'The representative\'s contact phone number and email',
+          'For male representatives: a female contact name and number (for when our team needs to speak with a female family member)',
+          'One or more linked candidate profiles',
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'Multiple candidates, one account',
+      },
+      {
+        type: 'p',
+        text: 'If a family has more than one son or daughter using Zawaaj, multiple profiles can be linked to the same family account. This means one representative can manage everything from a single login.',
+      },
+      {
+        type: 'callout',
+        title: 'Contact details are for facilitation only',
+        body: 'The phone number and email stored on your family account are used only by our team when an introduction is being facilitated. They are never shown to other members.',
       },
     ],
   },

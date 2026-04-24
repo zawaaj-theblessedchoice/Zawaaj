@@ -2,7 +2,7 @@
 
 import { ProfileRow, updateAdminNotes, isContactComplete } from '@/lib/admin/operationsQueries'
 import { createClient } from '@/lib/supabase/client'
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { StatusBadge } from './OperationsTable'
 
@@ -14,6 +14,24 @@ interface ProfilePanelProps {
   onDelete: (id: string) => Promise<void>
   onNotesUpdate: (id: string, notes: string) => void
   onStartIntro: (id: string) => void
+}
+
+// ─── Claim status from API ────────────────────────────────────────────────────
+
+interface ClaimStatus {
+  has_pending_token: boolean
+  claim_link: string | null
+  token_created_at: string | null
+  token_expires_at: string | null
+}
+
+// ─── WhatsApp copy templates ──────────────────────────────────────────────────
+
+function buildWhatsAppTemplate(link: string | null, isReminder: boolean): string {
+  if (isReminder) {
+    return `Assalamu alaikum. A gentle reminder that your Zawaaj family account is ready to activate. ${link ?? '[link pending]'} Your existing details have already been preserved.`
+  }
+  return `Assalamu alaikum. Your existing Zawaaj family profile has been securely transferred to our new platform. Please activate your access here: ${link ?? '[link pending]'} This should only take a couple of minutes, in shaa Allah.`
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -55,6 +73,80 @@ function fmtDate(d: string | null | undefined): string {
   })
 }
 
+function Badge({
+  label,
+  color,
+}: {
+  label: string
+  color: 'amber' | 'blue' | 'red' | 'green' | 'muted'
+}) {
+  const styles: Record<string, { bg: string; border: string; text: string }> = {
+    amber: { bg: 'rgba(251,191,36,0.1)', border: 'rgba(251,191,36,0.35)', text: '#ca8a04' },
+    blue:  { bg: 'rgba(96,165,250,0.1)', border: 'rgba(96,165,250,0.35)', text: '#60a5fa' },
+    red:   { bg: 'rgba(248,113,113,0.1)', border: 'rgba(248,113,113,0.35)', text: '#f87171' },
+    green: { bg: 'rgba(74,222,128,0.1)', border: 'rgba(74,222,128,0.35)', text: '#4ade80' },
+    muted: { bg: 'rgba(255,255,255,0.05)', border: 'rgba(255,255,255,0.15)', text: 'var(--admin-muted)' },
+  }
+  const s = styles[color]
+  return (
+    <span
+      style={{
+        padding: '2px 8px',
+        borderRadius: 999,
+        fontSize: 11,
+        fontWeight: 600,
+        background: s.bg,
+        border: `1px solid ${s.border}`,
+        color: s.text,
+        display: 'inline-block',
+      }}
+    >
+      {label}
+    </span>
+  )
+}
+
+function ActionBtn({
+  label,
+  onClick,
+  busy,
+  variant = 'default',
+}: {
+  label: string
+  onClick: () => void
+  busy?: boolean
+  variant?: 'default' | 'danger' | 'success' | 'gold'
+}) {
+  const styles = {
+    default: { bg: 'rgba(255,255,255,0.05)', border: 'var(--admin-border)', color: 'var(--admin-text)' },
+    danger:  { bg: 'rgba(248,113,113,0.08)', border: 'rgba(248,113,113,0.3)', color: '#f87171' },
+    success: { bg: 'rgba(74,222,128,0.08)', border: 'rgba(74,222,128,0.3)', color: '#4ade80' },
+    gold:    { bg: 'rgba(184,150,12,0.1)', border: 'rgba(184,150,12,0.3)', color: 'var(--gold)' },
+  }
+  const s = styles[variant]
+  return (
+    <button
+      onClick={onClick}
+      disabled={busy}
+      style={{
+        width: '100%',
+        padding: '8px 12px',
+        borderRadius: 8,
+        fontSize: 12,
+        fontWeight: 500,
+        background: s.bg,
+        border: `1px solid ${s.border}`,
+        color: s.color,
+        cursor: busy ? 'not-allowed' : 'pointer',
+        opacity: busy ? 0.5 : 1,
+        textAlign: 'left',
+      }}
+    >
+      {busy ? '…' : label}
+    </button>
+  )
+}
+
 // ─── ProfilePanel ─────────────────────────────────────────────────────────────
 
 export function ProfilePanel({
@@ -72,6 +164,34 @@ export function ProfilePanel({
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
+  // Activation state
+  const [claimStatus, setClaimStatus] = useState<ClaimStatus | null>(null)
+  const [activationBusy, setActivationBusy] = useState<string | null>(null)
+  const [copiedLink, setCopiedLink] = useState(false)
+  const [copiedWA, setCopiedWA] = useState(false)
+
+  const familyAccountId = profile?.family_account?.id ?? null
+
+  const fetchClaimStatus = useCallback(async () => {
+    if (!familyAccountId) return
+    try {
+      const res = await fetch(`/api/admin/activation?family_account_id=${familyAccountId}`)
+      if (res.ok) {
+        const json = await res.json() as ClaimStatus
+        setClaimStatus(json)
+      }
+    } catch {
+      // non-fatal
+    }
+  }, [familyAccountId])
+
+  useEffect(() => {
+    setClaimStatus(null)
+    if (profile?.imported_user && familyAccountId) {
+      void fetchClaimStatus()
+    }
+  }, [profile?.id, familyAccountId, profile?.imported_user, fetchClaimStatus])
+
   if (!profile) return null
 
   async function handleSaveNote() {
@@ -87,6 +207,55 @@ export function ProfilePanel({
       setSavingNote(false)
     }
   }
+
+  async function runActivation(action: string, extra?: Record<string, unknown>) {
+    if (!familyAccountId) return
+    setActivationBusy(action)
+    try {
+      const res = await fetch('/api/admin/activation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, family_account_id: familyAccountId, profile_id: profile?.id, ...extra }),
+      })
+      if (res.ok) {
+        await fetchClaimStatus()
+      } else {
+        const body = await res.json() as { error?: string }
+        alert(body.error ?? 'Action failed')
+      }
+    } catch {
+      alert('Network error — action not saved')
+    } finally {
+      setActivationBusy(null)
+    }
+  }
+
+  async function copyToClipboard(text: string, which: 'link' | 'wa') {
+    try {
+      await navigator.clipboard.writeText(text)
+      if (which === 'link') {
+        setCopiedLink(true)
+        setTimeout(() => setCopiedLink(false), 2000)
+      } else {
+        setCopiedWA(true)
+        setTimeout(() => setCopiedWA(false), 2000)
+      }
+    } catch {
+      alert('Could not copy to clipboard')
+    }
+  }
+
+  // Derived flags
+  const isImported        = profile.imported_user
+  const needsClaim        = profile.needs_claim
+  const isActivated       = isImported && !needsClaim
+  const hasPendingToken   = claimStatus?.has_pending_token ?? false
+  const isMissingData     = (profile.data_completeness_score ?? 100) < 60
+  const fa                = profile.family_account
+  const lastContacted     = fa?.last_contacted_at ?? null
+  const snoozedUntil      = fa?.snoozed_until ?? null
+  const isSnoozed         = snoozedUntil ? new Date(snoozedUntil) > new Date() : false
+  const followUpDue       = needsClaim && lastContacted && !isSnoozed
 
   return (
     <div
@@ -236,6 +405,8 @@ export function ProfilePanel({
           <SectionTitle>Family account</SectionTitle>
           <DetailRow label="Contact name" value={profile.family_account.contact_full_name} />
           <DetailRow label="Relationship" value={profile.family_account.contact_relationship} />
+          <DetailRow label="Contact email" value={profile.family_account.contact_email} />
+          <DetailRow label="Contact phone" value={profile.family_account.contact_number} />
           <div style={{ display: 'flex', gap: 8, padding: '4px 0', fontSize: 12 }}>
             <span style={{ color: 'var(--admin-muted)', width: 110, flexShrink: 0 }}>Account status</span>
             <span style={{
@@ -249,10 +420,188 @@ export function ProfilePanel({
               {profile.family_account.status === 'active' ? 'Email verified' : 'Pending verification'}
             </span>
           </div>
+          {lastContacted && (
+            <DetailRow label="Last contacted" value={fmtDate(lastContacted)} />
+          )}
+          {isSnoozed && snoozedUntil && (
+            <div style={{ marginTop: 6, padding: '5px 10px', borderRadius: 6, background: 'rgba(96,165,250,0.08)', border: '1px solid rgba(96,165,250,0.2)', fontSize: 11, color: '#60a5fa' }}>
+              💤 Snoozed until {fmtDate(snoozedUntil)}
+            </div>
+          )}
           {profile.family_account.no_female_contact_flag && (
             <div style={{ marginTop: 8, padding: '6px 10px', borderRadius: 6, background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.3)', fontSize: 12, color: '#ca8a04' }}>
               ⚠ No female contact provided
             </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Manager activation (imported profiles only) ──────────────────────── */}
+      {isImported && (
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--admin-border)' }}>
+          <SectionTitle>Activation</SectionTitle>
+
+          {/* Badges */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
+            <Badge label="Imported" color="muted" />
+            {needsClaim && !isActivated && (
+              <Badge label="Needs claim" color="amber" />
+            )}
+            {isActivated && (
+              <Badge label="Activated" color="green" />
+            )}
+            {hasPendingToken && !isActivated && (
+              <Badge label="Magic link sent" color="blue" />
+            )}
+            {isMissingData && (
+              <Badge label={`Data ${profile.data_completeness_score ?? 0}%`} color="red" />
+            )}
+            {followUpDue && (
+              <Badge label="Follow-up due" color="amber" />
+            )}
+            {profile.imported_at && (
+              <span style={{ fontSize: 10, color: 'var(--admin-muted)', alignSelf: 'center' }}>
+                Imported {fmtDate(profile.imported_at)}
+              </span>
+            )}
+          </div>
+
+          {/* Completeness bar */}
+          {profile.data_completeness_score !== null && (
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--admin-muted)', marginBottom: 4 }}>
+                <span>Data completeness</span>
+                <span style={{ fontWeight: 600, color: isMissingData ? '#f87171' : 'var(--admin-text)' }}>
+                  {profile.data_completeness_score}%
+                </span>
+              </div>
+              <div style={{ height: 4, borderRadius: 999, background: 'var(--admin-border)', overflow: 'hidden' }}>
+                <div style={{
+                  height: '100%',
+                  width: `${profile.data_completeness_score}%`,
+                  borderRadius: 999,
+                  background: isMissingData ? '#f87171' : profile.data_completeness_score >= 80 ? '#4ade80' : '#fbbf24',
+                  transition: 'width 0.3s',
+                }} />
+              </div>
+            </div>
+          )}
+
+          {/* Claim link (if pending token) */}
+          {hasPendingToken && claimStatus?.claim_link && !isActivated && (
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ fontSize: 11, color: 'var(--admin-muted)', marginBottom: 4 }}>
+                Active claim link · expires {fmtDate(claimStatus.token_expires_at)}
+              </div>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <input
+                  readOnly
+                  value={claimStatus.claim_link}
+                  style={{
+                    flex: 1,
+                    padding: '6px 8px',
+                    borderRadius: 6,
+                    border: '1px solid var(--admin-border)',
+                    background: 'var(--admin-bg)',
+                    color: 'var(--admin-muted)',
+                    fontSize: 10,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                />
+                <button
+                  onClick={() => copyToClipboard(claimStatus.claim_link!, 'link')}
+                  style={{
+                    padding: '6px 10px',
+                    borderRadius: 6,
+                    fontSize: 11,
+                    background: copiedLink ? 'rgba(74,222,128,0.1)' : 'rgba(255,255,255,0.05)',
+                    border: `1px solid ${copiedLink ? 'rgba(74,222,128,0.3)' : 'var(--admin-border)'}`,
+                    color: copiedLink ? '#4ade80' : 'var(--admin-muted)',
+                    cursor: 'pointer',
+                    flexShrink: 0,
+                  }}
+                >
+                  {copiedLink ? '✓' : 'Copy'}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Action buttons */}
+          {!isActivated && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {!hasPendingToken ? (
+                <ActionBtn
+                  label="✉ Send magic link"
+                  variant="gold"
+                  busy={activationBusy === 'send_magic_link'}
+                  onClick={() => runActivation('send_magic_link')}
+                />
+              ) : (
+                <ActionBtn
+                  label="↺ Resend magic link"
+                  variant="default"
+                  busy={activationBusy === 'resend_magic_link'}
+                  onClick={() => runActivation('resend_magic_link')}
+                />
+              )}
+
+              {/* WhatsApp template copy */}
+              <button
+                onClick={() => {
+                  const isReminder = hasPendingToken
+                  const text = buildWhatsAppTemplate(claimStatus?.claim_link ?? null, isReminder)
+                  void copyToClipboard(text, 'wa')
+                }}
+                style={{
+                  width: '100%',
+                  padding: '8px 12px',
+                  borderRadius: 8,
+                  fontSize: 12,
+                  fontWeight: 500,
+                  background: copiedWA ? 'rgba(74,222,128,0.08)' : 'rgba(37,211,102,0.07)',
+                  border: `1px solid ${copiedWA ? 'rgba(74,222,128,0.35)' : 'rgba(37,211,102,0.25)'}`,
+                  color: copiedWA ? '#4ade80' : '#25d366',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                }}
+              >
+                {copiedWA ? '✓ Copied!' : `💬 Copy WhatsApp ${hasPendingToken ? 'reminder' : 'invite'}`}
+              </button>
+
+              <ActionBtn
+                label="📞 Mark contacted"
+                variant="default"
+                busy={activationBusy === 'mark_contacted'}
+                onClick={() => runActivation('mark_contacted')}
+              />
+
+              <ActionBtn
+                label={isSnoozed ? `💤 Snoozed until ${fmtDate(snoozedUntil)}` : '💤 Snooze 7 days'}
+                variant="default"
+                busy={activationBusy === 'snooze'}
+                onClick={() => runActivation('snooze')}
+              />
+
+              <ActionBtn
+                label="⊘ Mark invalid / suspend"
+                variant="danger"
+                busy={activationBusy === 'mark_invalid'}
+                onClick={() => {
+                  const reason = prompt('Reason for marking invalid (optional):')
+                  if (reason === null) return // cancelled
+                  void runActivation('mark_invalid', { reason })
+                }}
+              />
+            </div>
+          )}
+
+          {isActivated && (
+            <p style={{ fontSize: 12, color: 'var(--admin-muted)' }}>
+              ✓ This family has claimed their account and no further activation steps are needed.
+            </p>
           )}
         </div>
       )}

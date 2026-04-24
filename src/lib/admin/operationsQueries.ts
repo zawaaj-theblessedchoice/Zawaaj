@@ -14,6 +14,12 @@ export interface ZawaajFamilyAccount {
   female_contact_number: string | null
   no_female_contact_flag: boolean
   status: string
+  // Import / activation fields
+  imported_user: boolean
+  last_contacted_at: string | null
+  snoozed_until: string | null
+  assigned_manager_id: string | null
+  admin_notes: string | null
 }
 
 /** Returns true only if all required contact fields are non-empty. */
@@ -59,14 +65,20 @@ export interface ProfileRow {
   marriage_reason: string | null
   open_to_marital_status: string | null
   family_account: ZawaajFamilyAccount | null
+  // Import / activation fields
+  needs_claim: boolean
+  data_completeness_score: number | null
+  imported_user: boolean
+  imported_at: string | null
 }
 
 export interface ProfileFilters {
-  status?: string // 'all' | 'pending' | 'approved' | 'withdrawn' | 'suspended' | 'rejected'
-  gender?: string // 'all' | 'female' | 'male'
+  status?: string    // 'all' | 'pending' | 'approved' | 'withdrawn' | 'suspended' | 'rejected'
+  gender?: string    // 'all' | 'female' | 'male'
   location?: string
-  search?: string // searches display_initials, first_name, location
+  search?: string    // searches display_initials, first_name, location
   noFamily?: boolean // true = only profiles with no linked family account
+  needsClaim?: boolean // true = imported profiles needing claim (needs_claim=true)
 }
 
 export interface Metrics {
@@ -75,6 +87,7 @@ export interface Metrics {
   introductionsActive: number
   approvedMembers: number
   introducedThisWeek: number
+  needsClaim: number
 }
 
 const PAGE_SIZE = 50
@@ -82,7 +95,7 @@ const PAGE_SIZE = 50
 export async function fetchMetrics(supabase: SupabaseClient): Promise<Metrics> {
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
 
-  const [pending, flagged, intros, approved, introduced, incompleteAccounts] = await Promise.all([
+  const [pending, flagged, intros, approved, introduced, incompleteAccounts, claimPending] = await Promise.all([
     supabase.from('zawaaj_profiles').select('id', { count: 'exact', head: true })
       .eq('status', 'pending').eq('is_admin', false),
     supabase.from('zawaaj_profiles').select('id', { count: 'exact', head: true })
@@ -96,6 +109,8 @@ export async function fetchMetrics(supabase: SupabaseClient): Promise<Metrics> {
     supabase.from('zawaaj_family_accounts').select('id', { count: 'exact', head: true })
       .neq('status', 'suspended')
       .or('contact_full_name.eq.,contact_number.eq.,contact_email.eq.,contact_relationship.eq.'),
+    supabase.from('zawaaj_profiles').select('id', { count: 'exact', head: true })
+      .eq('needs_claim', true).eq('is_admin', false),
   ])
 
   return {
@@ -104,6 +119,7 @@ export async function fetchMetrics(supabase: SupabaseClient): Promise<Metrics> {
     introductionsActive: intros.count ?? 0,
     approvedMembers: approved.count ?? 0,
     introducedThisWeek: introduced.count ?? 0,
+    needsClaim: claimPending.count ?? 0,
   }
 }
 
@@ -115,7 +131,7 @@ export async function fetchProfiles(
   let q = supabase
     .from('zawaaj_profiles')
     .select(
-      'id,display_initials,first_name,last_name,gender,age_display,location,status,school_of_thought,religiosity,profession_sector,guardian_name,contact_number,admin_notes,duplicate_flag,submitted_date,approved_date,created_at,is_admin,marital_status,marriage_reason,open_to_marital_status,family_account:zawaaj_family_accounts(id,contact_full_name,contact_relationship,contact_number,contact_email,female_contact_name,female_contact_number,no_female_contact_flag,status)',
+      'id,display_initials,first_name,last_name,gender,age_display,location,status,school_of_thought,religiosity,profession_sector,guardian_name,contact_number,admin_notes,duplicate_flag,submitted_date,approved_date,created_at,is_admin,marital_status,marriage_reason,open_to_marital_status,needs_claim,data_completeness_score,imported_user,imported_at,family_account:zawaaj_family_accounts(id,contact_full_name,contact_relationship,contact_number,contact_email,female_contact_name,female_contact_number,no_female_contact_flag,status,imported_user,last_contacted_at,snoozed_until,assigned_manager_id,admin_notes)',
       { count: 'exact' }
     )
     .eq('is_admin', false)
@@ -138,6 +154,9 @@ export async function fetchProfiles(
   }
   if (filters.noFamily === true) {
     q = q.is('family_account_id', null)
+  }
+  if (filters.needsClaim === true) {
+    q = q.eq('needs_claim', true)
   }
 
   const { data, count, error } = await q
@@ -187,7 +206,7 @@ export async function fetchSuggestedMatches(
   const { data } = await supabase
     .from('zawaaj_profiles')
     .select(
-      'id,display_initials,first_name,last_name,gender,age_display,location,status,school_of_thought,religiosity,profession_sector,guardian_name,contact_number,admin_notes,duplicate_flag,submitted_date,approved_date,created_at,is_admin,family_account:zawaaj_family_accounts(id,contact_full_name,contact_relationship,contact_number,contact_email,female_contact_name,female_contact_number,no_female_contact_flag,status)'
+      'id,display_initials,first_name,last_name,gender,age_display,location,status,school_of_thought,religiosity,profession_sector,guardian_name,contact_number,admin_notes,duplicate_flag,submitted_date,approved_date,created_at,is_admin,needs_claim,data_completeness_score,imported_user,imported_at,family_account:zawaaj_family_accounts(id,contact_full_name,contact_relationship,contact_number,contact_email,female_contact_name,female_contact_number,no_female_contact_flag,status,imported_user,last_contacted_at,snoozed_until,assigned_manager_id,admin_notes)'
     )
     .eq('status', 'approved')
     .eq('gender', oppositeGender)

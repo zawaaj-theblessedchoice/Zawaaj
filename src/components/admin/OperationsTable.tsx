@@ -451,6 +451,33 @@ export function OperationsTable({
                             New
                           </span>
                         )}
+                        {p.needs_claim && (
+                          <span
+                            style={{
+                              fontSize: 10,
+                              padding: '2px 6px',
+                              borderRadius: 4,
+                              background: 'rgba(251,191,36,0.1)',
+                              color: '#ca8a04',
+                              fontWeight: 600,
+                            }}
+                          >
+                            Claim
+                          </span>
+                        )}
+                        {p.imported_user && !p.needs_claim && (
+                          <span
+                            style={{
+                              fontSize: 10,
+                              padding: '2px 6px',
+                              borderRadius: 4,
+                              background: 'rgba(74,222,128,0.08)',
+                              color: '#4ade80',
+                            }}
+                          >
+                            Activated
+                          </span>
+                        )}
                         {p.duplicate_flag && (
                           <span
                             style={{
