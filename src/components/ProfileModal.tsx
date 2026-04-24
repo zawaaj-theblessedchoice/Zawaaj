@@ -432,8 +432,7 @@ export default function ProfileModal({
                         justifyContent: 'center',
                         cursor: 'pointer',
                         color: 'var(--gold)',
-                        opacity: isSaved ? 1 : 0.3,
-                        fontSize: 15,
+                        opacity: isSaved ? 1 : 0.32,
                         transition: 'opacity 0.15s',
                         flexShrink: 0,
                       }}
@@ -441,10 +440,12 @@ export default function ProfileModal({
                         ((e.currentTarget as HTMLButtonElement).style.opacity = '1')
                       }
                       onMouseLeave={e =>
-                        ((e.currentTarget as HTMLButtonElement).style.opacity = isSaved ? '1' : '0.3')
+                        ((e.currentTarget as HTMLButtonElement).style.opacity = isSaved ? '1' : '0.32')
                       }
                     >
-                      {isSaved ? '♥' : '♡'}
+                      <svg width="16" height="15" viewBox="0 0 16 15" fill={isSaved ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M8 13.5C8 13.5 1.5 9.5 1.5 5.3a3.5 3.5 0 0 1 6.5-1.8 3.5 3.5 0 0 1 6.5 1.8C14.5 9.5 8 13.5 8 13.5Z"/>
+                      </svg>
                     </button>
                   )}
 

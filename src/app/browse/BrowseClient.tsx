@@ -116,6 +116,50 @@ function FilterChip({
   )
 }
 
+/** Dismissible chip shown in the active-filter row below the tab bar */
+function ActiveFilterChip({ label, onDismiss }: { label: string; onDismiss: () => void }) {
+  return (
+    <span
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 4,
+        padding: '3px 6px 3px 9px',
+        borderRadius: 20,
+        fontSize: 11.5,
+        background: 'var(--gold-muted)',
+        border: '0.5px solid var(--border-gold)',
+        color: 'var(--gold)',
+        whiteSpace: 'nowrap' as const,
+      }}
+    >
+      {label}
+      <button
+        onClick={onDismiss}
+        aria-label={`Remove filter: ${label}`}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: 15,
+          height: 15,
+          borderRadius: '50%',
+          background: 'rgba(196,154,16,0.18)',
+          border: 'none',
+          color: 'var(--gold)',
+          cursor: 'pointer',
+          padding: 0,
+          fontSize: 11,
+          lineHeight: 1,
+          flexShrink: 0,
+        }}
+      >
+        ×
+      </button>
+    </span>
+  )
+}
+
 interface ProfileCardProps {
   profile: ProfileRecord
   isNew: boolean
@@ -230,16 +274,19 @@ function ProfileCard({
           style={{
             background: 'none', border: 'none',
             color: 'var(--gold)',
-            opacity: isSaved ? 1 : 0.25,
-            fontSize: 14, cursor: 'pointer', padding: 2,
+            opacity: isSaved ? 1 : 0.28,
+            cursor: 'pointer', padding: 2,
+            display: 'flex', alignItems: 'center',
             transition: 'opacity 0.15s',
           }}
           onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.opacity = '1')}
           onMouseLeave={e =>
-            ((e.currentTarget as HTMLButtonElement).style.opacity = isSaved ? '1' : '0.25')
+            ((e.currentTarget as HTMLButtonElement).style.opacity = isSaved ? '1' : '0.28')
           }
         >
-          {isSaved ? '♥' : '♡'}
+          <svg width="15" height="14" viewBox="0 0 15 14" fill={isSaved ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M7.5 12.5C7.5 12.5 1.5 8.6 1.5 4.8a3 3 0 0 1 6-0.4 3 3 0 0 1 6 0.4c0 3.8-6 7.7-6 7.7Z"/>
+          </svg>
         </button>
       </div>
 
@@ -719,6 +766,7 @@ export default function BrowseClient({
   const [pendingFilters, setPendingFilters] = useState<FilterState>(safeInitialFilters)
   const [appliedFilters, setAppliedFilters] = useState<FilterState>(safeInitialFilters)
   const [visibleCount, setVisibleCount] = useState(PROFILES_PER_PAGE)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const filterRef = useRef<HTMLDivElement>(null)
 
@@ -923,6 +971,14 @@ export default function BrowseClient({
     }).catch(() => { /* non-critical */ })
   }, [canFilter])
 
+  // Dismiss a single filter criterion from the active chip row
+  const clearFilterPatch = useCallback((patch: Partial<FilterState>) => {
+    const next = { ...appliedFilters, ...patch }
+    setAppliedFilters(next)
+    setPendingFilters(next)
+    persistFilters(next)
+  }, [appliedFilters, persistFilters])
+
   // Count active (non-empty) filter criteria for the indicator badge
   const activeFilterCount = useMemo((): number => {
     const f = appliedFilters
@@ -1043,6 +1099,8 @@ export default function BrowseClient({
         profile={viewerProfile}
         managedProfiles={managedProfiles}
         activeProfileId={activeProfileId}
+        mobileOpen={mobileMenuOpen}
+        onMobileClose={() => setMobileMenuOpen(false)}
       />
 
       {/* Main content */}
@@ -1078,20 +1136,45 @@ export default function BrowseClient({
           <div
             style={{
               marginBottom: 16,
-              padding: '12px 16px',
+              padding: '14px 18px',
               borderRadius: 10,
-              background: 'var(--surface-2)',
-              border: '0.5px solid var(--border-default)',
-              borderLeft: '3px solid var(--gold)',
+              background: 'var(--surface-3)',
+              border: '0.5px solid rgba(201,168,76,0.25)',
+              borderLeft: '3px solid #C9A84C',
             }}
           >
-            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 3 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>
               Browsing in limited mode
             </div>
-            <div style={{ fontSize: 12.5, color: 'var(--text-secondary)', lineHeight: 1.55 }}>
+            <div style={{ fontSize: 12.5, color: 'var(--text-secondary)', lineHeight: 1.55, marginBottom: 12 }}>
               {familyReadinessState === 'representative_invited'
                 ? 'Your representative has been sent an invite. Once they join and complete setup, you will be able to express interest in profiles.'
                 : 'You can browse and shortlist profiles. To express interest, your family representative needs to join your account first.'}
+            </div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <a
+                href="/settings?tab=membership"
+                style={{
+                  display: 'inline-block', padding: '6px 14px', borderRadius: 7,
+                  fontSize: 12, fontWeight: 500, textDecoration: 'none',
+                  background: '#C9A84C', color: '#111', cursor: 'pointer',
+                }}
+              >
+                View account
+              </a>
+              {familyReadinessState !== 'representative_invited' && (
+                <a
+                  href="/settings?tab=membership"
+                  style={{
+                    display: 'inline-block', padding: '6px 14px', borderRadius: 7,
+                    fontSize: 12, textDecoration: 'none',
+                    background: 'transparent', border: '0.5px solid rgba(201,168,76,0.5)',
+                    color: '#C9A84C', cursor: 'pointer',
+                  }}
+                >
+                  Invite representative →
+                </a>
+              )}
             </div>
           </div>
         )}
@@ -1185,6 +1268,25 @@ export default function BrowseClient({
 
           {/* Search + Filter + Sort */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {/* Hamburger — mobile only, opens the sidebar drawer */}
+            <button
+              className="topbar-hamburger"
+              onClick={() => setMobileMenuOpen(true)}
+              aria-label="Open navigation menu"
+              style={{
+                display: 'none', alignItems: 'center', justifyContent: 'center',
+                width: 36, height: 36, borderRadius: 9,
+                background: 'var(--surface-3)', border: '0.5px solid var(--border-default)',
+                cursor: 'pointer', color: 'var(--text-secondary)', flexShrink: 0,
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
+                <line x1="2" y1="4.5" x2="14" y2="4.5"/>
+                <line x1="2" y1="8"   x2="14" y2="8"/>
+                <line x1="2" y1="11.5" x2="14" y2="11.5"/>
+              </svg>
+            </button>
+
             {/* Search — full input (hidden on mobile) */}
             <div className="topbar-search-full" style={{ position: 'relative' }}>
               <svg
@@ -1323,9 +1425,10 @@ export default function BrowseClient({
                 )}
               </button>
 
-              {/* Filter dropdown */}
+              {/* Filter dropdown — desktop: absolute dropdown; mobile: bottom sheet via CSS */}
               {filterOpen && (
                 <div
+                  className="filter-dropdown-panel"
                   style={{
                     position: 'absolute',
                     top: '100%',
@@ -1777,6 +1880,80 @@ export default function BrowseClient({
             )
           })}
         </div>
+
+        {/* Active filter chips — dismissible row showing each applied filter criterion */}
+        {canFilter && activeFilterCount > 0 && (
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
+            {/* Age */}
+            {(appliedFilters.ageMin || appliedFilters.ageMax) && (
+              <ActiveFilterChip
+                label={
+                  appliedFilters.ageMin && appliedFilters.ageMax
+                    ? `Age ${appliedFilters.ageMin}–${appliedFilters.ageMax}`
+                    : appliedFilters.ageMin
+                    ? `Age ${appliedFilters.ageMin}+`
+                    : `Age up to ${appliedFilters.ageMax}`
+                }
+                onDismiss={() => clearFilterPatch({ ageMin: '', ageMax: '' })}
+              />
+            )}
+            {/* Location */}
+            {appliedFilters.location.trim() && (
+              <ActiveFilterChip
+                label={appliedFilters.location}
+                onDismiss={() => clearFilterPatch({ location: '' })}
+              />
+            )}
+            {/* Marital status */}
+            {appliedFilters.maritalStatus.map(v => (
+              <ActiveFilterChip
+                key={v}
+                label={MARITAL_OPTIONS.find(o => o.value === v)?.label ?? v}
+                onDismiss={() => clearFilterPatch({ maritalStatus: appliedFilters.maritalStatus.filter(x => x !== v) })}
+              />
+            ))}
+            {/* Children */}
+            {appliedFilters.hasChildren.map(v => (
+              <ActiveFilterChip
+                key={v}
+                label={CHILDREN_OPTIONS.find(o => o.value === v)?.label ?? v}
+                onDismiss={() => clearFilterPatch({ hasChildren: appliedFilters.hasChildren.filter(x => x !== v) })}
+              />
+            ))}
+            {/* School of thought */}
+            {appliedFilters.schoolOfThought.map(v => (
+              <ActiveFilterChip
+                key={v}
+                label={v}
+                onDismiss={() => clearFilterPatch({ schoolOfThought: appliedFilters.schoolOfThought.filter(x => x !== v) })}
+              />
+            ))}
+            {/* Religiosity */}
+            {appliedFilters.religiosity.map(v => (
+              <ActiveFilterChip
+                key={v}
+                label={v}
+                onDismiss={() => clearFilterPatch({ religiosity: appliedFilters.religiosity.filter(x => x !== v) })}
+              />
+            ))}
+            {/* Ethnicity */}
+            {appliedFilters.ethnicity.map(v => (
+              <ActiveFilterChip
+                key={v}
+                label={v}
+                onDismiss={() => clearFilterPatch({ ethnicity: appliedFilters.ethnicity.filter(x => x !== v) })}
+              />
+            ))}
+            {/* Education */}
+            {appliedFilters.educationLevel.map(v => (
+              <ActiveFilterChip
+                key={v}
+                label={v}
+                onDismiss={() => clearFilterPatch({ educationLevel: appliedFilters.educationLevel.filter(x => x !== v) })}
+              />
+            ))}
+          </div>
+        )}
 
         {/* New since last visit pill */}
         {newCount > 0 && activeTab !== 'new' && (

@@ -190,9 +190,20 @@ input:focus, textarea:focus, select:focus {
 
 /* ─── Mobile / responsive layout ────────────────────────────────────────── */
 
-/* Sidebar: hide on mobile, narrow on tablet */
+/* Sidebar: slide-in drawer on mobile, narrow on tablet */
 @media (max-width: 767px) {
-  .sidebar-desktop { display: none !important; }
+  .sidebar-desktop {
+    transform: translateX(-110%) !important;
+    transition: transform 0.28s cubic-bezier(0.4,0,0.2,1) !important;
+    z-index: 500 !important;
+    display: flex !important;   /* always in DOM for animation */
+    visibility: hidden;         /* keep offscreen items out of tab order */
+  }
+  .sidebar-desktop--open {
+    transform: translateX(0) !important;
+    visibility: visible;
+    box-shadow: 6px 0 32px rgba(0,0,0,0.35) !important;
+  }
 }
 @media (min-width: 768px) and (max-width: 1024px) {
   .sidebar-desktop { width: 180px !important; }
@@ -244,9 +255,44 @@ input:focus, textarea:focus, select:focus {
   .topbar-filter-label { display: none !important; }
   .topbar-search-full  { display: none !important; }
   .topbar-search-icon  { display: flex !important; }
+  .topbar-hamburger    { display: flex !important; }
 }
 @media (min-width: 768px) {
   .topbar-search-icon  { display: none !important; }
+  .topbar-hamburger    { display: none !important; }
+}
+
+/* Filter dropdown: bottom sheet on mobile */
+@media (max-width: 767px) {
+  .filter-dropdown-panel {
+    position: fixed !important;
+    top: auto !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    max-height: 82vh !important;
+    border-radius: 16px 16px 0 0 !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-bottom: none !important;
+    margin-top: 0 !important;
+    z-index: 300;
+  }
+}
+
+/* Mobile sidebar overlay backdrop */
+.sidebar-mobile-overlay {
+  display: none;
+}
+@media (max-width: 767px) {
+  .sidebar-mobile-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 499;
+  }
 }
 
 /* SlidePanel: bottom sheet on mobile */

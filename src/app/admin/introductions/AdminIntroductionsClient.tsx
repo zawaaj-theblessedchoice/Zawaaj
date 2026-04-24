@@ -130,6 +130,31 @@ function statusColors(status: string): { bg: string; color: string } {
   }
 }
 
+// ─── Urgency helpers ─────────────────────────────────────────────────────────
+
+/**
+ * Calculates urgency for a pending introduction request.
+ * 'overdue'  — expires_at has passed (or 30 days from created_at has passed)
+ * 'urgent'   — expires within 48 hours
+ * 'normal'   — no urgency
+ */
+function getUrgency(req: IntroRequest): 'overdue' | 'urgent' | 'normal' {
+  if (req.status !== 'pending') return 'normal'
+  const expiresAt = req.expires_at
+    ? new Date(req.expires_at)
+    : new Date(new Date(req.created_at).getTime() + 30 * 24 * 60 * 60 * 1000)
+  const hoursLeft = (expiresAt.getTime() - Date.now()) / (1000 * 60 * 60)
+  if (hoursLeft <= 0) return 'overdue'
+  if (hoursLeft <= 48) return 'urgent'
+  return 'normal'
+}
+
+function urgencyRowStyle(urgency: ReturnType<typeof getUrgency>): React.CSSProperties {
+  if (urgency === 'overdue') return { borderLeft: '3px solid rgba(248,113,113,0.6)', background: 'rgba(248,113,113,0.04)' }
+  if (urgency === 'urgent')  return { borderLeft: '3px solid rgba(251,191,36,0.6)',  background: 'rgba(251,191,36,0.04)' }
+  return {}
+}
+
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function ProfileCell({ profile }: { profile: IntroRequest['requesting_profile'] }) {
@@ -297,6 +322,7 @@ function RequestRow({
   const rowError = errors.get(req.id)
   const [facilMessage, setFacilMessage] = useState('')
   const [showFacilNote, setShowFacilNote] = useState(false)
+  const urgency = getUrgency(req)
 
   const assignedManager = req.assigned_manager_id
     ? managers.find((m) => m.id === req.assigned_manager_id)
@@ -319,6 +345,7 @@ function RequestRow({
       <tr
         style={{
           borderBottom: isLast && !rowError ? 'none' : '0.5px solid var(--admin-border)',
+          ...urgencyRowStyle(urgency),
         }}
       >
         {/* From */}
@@ -336,9 +363,21 @@ function RequestRow({
           <StatusBadge status={req.status} />
         </td>
 
-        {/* Requested */}
+        {/* Requested — with urgency indicator for pending rows */}
         <td className="px-4 py-3 text-sm whitespace-nowrap" style={{ color: 'var(--admin-muted)' }}>
-          {fmtDate(req.created_at)}
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+            {fmtDate(req.created_at)}
+            {urgency === 'overdue' && (
+              <span title="Overdue — this request has expired" style={{ color: '#f87171', fontSize: 11, fontWeight: 600 }}>
+                ⚠ Overdue
+              </span>
+            )}
+            {urgency === 'urgent' && (
+              <span title="Expires within 48 hours" style={{ color: '#fbbf24', fontSize: 11, fontWeight: 600 }}>
+                ⏱ &lt;48h
+              </span>
+            )}
+          </span>
         </td>
 
         {/* Mutual at */}

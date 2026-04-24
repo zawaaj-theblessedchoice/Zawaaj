@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
@@ -27,6 +27,10 @@ interface SidebarProps {
   activeProfileId?: string
   /** When false, Browse/Introductions/Shortlist are greyed-out and non-clickable */
   profileApproved?: boolean
+  /** Mobile drawer open state — controlled by parent page */
+  mobileOpen?: boolean
+  /** Called when the user taps the mobile overlay or presses Escape to close the drawer */
+  onMobileClose?: () => void
 }
 
 interface NavItem {
@@ -212,10 +216,20 @@ export default function Sidebar({
   managedProfiles,
   activeProfileId,
   profileApproved = true,
+  mobileOpen = false,
+  onMobileClose,
 }: SidebarProps) {
   const router = useRouter()
   const [switcherOpen, setSwitcherOpen] = useState(false)
   const [switching, setSwitching] = useState(false)
+
+  // Close mobile drawer on Escape
+  useEffect(() => {
+    if (!mobileOpen) return
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onMobileClose?.() }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [mobileOpen, onMobileClose])
 
   async function handleSignOut() {
     const supabase = createClient()
@@ -296,8 +310,17 @@ export default function Sidebar({
   ]
 
   return (
+    <>
+    {/* Mobile overlay — tapping it closes the drawer */}
+    {mobileOpen && (
+      <div
+        className="sidebar-mobile-overlay"
+        onClick={onMobileClose}
+        aria-hidden="true"
+      />
+    )}
     <aside
-      className="sidebar-desktop"
+      className={`sidebar-desktop${mobileOpen ? ' sidebar-desktop--open' : ''}`}
       style={{
         width: 200,
         flexShrink: 0,
@@ -706,5 +729,6 @@ export default function Sidebar({
         </button>
       </div>
     </aside>
+    </>
   )
 }
