@@ -295,7 +295,7 @@ export function AdminShell({ role, children }: Props) {
         transition: 'transform 0.2s ease',
         overflowY: 'auto',
       }}
-      className="admin-sidebar"
+      className={`admin-sidebar${sidebarOpen ? ' admin-sidebar--open' : ''}`}
     >
       {/* Logo */}
       <Link

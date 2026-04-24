@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import AvatarInitials from '@/components/AvatarInitials'
 import ZawaajLogo from '@/components/ZawaajLogo'
@@ -212,6 +213,7 @@ export default function Sidebar({
   activeProfileId,
   profileApproved = true,
 }: SidebarProps) {
+  const router = useRouter()
   const [switcherOpen, setSwitcherOpen] = useState(false)
   const [switching, setSwitching] = useState(false)
 
@@ -232,8 +234,9 @@ export default function Sidebar({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ profile_id: profileId }),
       })
-      // Full reload so server components re-run with new active profile
-      window.location.href = '/browse'
+      // Small delay so the DB write is fully committed before navigation
+      await new Promise(resolve => setTimeout(resolve, 100))
+      router.push('/browse')
     } catch {
       setSwitching(false)
     }

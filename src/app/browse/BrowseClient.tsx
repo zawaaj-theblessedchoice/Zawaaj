@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react'
-import { useRouter, useSearchParams, usePathname } from 'next/navigation'
+import { useSearchParams, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Sidebar from '@/components/Sidebar'
 import BottomNav from '@/components/BottomNav'
@@ -683,7 +683,6 @@ export default function BrowseClient({
   const canRecommend   = planConfig.recommendations   // false for Free
   const monthlyLimit   = planConfig.monthlyLimit
   const searchParams   = useSearchParams()
-  const router         = useRouter()
   const pathname       = usePathname()
   const tab            = searchParams.get('tab')
   const activeRoute    = tab ? `${pathname}?tab=${tab}` : pathname
@@ -943,16 +942,10 @@ export default function BrowseClient({
       f.schoolOfThought.length
   }, [appliedFilters])
 
-  // Handle tab change
+  // Handle tab change — pure client state, no URL push/replace so browser
+  // history is not polluted with tab navigation entries.
   function handleTabChange(tab: Tab) {
     setActiveTab(tab)
-    const params = new URLSearchParams(searchParams.toString())
-    if (tab === 'recommended') {
-      params.delete('tab')
-    } else {
-      params.set('tab', tab)
-    }
-    router.replace(`/browse?${params.toString()}`)
   }
 
   // Toggle save

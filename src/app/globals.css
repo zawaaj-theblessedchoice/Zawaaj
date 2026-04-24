@@ -292,6 +292,7 @@ input:focus, textarea:focus, select:focus {
 /* Admin responsive sidebar */
 @media (max-width: 768px) {
   .admin-sidebar { transform: translateX(-100%) !important; width: 260px !important; }
+  .admin-sidebar.admin-sidebar--open { transform: none !important; }
   .admin-main { margin-left: 0 !important; }
   .admin-topbar-mobile { display: flex !important; }
 }
