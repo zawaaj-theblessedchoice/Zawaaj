@@ -20,12 +20,27 @@ const amiri = Amiri({
 });
 
 export const metadata: Metadata = {
-  title: "Zawaaj — The Blessed Choice",
-  description: "Meet serious, family-led matrimonial profiles on Zawaaj — a private, dignified platform where every profile is reviewed and introductions are admin-facilitated.",
-  metadataBase: new URL("https://www.zawaaj.uk"),
+  title: 'Zawaaj — The Blessed Choice',
+  description: 'A family-led matrimonial platform. Private, dignified, admin-mediated introductions.',
+  metadataBase: new URL('https://www.zawaaj.uk'),
+  icons: {
+    icon: [
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon.ico', sizes: 'any' },
+    ],
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+    other: [
+      { rel: 'android-chrome', url: '/android-chrome-192x192.png' },
+      { rel: 'android-chrome', url: '/android-chrome-512x512.png' },
+    ],
+  },
+  manifest: '/site.webmanifest',
   openGraph: {
     title: 'Zawaaj — The Blessed Choice',
-    description: 'Meet serious, family-led matrimonial profiles on Zawaaj — a private, dignified platform where every profile is reviewed and introductions are admin-facilitated.',
+    description: 'A family-led matrimonial platform. Private, dignified, admin-mediated introductions.',
     url: 'https://www.zawaaj.uk',
     siteName: 'Zawaaj',
     type: 'website',
@@ -34,7 +49,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Zawaaj — The Blessed Choice',
-    description: 'Meet serious, family-led matrimonial profiles on Zawaaj — a private, dignified platform where every profile is reviewed and introductions are admin-facilitated.',
+    description: 'A family-led matrimonial platform. Private, dignified, admin-mediated introductions.',
     // twitter:image is auto-derived from opengraph-image.tsx
   },
 };
