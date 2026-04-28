@@ -276,6 +276,8 @@ function RegisterChildPageInner() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [submitting, setSubmitting] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  // True when password was lost to a page refresh — stays true even after typing begins
+  const [needsPasswordReentry, setNeedsPasswordReentry] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [verificationEmail, setVerificationEmail] = useState<string | null>(null)
   const [familyAccountId, setFamilyAccountId] = useState<string>('')
@@ -368,6 +370,8 @@ function RegisterChildPageInner() {
         setForm(prev => ({ ...prev, ...safe }))
         if (typeof savedStep === 'number' && savedStep > 0) {
           setStep(savedStep)
+          // Password is never persisted — flag that re-entry will be needed at step 5
+          setNeedsPasswordReentry(true)
         }
       }
     } catch { /* ignore */ }
@@ -1367,31 +1371,24 @@ function RegisterChildPageInner() {
         {/* ── Step 5: Terms ─────────────────────────────────────────────── */}
         {step === 5 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {/* Inline password re-entry — shown when page was refreshed mid-form */}
-            {!loggedInFamilyAccountId && !inviteToken && !form.password && (
+            {/* Inline password re-entry — shown when page was refreshed mid-form.
+                Uses a stable flag (needsPasswordReentry) so the field stays visible
+                even after the user starts typing (form.password would hide it otherwise). */}
+            {!loggedInFamilyAccountId && !inviteToken && needsPasswordReentry && (
               <div style={{ padding: '14px 16px', borderRadius: 8, background: 'rgba(251,191,36,0.07)', border: '0.5px solid rgba(251,191,36,0.35)' }}>
                 <p style={{ margin: '0 0 4px', fontSize: 13, fontWeight: 600, color: '#fbbf24' }}>
                   Re-enter your password to submit
                 </p>
                 <p style={{ margin: '0 0 12px', fontSize: 12.5, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                  For security, passwords aren&apos;t saved between sessions. Enter it once more to complete registration.
+                  For security, your password isn&apos;t saved between sessions. Enter it once more to complete.
                 </p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <input
-                    type="password"
-                    placeholder="Password"
-                    autoComplete="new-password"
-                    onChange={e => set('password', e.target.value)}
-                    style={{ width: '100%', padding: '9px 12px', borderRadius: 8, fontSize: 13, background: 'var(--surface-3, rgba(255,255,255,0.06))', border: '1px solid rgba(251,191,36,0.4)', color: 'var(--text-primary)', outline: 'none', boxSizing: 'border-box' }}
-                  />
-                  <input
-                    type="password"
-                    placeholder="Confirm password"
-                    autoComplete="new-password"
-                    onChange={e => set('confirmPassword', e.target.value)}
-                    style={{ width: '100%', padding: '9px 12px', borderRadius: 8, fontSize: 13, background: 'var(--surface-3, rgba(255,255,255,0.06))', border: '1px solid rgba(251,191,36,0.4)', color: 'var(--text-primary)', outline: 'none', boxSizing: 'border-box' }}
-                  />
-                </div>
+                <input
+                  type="password"
+                  placeholder="Your password"
+                  autoComplete="current-password"
+                  onChange={e => set('password', e.target.value)}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: 8, fontSize: 13, background: 'var(--surface-3, rgba(255,255,255,0.06))', border: '1px solid rgba(251,191,36,0.4)', color: 'var(--text-primary)', outline: 'none', boxSizing: 'border-box' }}
+                />
               </div>
             )}
             {/* Islamic oath */}
