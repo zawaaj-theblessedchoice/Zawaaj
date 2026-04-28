@@ -69,12 +69,12 @@ const GUARDIAN_RELATIONSHIP_OPTIONS = [
   { value: 'mother',                label: 'Mother' },
   { value: 'grandmother',           label: 'Grandmother' },
   { value: 'aunt',                  label: 'Aunt' },
-  { value: 'sister',                label: 'Sister (aged 18+)' },
+  { value: 'sister',                label: 'Sister (aged 25+)' },
   { value: 'female_guardian',       label: 'Other female guardian' },
   { value: 'other_female_relative', label: 'Other female relative' },
   // Male — fallback (admin-flagged)
   { value: 'father',                label: 'Father' },
-  { value: 'brother',               label: 'Brother (aged 18+)' },
+  { value: 'brother',               label: 'Brother (aged 25+)' },
   { value: 'uncle',                 label: 'Uncle' },
   { value: 'male_guardian',         label: 'Other male guardian' },
 ]

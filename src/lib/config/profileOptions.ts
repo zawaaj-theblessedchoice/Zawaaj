@@ -1,6 +1,6 @@
 export const RELIGIOSITY_OPTIONS = [
-  { value: 'steadfast',  label: 'Steadfast',  description: 'Consistently fulfilling religious obligations with structure and commitment' },
-  { value: 'practising', label: 'Practising', description: 'Regularly practising and actively working to maintain and improve' },
+  { value: 'steadfast',  label: 'Steadfast',  description: 'Fulfilling religious obligations consistently — and always striving to deepen and improve' },
+  { value: 'practising', label: 'Practising', description: 'Actively practising and working to maintain consistency in worship' },
   { value: 'striving',   label: 'Striving',   description: 'On a sincere journey of growth — actively working to strengthen practice' },
 ] as const
 

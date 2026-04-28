@@ -206,7 +206,7 @@ function buildSharedFields(userId: string, initials: string, f: Omit<Registratio
     bio: f.bio || null,
     religiosity: f.religiosity || null,
     prayer_regularity: f.prayerRegularity || null,
-    wears_hijab: f.gender === 'female' ? f.wearsHijab : null,
+    wears_hijab: f.gender === 'female' ? (f.wearsHijab || null) : null,
     keeps_beard: f.gender === 'male' ? f.keepsBeard : null,
     open_to_relocation: f.openToRelocation || null,
     open_to_partners_children: f.openToPartnersChildren || null,
