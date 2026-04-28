@@ -544,6 +544,14 @@ function RegisterChildPageInner() {
   async function handleSubmit() {
     const err = validateStep()
     if (err) { setError(err); return }
+
+    // Detect password lost to page refresh — direct them back clearly
+    if (!loggedInFamilyAccountId && !inviteToken && !form.password) {
+      setError('Your password was not saved when the page loaded. Please go back to Step 1 and re-enter it.')
+      setStep(0)
+      return
+    }
+
     setSubmitting(true)
     setError(null)
 
@@ -1355,6 +1363,28 @@ function RegisterChildPageInner() {
         {/* ── Step 5: Terms ─────────────────────────────────────────────── */}
         {step === 5 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {/* Password-lost warning — shown when page was refreshed mid-form */}
+            {!loggedInFamilyAccountId && !inviteToken && !form.password && (
+              <div style={{ padding: '12px 14px', borderRadius: 8, background: 'rgba(251,191,36,0.08)', border: '0.5px solid rgba(251,191,36,0.35)', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                <span style={{ fontSize: 15, lineHeight: 1, flexShrink: 0 }}>⚠️</span>
+                <div>
+                  <p style={{ margin: '0 0 4px', fontSize: 13, fontWeight: 600, color: '#fbbf24' }}>
+                    Password not saved
+                  </p>
+                  <p style={{ margin: 0, fontSize: 12.5, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                    For security, your password wasn&apos;t saved when the page loaded. Please{' '}
+                    <button
+                      type="button"
+                      onClick={() => { setError(null); setStep(0) }}
+                      style={{ background: 'none', border: 'none', padding: 0, color: 'var(--gold)', fontSize: 12.5, cursor: 'pointer', textDecoration: 'underline', fontWeight: 600 }}
+                    >
+                      go back to Step 1
+                    </button>
+                    {' '}and re-enter your password before submitting.
+                  </p>
+                </div>
+              </div>
+            )}
             {/* Islamic oath */}
             <div style={{ padding: '14px 16px', borderRadius: 8, background: 'var(--gold-muted)', border: '0.5px solid var(--border-gold)', textAlign: 'center' }}>
               <p style={{ fontSize: 15, color: 'var(--gold)', fontWeight: 600, margin: '0 0 8px', letterSpacing: '0.03em' }}>بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ</p>
