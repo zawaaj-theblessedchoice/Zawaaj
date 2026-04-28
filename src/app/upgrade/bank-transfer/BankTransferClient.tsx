@@ -1,26 +1,25 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 interface Props {
-  initialPlan:     'plus' | 'premium' | null
+  initialPlan:     'premium' | null
   bankName:        string
   sortCode:        string
   accountNumber:   string
   existingRequest: {
     id:        string
     reference: string
-    plan:      'plus' | 'premium'
+    plan:      'premium'
     amount:    number
   } | null
 }
 
-type Step = 'select' | 'details' | 'success'
+type Step = 'details' | 'success'
 type CopyKey = 'ref' | 'sort' | 'acc' | 'name'
 
-const PLAN_PRICES: Record<'plus' | 'premium', number> = { plus: 9, premium: 19 }
-const PLAN_LABELS: Record<'plus' | 'premium', string> = { plus: 'Plus — £9/mo', premium: 'Premium — £19/mo' }
+const PLAN_PRICE = 19
 
 // ─── Small copy button ─────────────────────────────────────────────────────────
 
@@ -119,25 +118,19 @@ function DetailRow({
 // ─── Main component ────────────────────────────────────────────────────────────
 
 export function BankTransferClient({
-  initialPlan,
   bankName,
   sortCode,
   accountNumber,
   existingRequest,
 }: Props) {
-  const router = useRouter()
-
-  const [plan,      setPlan]      = useState<'plus' | 'premium'>(initialPlan ?? 'plus')
-  const [step,      setStep]      = useState<Step>(existingRequest ? 'success' : 'select')
+  const [step,      setStep]      = useState<Step>(existingRequest ? 'success' : 'details')
   const [reference, setReference] = useState(existingRequest?.reference ?? '')
   const [confirmed, setConfirmed] = useState(false)
   const [loading,   setLoading]   = useState(false)
   const [error,     setError]     = useState<string | null>(null)
   const [copied,    setCopied]    = useState<CopyKey | null>(null)
 
-  // If there was an existing request, keep its plan
-  const activePlan  = existingRequest?.plan ?? plan
-  const activePrice = existingRequest?.amount ?? PLAN_PRICES[activePlan]
+  const activePrice = existingRequest?.amount ?? PLAN_PRICE
 
   function copy(key: CopyKey, value: string) {
     navigator.clipboard.writeText(value).then(() => {
@@ -153,7 +146,7 @@ export function BankTransferClient({
     const res = await fetch('/api/payments/bank-transfer', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ plan: activePlan }),
+      body: JSON.stringify({ plan: 'premium' }),
     })
     const json = await res.json().catch(() => ({})) as { reference?: string; error?: string; already_exists?: boolean; id?: string }
     setLoading(false)
@@ -162,113 +155,23 @@ export function BankTransferClient({
     setStep('success')
   }
 
-  // ── Step: Select plan ──────────────────────────────────────────────────────
-
-  if (step === 'select') {
-    return (
-      <div style={{ maxWidth: 520, margin: '60px auto', padding: '0 24px' }}>
-        <button
-          onClick={() => router.push('/upgrade')}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: 13, padding: 0, marginBottom: 28, display: 'flex', alignItems: 'center', gap: 6 }}
-        >
-          ← Back to plans
-        </button>
-
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 6px' }}>
-          Pay by Bank Transfer
-        </h1>
-        <p style={{ fontSize: 14, color: 'var(--text-secondary)', margin: '0 0 32px', lineHeight: 1.6 }}>
-          Choose the plan you want to activate, then transfer the monthly fee to our bank account. We&apos;ll confirm your upgrade within 1 working day.
-        </p>
-
-        {/* Plan picker */}
-        <div style={{ marginBottom: 28 }}>
-          <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
-            Select plan
-          </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {(['plus', 'premium'] as const).map(p => (
-              <button
-                key={p}
-                onClick={() => setPlan(p)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 14,
-                  padding: '14px 18px',
-                  borderRadius: 12,
-                  border: plan === p
-                    ? '1.5px solid rgba(184,150,12,0.6)'
-                    : '1px solid var(--border-default)',
-                  background: plan === p
-                    ? 'rgba(184,150,12,0.06)'
-                    : 'var(--surface-2)',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  transition: 'all 0.15s',
-                }}
-              >
-                {/* Radio dot */}
-                <span style={{
-                  width: 16, height: 16, borderRadius: '50%', flexShrink: 0,
-                  border: plan === p ? '4.5px solid #B8960C' : '1.5px solid var(--border-default)',
-                  background: 'transparent',
-                  transition: 'all 0.15s',
-                }} />
-                <span style={{ flex: 1 }}>
-                  <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', display: 'block' }}>
-                    {p === 'plus' ? 'Plus' : 'Premium'}
-                  </span>
-                  <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
-                    £{PLAN_PRICES[p]} / month
-                  </span>
-                </span>
-                {p === 'premium' && (
-                  <span style={{
-                    fontSize: 9.5, fontWeight: 700, letterSpacing: '0.08em',
-                    textTransform: 'uppercase', color: '#111', background: '#B8960C',
-                    padding: '2px 7px', borderRadius: 99,
-                  }}>
-                    Popular
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <button
-          onClick={() => setStep('details')}
-          style={{
-            width: '100%', padding: '13px 0', borderRadius: 10,
-            background: '#B8960C', color: '#111', fontWeight: 700,
-            fontSize: 14, border: 'none', cursor: 'pointer',
-            transition: 'opacity 0.15s',
-          }}
-        >
-          Continue with {PLAN_LABELS[plan]} →
-        </button>
-      </div>
-    )
-  }
-
   // ── Step: Bank details ─────────────────────────────────────────────────────
 
   if (step === 'details') {
     return (
       <div style={{ maxWidth: 520, margin: '60px auto', padding: '0 24px' }}>
-        <button
-          onClick={() => setStep('select')}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: 13, padding: 0, marginBottom: 28, display: 'flex', alignItems: 'center', gap: 6 }}
+        <Link
+          href="/settings?tab=membership"
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: 13, padding: 0, marginBottom: 28, display: 'flex', alignItems: 'center', gap: 6, textDecoration: 'none' }}
         >
-          ← Back
-        </button>
+          ← Back to settings
+        </Link>
 
         <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 6px' }}>
-          Transfer £{PLAN_PRICES[plan]}
+          Upgrade to Premium
         </h1>
         <p style={{ fontSize: 14, color: 'var(--text-secondary)', margin: '0 0 28px', lineHeight: 1.6 }}>
-          Transfer exactly <strong style={{ color: 'var(--text-primary)' }}>£{PLAN_PRICES[plan]}</strong> to the account below.
+          Transfer exactly <strong style={{ color: 'var(--text-primary)' }}>£{PLAN_PRICE}</strong>{' '}to the account below.
           You&apos;ll get a unique reference on the next step — please use it so we can match your payment.
         </p>
 
@@ -299,7 +202,7 @@ export function BankTransferClient({
               Amount
             </p>
             <p style={{ margin: '3px 0 0', fontSize: 20, color: 'var(--text-primary)', fontWeight: 700 }}>
-              £{PLAN_PRICES[plan]}<span style={{ fontSize: 13, fontWeight: 400, color: 'var(--text-secondary)' }}> / month</span>
+              £{PLAN_PRICE}<span style={{ fontSize: 13, fontWeight: 400, color: 'var(--text-secondary)' }}> / month</span>
             </p>
           </div>
         </div>
@@ -317,7 +220,7 @@ export function BankTransferClient({
             style={{ marginTop: 2, accentColor: '#B8960C', width: 15, height: 15, flexShrink: 0, cursor: 'pointer' }}
           />
           <span style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-            I understand I need to make a bank transfer of <strong style={{ color: 'var(--text-primary)' }}>£{PLAN_PRICES[plan]}</strong> and use the reference provided. My account will be upgraded within 1 working day of payment being received.
+            I understand I need to make a bank transfer of <strong style={{ color: 'var(--text-primary)' }}>£{PLAN_PRICE}</strong> and use the reference provided. My account will be upgraded within 1 working day of payment being received.
           </span>
         </label>
 
@@ -442,17 +345,18 @@ export function BankTransferClient({
         ))}
       </div>
 
-      <button
-        onClick={() => router.push('/browse')}
+      <Link
+        href="/browse"
         style={{
-          width: '100%', padding: '12px 0', borderRadius: 10,
+          display: 'block', width: '100%', padding: '12px 0', borderRadius: 10,
           background: 'var(--surface-2)', color: 'var(--text-primary)',
           border: '1px solid var(--border-default)', fontWeight: 600,
-          fontSize: 14, cursor: 'pointer', transition: 'opacity 0.15s',
+          fontSize: 14, cursor: 'pointer', textDecoration: 'none',
+          textAlign: 'center', boxSizing: 'border-box',
         }}
       >
         Back to browse
-      </button>
+      </Link>
 
       <p style={{ fontSize: 12, color: 'var(--text-secondary)', textAlign: 'center', marginTop: 20, lineHeight: 1.6 }}>
         Questions? Email us at{' '}

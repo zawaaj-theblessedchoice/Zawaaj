@@ -17,15 +17,15 @@ interface PlanFeature {
 }
 
 const FEATURES: PlanFeature[] = [
-  { label: 'Monthly introductions',   free: '5',       plus: '15',       premium: 'Unlimited' },
-  { label: 'Active requests at once', free: '1',       plus: '2',        premium: 'Unlimited' },
-  { label: 'Browse filters',          free: false,     plus: true,       premium: true },
-  { label: 'Must-have filters',       free: false,     plus: false,      premium: true },
-  { label: 'Response templates',      free: false,     plus: true,       premium: true },
-  { label: 'Recommendations',         free: false,     plus: true,       premium: true },
-  { label: 'Family profiles',         free: '1',       plus: '4',        premium: '4' },
-  { label: 'Concierge service',       free: false,     plus: false,      premium: true },
-  { label: 'Profile boosts',          free: '0',       plus: '1/mo',     premium: '4/mo' },
+  { label: 'Monthly introductions',   free: '2',   plus: '',  premium: '6' },
+  { label: 'Browse filters',          free: false, plus: '',  premium: true },
+  { label: 'Response templates',      free: false, plus: '',  premium: true },
+  { label: 'Recommendations',         free: false, plus: '',  premium: true },
+  { label: 'Family profiles',         free: '1',   plus: '',  premium: 'Up to 4' },
+  { label: 'Concierge service',       free: false, plus: '',  premium: true },
+  { label: 'Profile boosts',          free: '—',   plus: '',  premium: 'Weekly' },
+  { label: 'Spotlight listing',       free: false, plus: '',  premium: true },
+  { label: 'See who viewed you',      free: false, plus: '',  premium: true },
 ]
 
 function Tick({ yes }: { yes: boolean | string }) {
@@ -63,16 +63,6 @@ export function UpgradeClient({ currentPlan, profileId }: Props) {
       highlight: false,
       cta: 'Current plan',
       ctaDisabled: true,
-    },
-    {
-      id: 'plus',
-      label: planDisplayName('plus'),
-      monthly: prices.plus.monthly,
-      annual: prices.plus.annual,
-      color: '#818cf8',
-      highlight: false,
-      cta: currentPlan === 'plus' ? 'Current plan' : 'Get Plus',
-      ctaDisabled: currentPlan === 'plus',
     },
     {
       id: 'premium',
@@ -294,7 +284,7 @@ export function UpgradeClient({ currentPlan, profileId }: Props) {
           <thead>
             <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
               <th style={{ padding: '14px 20px', textAlign: 'left', fontSize: 12, color: 'var(--text-secondary)', fontWeight: 600 }}>Feature</th>
-              {(['voluntary', 'plus', 'premium'] as const).map(slug => (
+              {(['voluntary', 'premium'] as const).map(slug => (
                 <th key={slug} style={{ padding: '14px 16px', textAlign: 'center', fontSize: 12, color: 'var(--text-secondary)', fontWeight: 600 }}>{planDisplayName(slug)}</th>
               ))}
             </tr>
@@ -307,7 +297,6 @@ export function UpgradeClient({ currentPlan, profileId }: Props) {
               >
                 <td style={{ padding: '12px 20px', fontSize: 13, color: 'var(--text-primary)' }}>{f.label}</td>
                 <td style={{ padding: '12px 16px', textAlign: 'center' }}><Tick yes={f.free} /></td>
-                <td style={{ padding: '12px 16px', textAlign: 'center' }}><Tick yes={f.plus} /></td>
                 <td style={{ padding: '12px 16px', textAlign: 'center' }}><Tick yes={f.premium} /></td>
               </tr>
             ))}

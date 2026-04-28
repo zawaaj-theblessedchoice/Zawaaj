@@ -151,6 +151,77 @@ const LANGUAGE_OPTIONS = [
   'Persian / Farsi', 'Tamil', 'Swahili', 'Albanian', 'Polish', 'Other',
 ]
 
+// ── Display maps — convert stored DB values to human-readable labels ──────────
+
+const RELOCATION_LABELS: Record<string, string> = {
+  yes_open:     'Yes, open to relocating',
+  yes:          'Yes, open to relocating',
+  within_uk:    'Within the UK',
+  prefer_local: 'Prefer to stay local',
+  not_open:     'Not open to relocating',
+  no:           'No, prefer to stay local',
+  flexible:     'Flexible — open to discussion',
+}
+
+const PARTNER_CHILDREN_LABELS: Record<string, string> = {
+  yes:        'Yes',
+  open:       'Open to it',
+  prefer_not: 'Prefer not',
+  no:         'No',
+}
+
+const POLYGAMY_LABELS: Record<string, string> = {
+  not_open:        'Not open to polygamy',
+  no:              'Not open to polygamy',
+  open_to_discuss: 'Open to discuss',
+  open:            'Open to it',
+  open_to_discussion: 'Open to discuss',
+}
+
+const RELIGIOSITY_LABELS: Record<string, string> = {
+  steadfast:  'Steadfast',
+  practising: 'Practising',
+  striving:   'Striving',
+}
+
+const PRAYER_LABELS: Record<string, string> = {
+  yes_regularly: 'Yes, regularly',
+  five_daily:    'Five daily prayers',
+  mostly:        'Mostly — occasional misses',
+  most_of_time:  'Most of the time',
+  working_on_it: 'Working on it',
+  sometimes:     'Sometimes',
+  occasionally:  'Occasionally',
+  not_currently: 'Not currently',
+}
+
+const QURAN_LABELS: Record<string, string> = {
+  building_connection:      'Building my connection',
+  growing_regularly:        'Growing regularly',
+  consistent_understanding: 'Consistent and learning',
+  deeply_engaged:           'Deeply engaged',
+}
+
+const LIVING_LABELS: Record<string, string> = {
+  with_family:    'With family',
+  independently:  'Living independently',
+  independent:    'Living independently',
+  with_flatmates: 'With flatmates',
+  shared:         'Shared accommodation',
+  other:          'Other',
+}
+
+const EDUCATION_LABELS: Record<string, string> = {
+  gcses_o_levels:      'GCSEs / O-Levels',
+  a_levels:            'A-Levels',
+  bachelors_degree:    "Bachelor's degree",
+  masters_degree:      "Master's degree",
+  phd_doctorate:       'PhD / Doctorate',
+  vocational:          'Vocational / Trade',
+  islamic_studies:     'Islamic Studies',
+  no_formal:           'No formal qualifications',
+}
+
 function EditChips({ label, selected, onChange }: { label: string; selected: string[]; onChange: (v: string[]) => void }) {
   function toggle(opt: string) {
     onChange(selected.includes(opt) ? selected.filter(s => s !== opt) : [...selected, opt])
@@ -355,10 +426,28 @@ export default function MyProfilePage() {
       location: profile.location ?? '',
       height: profile.height ?? '',
       languagesSpoken: profile.languages_spoken ?? [],
-      livingSituation: profile.living_situation ?? '',
-      openToRelocation: profile.open_to_relocation ?? '',
+      // Normalize living_situation — old values like 'independent' → 'independently'
+      livingSituation: (() => {
+        const v = profile.living_situation ?? ''
+        if (v === 'independent') return 'independently'
+        if (v === 'shared') return 'with_flatmates'
+        return v
+      })(),
+      // Normalize open_to_relocation — old values like 'yes_open' → 'yes'
+      openToRelocation: (() => {
+        const v = profile.open_to_relocation ?? ''
+        if (v === 'yes_open') return 'yes'
+        if (v === 'prefer_local') return 'no'
+        if (v === 'not_open') return 'no'
+        if (v === 'within_uk') return 'flexible'
+        return v
+      })(),
       openToPartnersChildren: profile.open_to_partners_children ?? '',
-      polygamyOpenness: profile.polygamy_openness ?? '',
+      polygamyOpenness: (() => {
+        const v = profile.polygamy_openness ?? ''
+        if (v === 'open_to_discussion') return 'open_to_discuss'
+        return v
+      })(),
       professionDetail: profile.profession_detail ?? '',
       educationLevel: profile.education_level ?? '',
       educationDetail: profile.education_detail ?? '',
@@ -590,11 +679,11 @@ export default function MyProfilePage() {
             )}
             <FieldRow label="Has children" value={profile.has_children === true ? 'Yes' : profile.has_children === false ? 'No' : null} />
             <FieldRow label="Height" value={profile.height} />
-            <FieldRow label="Living situation" value={displayValue({ independent: 'Independent', with_family: 'With family', shared: 'Shared accommodation' }, profile.living_situation)} />
+            <FieldRow label="Living situation" value={displayValue(LIVING_LABELS, profile.living_situation)} />
             <FieldRow label="Languages" value={profile.languages_spoken?.join(', ') ?? null} />
-            <FieldRow label="Open to relocation" value={profile.open_to_relocation} />
-            <FieldRow label="Open to partner's children" value={profile.open_to_partners_children} />
-            <FieldRow label="Polygamy openness" value={profile.polygamy_openness} />
+            <FieldRow label="Open to relocation" value={displayValue(RELOCATION_LABELS, profile.open_to_relocation)} />
+            <FieldRow label="Open to partner's children" value={displayValue(PARTNER_CHILDREN_LABELS, profile.open_to_partners_children)} />
+            <FieldRow label="Polygamy openness" value={displayValue(POLYGAMY_LABELS, profile.polygamy_openness)} />
           </div>
 
           {/* Education & profession */}
@@ -614,14 +703,14 @@ export default function MyProfilePage() {
               : profile.islamic_background === 'reverted' ? 'Reverted to Islam'
               : null
             } />
-            <FieldRow label="Religiosity" value={profile.religiosity} />
-            <FieldRow label="Prayer regularity" value={displayValue({ yes_regularly: 'Yes, regularly', most_of_time: 'Most of the time', working_on_it: 'Working on it', not_currently: 'Not currently' }, profile.prayer_regularity)} />
+            <FieldRow label="Religiosity" value={displayValue(RELIGIOSITY_LABELS, profile.religiosity)} />
+            <FieldRow label="Prayer regularity" value={displayValue(PRAYER_LABELS, profile.prayer_regularity)} />
             {profile.gender === 'female' && <FieldRow label="Wears hijab" value={profile.wears_hijab === true ? 'Yes' : profile.wears_hijab === false ? 'No' : null} />}
             {profile.gender === 'female' && profile.wears_niqab && <FieldRow label="Wears niqab" value={displayValue({ yes: 'Yes', no: 'No', sometimes: 'Sometimes' }, profile.wears_niqab)} />}
             {profile.gender === 'female' && profile.wears_abaya && <FieldRow label="Wears abaya" value={displayValue({ yes: 'Yes', no: 'No', sometimes: 'Sometimes' }, profile.wears_abaya)} />}
             {profile.gender === 'male' && <FieldRow label="Keeps beard" value={profile.keeps_beard === true ? 'Yes' : profile.keeps_beard === false ? 'No' : null} />}
             <FieldRow label="Smoker" value={profile.smoker === true ? 'Yes' : profile.smoker === false ? 'No' : null} />
-            {profile.quran_engagement_level && <FieldRow label="Quran engagement" value={displayValue({ memorised: 'Hafiz/Hafiza', regularly: 'Read regularly', occasionally: 'Occasionally', learning: 'Currently learning', not_currently: 'Not currently' }, profile.quran_engagement_level)} />}
+            {profile.quran_engagement_level && <FieldRow label="Quran engagement" value={displayValue(QURAN_LABELS, profile.quran_engagement_level)} />}
           </div>
 
           {/* Bio */}
@@ -903,13 +992,30 @@ export default function MyProfilePage() {
                   <EditChips label="Languages spoken" selected={editForm.languagesSpoken} onChange={v => setEditForm(f => ({ ...f, languagesSpoken: v }))} />
                   <EditSelect label="Living situation" value={editForm.livingSituation} onChange={v => setEditForm(f => ({ ...f, livingSituation: v }))} options={[
                     { value: '', label: 'Not specified' },
-                    { value: 'independent', label: 'Living independently' },
-                    { value: 'with_family', label: 'With family' },
-                    { value: 'shared', label: 'Shared accommodation' },
+                    { value: 'independently',  label: 'Living independently' },
+                    { value: 'with_family',    label: 'With family' },
+                    { value: 'with_flatmates', label: 'With flatmates' },
+                    { value: 'other',          label: 'Other' },
                   ]} />
-                  <EditField label="Open to relocation?" placeholder="e.g. Yes, No, Maybe" value={editForm.openToRelocation} onChange={v => setEditForm(f => ({ ...f, openToRelocation: v }))} />
-                  <EditField label="Open to partner&apos;s children?" placeholder="e.g. Yes, Open to discuss" value={editForm.openToPartnersChildren} onChange={v => setEditForm(f => ({ ...f, openToPartnersChildren: v }))} />
-                  <EditField label="Polygamy openness" placeholder="e.g. Not open, Open to discuss" value={editForm.polygamyOpenness} onChange={v => setEditForm(f => ({ ...f, polygamyOpenness: v }))} />
+                  <EditSelect label="Open to relocation?" value={editForm.openToRelocation} onChange={v => setEditForm(f => ({ ...f, openToRelocation: v }))} options={[
+                    { value: '',         label: 'Not specified' },
+                    { value: 'yes',      label: 'Yes, open to relocating' },
+                    { value: 'flexible', label: 'Flexible — open to discussion' },
+                    { value: 'no',       label: 'No, prefer to stay local' },
+                  ]} />
+                  <EditSelect label="Open to partner's children?" value={editForm.openToPartnersChildren} onChange={v => setEditForm(f => ({ ...f, openToPartnersChildren: v }))} options={[
+                    { value: '',           label: 'Not specified' },
+                    { value: 'yes',        label: 'Yes' },
+                    { value: 'open',       label: 'Open to it' },
+                    { value: 'prefer_not', label: 'Prefer not' },
+                    { value: 'no',         label: 'No' },
+                  ]} />
+                  <EditSelect label="Polygamy openness" value={editForm.polygamyOpenness} onChange={v => setEditForm(f => ({ ...f, polygamyOpenness: v }))} options={[
+                    { value: '',              label: 'Not specified' },
+                    { value: 'not_open',      label: 'Not open to polygamy' },
+                    { value: 'open_to_discuss', label: 'Open to discuss' },
+                    { value: 'open',          label: 'Open to it' },
+                  ]} />
                   <EditSelect label="Smoker" value={editForm.smoker} onChange={v => setEditForm(f => ({ ...f, smoker: v }))} options={[
                     { value: '', label: 'Select…' },
                     { value: 'no', label: 'No' },
@@ -937,14 +1043,30 @@ export default function MyProfilePage() {
                     { value: 'born_muslim', label: 'Born Muslim' },
                     { value: 'reverted', label: 'Reverted to Islam' },
                   ]} />
-                  <EditField label="School of thought" placeholder="e.g. Sunni, Deobandi, Barelwi" value={editForm.schoolOfThought} onChange={v => setEditForm(f => ({ ...f, schoolOfThought: v }))} />
-                  <EditField label="Religiosity" placeholder="e.g. Practising, Moderately practising" value={editForm.religiosity} onChange={v => setEditForm(f => ({ ...f, religiosity: v }))} />
+                  <EditSelect label="School of thought" value={editForm.schoolOfThought} onChange={v => setEditForm(f => ({ ...f, schoolOfThought: v }))} options={[
+                    { value: '',                  label: 'Not specified' },
+                    { value: 'Hanafi',            label: 'Hanafi' },
+                    { value: "Shafi'i",           label: "Shafi'i" },
+                    { value: 'Maliki',            label: 'Maliki' },
+                    { value: 'Hanbali',           label: 'Hanbali' },
+                    { value: 'General Sunni',     label: 'General Sunni' },
+                    { value: 'Salafi / Athari',   label: 'Salafi / Athari' },
+                    { value: 'Revert / Learning', label: 'Revert / Learning' },
+                    { value: 'No preference',     label: 'No preference' },
+                    { value: 'Prefer not to say', label: 'Prefer not to say' },
+                  ]} />
+                  <EditSelect label="Religiosity" value={editForm.religiosity} onChange={v => setEditForm(f => ({ ...f, religiosity: v }))} options={[
+                    { value: '',           label: 'Not specified' },
+                    { value: 'steadfast',  label: 'Steadfast' },
+                    { value: 'practising', label: 'Practising' },
+                    { value: 'striving',   label: 'Striving' },
+                  ]} />
                   <EditSelect label="Prayer regularity" value={editForm.prayerRegularity} onChange={v => setEditForm(f => ({ ...f, prayerRegularity: v }))} options={[
-                    { value: '', label: 'Not specified' },
-                    { value: 'yes_regularly', label: 'Yes, regularly' },
-                    { value: 'most_of_time', label: 'Most of the time' },
-                    { value: 'working_on_it', label: 'Working on it' },
-                    { value: 'not_currently', label: 'Not currently' },
+                    { value: '',              label: 'Not specified' },
+                    { value: 'five_daily',    label: 'Five daily prayers' },
+                    { value: 'mostly',        label: 'Mostly — occasional misses' },
+                    { value: 'sometimes',     label: 'Sometimes' },
+                    { value: 'occasionally',  label: 'Occasionally' },
                   ]} />
                   {profile?.gender === 'female' && (
                     <EditSelect label="Wears hijab" value={editForm.wearsHijab} onChange={v => setEditForm(f => ({ ...f, wearsHijab: v }))} options={[
@@ -977,12 +1099,11 @@ export default function MyProfilePage() {
                     ]} />
                   )}
                   <EditSelect label="Quran engagement" value={editForm.quranEngagement} onChange={v => setEditForm(f => ({ ...f, quranEngagement: v }))} options={[
-                    { value: '', label: 'Not specified' },
-                    { value: 'memorised', label: 'Memorised (Hafiz/Hafiza)' },
-                    { value: 'regularly', label: 'Read regularly' },
-                    { value: 'occasionally', label: 'Read occasionally' },
-                    { value: 'learning', label: 'Currently learning' },
-                    { value: 'not_currently', label: 'Not currently' },
+                    { value: '',                       label: 'Not specified' },
+                    { value: 'building_connection',    label: 'Building my connection' },
+                    { value: 'growing_regularly',      label: 'Growing regularly' },
+                    { value: 'consistent_understanding', label: 'Consistent and learning' },
+                    { value: 'deeply_engaged',         label: 'Deeply engaged' },
                   ]} />
                 </div>
               )}

@@ -34,9 +34,9 @@ export default async function BankTransferPage({
   if (profile.is_admin) redirect('/admin')
   if (profile.status === 'pending') redirect('/pending')
 
-  // Resolve plan from URL
-  const { plan: planParam } = await searchParams
-  const initialPlan = planParam === 'premium' ? 'premium' : planParam === 'plus' ? 'plus' : null
+  // Always premium — Plus is no longer offered
+  const initialPlan: 'premium' = 'premium'
+  void searchParams // suppress unused warning
 
   // Check for any existing pending request for this profile
   const { data: existingRequest } = await supabaseAdmin
@@ -83,7 +83,7 @@ export default async function BankTransferPage({
               ? {
                   id:        existingRequest.id,
                   reference: existingRequest.reference ?? '',
-                  plan:      existingRequest.plan as 'plus' | 'premium',
+                  plan:      'premium' as const,
                   amount:    existingRequest.amount_gbp,
                 }
               : null
