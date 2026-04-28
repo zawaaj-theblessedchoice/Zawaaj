@@ -512,6 +512,12 @@ function RegisterChildPageInner() {
       }
     }
     if (step === 5) {
+      if (!loggedInFamilyAccountId && !inviteToken && !form.password)
+        return 'Please enter your password above to complete registration.'
+      if (!loggedInFamilyAccountId && !inviteToken && form.password && form.password !== form.confirmPassword)
+        return 'Passwords do not match.'
+      if (!loggedInFamilyAccountId && !inviteToken && form.password && form.password.length < 8)
+        return 'Password must be at least 8 characters.'
       if (!form.termsAgreed)     return 'You must agree to the Terms of Use.'
       if (!form.detailsAccurate) return 'Please confirm that all details are accurate.'
       if (!form.guardianConsents) return "Please confirm your guardian's consent."
@@ -545,19 +551,17 @@ function RegisterChildPageInner() {
     const err = validateStep()
     if (err) { setError(err); return }
 
-    // Detect password lost to page refresh — direct them back clearly
+    // Detect password lost to page refresh — block submit, inline field will handle it
     if (!loggedInFamilyAccountId && !inviteToken && !form.password) {
-      setError('Your password was not saved when the page loaded. Please go back to Step 1 and re-enter it.')
-      setStep(0)
+      setError('Please enter your password above to complete registration.')
       return
     }
 
     setSubmitting(true)
     setError(null)
 
-    const wearsHijabBool = form.gender === 'female'
-      ? (form.wearsHijab === 'yes' ? true : form.wearsHijab === 'no' ? false : null)
-      : null
+    // wears_hijab / wears_niqab / wears_abaya are TEXT columns ('yes'|'no'|'sometimes'|null)
+    // keeps_beard is BOOLEAN — convert from string form value
     const keepsBeardBool = form.gender === 'male'
       ? (form.keepsBeard === 'yes' ? true : form.keepsBeard === 'no' ? false : null)
       : null
@@ -615,7 +619,7 @@ function RegisterChildPageInner() {
           schoolOfThought:       form.schoolOfThought,
           religiosity:           form.religiosity     || undefined,
           prayerRegularity:      form.prayerRegularity || undefined,
-          wearsHijab:            wearsHijabBool,
+          wearsHijab:            form.gender === 'female' ? (form.wearsHijab || undefined) : undefined,
           wearsNiqab:            form.gender === 'female' ? (form.wearsNiqab || undefined) : undefined,
           wearsAbaya:            form.gender === 'female' ? (form.wearsAbaya || undefined) : undefined,
           quranEngagementLevel:  form.quranEngagementLevel || undefined,
@@ -1363,25 +1367,30 @@ function RegisterChildPageInner() {
         {/* ── Step 5: Terms ─────────────────────────────────────────────── */}
         {step === 5 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {/* Password-lost warning — shown when page was refreshed mid-form */}
+            {/* Inline password re-entry — shown when page was refreshed mid-form */}
             {!loggedInFamilyAccountId && !inviteToken && !form.password && (
-              <div style={{ padding: '12px 14px', borderRadius: 8, background: 'rgba(251,191,36,0.08)', border: '0.5px solid rgba(251,191,36,0.35)', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                <span style={{ fontSize: 15, lineHeight: 1, flexShrink: 0 }}>⚠️</span>
-                <div>
-                  <p style={{ margin: '0 0 4px', fontSize: 13, fontWeight: 600, color: '#fbbf24' }}>
-                    Password not saved
-                  </p>
-                  <p style={{ margin: 0, fontSize: 12.5, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                    For security, your password wasn&apos;t saved when the page loaded. Please{' '}
-                    <button
-                      type="button"
-                      onClick={() => { setError(null); setStep(0) }}
-                      style={{ background: 'none', border: 'none', padding: 0, color: 'var(--gold)', fontSize: 12.5, cursor: 'pointer', textDecoration: 'underline', fontWeight: 600 }}
-                    >
-                      go back to Step 1
-                    </button>
-                    {' '}and re-enter your password before submitting.
-                  </p>
+              <div style={{ padding: '14px 16px', borderRadius: 8, background: 'rgba(251,191,36,0.07)', border: '0.5px solid rgba(251,191,36,0.35)' }}>
+                <p style={{ margin: '0 0 4px', fontSize: 13, fontWeight: 600, color: '#fbbf24' }}>
+                  Re-enter your password to submit
+                </p>
+                <p style={{ margin: '0 0 12px', fontSize: 12.5, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                  For security, passwords aren&apos;t saved between sessions. Enter it once more to complete registration.
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <input
+                    type="password"
+                    placeholder="Password"
+                    autoComplete="new-password"
+                    onChange={e => set('password', e.target.value)}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: 8, fontSize: 13, background: 'var(--surface-3, rgba(255,255,255,0.06))', border: '1px solid rgba(251,191,36,0.4)', color: 'var(--text-primary)', outline: 'none', boxSizing: 'border-box' }}
+                  />
+                  <input
+                    type="password"
+                    placeholder="Confirm password"
+                    autoComplete="new-password"
+                    onChange={e => set('confirmPassword', e.target.value)}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: 8, fontSize: 13, background: 'var(--surface-3, rgba(255,255,255,0.06))', border: '1px solid rgba(251,191,36,0.4)', color: 'var(--text-primary)', outline: 'none', boxSizing: 'border-box' }}
+                  />
                 </div>
               </div>
             )}
