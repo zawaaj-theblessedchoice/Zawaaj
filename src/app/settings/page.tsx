@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, Suspense } from 'react'
-import { usePathname, useSearchParams } from 'next/navigation'
+import { usePathname, useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import Sidebar from '@/components/Sidebar'
@@ -96,6 +96,7 @@ function PlanBadge({ plan }: { plan: Plan }) {
 function SettingsContent() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
+  const router = useRouter()
   const [tab, setTab] = useState<Tab>((searchParams.get('tab') as Tab) ?? 'membership')
   const [sub, setSub] = useState<Subscription | null>(null)
   const [loading, setLoading] = useState(true)
@@ -236,30 +237,9 @@ function SettingsContent() {
   const currentPlan: Plan = (sub?.plan as Plan) ?? 'free'
   const isPaid = currentPlan !== 'free'
 
-  async function startCheckout(plan: 'plus' | 'premium') {
-    const billing = annual ? 'annual' : 'monthly'
-    const key = `${plan}_${billing}`
-    setCheckoutLoading(key)
-    setCheckoutError(null)
-    try {
-      const res = await fetch('/api/stripe/create-checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan, billing }),
-      })
-      const json = await res.json().catch(() => ({}))
-      if (!res.ok) {
-        setCheckoutError(json.error ?? 'Failed to start checkout')
-        setCheckoutLoading(null)
-        return
-      }
-      if (json.url) {
-        window.location.href = json.url
-      }
-    } catch {
-      setCheckoutError('Unexpected error — please try again')
-      setCheckoutLoading(null)
-    }
+  function startCheckout(plan: 'plus' | 'premium') {
+    setCheckoutLoading(plan)
+    router.push(`/upgrade/bank-transfer?plan=${plan}`)
   }
 
   async function handleExport() {
@@ -429,7 +409,7 @@ function SettingsContent() {
                     </Link>
                   ) : (
                     <Link
-                      href="/upgrade"
+                      href="/upgrade/bank-transfer?plan=premium"
                       style={{
                         flexShrink: 0,
                         padding: '9px 18px',

@@ -1153,7 +1153,7 @@ export default function BrowseClient({
             </div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <a
-                href="/settings?tab=membership"
+                href="/settings?tab=account"
                 style={{
                   display: 'inline-block', padding: '6px 14px', borderRadius: 7,
                   fontSize: 12, fontWeight: 500, textDecoration: 'none',
@@ -1164,7 +1164,7 @@ export default function BrowseClient({
               </a>
               {familyReadinessState !== 'representative_invited' && (
                 <a
-                  href="/settings?tab=membership"
+                  href="/settings?tab=account"
                   style={{
                     display: 'inline-block', padding: '6px 14px', borderRadius: 7,
                     fontSize: 12, textDecoration: 'none',
