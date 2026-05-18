@@ -94,32 +94,32 @@ const HOW_IT_WORKS = [
 const VALUES = [
   {
     title: 'Halal and dignified by design',
-    body: 'No direct messaging. No photos. Every introduction goes through our admin team.',
+    body: 'Private by design. Introductions are family-guided and facilitated respectfully through our team.',
     icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>,
   },
   {
     title: 'Privacy first',
-    body: 'Contact details are never shared until both families are ready to proceed — coordinated personally by our team.',
+    body: 'Contact details are shared only after mutual family agreement and admin facilitation.',
     icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
   },
   {
     title: 'Faith-centred',
-    body: 'Built for Muslims who take marriage seriously.',
+    body: 'Rooted in Islamic values, modesty, sincerity, and respect for the marriage process.',
     icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2c-2 0-3.5 1.8-3.5 3.5H15.5C15.5 3.8 14 2 12 2Z"/><rect x="3.5" y="7" width="3" height="13" rx="0.5"/><path d="M3.5 7c0-1.3 3-1.3 3 0"/><rect x="17.5" y="7" width="3" height="13" rx="0.5"/><path d="M17.5 7c0-1.3 3-1.3 3 0"/><rect x="8.5" y="5.5" width="7" height="14.5" rx="0.5"/><path d="M10 20c0-2 4-2 4 0"/><line x1="2" y1="20" x2="22" y2="20"/></svg>,
   },
   {
     title: 'Community trust',
-    body: 'Every profile is manually reviewed. We try our best to keep the platform high-quality and safe.',
+    body: 'Every profile is manually reviewed to maintain a respectful and trusted community.',
     icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
   },
   {
     title: 'Family-guided',
-    body: 'Families connect with families — every introduction is coordinated personally by our team, keeping the process dignified and respectful.',
+    body: 'Families connect with families — with introductions coordinated personally and respectfully by our team.',
     icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
   },
   {
-    title: 'Guided by people, not algorithms',
-    body: 'No automated scoring or matching systems. Real people personally review every profile and facilitate every introduction — because finding the right match deserves human care.',
+    title: 'People-led, thoughtfully supported by technology',
+    body: 'Technology supports the process, while people remain at the centre of every introduction and decision.',
     icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M19 8h2M3 8h2"/><path d="M19 4l1.5-1.5M3.5 10.5 2 12"/><path d="M19 12l1.5 1.5M3.5 5.5 2 4"/></svg>,
   },
 ]
