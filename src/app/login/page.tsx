@@ -28,7 +28,15 @@ export default function LoginPage() {
       return
     }
 
-    router.push('/browse')
+    let redirect = '/browse'
+    try {
+      if (localStorage.getItem('zawaaj_premium_intent') === '1') {
+        localStorage.removeItem('zawaaj_premium_intent')
+        redirect = '/upgrade/bank-transfer'
+      }
+    } catch { /* ignore */ }
+
+    router.push(redirect)
     router.refresh()
   }
 

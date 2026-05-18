@@ -169,9 +169,13 @@ function FaqItem({ q, a }: { q: string; a: string }) {
   )
 }
 
-function PlanCard({ plan, annual }: { plan: typeof PLANS[number]; annual: boolean }) {
+function PlanCard({ plan, annual, isLoggedIn }: { plan: typeof PLANS[number]; annual: boolean; isLoggedIn: boolean }) {
   const price = annual ? plan.annual : plan.monthly
   const saving = annual && plan.monthly > 0
+
+  const ctaHref = plan.key === 'premium'
+    ? (isLoggedIn ? '/upgrade/bank-transfer' : '/register?intent=premium')
+    : (isLoggedIn ? '/browse' : '/register')
 
   return (
     <div className={`relative rounded-2xl p-6 flex flex-col gap-5 border ${
@@ -230,7 +234,7 @@ function PlanCard({ plan, annual }: { plan: typeof PLANS[number]; annual: boolea
       </div>
 
       <Link
-        href={plan.ctaHref}
+        href={ctaHref}
         className="block text-center py-3 rounded-xl text-sm font-semibold transition-colors bg-gold text-black hover:bg-[var(--gold-hover)]"
       >
         {plan.cta}
@@ -669,7 +673,7 @@ export default function LandingPage({ isLoggedIn = false, featuredEvents = [] }:
 
         {/* Plan cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-12 w-full max-w-2xl mx-auto">
-          {PLANS.filter(p => !p.hidden).map(p => <PlanCard key={p.key} plan={p} annual={annual} />)}
+          {PLANS.filter(p => !p.hidden).map(p => <PlanCard key={p.key} plan={p} annual={annual} isLoggedIn={isLoggedIn} />)}
         </div>
 
         {/* Compact comparison — visible on all screens */}

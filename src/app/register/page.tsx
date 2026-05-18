@@ -1,9 +1,22 @@
 'use client'
 
+import { useEffect, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import ZawaajLogo from '@/components/ZawaajLogo'
 
-export default function RegisterLandingPage() {
+function RegisterLandingInner() {
+  const searchParams = useSearchParams()
+  const intent = searchParams.get('intent')
+
+  useEffect(() => {
+    if (intent === 'premium') {
+      try { localStorage.setItem('zawaaj_premium_intent', '1') } catch { /* ignore */ }
+    }
+  }, [intent])
+
+  const intentSuffix = intent === 'premium' ? '?intent=premium' : ''
+
   return (
     <main
       style={{
@@ -70,7 +83,7 @@ export default function RegisterLandingPage() {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14, width: '100%' }}>
           {/* Path A — Parent */}
-          <Link href="/register/parent" style={{ textDecoration: 'none' }}>
+          <Link href={`/register/parent${intentSuffix}`} style={{ textDecoration: 'none' }}>
             <div
               style={{
                 padding: '20px 22px',
@@ -140,7 +153,7 @@ export default function RegisterLandingPage() {
           </Link>
 
           {/* Path B — Child */}
-          <Link href="/register/child" style={{ textDecoration: 'none' }}>
+          <Link href={`/register/child${intentSuffix}`} style={{ textDecoration: 'none' }}>
             <div
               style={{
                 padding: '20px 22px',
@@ -219,5 +232,13 @@ export default function RegisterLandingPage() {
         </p>
       </div>
     </main>
+  )
+}
+
+export default function RegisterLandingPage() {
+  return (
+    <Suspense fallback={null}>
+      <RegisterLandingInner />
+    </Suspense>
   )
 }

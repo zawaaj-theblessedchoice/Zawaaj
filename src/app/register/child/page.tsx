@@ -676,10 +676,15 @@ function RegisterChildPageInner() {
     // Clear saved progress now that registration succeeded
     try { sessionStorage.removeItem('zawaaj-register-child') } catch { /* ignore */ }
 
-    // Logged-in parents don't need email verification — redirect straight to browse.
-    // The new profile will appear in their account switcher once approved.
+    // Logged-in parents don't need email verification — redirect straight to browse
+    // (or to the upgrade page if they registered with premium intent).
     if (loggedInFamilyAccountId) {
-      router.push('/browse')
+      let premiumIntent = false
+      try {
+        premiumIntent = localStorage.getItem('zawaaj_premium_intent') === '1'
+        if (premiumIntent) localStorage.removeItem('zawaaj_premium_intent')
+      } catch { /* ignore */ }
+      router.push(premiumIntent ? '/upgrade/bank-transfer' : '/browse')
       return
     }
 

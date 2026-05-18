@@ -44,7 +44,7 @@ function Tick({ yes }: { yes: boolean | string }) {
 
 export function UpgradeClient({ currentPlan, profileId }: Props) {
   const router = useRouter()
-  const [billing] = useState<'monthly' | 'annual'>('monthly') // toggle disabled — annual billing coming soon
+  const [billing, setBilling] = useState<'monthly' | 'annual'>('monthly')
   const [promoCode, setPromoCode] = useState('')
 
   const prices = {
@@ -87,22 +87,23 @@ export function UpgradeClient({ currentPlan, profileId }: Props) {
           Unlock more introductions, filters, and features to find your match.
         </p>
 
-        {/* Billing toggle — disabled until annual billing is live */}
+        {/* Billing toggle */}
         <div
-          title="Annual billing coming soon — contact us to arrange."
-          style={{ display: 'inline-flex', gap: 0, marginTop: 24, borderRadius: 10, overflow: 'hidden', border: '1px solid var(--border-default)', opacity: 0.7, cursor: 'default' }}
+          style={{ display: 'inline-flex', gap: 0, marginTop: 24, borderRadius: 10, overflow: 'hidden', border: '1px solid var(--border-default)' }}
         >
           {(['monthly', 'annual'] as const).map(b => (
-            <span
+            <button
               key={b}
+              onClick={() => setBilling(b)}
               style={{
                 padding: '8px 20px', fontSize: 13, fontWeight: 500, userSelect: 'none',
-                background: b === 'monthly' ? '#B8960C' : 'transparent',
-                color: b === 'monthly' ? '#111' : 'var(--text-secondary)',
+                background: b === billing ? '#B8960C' : 'transparent',
+                color: b === billing ? '#111' : 'var(--text-secondary)',
+                border: 'none', cursor: 'pointer', transition: 'all 0.15s',
               }}
             >
               {b === 'monthly' ? 'Monthly' : 'Annual (save ~20%)'}
-            </span>
+            </button>
           ))}
         </div>
       </div>
