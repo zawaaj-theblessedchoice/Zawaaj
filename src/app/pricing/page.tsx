@@ -1,10 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import ZawaajLogo from '@/components/ZawaajLogo'
 import { PLAN_CONFIG, PLAN_PRICES } from '@/lib/plan-config'
 import { planDisplayName } from '@/lib/zawaaj/planDisplayName'
+import { createClient } from '@/lib/supabase/client'
 
 // Helper — converts a numeric limit to a display string
 function limitStr(n: number) {
@@ -69,11 +71,29 @@ function Cell({ value }: { value: CellValue }) {
 }
 
 export default function PricingPage() {
+  const router = useRouter()
   const [annual, setAnnual] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getSession().then(({ data }) => {
+      setIsLoggedIn(!!data.session)
+    })
+  }, [])
+
+  function handleGetPremium() {
+    if (isLoggedIn) {
+      router.push('/upgrade/bank-transfer')
+    } else {
+      localStorage.setItem('zawaaj_premium_intent', '1')
+      router.push('/register?intent=premium')
+    }
+  }
 
   const plans = [
     { name: planDisplayName('voluntary'), monthly: PLAN_PRICES.free.monthly, annual: PLAN_PRICES.free.annual, highlight: false, ctaLabel: 'Get started', cta: '/signup' },
-    { name: planDisplayName('premium'), monthly: PLAN_PRICES.premium.monthly, annual: PLAN_PRICES.premium.annual, highlight: true, ctaLabel: 'Get Premium', cta: '/signup' },
+    { name: planDisplayName('premium'), monthly: PLAN_PRICES.premium.monthly, annual: PLAN_PRICES.premium.annual, highlight: true, ctaLabel: 'Get Premium', cta: null },
   ]
 
   return (
@@ -152,14 +172,23 @@ export default function PricingPage() {
                 {annual && p.monthly > 0 && (
                   <p className="text-xs text-gold mt-1">£{p.annual * 12}/yr · save 20%</p>
                 )}
-                <Link href={p.cta}
-                  className={`mt-3 block py-2 rounded-xl text-xs font-semibold transition-colors ${
-                    p.highlight
-                      ? 'bg-gold text-black hover:bg-[var(--gold-hover)]'
-                      : 'border border-white/15 text-white hover:bg-white/5'
-                  }`}>
-                  {p.ctaLabel}
-                </Link>
+                {p.cta ? (
+                  <Link href={p.cta}
+                    className={`mt-3 block py-2 rounded-xl text-xs font-semibold transition-colors ${
+                      p.highlight
+                        ? 'bg-gold text-black hover:bg-[var(--gold-hover)]'
+                        : 'border border-white/15 text-white hover:bg-white/5'
+                    }`}>
+                    {p.ctaLabel}
+                  </Link>
+                ) : (
+                  <button
+                    onClick={handleGetPremium}
+                    className="mt-3 block w-full py-2 rounded-xl text-xs font-semibold transition-colors bg-gold text-black hover:bg-[var(--gold-hover)] cursor-pointer"
+                  >
+                    {p.ctaLabel}
+                  </button>
+                )}
               </div>
             )
           })}
