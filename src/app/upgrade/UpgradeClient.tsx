@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { planDisplayName } from '@/lib/zawaaj/planDisplayName'
+import { PLAN_PRICES } from '@/lib/plan-config'
 
 interface Props {
   currentPlan: string
@@ -47,18 +48,12 @@ export function UpgradeClient({ currentPlan, profileId }: Props) {
   const [billing, setBilling] = useState<'monthly' | 'annual'>('monthly')
   const [promoCode, setPromoCode] = useState('')
 
-  const prices = {
-    free:    { monthly: 0,  annual: 0 },
-    plus:    { monthly: 9,  annual: 7 },
-    premium: { monthly: 19, annual: 15 },
-  }
-
   const PLANS = [
     {
       id: 'free',
       label: planDisplayName('voluntary'),
-      monthly: prices.free.monthly,
-      annual: prices.free.annual,
+      monthly: PLAN_PRICES.free.monthly,
+      annual: PLAN_PRICES.free.annual,
       color: 'var(--text-secondary)',
       highlight: false,
       cta: 'Current plan',
@@ -67,8 +62,8 @@ export function UpgradeClient({ currentPlan, profileId }: Props) {
     {
       id: 'premium',
       label: planDisplayName('premium'),
-      monthly: prices.premium.monthly,
-      annual: prices.premium.annual,
+      monthly: PLAN_PRICES.premium.monthly,
+      annual: PLAN_PRICES.premium.annual,
       color: '#B8960C',
       highlight: true,
       cta: currentPlan === 'premium' ? 'Current plan' : 'Get Premium',
@@ -109,7 +104,7 @@ export function UpgradeClient({ currentPlan, profileId }: Props) {
       </div>
 
       {/* Plan cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 40 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16, marginBottom: 40 }}>
         {PLANS.map(plan => {
           const basePrice = billing === 'monthly' ? plan.monthly : plan.annual
 
