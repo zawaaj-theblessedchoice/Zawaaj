@@ -18,7 +18,7 @@ interface PlanFeature {
 }
 
 const FEATURES: PlanFeature[] = [
-  { label: 'Monthly introductions',   free: '2',   premium: '6' },
+  { label: 'Monthly introductions',   free: '2',   premium: '8' },
   { label: 'Browse filters',          free: false, premium: true },
   { label: 'Response templates',      free: false, premium: true },
   { label: 'Recommendations',         free: false, premium: true },

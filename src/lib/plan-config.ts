@@ -54,8 +54,8 @@ export const PLAN_CONFIG = {
     maxFamilyMembers:     4,
   },
   premium: {
-    monthlyLimit:         6,
-    activeLimit:          6,
+    monthlyLimit:         8,
+    activeLimit:          8,
     visibilityDelayHours: 0,
     responseMode:         'templates' as ResponseMode,
     canUseTemplates:      true,
@@ -72,7 +72,7 @@ export const PLAN_CONFIG = {
     // Recommendations — premium members get prioritised recommendations
     recommendations:      true,
     // Family member profiles per account
-    maxFamilyMembers:     6,
+    maxFamilyMembers:     4,
   },
 } as const satisfies Record<Plan, {
   monthlyLimit: number

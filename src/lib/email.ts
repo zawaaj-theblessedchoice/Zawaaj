@@ -503,7 +503,7 @@ export function premiumActivatedTemplate(
       Your Zawaaj Premium membership is now active. You now have access to all Premium features including:
     </p>
     <ul style="margin:0 0 20px;padding-left:20px;color:#9ca3af;font-size:13px;line-height:1.8;">
-      <li>Up to 6 introductions per month</li>
+      <li>Up to 8 introductions per month</li>
       <li>Browse filters and recommendations</li>
       <li>Concierge matching service</li>
       <li>Weekly profile boosts and spotlight listing</li>
