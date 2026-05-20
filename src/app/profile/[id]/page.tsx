@@ -239,7 +239,7 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
   const [activeProfileId, setActiveProfileId] = useState<string | undefined>(undefined)
   const [shortlistCount, setShortlistCount] = useState(0)
   const [introRequestsCount, setIntroRequestsCount] = useState(0)
-  const [monthlyLimit, setMonthlyLimit] = useState(5)
+  const [monthlyLimit, setMonthlyLimit] = useState(2) // safe fallback; overwritten from zawaaj_plans on load
   const [notFound, setNotFound] = useState(false)
   const [loading, setLoading] = useState(true)
 
@@ -309,7 +309,17 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
           setShortlistCount(slResult.count ?? 0)
           setIntroRequestsCount(irCountResult.count ?? 0)
           const userPlan = ((subRow.data as { plan?: string } | null)?.plan ?? 'free') as Plan
-          setMonthlyLimit(getPlanConfig(userPlan).monthlyLimit)
+          // Read monthly limit from DB (zawaaj_plans) — DB is source of truth
+          const planKey = userPlan === 'free' ? 'voluntary' : userPlan
+          const { data: planRow } = await supabase
+            .from('zawaaj_plans')
+            .select('monthly_interests')
+            .eq('key', planKey)
+            .eq('is_active', true)
+            .maybeSingle()
+          // monthly_interests: null → unlimited (Infinity); undefined/no row → fallback 2
+          const dbLimit = (planRow as { monthly_interests: number | null } | null)?.monthly_interests
+          setMonthlyLimit(planRow === null ? getPlanConfig(userPlan).monthlyLimit : (dbLimit ?? Infinity))
         }
       }
 

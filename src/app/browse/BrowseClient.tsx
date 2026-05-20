@@ -54,6 +54,8 @@ export interface BrowseClientProps {
   hasFamilyAccount?: boolean
   /** Member's current subscription plan */
   plan?: 'free' | 'plus' | 'premium'
+  /** Monthly interest limit from zawaaj_plans (DB source of truth). Falls back to plan-config if not passed. */
+  monthlyLimit?: number
   /** Number of currently active (pending) introduction requests */
   activeCount?: number
   /** Max concurrent active requests for this plan (null = unlimited) */
@@ -714,6 +716,7 @@ export default function BrowseClient({
   activeProfileId,
   hasFamilyAccount = false,
   plan = 'free',
+  monthlyLimit: monthlyLimitProp,
   activeCount = 0,
   activeLimit = null,
   initialFilters = null,
@@ -723,7 +726,9 @@ export default function BrowseClient({
   const canFilter      = planConfig.advancedFilters   // false for Free
   const canMustHave    = planConfig.mustHaveFilters    // true for Premium only
   const canRecommend   = planConfig.recommendations   // false for Free
-  const monthlyLimit   = planConfig.monthlyLimit
+  // monthlyLimitProp comes from zawaaj_plans via the server component (DB source of truth).
+  // Fall back to static plan-config only if the prop wasn't passed.
+  const monthlyLimit   = monthlyLimitProp ?? planConfig.monthlyLimit
   const searchParams   = useSearchParams()
   const pathname       = usePathname()
   const tab            = searchParams.get('tab')
@@ -2006,7 +2011,7 @@ export default function BrowseClient({
                   Recommendations available with Premium
                 </div>
                 <div style={{ fontSize: 12.5, color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: 20 }}>
-                  Upgrade to see profiles chosen for you based on your preferences — no manual searching needed.
+                  Zawaaj helps surface stronger matches for your family, based on your preferences.
                 </div>
                 <button
                   onClick={() => setShowUpgrade(true)}

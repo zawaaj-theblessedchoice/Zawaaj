@@ -6,6 +6,7 @@ import type { ProfileRecord } from '@/components/ProfileModal'
 import type { FilterState } from '@/lib/filter-types'
 import { getPlanConfig } from '@/lib/plan-config'
 import type { Plan } from '@/lib/plan-config'
+import { fetchPlanLimits } from '@/lib/config/profileOptions'
 import Link from 'next/link'
 
 const FILTER_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000 // 7 days
@@ -360,6 +361,11 @@ export default async function BrowsePage({
   const planConfig = getPlanConfig(plan)
   const activeLimit: number | null = planConfig.activeLimit === Infinity ? null : planConfig.activeLimit
 
+  // Monthly limit — read from zawaaj_plans (DB is source of truth; fallback to static config)
+  const planLimits = await fetchPlanLimits(supabase)
+  const planLimitsKey = plan === 'free' ? 'voluntary' : plan
+  const monthlyLimit: number = planLimits[planLimitsKey]?.monthlyInterests ?? planConfig.monthlyLimit
+
   // Restore persisted filters for Plus/Premium — Free always gets null (no filters)
   let initialFilters: FilterState | null = null
   if (
@@ -402,6 +408,7 @@ export default async function BrowsePage({
       activeProfileId={activeProfileId}
       hasFamilyAccount={!!familyAccountId}
       plan={plan}
+      monthlyLimit={monthlyLimit}
       activeCount={activeCount}
       activeLimit={activeLimit}
       initialFilters={initialFilters}

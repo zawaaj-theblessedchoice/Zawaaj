@@ -797,7 +797,7 @@ export const ARTICLES: HelpArticle[] = [
       {
         type: 'callout',
         title: 'Monthly request limits apply',
-        body: 'Voluntary members can send 5 interest expressions per month, Plus members 15, and Premium members have no monthly limit. Use them thoughtfully — the counter resets on the first of each month.',
+        body: 'Community Access members can send 2 interest expressions per month, Plus members 15, and Premium members have no monthly limit. Use them thoughtfully — the counter resets on the first of each month.',
       },
       {
         type: 'p',

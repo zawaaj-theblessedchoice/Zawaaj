@@ -183,7 +183,7 @@ export async function fetchPlansFromDb(
         label: 'Community Access',
         price_monthly_gbp: 0,
         price_annual_gbp: 0,
-        monthly_interests: 5,
+        monthly_interests: 2,        // fallback — real value lives in zawaaj_plans
         max_profiles: 2,
         features: ['admin_mediated_intros', 'profile_review', 'basic_search'],
         is_active: true,
@@ -194,7 +194,7 @@ export async function fetchPlansFromDb(
         label: 'Plus',
         price_monthly_gbp: 900,
         price_annual_gbp: 7200,
-        monthly_interests: 15,
+        monthly_interests: 15,       // fallback — real value lives in zawaaj_plans
         max_profiles: 4,
         features: ['admin_mediated_intros', 'profile_review', 'basic_search', 'priority_admin', 'profile_boost_monthly', 'new_profile_alerts', 'full_bio_on_received_interests'],
         is_active: true,

@@ -280,6 +280,8 @@ export default function MyProfilePage() {
   const [withdrawn, setWithdrawn] = useState(false)
   const [bioExpanded, setBioExpanded] = useState(false)
   const [plan, setPlan] = useState<'free' | 'plus' | 'premium'>('free')
+  // Monthly limit from zawaaj_plans (DB source of truth). null = unlimited (Premium).
+  const [monthlyLimitDb, setMonthlyLimitDb] = useState<number | null>(2) // safe fallback while loading
   const [profileViewsData, setProfileViewsData] = useState<{
     gated: boolean
     count: number
@@ -383,7 +385,21 @@ export default function MyProfilePage() {
         .eq('status', 'active')
         .maybeSingle()
       const rawPlanValue = (subData?.plan as string | null) ?? 'free'
-      setPlan((['free', 'plus', 'premium'].includes(rawPlanValue) ? rawPlanValue : 'free') as 'free' | 'plus' | 'premium')
+      const normPlan = (['free', 'plus', 'premium'].includes(rawPlanValue) ? rawPlanValue : 'free') as 'free' | 'plus' | 'premium'
+      setPlan(normPlan)
+
+      // Read monthly limit from zawaaj_plans — DB is source of truth
+      const planKey = normPlan === 'free' ? 'voluntary' : normPlan
+      const { data: planRow } = await supabase
+        .from('zawaaj_plans')
+        .select('monthly_interests')
+        .eq('key', planKey)
+        .eq('is_active', true)
+        .maybeSingle()
+      // monthly_interests: null → unlimited; no row → fallback 2
+      const dbLimit = (planRow as { monthly_interests: number | null } | null)?.monthly_interests
+      // planRow === null: no active plan row → fallback 2; dbLimit null → unlimited
+      setMonthlyLimitDb(planRow === null ? 2 : (dbLimit ?? null))
 
       // Profile views data
       fetch('/api/profile-views')
@@ -775,8 +791,8 @@ export default function MyProfilePage() {
 
         {/* Monthly introduction allowance */}
         {(() => {
-          const cfg = getPlanConfig(plan as Plan)
-          const limit = cfg.monthlyLimit === Infinity ? null : cfg.monthlyLimit
+          // monthlyLimitDb: null = unlimited (Premium), number = limit from zawaaj_plans
+          const limit = monthlyLimitDb
           const pct = limit ? Math.min((monthlyUsed / limit) * 100, 100) : 0
           const atLimit = limit !== null && monthlyUsed >= limit
           return (

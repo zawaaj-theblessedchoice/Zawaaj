@@ -67,9 +67,9 @@ export const RELOCATION_OPTIONS = [
   { value: 'no',       label: 'No, prefer to stay local' },
 ] as const
 
-/** Static fallback — used during SSR/build only. */
+/** Static fallback — used only when zawaaj_plans DB table is unreachable. */
 export const PLAN_LIMITS_FALLBACK = {
-  voluntary: { monthlyInterests: 5,        maxProfiles: 2 },
+  voluntary: { monthlyInterests: 2,        maxProfiles: 2 },
   plus:      { monthlyInterests: 15,       maxProfiles: 4 },
   premium:   { monthlyInterests: Infinity, maxProfiles: 6 },
 } as const
