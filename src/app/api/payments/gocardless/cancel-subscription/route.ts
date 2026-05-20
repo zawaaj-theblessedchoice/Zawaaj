@@ -7,10 +7,13 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { gocardless } from '@/lib/gocardless/client'
-import { sendEmail } from '@/lib/email'
-import { cancellationConfirmedTemplate } from '@/lib/email'
+import { GC_ENABLED } from '@/lib/gocardless/config'
+import { sendEmail, cancellationConfirmedTemplate } from '@/lib/email'
 
 export async function POST(_req: Request) {
+  if (!GC_ENABLED) {
+    return NextResponse.json({ error: 'Direct Debit payments are not available yet' }, { status: 503 })
+  }
   try {
     const supabase = await createClient()
     const { data: { user }, error: authErr } = await supabase.auth.getUser()

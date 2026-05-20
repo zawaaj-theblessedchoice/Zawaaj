@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Sidebar from '@/components/Sidebar'
-import { GC_PRICES } from '@/lib/gocardless/config'
+import { GC_PRICES, GC_ENABLED } from '@/lib/gocardless/config'
 
 function DirectDebitContent() {
   const router = useRouter()
@@ -12,15 +12,24 @@ function DirectDebitContent() {
   const billing = (searchParams.get('billing') ?? 'monthly') as 'monthly' | 'annual'
   const plan = searchParams.get('plan') ?? 'premium'
 
+  // Hard gate — if GC not enabled, redirect immediately to /upgrade
+  useEffect(() => {
+    if (!GC_ENABLED) router.replace('/upgrade')
+  }, [router])
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [profile, setProfile] = useState<{ display_initials: string; gender: string | null; first_name: string | null } | null>(null)
   const [shortlistCount, setShortlistCount] = useState(0)
   const [introCount, setIntroCount] = useState(0)
 
+  // Render nothing until redirect completes
+  if (!GC_ENABLED) return null
+
   const priceConfig = GC_PRICES.premium[billing]
 
   useEffect(() => {
+    if (!GC_ENABLED) return  // already redirecting
     const supabase = createClient()
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()

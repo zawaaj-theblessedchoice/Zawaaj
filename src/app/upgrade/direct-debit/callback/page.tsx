@@ -2,6 +2,7 @@
 
 import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { GC_ENABLED } from '@/lib/gocardless/config'
 
 function CallbackContent() {
   const router = useRouter()
@@ -12,6 +13,7 @@ function CallbackContent() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   useEffect(() => {
+    if (!GC_ENABLED) { router.replace('/upgrade'); return }
     if (!redirectFlowId) {
       setState('error')
       setErrorMsg('Missing redirect_flow_id — please try again.')
