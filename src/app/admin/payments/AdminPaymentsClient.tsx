@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import type { PaymentRequestRow } from './page'
+import type { PaymentRequestRow, GCSubscriptionRow } from './page'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -118,22 +118,229 @@ function RejectModal({
   )
 }
 
+// ─── GC status badge config ───────────────────────────────────────────────────
+
+const GC_STATUS_BADGE: Record<string, { bg: string; text: string; label: string }> = {
+  active:    { bg: 'var(--status-success-bg)', text: 'var(--status-success)', label: 'Active' },
+  pending:   { bg: 'rgba(251,191,36,0.12)',    text: '#fbbf24',               label: 'Pending' },
+  past_due:  { bg: 'var(--status-error-bg)',   text: 'var(--status-error)',   label: 'Past Due' },
+  cancelled: { bg: 'var(--admin-border)',       text: 'var(--admin-muted)',    label: 'Cancelled' },
+}
+
+// ─── Direct Debits section ────────────────────────────────────────────────────
+
+function DirectDebitsSection({ rows }: { rows: GCSubscriptionRow[] }) {
+  const [overrideLoading, setOverrideLoading] = useState<string | null>(null)
+  const [overrideError, setOverrideError] = useState<Record<string, string>>({})
+
+  async function handleOverride(subId: string, action: 'activate' | 'downgrade' | 'reset_failures') {
+    setOverrideLoading(subId)
+    setOverrideError(prev => { const n = { ...prev }; delete n[subId]; return n })
+    try {
+      const res = await fetch('/api/admin/gocardless/override', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subscription_id: subId, action }),
+      })
+      const json = await res.json().catch(() => ({})) as { error?: string }
+      if (!res.ok) {
+        setOverrideError(prev => ({ ...prev, [subId]: json.error ?? 'Override failed.' }))
+      }
+    } catch {
+      setOverrideError(prev => ({ ...prev, [subId]: 'Network error.' }))
+    } finally {
+      setOverrideLoading(null)
+    }
+  }
+
+  if (rows.length === 0) {
+    return (
+      <div style={{ padding: '48px 20px', textAlign: 'center', color: 'var(--admin-muted)', fontSize: 13 }}>
+        No GoCardless subscriptions found.
+      </div>
+    )
+  }
+
+  return (
+    <div style={{ background: 'var(--surface-2)', border: '0.5px solid var(--admin-border)', borderRadius: 12, overflow: 'hidden' }}>
+      {/* Header */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: '2fr 1fr 1fr 1.5fr 1fr 1.2fr 2fr',
+        padding: '10px 20px',
+        background: 'var(--admin-surface)',
+        borderBottom: '0.5px solid var(--admin-border)',
+      }}>
+        {['Family', 'Plan', 'Status', 'GC Subscription ID', 'Renewal', 'Failures', 'Actions'].map(h => (
+          <span key={h} style={{ fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--admin-muted)' }}>
+            {h}
+          </span>
+        ))}
+      </div>
+
+      {rows.map((row, i) => {
+        const badge = GC_STATUS_BADGE[row.status] ?? GC_STATUS_BADGE.pending
+        const gcIdTrunc = row.gocardless_subscription_id
+          ? `${row.gocardless_subscription_id.substring(0, 12)}…`
+          : '—'
+        const isLoading = overrideLoading === row.id
+        const rowErr = overrideError[row.id]
+
+        return (
+          <div key={row.id}>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '2fr 1fr 1fr 1.5fr 1fr 1.2fr 2fr',
+              padding: '13px 20px',
+              alignItems: 'center',
+              borderTop: i > 0 ? '0.5px solid var(--admin-border)' : undefined,
+            }}>
+              {/* Family */}
+              <div>
+                <p style={{ margin: 0, fontSize: 13, color: 'var(--admin-text)', fontWeight: 500 }}>
+                  {row.family_name ?? '—'}
+                </p>
+                {row.family_email && (
+                  <p style={{ margin: 0, fontSize: 11, color: 'var(--admin-muted)' }}>{row.family_email}</p>
+                )}
+              </div>
+
+              {/* Plan */}
+              <span style={{
+                fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 6,
+                background: 'var(--gold-muted)', color: 'var(--gold)',
+                display: 'inline-block', textTransform: 'capitalize',
+              }}>
+                {row.plan} {row.billing_cycle ? `· ${row.billing_cycle}` : ''}
+              </span>
+
+              {/* Status */}
+              <div>
+                <span style={{
+                  fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 6,
+                  background: badge.bg, color: badge.text, display: 'inline-block',
+                }}>
+                  {badge.label}
+                </span>
+                {row.cancel_at_period_end && (
+                  <p style={{ margin: '3px 0 0', fontSize: 10, color: 'var(--admin-muted)' }}>Cancels at period end</p>
+                )}
+              </div>
+
+              {/* GC Subscription ID */}
+              <span
+                title={row.gocardless_subscription_id ?? '—'}
+                style={{ fontSize: 11.5, color: 'var(--admin-muted)', fontFamily: 'monospace' }}
+              >
+                {gcIdTrunc}
+              </span>
+
+              {/* Renewal */}
+              <span style={{ fontSize: 12, color: 'var(--admin-muted)' }}>
+                {row.renewal_at ? fmtDate(row.renewal_at) : '—'}
+              </span>
+
+              {/* Failures */}
+              <span style={{
+                fontSize: 12, fontWeight: 600,
+                color: row.payment_failure_count >= 3 ? 'var(--status-error)' : row.payment_failure_count > 0 ? '#fbbf24' : 'var(--admin-muted)',
+              }}>
+                {row.payment_failure_count}
+              </span>
+
+              {/* Actions */}
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                {row.status !== 'active' && (
+                  <button
+                    onClick={() => handleOverride(row.id, 'activate')}
+                    disabled={isLoading}
+                    style={{
+                      padding: '4px 10px', borderRadius: 6, fontSize: 11, fontWeight: 600,
+                      background: 'rgba(74,222,128,0.12)', border: '0.5px solid rgba(74,222,128,0.35)',
+                      color: '#4ade80', cursor: isLoading ? 'not-allowed' : 'pointer',
+                    }}
+                  >
+                    Force activate
+                  </button>
+                )}
+                {row.status !== 'cancelled' && (
+                  <button
+                    onClick={() => handleOverride(row.id, 'downgrade')}
+                    disabled={isLoading}
+                    style={{
+                      padding: '4px 10px', borderRadius: 6, fontSize: 11, fontWeight: 600,
+                      background: 'rgba(248,113,113,0.1)', border: '0.5px solid rgba(248,113,113,0.3)',
+                      color: '#f87171', cursor: isLoading ? 'not-allowed' : 'pointer',
+                    }}
+                  >
+                    Force downgrade
+                  </button>
+                )}
+                {row.payment_failure_count > 0 && (
+                  <button
+                    onClick={() => handleOverride(row.id, 'reset_failures')}
+                    disabled={isLoading}
+                    style={{
+                      padding: '4px 10px', borderRadius: 6, fontSize: 11, fontWeight: 500,
+                      background: 'var(--admin-border)', border: '0.5px solid var(--admin-border)',
+                      color: 'var(--admin-muted)', cursor: isLoading ? 'not-allowed' : 'pointer',
+                    }}
+                  >
+                    Reset failures
+                  </button>
+                )}
+                {row.gocardless_subscription_id && (
+                  <a
+                    href={`https://manage.gocardless.com/subscriptions/${row.gocardless_subscription_id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      padding: '4px 10px', borderRadius: 6, fontSize: 11,
+                      border: '0.5px solid var(--admin-border)',
+                      color: 'var(--admin-muted)', textDecoration: 'none',
+                    }}
+                  >
+                    View in GC ↗
+                  </a>
+                )}
+              </div>
+            </div>
+
+            {rowErr && (
+              <div style={{ padding: '0 20px 10px' }}>
+                <p style={{ margin: 0, fontSize: 12, color: '#f87171' }}>{rowErr}</p>
+              </div>
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 // ─── Main ──────────────────────────────────────────────────────────────────────
 
-type Tab = 'pending' | 'approved' | 'rejected'
+type Tab = 'pending' | 'approved' | 'rejected' | 'direct_debits'
 
-export default function AdminPaymentsClient({ requests: initial }: { requests: PaymentRequestRow[] }) {
+export default function AdminPaymentsClient({
+  requests: initial,
+  gcSubscriptions,
+}: {
+  requests: PaymentRequestRow[]
+  gcSubscriptions: GCSubscriptionRow[]
+}) {
   const [requests,    setRequests]    = useState(initial)
   const [tab,         setTab]         = useState<Tab>('pending')
   const [rejectingId, setRejectingId] = useState<string | null>(null)
   const [approving,   setApproving]   = useState<string | null>(null)
   const [actionError, setActionError] = useState<Record<string, string>>({})
 
-  const filtered = requests.filter(r => r.status === tab)
+  const filtered = tab === 'direct_debits' ? [] : requests.filter(r => r.status === tab)
 
   const pending  = requests.filter(r => r.status === 'pending').length
   const approved = requests.filter(r => r.status === 'approved').length
   const rejected = requests.filter(r => r.status === 'rejected').length
+  const gcCount  = gcSubscriptions.length
 
   async function approve(id: string) {
     setApproving(id)
@@ -180,11 +387,12 @@ export default function AdminPaymentsClient({ requests: initial }: { requests: P
       </div>
 
       {/* Summary cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 28 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 28 }}>
         {[
           { label: 'Pending review',  value: pending,  color: '#fbbf24' },
           { label: 'Approved',        value: approved, color: 'var(--status-success)' },
           { label: 'Rejected',        value: rejected, color: 'var(--status-error)' },
+          { label: 'Direct Debits',   value: gcCount,  color: 'var(--gold)' },
         ].map(card => (
           <div key={card.label} style={{ background: 'var(--surface-2)', border: '0.5px solid var(--admin-border)', borderRadius: 12, padding: '16px 20px' }}>
             <div style={{ fontSize: 11, color: 'var(--admin-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>
@@ -197,7 +405,7 @@ export default function AdminPaymentsClient({ requests: initial }: { requests: P
 
       {/* Tabs */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
-        {(['pending', 'approved', 'rejected'] as Tab[]).map(t => (
+        {(['pending', 'approved', 'rejected', 'direct_debits'] as Tab[]).map(t => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -208,16 +416,19 @@ export default function AdminPaymentsClient({ requests: initial }: { requests: P
               border: 'none', cursor: 'pointer',
             }}
           >
-            {t.charAt(0).toUpperCase() + t.slice(1)}
+            {t === 'direct_debits' ? 'Direct Debits' : t.charAt(0).toUpperCase() + t.slice(1)}
             {' '}<span style={{ opacity: 0.7 }}>
-              {t === 'pending' ? pending : t === 'approved' ? approved : rejected}
+              {t === 'pending' ? pending : t === 'approved' ? approved : t === 'rejected' ? rejected : gcCount}
             </span>
           </button>
         ))}
       </div>
 
-      {/* Table */}
-      <div style={{ background: 'var(--surface-2)', border: '0.5px solid var(--admin-border)', borderRadius: 12, overflow: 'hidden' }}>
+      {/* Direct Debits tab */}
+      {tab === 'direct_debits' && <DirectDebitsSection rows={gcSubscriptions} />}
+
+      {/* Bank Transfer / Manual Requests table */}
+      {tab !== 'direct_debits' && <div style={{ background: 'var(--surface-2)', border: '0.5px solid var(--admin-border)', borderRadius: 12, overflow: 'hidden' }}>
         {/* Header */}
         <div style={{
           display: 'grid',
@@ -366,7 +577,7 @@ export default function AdminPaymentsClient({ requests: initial }: { requests: P
             )
           })
         )}
-      </div>
+      </div>}
 
       {/* Reject modal */}
       {rejectingId && rejectingRow && (

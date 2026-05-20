@@ -44,6 +44,9 @@ interface Subscription {
   status: string
   current_period_end: string | null
   cancel_at_period_end: boolean
+  // GoCardless fields
+  payment_provider: string | null
+  renewal_at: string | null
 }
 
 const PLAN_COLORS: Record<Plan, string> = {
@@ -102,6 +105,12 @@ function SettingsContent() {
   const [loading, setLoading] = useState(true)
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)
   const [checkoutError, setCheckoutError] = useState<string | null>(null)
+
+  // GoCardless cancellation state
+  const [cancelStep, setCancelStep] = useState<'idle' | 'confirming' | 'done'>('idle')
+  const [cancelLoading, setCancelLoading] = useState(false)
+  const [cancelError, setCancelError] = useState<string | null>(null)
+  const [cancelAccessUntil, setCancelAccessUntil] = useState<string | null>(null)
   const [profile, setProfile] = useState<{ display_initials: string; gender: string | null; first_name: string | null } | null>(null)
   const [annual, setAnnual] = useState(false)
   const [themeMode, setThemeMode] = useState<ThemeMode>('system')
@@ -180,15 +189,17 @@ function SettingsContent() {
         if (prof) setProfile(prof)
       }
 
-      // Load subscription
+      // Load subscription (include GoCardless fields)
       const { data: subData } = await supabase
         .from('zawaaj_subscriptions')
-        .select('plan, status, current_period_end, cancel_at_period_end')
+        .select('plan, status, current_period_end, cancel_at_period_end, payment_provider, renewal_at')
         .eq('user_id', user.id)
-        .eq('status', 'active')
+        .in('status', ['active', 'pending', 'past_due', 'cancelled'])
+        .order('created_at', { ascending: false })
+        .limit(1)
         .maybeSingle()
 
-      setSub(subData ?? { plan: 'free', status: 'active', current_period_end: null, cancel_at_period_end: false })
+      setSub(subData ?? { plan: 'free', status: 'active', current_period_end: null, cancel_at_period_end: false, payment_provider: null, renewal_at: null })
 
       // Check if this user is a candidate (has a family account via their profile but is NOT the rep)
       if (settings?.active_profile_id) {
@@ -240,6 +251,27 @@ function SettingsContent() {
   function startCheckout(plan: 'plus' | 'premium') {
     setCheckoutLoading(plan)
     router.push(`/upgrade/bank-transfer?plan=${plan}`)
+  }
+
+  async function handleCancelSubscription() {
+    setCancelLoading(true)
+    setCancelError(null)
+    try {
+      const res = await fetch('/api/payments/gocardless/cancel-subscription', { method: 'POST' })
+      const json = await res.json()
+      if (!res.ok) {
+        setCancelError(json.error ?? 'Something went wrong — please try again.')
+        return
+      }
+      setCancelAccessUntil(json.access_until ?? null)
+      setCancelStep('done')
+      // Refresh subscription data
+      setSub(prev => prev ? { ...prev, cancel_at_period_end: true } : prev)
+    } catch {
+      setCancelError('Something went wrong — please try again.')
+    } finally {
+      setCancelLoading(false)
+    }
   }
 
   async function handleExport() {
@@ -358,73 +390,159 @@ function SettingsContent() {
             ) : (
               <>
                 {/* Current plan card */}
-                <div style={{
-                  background: 'var(--surface-2)',
-                  border: '0.5px solid var(--border-default)',
-                  borderRadius: 16,
-                  padding: 20,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 16,
-                }}>
-                  <div style={{ flex: 1 }}>
-                    <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 500 }}>Current plan</p>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                      <PlanBadge plan={currentPlan} />
-                      {sub?.status === 'active' && isPaid && (
-                        <span style={{ fontSize: 11, color: 'var(--status-success)' }}>● Active</span>
+                {(() => {
+                  const isGC = sub?.payment_provider === 'gocardless'
+                  const renewalDate = isGC ? sub?.renewal_at : sub?.current_period_end
+                  const fmtRenewal = renewalDate
+                    ? new Date(renewalDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+                    : null
+
+                  return (
+                    <div style={{
+                      background: 'var(--surface-2)',
+                      border: '0.5px solid var(--border-default)',
+                      borderRadius: 16,
+                      padding: 20,
+                    }}>
+                      {/* Top row: plan + status + action */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                        <div style={{ flex: 1 }}>
+                          <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 500 }}>Current plan</p>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                            <PlanBadge plan={currentPlan} />
+                            {sub?.status === 'active' && isPaid && (
+                              <span style={{ fontSize: 11, color: 'var(--status-success)' }}>● Active</span>
+                            )}
+                            {sub?.status === 'pending' && isPaid && (
+                              <span style={{ fontSize: 11, color: '#fbbf24' }}>● Pending</span>
+                            )}
+                            {sub?.status === 'past_due' && (
+                              <span style={{ fontSize: 11, color: 'var(--status-error)' }}>● Payment due</span>
+                            )}
+                          </div>
+                          {isPaid && fmtRenewal && (
+                            <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                              {sub?.cancel_at_period_end
+                                ? `Access until ${fmtRenewal}`
+                                : `Renews ${fmtRenewal}`}
+                            </p>
+                          )}
+                          {isPaid && isGC && (
+                            <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
+                              Payment: Direct Debit (GoCardless)
+                            </p>
+                          )}
+                          {!isPaid && (
+                            <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Free forever — upgrade any time</p>
+                          )}
+                        </div>
+                        {isPaid && !isGC ? (
+                          <Link
+                            href="/api/stripe/portal"
+                            style={{
+                              flexShrink: 0, padding: '9px 18px', borderRadius: 10,
+                              fontSize: 12, fontWeight: 500, border: '0.5px solid var(--border-default)',
+                              color: 'var(--text-secondary)', textDecoration: 'none', background: 'var(--surface-3)',
+                            }}
+                          >
+                            Manage billing →
+                          </Link>
+                        ) : !isPaid ? (
+                          <Link
+                            href="/upgrade"
+                            style={{
+                              flexShrink: 0, padding: '9px 18px', borderRadius: 10,
+                              fontSize: 12, fontWeight: 600,
+                              background: 'var(--gold)', color: 'var(--surface)', textDecoration: 'none',
+                            }}
+                          >
+                            Upgrade →
+                          </Link>
+                        ) : null}
+                      </div>
+
+                      {/* GoCardless cancellation controls */}
+                      {isGC && isPaid && !sub?.cancel_at_period_end && cancelStep !== 'done' && (
+                        <div style={{ marginTop: 16, paddingTop: 16, borderTop: '0.5px solid var(--border-default)' }}>
+                          {cancelStep === 'idle' && (
+                            <button
+                              onClick={() => setCancelStep('confirming')}
+                              style={{
+                                padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 500,
+                                border: '0.5px solid var(--status-error-br)', cursor: 'pointer',
+                                background: 'transparent', color: 'var(--status-error)',
+                              }}
+                            >
+                              Cancel membership
+                            </button>
+                          )}
+                          {cancelStep === 'confirming' && (
+                            <div style={{
+                              background: 'var(--status-error-bg)', border: '0.5px solid var(--status-error-br)',
+                              borderRadius: 10, padding: '14px 16px',
+                            }}>
+                              <p style={{ fontSize: 13, color: 'var(--status-error)', fontWeight: 600, margin: '0 0 8px' }}>
+                                Cancel your Premium membership?
+                              </p>
+                              {fmtRenewal && (
+                                <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: '0 0 14px', lineHeight: 1.5 }}>
+                                  Your Premium access will continue until <strong>{fmtRenewal}</strong>.
+                                  After that your account will return to Community Access.
+                                </p>
+                              )}
+                              {cancelError && (
+                                <p style={{ fontSize: 12, color: 'var(--status-error)', margin: '0 0 10px' }}>{cancelError}</p>
+                              )}
+                              <div style={{ display: 'flex', gap: 8 }}>
+                                <button
+                                  onClick={handleCancelSubscription}
+                                  disabled={cancelLoading}
+                                  style={{
+                                    padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 600,
+                                    border: 'none', cursor: 'pointer',
+                                    background: 'var(--status-error)', color: '#fff',
+                                    opacity: cancelLoading ? 0.6 : 1,
+                                  }}
+                                >
+                                  {cancelLoading ? 'Cancelling…' : 'Yes, cancel'}
+                                </button>
+                                <button
+                                  onClick={() => { setCancelStep('idle'); setCancelError(null) }}
+                                  style={{
+                                    padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 500,
+                                    border: '0.5px solid var(--border-default)', cursor: 'pointer',
+                                    background: 'transparent', color: 'var(--text-secondary)',
+                                  }}
+                                >
+                                  Keep Premium
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       )}
-                      {sub?.status === 'past_due' && (
-                        <span style={{ fontSize: 11, color: 'var(--status-error)' }}>● Payment due</span>
+
+                      {/* After cancellation confirmed */}
+                      {(isGC && sub?.cancel_at_period_end && cancelStep !== 'done') && (
+                        <div style={{ marginTop: 12, paddingTop: 12, borderTop: '0.5px solid var(--border-default)' }}>
+                          <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                            Cancellation confirmed — access continues until {fmtRenewal ?? 'end of period'}.
+                          </p>
+                        </div>
+                      )}
+                      {cancelStep === 'done' && (
+                        <div style={{ marginTop: 12, paddingTop: 12, borderTop: '0.5px solid var(--border-default)' }}>
+                          <p style={{ fontSize: 12, color: 'var(--status-success)' }}>
+                            ✓ Cancellation confirmed. Access continues until{' '}
+                            {cancelAccessUntil
+                              ? new Date(cancelAccessUntil).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+                              : fmtRenewal ?? 'end of period'}.
+                          </p>
+                        </div>
                       )}
                     </div>
-                    {isPaid && sub?.current_period_end && (
-                      <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                        {sub.cancel_at_period_end
-                          ? `Cancels on ${new Date(sub.current_period_end).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}`
-                          : `Renews on ${new Date(sub.current_period_end).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}`
-                        }
-                      </p>
-                    )}
-                    {!isPaid && (
-                      <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Free forever — upgrade any time</p>
-                    )}
-                  </div>
-                  {isPaid ? (
-                    <Link
-                      href="/api/stripe/portal"
-                      style={{
-                        flexShrink: 0,
-                        padding: '9px 18px',
-                        borderRadius: 10,
-                        fontSize: 12,
-                        fontWeight: 500,
-                        border: '0.5px solid var(--border-default)',
-                        color: 'var(--text-secondary)',
-                        textDecoration: 'none',
-                        background: 'var(--surface-3)',
-                      }}
-                    >
-                      Manage billing →
-                    </Link>
-                  ) : (
-                    <Link
-                      href="/upgrade/bank-transfer?plan=premium"
-                      style={{
-                        flexShrink: 0,
-                        padding: '9px 18px',
-                        borderRadius: 10,
-                        fontSize: 12,
-                        fontWeight: 600,
-                        background: 'var(--gold)',
-                        color: 'var(--surface)',
-                        textDecoration: 'none',
-                      }}
-                    >
-                      Upgrade →
-                    </Link>
-                  )}
-                </div>
+                  )
+                })()}
 
                 {/* Billing toggle */}
                 <div>
