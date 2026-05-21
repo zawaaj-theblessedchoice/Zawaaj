@@ -199,22 +199,22 @@ const PRAYER_LABELS: Record<string, string> = {
 }
 
 const QURAN_FREQUENCY_LABELS: Record<string, string> = {
-  daily:          'Daily',
-  few_times_week: 'A few times a week',
-  weekly:         'Weekly',
-  occasionally:   'Occasionally',
+  rarely:         'Occasionally — a few times a month or less',
+  weekly:         'Weekly — at least once a week',
+  several_weekly: 'Several times a week',
+  daily:          "Daily — it's part of my routine",
 }
 const QURAN_DEPTH_LABELS: Record<string, string> = {
-  recitation_only:  'Recitation only',
-  with_translation: 'Recitation with translation',
-  tafsir_study:     'Study / tafsir',
-  memorisation:     'Hifz / memorisation',
+  recitation: 'Recitation or listening — focused on the words',
+  reflection:  'Reading with some personal reflection',
+  study:       'Active study — working to understand meaning',
+  scholarly:   'Structured learning with tafsir or a teacher',
 }
 const QURAN_APPLICATION_LABELS: Record<string, string> = {
-  central_guide:      "Central guide",
-  regular_reflection: 'Regular reflection',
-  growing_connection: 'Building connection',
-  formal_learning:    'Formal learning',
+  learning: 'Still learning what it means to apply it',
+  trying:   "I try to apply it — it's an ongoing journey",
+  guiding:  'It guides my key decisions and how I treat others',
+  central:  'It is the foundation of my character and priorities',
 }
 
 const LIVING_LABELS: Record<string, string> = {
@@ -1135,24 +1135,24 @@ export default function MyProfilePage() {
                   )}
                   <EditSelect label="Qur'an frequency" value={editForm.quranFrequency} onChange={v => setEditForm(f => ({ ...f, quranFrequency: v }))} options={[
                     { value: '',               label: 'Not specified' },
-                    { value: 'daily',          label: 'Daily' },
-                    { value: 'few_times_week', label: 'A few times a week' },
-                    { value: 'weekly',         label: 'Weekly' },
-                    { value: 'occasionally',   label: 'Occasionally' },
+                    { value: 'rarely',         label: 'Occasionally — a few times a month or less' },
+                    { value: 'weekly',         label: 'Weekly — at least once a week' },
+                    { value: 'several_weekly', label: 'Several times a week' },
+                    { value: 'daily',          label: "Daily — it's part of my routine" },
                   ]} />
                   <EditSelect label="Qur'an depth" value={editForm.quranDepth} onChange={v => setEditForm(f => ({ ...f, quranDepth: v }))} options={[
-                    { value: '',                 label: 'Not specified' },
-                    { value: 'recitation_only',  label: 'Recitation only' },
-                    { value: 'with_translation', label: 'Recitation with translation' },
-                    { value: 'tafsir_study',     label: 'Study / tafsir' },
-                    { value: 'memorisation',     label: 'Hifz / memorisation' },
+                    { value: '',           label: 'Not specified' },
+                    { value: 'recitation', label: 'Recitation or listening — focused on the words' },
+                    { value: 'reflection', label: 'Reading with some personal reflection' },
+                    { value: 'study',      label: 'Active study — working to understand meaning' },
+                    { value: 'scholarly',  label: 'Structured learning with tafsir or a teacher' },
                   ]} />
                   <EditSelect label="Qur'an in daily life" value={editForm.quranApplication} onChange={v => setEditForm(f => ({ ...f, quranApplication: v }))} options={[
-                    { value: '',                   label: 'Not specified' },
-                    { value: 'central_guide',      label: "It's my central guide" },
-                    { value: 'regular_reflection', label: 'I reflect on it regularly' },
-                    { value: 'growing_connection', label: "I'm building my connection" },
-                    { value: 'formal_learning',    label: 'Formal learning setting' },
+                    { value: '',         label: 'Not specified' },
+                    { value: 'learning', label: 'Still learning what it means to apply it' },
+                    { value: 'trying',   label: "I try to apply it — it's an ongoing journey" },
+                    { value: 'guiding',  label: 'It guides my key decisions and how I treat others' },
+                    { value: 'central',  label: 'It is the foundation of my character and priorities' },
                   ]} />
                 </div>
               )}

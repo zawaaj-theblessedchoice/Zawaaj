@@ -457,13 +457,13 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
                 <FieldRow label="Keeps beard" value={profile.keeps_beard === true ? 'Yes' : profile.keeps_beard === false ? 'No' : null} />
               )}
               {profile.quran_frequency && (
-                <FieldRow label="Qur'an frequency" value={displayValue({ daily: 'Daily', few_times_week: 'A few times a week', weekly: 'Weekly', occasionally: 'Occasionally' }, profile.quran_frequency)} />
+                <FieldRow label="Qur'an frequency" value={displayValue({ rarely: 'Occasionally — a few times a month or less', weekly: 'Weekly — at least once a week', several_weekly: 'Several times a week', daily: "Daily — it's part of my routine" }, profile.quran_frequency)} />
               )}
               {profile.quran_depth && (
-                <FieldRow label="Qur'an depth" value={displayValue({ recitation_only: 'Recitation only', with_translation: 'With translation', tafsir_study: 'Study / tafsir', memorisation: 'Hifz / memorisation' }, profile.quran_depth)} />
+                <FieldRow label="Qur'an depth" value={displayValue({ recitation: 'Recitation or listening', reflection: 'Reading with reflection', study: 'Active study', scholarly: 'Structured learning with tafsir' }, profile.quran_depth)} />
               )}
               {profile.quran_application && (
-                <FieldRow label="Qur'an in daily life" value={displayValue({ central_guide: 'Central guide', regular_reflection: 'Regular reflection', growing_connection: 'Building connection', formal_learning: 'Formal learning' }, profile.quran_application)} />
+                <FieldRow label="Qur'an in daily life" value={displayValue({ learning: 'Still learning to apply it', trying: "Ongoing journey of applying it", guiding: 'Guides key decisions', central: 'Foundation of character and priorities' }, profile.quran_application)} />
               )}
             </div>
 

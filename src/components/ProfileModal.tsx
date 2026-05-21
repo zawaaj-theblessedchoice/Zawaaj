@@ -806,10 +806,10 @@ export default function ProfileModal({
                       label="Qur\u2019an frequency"
                       value={
                         ({
-                          daily:          'Daily',
-                          few_times_week: 'A few times a week',
-                          weekly:         'Weekly',
-                          occasionally:   'Occasionally',
+                          rarely:         'Occasionally \u2014 a few times a month or less',
+                          weekly:         'Weekly \u2014 at least once a week',
+                          several_weekly: 'Several times a week',
+                          daily:          "Daily \u2014 it's part of my routine",
                         } as Record<string, string>)[profile.quran_frequency] ?? profile.quran_frequency
                       }
                     />
@@ -819,10 +819,10 @@ export default function ProfileModal({
                       label="Qur\u2019an depth"
                       value={
                         ({
-                          recitation_only:  'Recitation only',
-                          with_translation: 'With translation',
-                          tafsir_study:     'Study / tafsir',
-                          memorisation:     'Hifz / memorisation',
+                          recitation: 'Recitation or listening',
+                          reflection: 'Reading with reflection',
+                          study:      'Active study',
+                          scholarly:  'Structured learning with tafsir',
                         } as Record<string, string>)[profile.quran_depth] ?? profile.quran_depth
                       }
                     />
@@ -832,10 +832,10 @@ export default function ProfileModal({
                       label="Qur\u2019an in daily life"
                       value={
                         ({
-                          central_guide:      'Central guide',
-                          regular_reflection: 'Regular reflection',
-                          growing_connection: 'Building connection',
-                          formal_learning:    'Formal learning',
+                          learning: 'Still learning to apply it',
+                          trying:   'Ongoing journey of applying it',
+                          guiding:  'Guides key decisions',
+                          central:  'Foundation of character and priorities',
                         } as Record<string, string>)[profile.quran_application] ?? profile.quran_application
                       }
                     />

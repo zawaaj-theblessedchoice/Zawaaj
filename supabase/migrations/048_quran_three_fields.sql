@@ -4,11 +4,11 @@
 
 ALTER TABLE zawaaj_profiles
   ADD COLUMN IF NOT EXISTS quran_frequency text
-    CHECK (quran_frequency IN ('daily', 'few_times_week', 'weekly', 'occasionally')),
+    CHECK (quran_frequency IN ('rarely', 'weekly', 'several_weekly', 'daily')),
   ADD COLUMN IF NOT EXISTS quran_depth text
-    CHECK (quran_depth IN ('recitation_only', 'with_translation', 'tafsir_study', 'memorisation')),
+    CHECK (quran_depth IN ('recitation', 'reflection', 'study', 'scholarly')),
   ADD COLUMN IF NOT EXISTS quran_application text
-    CHECK (quran_application IN ('central_guide', 'regular_reflection', 'growing_connection', 'formal_learning'));
+    CHECK (quran_application IN ('learning', 'trying', 'guiding', 'central'));
 
 -- quran_engagement_level is deprecated — kept for historical data only.
 -- New registrations use quran_frequency, quran_depth, and quran_application instead.

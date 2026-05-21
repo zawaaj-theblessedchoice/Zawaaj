@@ -19,22 +19,22 @@ const RELIGIOSITY_OPTIONS = [
 ]
 
 const QURAN_FREQUENCY_OPTIONS = [
-  { value: 'daily',           label: 'Daily',                helper: 'Every day without fail' },
-  { value: 'few_times_week',  label: 'A few times a week',   helper: 'Several times per week' },
-  { value: 'weekly',          label: 'Weekly',               helper: 'Around once a week' },
-  { value: 'occasionally',    label: 'Occasionally',         helper: 'When I can, not on a fixed schedule' },
+  { value: 'rarely',         label: 'Occasionally — a few times a month or less' },
+  { value: 'weekly',         label: 'Weekly — at least once a week' },
+  { value: 'several_weekly', label: 'Several times a week' },
+  { value: 'daily',          label: "Daily — it's part of my routine" },
 ]
 const QURAN_DEPTH_OPTIONS = [
-  { value: 'recitation_only',  label: 'Recitation only',             helper: 'I read or listen in Arabic' },
-  { value: 'with_translation', label: 'Recitation with translation',  helper: 'I follow along with the meaning' },
-  { value: 'tafsir_study',     label: 'Study / tafsir',              helper: 'I explore explanations and commentary' },
-  { value: 'memorisation',     label: 'Hifz / memorisation',         helper: 'I am memorising or have memorised' },
+  { value: 'recitation', label: 'Recitation or listening — focused on the words' },
+  { value: 'reflection',  label: 'Reading with some personal reflection' },
+  { value: 'study',       label: 'Active study — working to understand meaning' },
+  { value: 'scholarly',   label: 'Structured learning with tafsir or a teacher' },
 ]
 const QURAN_APPLICATION_OPTIONS = [
-  { value: 'central_guide',       label: "It's my central guide",       helper: 'I actively seek guidance from it in daily decisions' },
-  { value: 'regular_reflection',  label: 'I reflect on it regularly',    helper: 'I think about its lessons and apply them' },
-  { value: 'growing_connection',  label: "I'm building my connection",   helper: "I'm actively working to deepen my relationship with it" },
-  { value: 'formal_learning',     label: 'Formal learning setting',      helper: 'I study it through a class or structured programme' },
+  { value: 'learning', label: 'Still learning what it means to apply it' },
+  { value: 'trying',   label: "I try to apply it — it's an ongoing journey" },
+  { value: 'guiding',  label: 'It guides my key decisions and how I treat others' },
+  { value: 'central',  label: 'It is the foundation of my character and priorities' },
 ]
 const PRAYER_OPTIONS = [
   { value: 'yes_regularly',   label: 'Yes, regularly' },
@@ -1133,8 +1133,7 @@ function RegisterChildPageInner() {
                       }}
                     >
                       <div style={{ fontSize: 13, fontWeight: form.religiosity === o.value ? 600 : 400 }}>{o.label}</div>
-                      <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2, lineHeight: 1.4 }}>{o.helper}</div>
-                    </button>
+                      </button>
                   ))}
                 </div>
               </div>
@@ -1223,7 +1222,6 @@ function RegisterChildPageInner() {
                     }}
                   >
                     <div style={{ fontSize: 13, fontWeight: form.quranFrequency === o.value ? 600 : 400 }}>{o.label}</div>
-                    <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2, lineHeight: 1.4 }}>{o.helper}</div>
                   </button>
                 ))}
               </div>
@@ -1244,7 +1242,6 @@ function RegisterChildPageInner() {
                     }}
                   >
                     <div style={{ fontSize: 13, fontWeight: form.quranDepth === o.value ? 600 : 400 }}>{o.label}</div>
-                    <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2, lineHeight: 1.4 }}>{o.helper}</div>
                   </button>
                 ))}
               </div>
@@ -1265,7 +1262,6 @@ function RegisterChildPageInner() {
                     }}
                   >
                     <div style={{ fontSize: 13, fontWeight: form.quranApplication === o.value ? 600 : 400 }}>{o.label}</div>
-                    <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2, lineHeight: 1.4 }}>{o.helper}</div>
                   </button>
                 ))}
               </div>
