@@ -1,5 +1,5 @@
 'use client'
-
+// Trigger rebuild: picks up NEXT_PUBLIC_GOCARDLESS_ENABLED from Vercel env
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { planDisplayName } from '@/lib/zawaaj/planDisplayName'
