@@ -159,7 +159,7 @@ export const ARTICLES: HelpArticle[] = [
         type: 'step',
         number: 4,
         title: 'Request an introduction',
-        body: 'When you find someone you feel is worth exploring, you can express interest. How many expressions you can send per month depends on your membership tier (Voluntary members get 5, Plus members get 15, Premium members have no limit). The request is private — the other family does not see your name, only that someone has expressed interest.',
+        body: 'When you find someone you feel is worth exploring, you can express interest. How many expressions you can send per month depends on your membership tier (Voluntary members get 2, Plus members get 4, Premium members have no limit). The request is private — the other family does not see your name, only that someone has expressed interest.',
       },
       {
         type: 'step',
@@ -797,7 +797,7 @@ export const ARTICLES: HelpArticle[] = [
       {
         type: 'callout',
         title: 'Monthly request limits apply',
-        body: 'Community Access members can send 2 interest expressions per month, Plus members 15, and Premium members have no monthly limit. Use them thoughtfully — the counter resets on the first of each month.',
+        body: 'Community Access members can send 2 interest expressions per month, Plus members 4, and Premium members have no monthly limit. Use them thoughtfully — the counter resets on the first of each month.',
       },
       {
         type: 'p',
@@ -824,8 +824,8 @@ export const ARTICLES: HelpArticle[] = [
       {
         type: 'ul',
         items: [
-          'Community Access: 5 interest expressions per month',
-          'Plus: 15 interest expressions per month',
+          'Community Access: 2 interest expressions per month',
+          'Plus: 4 interest expressions per month',
           'Premium: no monthly limit',
           'The counter resets on the 1st of each month',
           'Pending requests that expire do not restore your allowance',
@@ -1763,7 +1763,7 @@ export const ARTICLES: HelpArticle[] = [
       },
       {
         type: 'p',
-        text: 'Community Access is free with no credit card required. You can browse approved profiles, shortlist people, and send up to 5 interest expressions per month. You will see a summary view of profiles — full profile details are available on Plus and above.',
+        text: 'Community Access is free with no credit card required. You can browse approved profiles, shortlist people, and send up to 2 interest expressions per month. You will see a summary view of profiles — full profile details are available on Plus and above.',
       },
       {
         type: 'h2',
@@ -1771,7 +1771,7 @@ export const ARTICLES: HelpArticle[] = [
       },
       {
         type: 'p',
-        text: 'Plus gives you 15 interest expressions per month, full profile details for every member, and a monthly profile boost. It is ideal for families who are actively searching and want a meaningful step up from the free tier.',
+        text: 'Plus gives you 4 interest expressions per month, full profile details for every member, and a monthly profile boost. It is ideal for families who are actively searching and want a meaningful step up from the free tier.',
       },
       {
         type: 'h2',

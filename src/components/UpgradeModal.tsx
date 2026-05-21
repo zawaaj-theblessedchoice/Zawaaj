@@ -21,7 +21,7 @@ interface UpgradeModalProps {
 // ─── Plan data (compact — 5 key rows) ────────────────────────────────────────
 
 const KEY_ROWS = [
-  { feature: 'Monthly expressions', free: '5',    plus: '15',         premium: 'Unlimited' },
+  { feature: 'Monthly expressions', free: '2',    plus: '4',          premium: 'Unlimited' },
   { feature: 'Profile boost',       free: '—',    plus: '1× / month', premium: 'Weekly' },
   { feature: 'Full profile detail', free: 'Basic', plus: '✓',         premium: '✓' },
   { feature: 'See who viewed you',  free: '—',    plus: '—',          premium: '✓' },
