@@ -22,4 +22,4 @@ export const GC_PRICES = {
 
 // Feature flag — read on server and client (NEXT_PUBLIC_ prefix)
 export const GC_ENABLED =
-  process.env.NEXT_PUBLIC_GOCARDLESS_ENABLED === 'true'
+  process.env.NEXT_PUBLIC_GOCARDLESS_ENABLED?.toLowerCase() === 'true'
