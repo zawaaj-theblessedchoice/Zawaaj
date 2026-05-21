@@ -3,7 +3,9 @@
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useState, useEffect, Suspense } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { ZawaajLogo } from '@/components/ZawaajLogo'
+import ZawaajLogo from '@/components/ZawaajLogo'
+
+export const dynamic = 'force-dynamic'
 
 // ─── UUID detection ───────────────────────────────────────────────────────────
 
