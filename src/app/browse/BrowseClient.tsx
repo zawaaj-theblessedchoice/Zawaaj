@@ -1169,7 +1169,7 @@ export default function BrowseClient({
               </a>
               {familyReadinessState !== 'representative_invited' && (
                 <a
-                  href="/settings?tab=account"
+                  href="/settings"
                   style={{
                     display: 'inline-block', padding: '6px 14px', borderRadius: 7,
                     fontSize: 12, textDecoration: 'none',
@@ -2285,6 +2285,8 @@ export default function BrowseClient({
         introStatus={openProfileId ? getIntroStatus(openProfileId) : 'none'}
         onRequestIntro={handleRequestIntro}
         monthlyUsed={monthlyUsed}
+        monthlyLimit={monthlyLimit}
+        readinessState={familyReadinessState ?? undefined}
       />
 
       {toast && <Toast message={toast} onDone={() => setToast(null)} />}

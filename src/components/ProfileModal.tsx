@@ -70,6 +70,8 @@ interface ProfileModalProps {
   monthlyLimit?: number
   /** Member's current plan — controls locked sections */
   plan?: 'free' | 'plus' | 'premium'
+  /** Viewer's readiness state — Express interest is only shown when 'intro_ready' */
+  readinessState?: string
 }
 
 function calcAge(dateOfBirth: string | null): number | null {
@@ -188,6 +190,7 @@ export default function ProfileModal({
   monthlyUsed,
   monthlyLimit: monthlyLimitProp,
   plan = 'free',
+  readinessState,
 }: ProfileModalProps) {
   const [toastMsg, setToastMsg] = useState<string | null>(null)
   const [confirmingIntro, setConfirmingIntro] = useState(false)
@@ -395,28 +398,39 @@ export default function ProfileModal({
                         </div>
                       )}
                       {introStatus === 'none' && (
-                        <button
-                          onClick={() => setConfirmingIntro(true)}
-                          style={{
-                            padding: '7px 14px',
-                            borderRadius: 8,
+                        readinessState === 'intro_ready' ? (
+                          <button
+                            onClick={() => setConfirmingIntro(true)}
+                            style={{
+                              padding: '7px 14px',
+                              borderRadius: 8,
+                              fontSize: 12,
+                              fontWeight: 500,
+                              background: 'var(--gold)',
+                              border: 'none',
+                              color: 'var(--surface)',
+                              cursor: 'pointer',
+                              transition: 'opacity 0.15s',
+                            }}
+                            onMouseEnter={e =>
+                              ((e.currentTarget as HTMLButtonElement).style.opacity = '0.85')
+                            }
+                            onMouseLeave={e =>
+                              ((e.currentTarget as HTMLButtonElement).style.opacity = '1')
+                            }
+                          >
+                            Express interest
+                          </button>
+                        ) : (
+                          <p style={{
                             fontSize: 12,
-                            fontWeight: 500,
-                            background: 'var(--gold)',
-                            border: 'none',
-                            color: 'var(--surface)',
-                            cursor: 'pointer',
-                            transition: 'opacity 0.15s',
-                          }}
-                          onMouseEnter={e =>
-                            ((e.currentTarget as HTMLButtonElement).style.opacity = '0.85')
-                          }
-                          onMouseLeave={e =>
-                            ((e.currentTarget as HTMLButtonElement).style.opacity = '1')
-                          }
-                        >
-                          Express interest
-                        </button>
+                            color: 'var(--text-secondary)',
+                            margin: 0,
+                            lineHeight: 1.5,
+                          }}>
+                            To express interest, your family representative needs to join your account first.
+                          </p>
+                        )
                       )}
                     </>
                   )}
