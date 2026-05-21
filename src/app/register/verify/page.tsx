@@ -5,6 +5,8 @@ import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
 import ZawaajLogo from '@/components/ZawaajLogo'
 
+export const dynamic = 'force-dynamic'
+
 function VerifyContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
