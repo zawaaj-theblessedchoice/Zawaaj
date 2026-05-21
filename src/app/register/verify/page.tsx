@@ -53,7 +53,19 @@ function VerifyContent() {
 
       setEmail(json.email ?? null)
       setStatus('success')
-      setTimeout(() => router.push('/browse'), 3000)
+      setTimeout(() => {
+        // After email verification, honour any pending invite redirect stored
+        // during registration (zawaaj_post_auth_redirect). Falls back to /browse.
+        let dest = '/browse'
+        try {
+          const postAuthRedirect = sessionStorage.getItem('zawaaj_post_auth_redirect')
+          if (postAuthRedirect) {
+            sessionStorage.removeItem('zawaaj_post_auth_redirect')
+            dest = postAuthRedirect
+          }
+        } catch { /* ignore */ }
+        router.push(dest)
+      }, 3000)
     } catch {
       setStatus('invalid')
     }

@@ -15,6 +15,15 @@ function RegisterLandingInner() {
     }
   }, [intent])
 
+  // Persist invite redirect so it survives registration + email verification.
+  // Consumed by login (LoginForm) or the verify page after email confirmation.
+  useEffect(() => {
+    const redirect = searchParams.get('redirect')
+    if (redirect?.includes('/register/accept-invite')) {
+      try { sessionStorage.setItem('zawaaj_post_auth_redirect', redirect) } catch { /* ignore */ }
+    }
+  }, [searchParams])
+
   const intentSuffix = intent === 'premium' ? '?intent=premium' : ''
 
   return (

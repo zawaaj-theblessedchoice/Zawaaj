@@ -33,9 +33,20 @@ function LoginForm() {
 
     // Priority order:
     // 1. ?redirect= param (e.g. from invite link or protected-page bounce)
-    // 2. zawaaj_premium_intent in localStorage
-    // 3. /browse default
+    // 2. sessionStorage zawaaj_post_auth_redirect (set when invite link lands on /register)
+    // 3. localStorage zawaaj_premium_intent
+    // 4. /browse default
     let redirect = searchParams.get('redirect') ?? ''
+
+    if (!redirect) {
+      try {
+        const postAuthRedirect = sessionStorage.getItem('zawaaj_post_auth_redirect')
+        if (postAuthRedirect) {
+          sessionStorage.removeItem('zawaaj_post_auth_redirect')
+          redirect = postAuthRedirect
+        }
+      } catch { /* ignore */ }
+    }
 
     if (!redirect) {
       try {
