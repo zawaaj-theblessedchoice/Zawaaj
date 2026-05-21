@@ -16,7 +16,7 @@ const AUTH_PATHS      = ['/login', '/signup', '/register']
 const PENDING_PATHS   = ['/pending']
 // Fully public — no auth needed (checked before AUTH_PATHS so /register/link-guardian passes through)
 // /register/child is also public because logged-in guardians need it to add a candidate after email verification
-const PUBLIC_PATHS    = ['/terms', '/help', '/forgot-password', '/auth/reset-password', '/register/link-guardian', '/register/child', '/register/verify', '/api/auth/signout']
+const PUBLIC_PATHS    = ['/terms', '/help', '/forgot-password', '/auth/reset-password', '/register/link-guardian', '/register/child', '/register/verify', '/register/accept-invite', '/api/auth/signout']
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -57,7 +57,7 @@ export async function proxy(request: NextRequest) {
   if (!user && (isProtected || isAdmin || isPending)) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
-    url.searchParams.set('next', pathname)
+    url.searchParams.set('redirect', pathname)
     return NextResponse.redirect(url)
   }
 
