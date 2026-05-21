@@ -1447,13 +1447,33 @@ function RegisterChildPageInner() {
                 <p style={{ margin: '0 0 12px', fontSize: 12.5, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                   For security, your password isn&apos;t saved between sessions. Enter it once more to complete.
                 </p>
-                <input
-                  type="password"
-                  placeholder="Your password"
-                  autoComplete="current-password"
-                  onChange={e => set('password', e.target.value)}
-                  style={{ width: '100%', padding: '9px 12px', borderRadius: 8, fontSize: 13, background: 'var(--surface-3, rgba(255,255,255,0.06))', border: '1px solid rgba(251,191,36,0.4)', color: 'var(--text-primary)', outline: 'none', boxSizing: 'border-box' }}
-                />
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Your password"
+                    autoComplete="current-password"
+                    onChange={e => {
+                      // Set both password AND confirmPassword so the
+                      // step-5 validation check (password !== confirmPassword)
+                      // always passes when using this re-entry field.
+                      const v = e.target.value
+                      setForm(f => ({ ...f, password: v, confirmPassword: v }))
+                      setError(null)
+                    }}
+                    style={{ width: '100%', padding: '9px 12px', paddingRight: 44, borderRadius: 8, fontSize: 13, background: 'var(--surface-3, rgba(255,255,255,0.06))', border: '1px solid rgba(251,191,36,0.4)', color: 'var(--text-primary)', outline: 'none', boxSizing: 'border-box' }}
+                  />
+                  <button
+                    type="button"
+                    onMouseDown={e => { e.preventDefault(); setShowPassword(p => !p) }}
+                    style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 44, background: 'none', border: 'none', cursor: 'pointer', color: showPassword ? 'var(--gold)' : 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword
+                      ? <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                      : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    }
+                  </button>
+                </div>
               </div>
             )}
             {/* Islamic oath */}
