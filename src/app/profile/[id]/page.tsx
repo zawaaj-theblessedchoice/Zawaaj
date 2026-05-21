@@ -8,6 +8,7 @@ import Sidebar from '@/components/Sidebar'
 import AvatarInitials from '@/components/AvatarInitials'
 import { getPlanConfig } from '@/lib/plan-config'
 import type { Plan } from '@/lib/plan-config'
+import { fetchPlanLimits } from '@/lib/config/profileOptions'
 
 interface Profile {
   id: string
@@ -29,7 +30,9 @@ interface Profile {
   wears_niqab: string | null
   wears_abaya: string | null
   keeps_beard: boolean | null
-  quran_engagement_level: string | null
+  quran_frequency: string | null
+  quran_depth: string | null
+  quran_application: string | null
   marital_status: string | null
   has_children: boolean | null
   languages_spoken: string[] | null
@@ -249,7 +252,7 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
         supabase
           .from('zawaaj_profiles')
           .select(
-            'id, display_initials, gender, age_display, height, ethnicity, nationality, school_of_thought, education_level, education_detail, profession_detail, location, bio, religiosity, prayer_regularity, wears_hijab, wears_niqab, wears_abaya, keeps_beard, quran_engagement_level, marital_status, has_children, languages_spoken, living_situation, open_to_relocation, pref_age_min, pref_age_max, pref_location, pref_ethnicity, pref_school_of_thought, pref_partner_children, status'
+            'id, display_initials, gender, age_display, height, ethnicity, nationality, school_of_thought, education_level, education_detail, profession_detail, location, bio, religiosity, prayer_regularity, wears_hijab, wears_niqab, wears_abaya, keeps_beard, quran_frequency, quran_depth, quran_application, marital_status, has_children, languages_spoken, living_situation, open_to_relocation, pref_age_min, pref_age_max, pref_location, pref_ethnicity, pref_school_of_thought, pref_partner_children, status'
           )
           .eq('id', id)
           .eq('status', 'approved')
@@ -309,17 +312,12 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
           setShortlistCount(slResult.count ?? 0)
           setIntroRequestsCount(irCountResult.count ?? 0)
           const userPlan = ((subRow.data as { plan?: string } | null)?.plan ?? 'free') as Plan
-          // Read monthly limit from DB (zawaaj_plans) — DB is source of truth
+          // Read monthly limit from zawaaj_plans via fetchPlanLimits — DB is source of truth
           const planKey = userPlan === 'free' ? 'voluntary' : userPlan
-          const { data: planRow } = await supabase
-            .from('zawaaj_plans')
-            .select('monthly_interests')
-            .eq('key', planKey)
-            .eq('is_active', true)
-            .maybeSingle()
-          // monthly_interests: null → unlimited (Infinity); undefined/no row → fallback 2
-          const dbLimit = (planRow as { monthly_interests: number | null } | null)?.monthly_interests
-          setMonthlyLimit(planRow === null ? getPlanConfig(userPlan).monthlyLimit : (dbLimit ?? Infinity))
+          const planLimits = await fetchPlanLimits(supabase)
+          const monthlyInterests = planLimits[planKey]?.monthlyInterests
+          // Infinity → unlimited; undefined/fallback → static plan-config value
+          setMonthlyLimit(monthlyInterests ?? getPlanConfig(userPlan).monthlyLimit)
         }
       }
 
@@ -458,8 +456,14 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
               {profile.gender === 'male' && (
                 <FieldRow label="Keeps beard" value={profile.keeps_beard === true ? 'Yes' : profile.keeps_beard === false ? 'No' : null} />
               )}
-              {profile.quran_engagement_level && (
-                <FieldRow label="Quran engagement" value={displayValue({ memorised: 'Hafiz/Hafiza', regularly: 'Read regularly', occasionally: 'Occasionally', learning: 'Currently learning', not_currently: 'Not currently' }, profile.quran_engagement_level)} />
+              {profile.quran_frequency && (
+                <FieldRow label="Qur'an frequency" value={displayValue({ daily: 'Daily', few_times_week: 'A few times a week', weekly: 'Weekly', occasionally: 'Occasionally' }, profile.quran_frequency)} />
+              )}
+              {profile.quran_depth && (
+                <FieldRow label="Qur'an depth" value={displayValue({ recitation_only: 'Recitation only', with_translation: 'With translation', tafsir_study: 'Study / tafsir', memorisation: 'Hifz / memorisation' }, profile.quran_depth)} />
+              )}
+              {profile.quran_application && (
+                <FieldRow label="Qur'an in daily life" value={displayValue({ central_guide: 'Central guide', regular_reflection: 'Regular reflection', growing_connection: 'Building connection', formal_learning: 'Formal learning' }, profile.quran_application)} />
               )}
             </div>
 

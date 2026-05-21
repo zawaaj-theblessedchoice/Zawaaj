@@ -35,7 +35,9 @@ export interface ProfileRecord {
   keeps_beard: boolean | null
   wears_niqab: string | null
   wears_abaya: string | null
-  quran_engagement_level: string | null
+  quran_frequency: string | null
+  quran_depth: string | null
+  quran_application: string | null
   bio: string | null
   pref_age_min: number | null
   pref_age_max: number | null
@@ -64,6 +66,8 @@ interface ProfileModalProps {
   introStatus: 'none' | 'pending' | 'accepted' | 'declined' | 'expired' | 'limit_reached'
   onRequestIntro: (profileId: string) => void
   monthlyUsed: number
+  /** Monthly limit from zawaaj_plans (DB source of truth). Falls back to plan-config if not passed. */
+  monthlyLimit?: number
   /** Member's current plan — controls locked sections */
   plan?: 'free' | 'plus' | 'premium'
 }
@@ -182,6 +186,7 @@ export default function ProfileModal({
   introStatus,
   onRequestIntro,
   monthlyUsed,
+  monthlyLimit: monthlyLimitProp,
   plan = 'free',
 }: ProfileModalProps) {
   const [toastMsg, setToastMsg] = useState<string | null>(null)
@@ -190,7 +195,7 @@ export default function ProfileModal({
   const [showUpgrade, setShowUpgrade] = useState(false)
 
   const planConfig = getPlanConfig((plan ?? 'free') as Plan)
-  const monthlyLimit = planConfig.monthlyLimit
+  const monthlyLimit = monthlyLimitProp ?? planConfig.monthlyLimit
   // Derived flags — driven by config, not plan name
   const hasFullProfile = planConfig.fullProfile
   const hasTemplates = planConfig.canUseTemplates
@@ -796,17 +801,42 @@ export default function ProfileModal({
                     label="Smoker"
                     value={profile.smoker === true ? 'Yes' : profile.smoker === false ? 'No' : null}
                   />
-                  {profile.quran_engagement_level && (
+                  {profile.quran_frequency && (
                     <FieldRow
-                      label="Qur\u2019an engagement"
+                      label="Qur\u2019an frequency"
                       value={
-                        {
-                          daily: 'Daily',
+                        ({
+                          daily:          'Daily',
                           few_times_week: 'A few times a week',
-                          occasionally: 'Occasionally',
-                          rarely: 'Rarely',
-                          not_currently: 'Not currently',
-                        }[profile.quran_engagement_level] ?? profile.quran_engagement_level
+                          weekly:         'Weekly',
+                          occasionally:   'Occasionally',
+                        } as Record<string, string>)[profile.quran_frequency] ?? profile.quran_frequency
+                      }
+                    />
+                  )}
+                  {profile.quran_depth && (
+                    <FieldRow
+                      label="Qur\u2019an depth"
+                      value={
+                        ({
+                          recitation_only:  'Recitation only',
+                          with_translation: 'With translation',
+                          tafsir_study:     'Study / tafsir',
+                          memorisation:     'Hifz / memorisation',
+                        } as Record<string, string>)[profile.quran_depth] ?? profile.quran_depth
+                      }
+                    />
+                  )}
+                  {profile.quran_application && (
+                    <FieldRow
+                      label="Qur\u2019an in daily life"
+                      value={
+                        ({
+                          central_guide:      'Central guide',
+                          regular_reflection: 'Regular reflection',
+                          growing_connection: 'Building connection',
+                          formal_learning:    'Formal learning',
+                        } as Record<string, string>)[profile.quran_application] ?? profile.quran_application
                       }
                     />
                   )}

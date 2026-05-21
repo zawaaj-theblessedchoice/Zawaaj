@@ -4,11 +4,28 @@ export const RELIGIOSITY_OPTIONS = [
   { value: 'striving',   label: 'Striving',   description: 'On a sincere journey of growth — actively working to strengthen practice' },
 ] as const
 
-export const QURAN_ENGAGEMENT_OPTIONS = [
-  { value: 'building_connection',      label: 'Building my connection',  description: 'I read or listen occasionally' },
-  { value: 'growing_regularly',        label: 'Growing regularly',       description: 'I engage regularly and am improving my reading' },
-  { value: 'consistent_understanding', label: 'Consistent and learning', description: 'I read consistently and am deepening my understanding' },
-  { value: 'deeply_engaged',           label: 'Deeply engaged',          description: "The Qur'an is central to my daily life" },
+/** How often the person engages with the Qur'an. */
+export const QURAN_FREQUENCY_OPTIONS = [
+  { value: 'daily',           label: 'Daily',                description: 'Every day without fail' },
+  { value: 'few_times_week',  label: 'A few times a week',   description: 'Several times per week' },
+  { value: 'weekly',          label: 'Weekly',               description: 'Around once a week' },
+  { value: 'occasionally',    label: 'Occasionally',         description: 'When I can, not on a fixed schedule' },
+] as const
+
+/** How deeply the person engages when they do. */
+export const QURAN_DEPTH_OPTIONS = [
+  { value: 'recitation_only',  label: 'Recitation only',              description: 'I read or listen in Arabic' },
+  { value: 'with_translation', label: 'Recitation with translation',  description: 'I follow along with the meaning' },
+  { value: 'tafsir_study',     label: 'Study / tafsir',               description: 'I explore explanations and commentary' },
+  { value: 'memorisation',     label: 'Hifz / memorisation',          description: 'I am memorising or have memorised' },
+] as const
+
+/** How the Qur'an shapes the person's daily life. */
+export const QURAN_APPLICATION_OPTIONS = [
+  { value: 'central_guide',        label: "It's my central guide",         description: 'I actively seek guidance from it in daily decisions' },
+  { value: 'regular_reflection',   label: 'I reflect on it regularly',      description: 'I think about its lessons and apply them' },
+  { value: 'growing_connection',   label: "I'm building my connection",      description: "I'm actively working to deepen my relationship with it" },
+  { value: 'formal_learning',      label: 'Formal learning setting',         description: 'I study it through a class or structured programme' },
 ] as const
 
 export const MODESTY_OPTIONS = [
@@ -71,7 +88,7 @@ export const RELOCATION_OPTIONS = [
 export const PLAN_LIMITS_FALLBACK = {
   voluntary: { monthlyInterests: 2,        maxProfiles: 2 },
   plus:      { monthlyInterests: 15,       maxProfiles: 4 },
-  premium:   { monthlyInterests: Infinity, maxProfiles: 6 },
+  premium:   { monthlyInterests: Infinity, maxProfiles: 4 },
 } as const
 
 /** Live fetch — use this everywhere in application code (server-side only). */

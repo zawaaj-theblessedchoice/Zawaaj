@@ -18,11 +18,23 @@ const RELIGIOSITY_OPTIONS = [
   { value: 'striving',    label: 'Striving',    helper: 'On a sincere journey of growth — actively working to strengthen practice' },
 ]
 
-const QURAN_OPTIONS = [
-  { value: 'building_connection',      label: 'Building my connection',     helper: 'I read or listen occasionally' },
-  { value: 'growing_regularly',        label: 'Growing regularly',          helper: 'I engage regularly and am improving my reading' },
-  { value: 'consistent_understanding', label: 'Consistent and learning',    helper: 'I read consistently and am deepening my understanding' },
-  { value: 'deeply_engaged',           label: 'Deeply engaged',             helper: "The Qur'an is central to my daily life" },
+const QURAN_FREQUENCY_OPTIONS = [
+  { value: 'daily',           label: 'Daily',                helper: 'Every day without fail' },
+  { value: 'few_times_week',  label: 'A few times a week',   helper: 'Several times per week' },
+  { value: 'weekly',          label: 'Weekly',               helper: 'Around once a week' },
+  { value: 'occasionally',    label: 'Occasionally',         helper: 'When I can, not on a fixed schedule' },
+]
+const QURAN_DEPTH_OPTIONS = [
+  { value: 'recitation_only',  label: 'Recitation only',             helper: 'I read or listen in Arabic' },
+  { value: 'with_translation', label: 'Recitation with translation',  helper: 'I follow along with the meaning' },
+  { value: 'tafsir_study',     label: 'Study / tafsir',              helper: 'I explore explanations and commentary' },
+  { value: 'memorisation',     label: 'Hifz / memorisation',         helper: 'I am memorising or have memorised' },
+]
+const QURAN_APPLICATION_OPTIONS = [
+  { value: 'central_guide',       label: "It's my central guide",       helper: 'I actively seek guidance from it in daily decisions' },
+  { value: 'regular_reflection',  label: 'I reflect on it regularly',    helper: 'I think about its lessons and apply them' },
+  { value: 'growing_connection',  label: "I'm building my connection",   helper: "I'm actively working to deepen my relationship with it" },
+  { value: 'formal_learning',     label: 'Formal learning setting',      helper: 'I study it through a class or structured programme' },
 ]
 const PRAYER_OPTIONS = [
   { value: 'yes_regularly',   label: 'Yes, regularly' },
@@ -215,7 +227,9 @@ interface FormData {
   wearsNiqab:         string   // 'yes' | 'no' | 'sometimes' | ''
   wearsAbaya:         string   // 'yes' | 'no' | 'sometimes' | ''
   keepsBeard:         string   // 'yes' | 'no' | ''
-  quranEngagementLevel: string
+  quranFrequency: string
+  quranDepth: string
+  quranApplication: string
   islamicBackground:  string   // 'born_muslim' | 'reverted' | ''
   smoker:             string   // 'yes' | 'no' | ''
   educationLevel:     string
@@ -253,7 +267,7 @@ const EMPTY: FormData = {
   heightUnit: 'cm', heightCm: '', heightFt: '', heightIn: '',
   location: '', ethnicity: '', nationality: '', languagesSpoken: '', placeOfBirth: '',
   schoolOfThought: '', religiosity: '', prayerRegularity: '', wearsHijab: '',
-  wearsNiqab: '', wearsAbaya: '', quranEngagementLevel: '', islamicBackground: '', smoker: '',
+  wearsNiqab: '', wearsAbaya: '', quranFrequency: '', quranDepth: '', quranApplication: '', islamicBackground: '', smoker: '',
   keepsBeard: '', educationLevel: '', educationDetail: '', professionDetail: '', bio: '',
   prefAgeMin: '', prefAgeMax: '', prefLocation: '', prefEthnicity: '',
   prefSchoolOfThought: '', openToRelocation: '', openToPartnersChildren: '',
@@ -485,7 +499,9 @@ function RegisterChildPageInner() {
         if (!form.wearsAbaya)                return 'Please indicate your abaya practice.'
       }
       if (form.gender === 'male' && !form.keepsBeard) return 'Please indicate your beard practice.'
-      if (!form.quranEngagementLevel)        return "Please select your Qur'an engagement level."
+      if (!form.quranFrequency)              return "Please select how often you engage with the Qur'an."
+      if (!form.quranDepth)                 return "Please select how you typically engage with the Qur'an."
+      if (!form.quranApplication)           return "Please select how the Qur'an shapes your daily life."
       if (!form.bio.trim())                  return 'About / bio is required.'
     }
     if (step === 3) {
@@ -626,7 +642,9 @@ function RegisterChildPageInner() {
           wearsHijab:            form.gender === 'female' ? (form.wearsHijab || undefined) : undefined,
           wearsNiqab:            form.gender === 'female' ? (form.wearsNiqab || undefined) : undefined,
           wearsAbaya:            form.gender === 'female' ? (form.wearsAbaya || undefined) : undefined,
-          quranEngagementLevel:  form.quranEngagementLevel || undefined,
+          quranFrequency:        form.quranFrequency    || undefined,
+          quranDepth:            form.quranDepth        || undefined,
+          quranApplication:      form.quranApplication  || undefined,
           keepsBeard:            keepsBeardBool,
           bio:                   form.bio || undefined,
           prefAgeMin:            form.prefAgeMin ? parseInt(form.prefAgeMin, 10) : undefined,
@@ -1190,21 +1208,63 @@ function RegisterChildPageInner() {
               </Field>
             )}
             <div>
-              <label style={labelStyle}>Which best describes your current relationship with the Qur&apos;an?<span style={{ color: 'var(--gold)', marginLeft: 2 }}>*</span></label>
+              <label style={labelStyle}>How often do you engage with the Qur&apos;an?<span style={{ color: 'var(--gold)', marginLeft: 2 }}>*</span></label>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {QURAN_OPTIONS.map(o => (
+                {QURAN_FREQUENCY_OPTIONS.map(o => (
                   <button
                     key={o.value}
                     type="button"
-                    onClick={() => set('quranEngagementLevel', o.value)}
+                    onClick={() => set('quranFrequency', o.value)}
                     style={{
                       padding: '8px 10px', borderRadius: 8, textAlign: 'left', cursor: 'pointer',
-                      border: `0.5px solid ${form.quranEngagementLevel === o.value ? 'var(--gold)' : 'var(--border-default)'}`,
-                      background: form.quranEngagementLevel === o.value ? 'var(--gold-muted)' : 'var(--surface-3)',
+                      border: `0.5px solid ${form.quranFrequency === o.value ? 'var(--gold)' : 'var(--border-default)'}`,
+                      background: form.quranFrequency === o.value ? 'var(--gold-muted)' : 'var(--surface-3)',
                       color: 'var(--text-primary)',
                     }}
                   >
-                    <div style={{ fontSize: 13, fontWeight: form.quranEngagementLevel === o.value ? 600 : 400 }}>{o.label}</div>
+                    <div style={{ fontSize: 13, fontWeight: form.quranFrequency === o.value ? 600 : 400 }}>{o.label}</div>
+                    <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2, lineHeight: 1.4 }}>{o.helper}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label style={labelStyle}>How do you typically engage with it?<span style={{ color: 'var(--gold)', marginLeft: 2 }}>*</span></label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {QURAN_DEPTH_OPTIONS.map(o => (
+                  <button
+                    key={o.value}
+                    type="button"
+                    onClick={() => set('quranDepth', o.value)}
+                    style={{
+                      padding: '8px 10px', borderRadius: 8, textAlign: 'left', cursor: 'pointer',
+                      border: `0.5px solid ${form.quranDepth === o.value ? 'var(--gold)' : 'var(--border-default)'}`,
+                      background: form.quranDepth === o.value ? 'var(--gold-muted)' : 'var(--surface-3)',
+                      color: 'var(--text-primary)',
+                    }}
+                  >
+                    <div style={{ fontSize: 13, fontWeight: form.quranDepth === o.value ? 600 : 400 }}>{o.label}</div>
+                    <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2, lineHeight: 1.4 }}>{o.helper}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label style={labelStyle}>How does the Qur&apos;an shape your daily life?<span style={{ color: 'var(--gold)', marginLeft: 2 }}>*</span></label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {QURAN_APPLICATION_OPTIONS.map(o => (
+                  <button
+                    key={o.value}
+                    type="button"
+                    onClick={() => set('quranApplication', o.value)}
+                    style={{
+                      padding: '8px 10px', borderRadius: 8, textAlign: 'left', cursor: 'pointer',
+                      border: `0.5px solid ${form.quranApplication === o.value ? 'var(--gold)' : 'var(--border-default)'}`,
+                      background: form.quranApplication === o.value ? 'var(--gold-muted)' : 'var(--surface-3)',
+                      color: 'var(--text-primary)',
+                    }}
+                  >
+                    <div style={{ fontSize: 13, fontWeight: form.quranApplication === o.value ? 600 : 400 }}>{o.label}</div>
                     <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2, lineHeight: 1.4 }}>{o.helper}</div>
                   </button>
                 ))}

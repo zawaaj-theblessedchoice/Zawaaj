@@ -7,6 +7,7 @@ import Sidebar from '@/components/Sidebar'
 import AvatarInitials from '@/components/AvatarInitials'
 import { getPlanConfig } from '@/lib/plan-config'
 import type { Plan } from '@/lib/plan-config'
+import { fetchPlanLimits } from '@/lib/config/profileOptions'
 
 interface Profile {
   id: string
@@ -31,7 +32,9 @@ interface Profile {
   wears_niqab: string | null
   wears_abaya: string | null
   keeps_beard: boolean | null
-  quran_engagement_level: string | null
+  quran_frequency: string | null
+  quran_depth: string | null
+  quran_application: string | null
   marital_status: string | null
   has_children: boolean | null
   languages_spoken: string[] | null
@@ -195,11 +198,23 @@ const PRAYER_LABELS: Record<string, string> = {
   not_currently: 'Not currently',
 }
 
-const QURAN_LABELS: Record<string, string> = {
-  building_connection:      'Building my connection',
-  growing_regularly:        'Growing regularly',
-  consistent_understanding: 'Consistent and learning',
-  deeply_engaged:           'Deeply engaged',
+const QURAN_FREQUENCY_LABELS: Record<string, string> = {
+  daily:          'Daily',
+  few_times_week: 'A few times a week',
+  weekly:         'Weekly',
+  occasionally:   'Occasionally',
+}
+const QURAN_DEPTH_LABELS: Record<string, string> = {
+  recitation_only:  'Recitation only',
+  with_translation: 'Recitation with translation',
+  tafsir_study:     'Study / tafsir',
+  memorisation:     'Hifz / memorisation',
+}
+const QURAN_APPLICATION_LABELS: Record<string, string> = {
+  central_guide:      "Central guide",
+  regular_reflection: 'Regular reflection',
+  growing_connection: 'Building connection',
+  formal_learning:    'Formal learning',
 }
 
 const LIVING_LABELS: Record<string, string> = {
@@ -312,7 +327,9 @@ export default function MyProfilePage() {
     wearsNiqab: '',
     wearsAbaya: '',
     keepsBeard: '',
-    quranEngagement: '',
+    quranFrequency: '',
+    quranDepth: '',
+    quranApplication: '',
     // Bio
     bio: '',
     // Partner preferences
@@ -351,7 +368,7 @@ export default function MyProfilePage() {
 
       const { data: profileRows } = await supabase
         .from('zawaaj_profiles')
-        .select('id, display_initials, first_name, last_name, gender, date_of_birth, age_display, height, ethnicity, nationality, school_of_thought, education_level, education_detail, profession_detail, location, bio, religiosity, prayer_regularity, wears_hijab, wears_niqab, wears_abaya, keeps_beard, quran_engagement_level, marital_status, has_children, languages_spoken, living_situation, open_to_relocation, open_to_partners_children, polygamy_openness, pref_age_min, pref_age_max, pref_location, pref_ethnicity, pref_school_of_thought, pref_partner_children, pref_relocation, status, is_admin, interests_this_month, islamic_background, smoker, place_of_birth, marriage_reason, open_to_marital_status')
+        .select('id, display_initials, first_name, last_name, gender, date_of_birth, age_display, height, ethnicity, nationality, school_of_thought, education_level, education_detail, profession_detail, location, bio, religiosity, prayer_regularity, wears_hijab, wears_niqab, wears_abaya, keeps_beard, quran_frequency, quran_depth, quran_application, marital_status, has_children, languages_spoken, living_situation, open_to_relocation, open_to_partners_children, polygamy_openness, pref_age_min, pref_age_max, pref_location, pref_ethnicity, pref_school_of_thought, pref_partner_children, pref_relocation, status, is_admin, interests_this_month, islamic_background, smoker, place_of_birth, marriage_reason, open_to_marital_status')
         .eq('user_id', user.id)
 
       if (!profileRows?.length) { setLoading(false); return }
@@ -388,18 +405,12 @@ export default function MyProfilePage() {
       const normPlan = (['free', 'plus', 'premium'].includes(rawPlanValue) ? rawPlanValue : 'free') as 'free' | 'plus' | 'premium'
       setPlan(normPlan)
 
-      // Read monthly limit from zawaaj_plans — DB is source of truth
+      // Read monthly limit from zawaaj_plans via fetchPlanLimits — DB is source of truth
       const planKey = normPlan === 'free' ? 'voluntary' : normPlan
-      const { data: planRow } = await supabase
-        .from('zawaaj_plans')
-        .select('monthly_interests')
-        .eq('key', planKey)
-        .eq('is_active', true)
-        .maybeSingle()
-      // monthly_interests: null → unlimited; no row → fallback 2
-      const dbLimit = (planRow as { monthly_interests: number | null } | null)?.monthly_interests
-      // planRow === null: no active plan row → fallback 2; dbLimit null → unlimited
-      setMonthlyLimitDb(planRow === null ? 2 : (dbLimit ?? null))
+      const planLimits = await fetchPlanLimits(supabase)
+      const monthlyInterests = planLimits[planKey]?.monthlyInterests
+      // Infinity → unlimited (null); undefined/fallback → 2
+      setMonthlyLimitDb(monthlyInterests === Infinity ? null : (monthlyInterests ?? 2))
 
       // Profile views data
       fetch('/api/profile-views')
@@ -476,7 +487,9 @@ export default function MyProfilePage() {
       wearsNiqab: profile.wears_niqab ?? '',
       wearsAbaya: profile.wears_abaya ?? '',
       keepsBeard: profile.keeps_beard === true ? 'true' : profile.keeps_beard === false ? 'false' : '',
-      quranEngagement: profile.quran_engagement_level ?? '',
+      quranFrequency:  profile.quran_frequency    ?? '',
+      quranDepth:      profile.quran_depth        ?? '',
+      quranApplication: profile.quran_application ?? '',
       bio: profile.bio ?? '',
       prefAgeMin: profile.pref_age_min?.toString() ?? '',
       prefAgeMax: profile.pref_age_max?.toString() ?? '',
@@ -521,7 +534,9 @@ export default function MyProfilePage() {
       wears_niqab: profile.gender === 'female' ? (editForm.wearsNiqab || null) : null,
       wears_abaya: profile.gender === 'female' ? (editForm.wearsAbaya || null) : null,
       keeps_beard: profile.gender === 'male' && editForm.keepsBeard !== '' ? editForm.keepsBeard === 'true' : null,
-      quran_engagement_level: editForm.quranEngagement || null,
+      quran_frequency:    editForm.quranFrequency    || null,
+      quran_depth:        editForm.quranDepth        || null,
+      quran_application:  editForm.quranApplication  || null,
       bio: editForm.bio || null,
       pref_age_min: editForm.prefAgeMin ? parseInt(editForm.prefAgeMin, 10) : null,
       pref_age_max: editForm.prefAgeMax ? parseInt(editForm.prefAgeMax, 10) : null,
@@ -558,7 +573,9 @@ export default function MyProfilePage() {
       wears_niqab: profile.gender === 'female' ? (editForm.wearsNiqab || null) : null,
       wears_abaya: profile.gender === 'female' ? (editForm.wearsAbaya || null) : null,
       keeps_beard: profile.gender === 'male' && editForm.keepsBeard !== '' ? editForm.keepsBeard === 'true' : null,
-      quran_engagement_level: editForm.quranEngagement || null,
+      quran_frequency:    editForm.quranFrequency    || null,
+      quran_depth:        editForm.quranDepth        || null,
+      quran_application:  editForm.quranApplication  || null,
       bio: editForm.bio || null,
       pref_age_min: editForm.prefAgeMin ? parseInt(editForm.prefAgeMin, 10) : null,
       pref_age_max: editForm.prefAgeMax ? parseInt(editForm.prefAgeMax, 10) : null,
@@ -726,7 +743,9 @@ export default function MyProfilePage() {
             {profile.gender === 'female' && profile.wears_abaya && <FieldRow label="Wears abaya" value={displayValue({ yes: 'Yes', no: 'No', sometimes: 'Sometimes' }, profile.wears_abaya)} />}
             {profile.gender === 'male' && <FieldRow label="Keeps beard" value={profile.keeps_beard === true ? 'Yes' : profile.keeps_beard === false ? 'No' : null} />}
             <FieldRow label="Smoker" value={profile.smoker === true ? 'Yes' : profile.smoker === false ? 'No' : null} />
-            {profile.quran_engagement_level && <FieldRow label="Quran engagement" value={displayValue(QURAN_LABELS, profile.quran_engagement_level)} />}
+            {profile.quran_frequency && <FieldRow label="Qur'an frequency" value={displayValue(QURAN_FREQUENCY_LABELS, profile.quran_frequency)} />}
+            {profile.quran_depth && <FieldRow label="Qur'an depth" value={displayValue(QURAN_DEPTH_LABELS, profile.quran_depth)} />}
+            {profile.quran_application && <FieldRow label="Qur'an in daily life" value={displayValue(QURAN_APPLICATION_LABELS, profile.quran_application)} />}
           </div>
 
           {/* Bio */}
@@ -1114,12 +1133,26 @@ export default function MyProfilePage() {
                       { value: 'false', label: 'No' },
                     ]} />
                   )}
-                  <EditSelect label="Quran engagement" value={editForm.quranEngagement} onChange={v => setEditForm(f => ({ ...f, quranEngagement: v }))} options={[
-                    { value: '',                       label: 'Not specified' },
-                    { value: 'building_connection',    label: 'Building my connection' },
-                    { value: 'growing_regularly',      label: 'Growing regularly' },
-                    { value: 'consistent_understanding', label: 'Consistent and learning' },
-                    { value: 'deeply_engaged',         label: 'Deeply engaged' },
+                  <EditSelect label="Qur'an frequency" value={editForm.quranFrequency} onChange={v => setEditForm(f => ({ ...f, quranFrequency: v }))} options={[
+                    { value: '',               label: 'Not specified' },
+                    { value: 'daily',          label: 'Daily' },
+                    { value: 'few_times_week', label: 'A few times a week' },
+                    { value: 'weekly',         label: 'Weekly' },
+                    { value: 'occasionally',   label: 'Occasionally' },
+                  ]} />
+                  <EditSelect label="Qur'an depth" value={editForm.quranDepth} onChange={v => setEditForm(f => ({ ...f, quranDepth: v }))} options={[
+                    { value: '',                 label: 'Not specified' },
+                    { value: 'recitation_only',  label: 'Recitation only' },
+                    { value: 'with_translation', label: 'Recitation with translation' },
+                    { value: 'tafsir_study',     label: 'Study / tafsir' },
+                    { value: 'memorisation',     label: 'Hifz / memorisation' },
+                  ]} />
+                  <EditSelect label="Qur'an in daily life" value={editForm.quranApplication} onChange={v => setEditForm(f => ({ ...f, quranApplication: v }))} options={[
+                    { value: '',                   label: 'Not specified' },
+                    { value: 'central_guide',      label: "It's my central guide" },
+                    { value: 'regular_reflection', label: 'I reflect on it regularly' },
+                    { value: 'growing_connection', label: "I'm building my connection" },
+                    { value: 'formal_learning',    label: 'Formal learning setting' },
                   ]} />
                 </div>
               )}

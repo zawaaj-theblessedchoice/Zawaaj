@@ -37,7 +37,9 @@ interface ProfileFields {
   wearsNiqab?:          string
   wearsAbaya?:          string
   keepsBeard?:          boolean | null
-  quranEngagementLevel?: string
+  quranFrequency?: string
+  quranDepth?: string
+  quranApplication?: string
   bio?:                 string
   marriageReason?:      string
   openToMaritalStatus?: string
@@ -165,7 +167,9 @@ export async function POST(request: Request): Promise<Response> {
             wears_niqab: profile.gender === 'female' ? (profile.wearsNiqab || null) : null,
             wears_abaya: profile.gender === 'female' ? (profile.wearsAbaya || null) : null,
             keeps_beard: profile.gender === 'male' ? (profile.keepsBeard || null) : null,
-            quran_engagement_level: profile.quranEngagementLevel ?? null,
+            quran_frequency:    profile.quranFrequency    ?? null,
+            quran_depth:        profile.quranDepth        ?? null,
+            quran_application:  profile.quranApplication  ?? null,
             bio: profile.bio ?? null,
             pref_age_min: profile.prefAgeMin ?? null, pref_age_max: profile.prefAgeMax ?? null,
             pref_location: profile.prefLocation ?? null, pref_ethnicity: profile.prefEthnicity ?? null,
@@ -257,7 +261,9 @@ export async function POST(request: Request): Promise<Response> {
             wears_niqab: profile.gender === 'female' ? (profile.wearsNiqab || null) : null,
             wears_abaya: profile.gender === 'female' ? (profile.wearsAbaya || null) : null,
             keeps_beard: profile.gender === 'male' ? (profile.keepsBeard || null) : null,
-            quran_engagement_level: profile.quranEngagementLevel ?? null,
+            quran_frequency:    profile.quranFrequency    ?? null,
+            quran_depth:        profile.quranDepth        ?? null,
+            quran_application:  profile.quranApplication  ?? null,
             bio: profile.bio ?? null,
             pref_age_min: profile.prefAgeMin ?? null, pref_age_max: profile.prefAgeMax ?? null,
             pref_location: profile.prefLocation ?? null, pref_ethnicity: profile.prefEthnicity ?? null,
@@ -413,7 +419,9 @@ export async function POST(request: Request): Promise<Response> {
           wears_niqab:           profile.gender === 'female' ? (profile.wearsNiqab || null) : null,
           wears_abaya:           profile.gender === 'female' ? (profile.wearsAbaya || null) : null,
           keeps_beard:           profile.gender === 'male'   ? (profile.keepsBeard || null) : null,
-          quran_engagement_level: profile.quranEngagementLevel ?? null,
+          quran_frequency:    profile.quranFrequency    ?? null,
+          quran_depth:        profile.quranDepth        ?? null,
+          quran_application:  profile.quranApplication  ?? null,
           bio:                   profile.bio               ?? null,
           pref_age_min:          profile.prefAgeMin        ?? null,
           pref_age_max:          profile.prefAgeMax        ?? null,
