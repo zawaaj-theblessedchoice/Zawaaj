@@ -322,6 +322,18 @@ function StandardInviteContent({ tokenParam }: { tokenParam: string }) {
   const [error, setError]         = useState<string | null>(null)
   const [accepting, setAccepting] = useState(false)
   const [done, setDone]           = useState(false)
+  // 'loading' while we check auth; 'unauthenticated' shows the choice screen;
+  // 'authenticated' shows the Accept invite button.
+  const [authStatus, setAuthStatus] = useState<'loading' | 'unauthenticated' | 'authenticated'>('loading')
+
+  // Check auth state on mount — avoids mid-flow redirect surprise.
+  useEffect(() => {
+    void (async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      setAuthStatus(user ? 'authenticated' : 'unauthenticated')
+    })()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => {
     void (async () => {
@@ -357,7 +369,8 @@ function StandardInviteContent({ tokenParam }: { tokenParam: string }) {
   async function acceptInvite() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      router.push(`/login?redirect=/register/accept-invite?token=${tokenParam}`)
+      // Safety guard — the choice screen should have prevented reaching here unauthenticated.
+      setAuthStatus('unauthenticated')
       return
     }
     setAccepting(true)
@@ -430,25 +443,71 @@ function StandardInviteContent({ tokenParam }: { tokenParam: string }) {
                 {(tokenInfo.family_accounts as unknown as { contact_full_name: string }).contact_full_name}
               </strong>.
             </p>
-            <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 28, lineHeight: 1.5 }}>
-              By accepting, your Zawaaj profile will be linked to this family account.
-              The family contact will be able to manage introductions on your behalf.
-            </p>
-            <button
-              onClick={acceptInvite}
-              disabled={accepting}
-              style={{
-                width: '100%', padding: '13px 0', borderRadius: 10, fontSize: 14, fontWeight: 700,
-                border: 'none', cursor: accepting ? 'not-allowed' : 'pointer',
-                background: accepting ? 'rgba(184,150,12,0.4)' : '#B8960C',
-                color: '#111', transition: 'opacity 0.15s', opacity: accepting ? 0.7 : 1,
-              }}
-            >
-              {accepting ? 'Accepting…' : 'Accept invite'}
-            </button>
-            <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 16 }}>
-              You must be signed in to accept this invite.
-            </p>
+
+            {/* ── Auth state: loading ─────────────────────────────────────── */}
+            {authStatus === 'loading' && (
+              <p style={{ fontSize: 13, color: 'var(--text-secondary)', textAlign: 'center' }}>
+                Checking your account…
+              </p>
+            )}
+
+            {/* ── Auth state: unauthenticated — show sign-in / create choice ─ */}
+            {authStatus === 'unauthenticated' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 4, lineHeight: 1.5 }}>
+                  To accept this invitation, please sign in or create an account.
+                </p>
+                <button
+                  onClick={() => router.push(
+                    `/login?redirect=${encodeURIComponent(`/register/accept-invite?token=${tokenParam}`)}`
+                  )}
+                  style={{
+                    width: '100%', padding: '12px 0', borderRadius: 10, fontSize: 14, fontWeight: 700,
+                    border: 'none', cursor: 'pointer',
+                    background: '#B8960C', color: '#111',
+                  }}
+                >
+                  Sign in to existing account →
+                </button>
+                <button
+                  onClick={() => router.push(
+                    `/register?redirect=${encodeURIComponent(`/register/accept-invite?token=${tokenParam}`)}`
+                  )}
+                  style={{
+                    width: '100%', padding: '12px 0', borderRadius: 10, fontSize: 14,
+                    border: '1px solid var(--border-default)', cursor: 'pointer',
+                    background: 'var(--surface-3)', color: 'var(--text-secondary)',
+                  }}
+                >
+                  Create a new account
+                </button>
+                <p style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'center', marginTop: 4 }}>
+                  After signing in you will be returned to this page to complete your invitation.
+                </p>
+              </div>
+            )}
+
+            {/* ── Auth state: authenticated — show accept button ───────────── */}
+            {authStatus === 'authenticated' && (
+              <>
+                <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 28, lineHeight: 1.5 }}>
+                  By accepting, your Zawaaj profile will be linked to this family account.
+                  The family contact will be able to manage introductions on your behalf.
+                </p>
+                <button
+                  onClick={acceptInvite}
+                  disabled={accepting}
+                  style={{
+                    width: '100%', padding: '13px 0', borderRadius: 10, fontSize: 14, fontWeight: 700,
+                    border: 'none', cursor: accepting ? 'not-allowed' : 'pointer',
+                    background: accepting ? 'rgba(184,150,12,0.4)' : '#B8960C',
+                    color: '#111', transition: 'opacity 0.15s', opacity: accepting ? 0.7 : 1,
+                  }}
+                >
+                  {accepting ? 'Accepting…' : 'Accept invite'}
+                </button>
+              </>
+            )}
           </>
         )}
       </div>
