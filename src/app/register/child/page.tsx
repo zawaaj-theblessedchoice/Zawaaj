@@ -50,7 +50,7 @@ const MARITAL_OPTIONS = [
   { value: 'never_married', label: 'Single (never married)' },
   { value: 'divorced',      label: 'Divorced' },
   { value: 'widowed',       label: 'Widowed' },
-  { value: 'married',       label: 'Married' },
+  { value: 'annulled',      label: 'Annulled' },
 ]
 
 const OPEN_TO_MARITAL_OPTIONS = [
