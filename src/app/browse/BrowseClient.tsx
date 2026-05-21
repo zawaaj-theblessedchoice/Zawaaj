@@ -1169,7 +1169,7 @@ export default function BrowseClient({
               </a>
               {familyReadinessState !== 'representative_invited' && (
                 <a
-                  href="/settings"
+                  href="/settings/representative"
                   style={{
                     display: 'inline-block', padding: '6px 14px', borderRadius: 7,
                     fontSize: 12, textDecoration: 'none',

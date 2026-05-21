@@ -47,6 +47,18 @@ export async function POST(request: Request): Promise<Response> {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
+  // Advance readiness_state to 'representative_invited' if still at 'candidate_only'
+  const { error: stateErr } = await supabaseAdmin
+    .from('zawaaj_family_accounts')
+    .update({ readiness_state: 'representative_invited' })
+    .eq('id', body.family_account_id)
+    .eq('readiness_state', 'candidate_only')
+  if (stateErr) {
+    console.error('[invite-tokens] readiness_state update failed:', stateErr.message)
+  } else {
+    console.log('[invite-tokens] readiness_state → representative_invited')
+  }
+
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://zawaaj.uk'
   const url = `${baseUrl}/register/accept-invite?token=${token.token}`
 
