@@ -89,12 +89,9 @@ const themeInitScript = `
       } else if (m === 'light') {
         document.documentElement.removeAttribute('data-theme');
       } else {
-        // 'system' or no stored preference — follow OS
-        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-          document.documentElement.setAttribute('data-theme', 'dark');
-        } else {
-          document.documentElement.removeAttribute('data-theme');
-        }
+        // No stored preference — default to dark (Zawaaj's primary aesthetic).
+        // Users can switch to light or system in Settings.
+        document.documentElement.setAttribute('data-theme', 'dark');
       }
     }
   } catch(e) {}

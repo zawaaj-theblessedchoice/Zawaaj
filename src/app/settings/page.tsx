@@ -113,7 +113,10 @@ function SettingsContent() {
   const [cancelAccessUntil, setCancelAccessUntil] = useState<string | null>(null)
   const [profile, setProfile] = useState<{ display_initials: string; gender: string | null; first_name: string | null } | null>(null)
   const [annual, setAnnual] = useState(false)
-  const [themeMode, setThemeMode] = useState<ThemeMode>('system')
+  const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
+    if (typeof window === 'undefined') return 'system'
+    return (localStorage.getItem('zawaaj-theme') as ThemeMode) ?? 'system'
+  })
 
   // Path B candidate — show Representative tab
   const [isPathBCandidate, setIsPathBCandidate] = useState(false)
