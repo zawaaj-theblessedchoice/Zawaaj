@@ -115,6 +115,9 @@ function SettingsContent() {
   const [annual, setAnnual] = useState(false)
   const [themeMode, setThemeMode] = useState<ThemeMode>('system')
 
+  // Path B candidate — show Representative tab
+  const [isPathBCandidate, setIsPathBCandidate] = useState(false)
+
   // Family rep section (candidates only)
   const [familyRep, setFamilyRep] = useState<FamilyRepInfo | null>(null)
   const [repEmailEdit, setRepEmailEdit] = useState('')
@@ -215,7 +218,7 @@ function SettingsContent() {
           // Check if the user is the primary_user_id of this family account
           const { data: famRow } = await supabase
             .from('zawaaj_family_accounts')
-            .select('id, primary_user_id, contact_full_name, contact_email, readiness_state')
+            .select('id, primary_user_id, contact_full_name, contact_email, readiness_state, registration_path')
             .eq('id', famId)
             .maybeSingle()
 
@@ -225,10 +228,12 @@ function SettingsContent() {
             contact_full_name: string
             contact_email: string
             readiness_state: string
+            registration_path: string
           } | null
 
           // Only show to candidates (not the rep themselves)
           if (fam && fam.primary_user_id !== user.id) {
+            if (fam.registration_path === 'child') setIsPathBCandidate(true)
             setFamilyAccountId(fam.id)
             setFamilyRep({
               readiness_state: fam.readiness_state ?? 'candidate_only',
@@ -348,7 +353,7 @@ function SettingsContent() {
 
         {/* Tab bar */}
         <div style={{ display: 'flex', gap: 4, marginBottom: 28, borderBottom: '0.5px solid var(--border-default)', paddingBottom: 0 }}>
-          {(['membership', 'account', 'privacy'] as const).map(t => (
+          {(['membership', 'account'] as const).map(t => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -369,6 +374,46 @@ function SettingsContent() {
               {t}
             </button>
           ))}
+
+          {/* Representative tab — Path B candidates only */}
+          {isPathBCandidate && (
+            <button
+              onClick={() => router.push('/settings/representative')}
+              style={{
+                padding: '8px 16px',
+                fontSize: 13,
+                fontWeight: 400,
+                color: 'var(--text-muted)',
+                background: 'none',
+                border: 'none',
+                borderBottom: '2px solid transparent',
+                cursor: 'pointer',
+                marginBottom: -1,
+                transition: 'color 0.15s',
+              }}
+            >
+              Representative
+            </button>
+          )}
+
+          <button
+            onClick={() => setTab('privacy')}
+            style={{
+              padding: '8px 16px',
+              fontSize: 13,
+              fontWeight: tab === 'privacy' ? 600 : 400,
+              color: tab === 'privacy' ? 'var(--gold)' : 'var(--text-muted)',
+              background: 'none',
+              border: 'none',
+              borderBottom: tab === 'privacy' ? '2px solid var(--gold)' : '2px solid transparent',
+              cursor: 'pointer',
+              marginBottom: -1,
+              transition: 'color 0.15s',
+              textTransform: 'capitalize',
+            }}
+          >
+            privacy
+          </button>
         </div>
 
         {/* ── Membership tab ─────────────────────────────────────────────── */}
