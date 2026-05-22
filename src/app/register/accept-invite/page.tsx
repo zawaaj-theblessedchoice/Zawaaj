@@ -442,7 +442,7 @@ function StandardInviteContent({ tokenParam }: { tokenParam: string }) {
                 ? `${tokenInfo.invited_name}, you've been`
                 : "You've been"} invited to join the family account registered by{' '}
               <strong style={{ color: 'var(--text-primary)' }}>
-                {(tokenInfo.family_accounts as unknown as { contact_full_name: string }).contact_full_name}
+                {(tokenInfo.family_accounts as unknown as { contact_full_name: string } | null)?.contact_full_name ?? 'your family'}
               </strong>.
             </p>
 
