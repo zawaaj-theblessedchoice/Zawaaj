@@ -60,6 +60,23 @@ export const viewport: Viewport = {
   initialScale: 1,
 }
 
+// Inline script: intercept Supabase implicit-flow recovery redirects.
+// When /auth/reset-password is not in the Supabase Redirect URL allowlist,
+// Supabase falls back to the Site URL and appends #access_token=...&type=recovery.
+// This script runs synchronously before any paint or React hydration, so the
+// user never sees the wrong page — the browser is redirected immediately.
+const authHashScript = `
+  try {
+    var h = window.location.hash;
+    if (h) {
+      var p = new URLSearchParams(h.slice(1));
+      if (p.get('access_token') && p.get('type') === 'recovery') {
+        window.location.replace('/auth/reset-password' + h);
+      }
+    }
+  } catch(e) {}
+`;
+
 // Inline script runs synchronously before first paint — no theme flash.
 // Public marketing pages are always dark.
 // All other pages: use stored preference, fall back to prefers-color-scheme.
@@ -109,6 +126,9 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} ${amiri.variable} h-full antialiased`}
       suppressHydrationWarning
     >
+      {/* Runs before first paint — intercepts Supabase recovery hash on any page */}
+      {/* eslint-disable-next-line @next/next/no-before-interactive-script-component */}
+      <script dangerouslySetInnerHTML={{ __html: authHashScript }} />
       {/* eslint-disable-next-line @next/next/no-before-interactive-script-component */}
       <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       <body className="min-h-full flex flex-col">
