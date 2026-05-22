@@ -1,7 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Amiri } from "next/font/google";
 import "./globals.css";
-import CookieBanner from "@/components/CookieBanner";
+import CookieBanner from "@/components/CookieBanner"
+import AuthHashCatcher from "@/components/AuthHashCatcher";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -111,6 +112,7 @@ export default function RootLayout({
       {/* eslint-disable-next-line @next/next/no-before-interactive-script-component */}
       <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       <body className="min-h-full flex flex-col">
+        <AuthHashCatcher />
         {children}
         <CookieBanner />
       </body>
