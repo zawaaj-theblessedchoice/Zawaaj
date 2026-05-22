@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { supabaseAdmin } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
 import IntroductionsClient, { type IntroStatus } from './IntroductionsClient'
 import type { Plan } from '@/lib/plan-config'
@@ -75,6 +76,13 @@ export default async function IntroductionsPage() {
     familyProfileIds = (familyProfiles ?? []).map(p => p.id as string)
   }
 
+  // Imported profiles have user_id = null, so the standard RLS policies on
+  // zawaaj_introduction_requests (which check user_id = auth.uid()) block a
+  // representative from seeing requests sent or received by the candidate's profile.
+  // We've already verified isRepresentative via the RLS-enforced primary_user_id check
+  // on zawaaj_family_accounts, so it's safe to bypass RLS for IR queries here.
+  const irClient = isRepresentative ? supabaseAdmin : supabase
+
   // Fetch everything in parallel
   const [
     { data: profileRows },
@@ -88,7 +96,7 @@ export default async function IntroductionsPage() {
       .from('zawaaj_profiles')
       .select('id, display_initials, first_name, gender, status')
       .eq('user_id', user.id),
-    supabase
+    irClient
       .from('zawaaj_introduction_requests')
       .select('id, target_profile_id, status, created_at, expires_at, mutual_at, admin_notes, assigned_manager_id')
       .eq('requesting_profile_id', activeProfileId)
@@ -96,13 +104,13 @@ export default async function IntroductionsPage() {
     // Representatives see requests targeting ANY profile in the family account
     // (candidate's profile + their own). Non-reps see only their own profile.
     (isRepresentative && familyProfileIds.length > 0
-      ? supabase
+      ? irClient
           .from('zawaaj_introduction_requests')
           .select('id, requesting_profile_id, status, created_at, expires_at, response_deadline')
           .in('target_profile_id', [...new Set([activeProfileId, ...familyProfileIds])])
           .or('visible_at.is.null,visible_at.lte.' + new Date().toISOString())
           .order('created_at', { ascending: false })
-      : supabase
+      : irClient
           .from('zawaaj_introduction_requests')
           .select('id, requesting_profile_id, status, created_at, expires_at, response_deadline')
           .eq('target_profile_id', activeProfileId)

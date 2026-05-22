@@ -19,7 +19,11 @@ export async function POST(req: NextRequest): Promise<Response> {
       type: 'recovery',
       email: normalised,
       options: {
-        redirectTo: `${SITE_URL}/auth/reset-password`,
+        // Must point to /auth/callback (registered in Supabase Redirect URL allowlist).
+        // Supabase verifies the token there, sets the session cookie, then redirects
+        // to /auth/reset-password. Pointing directly at /auth/reset-password breaks
+        // because that URL isn't in the allowlist — Supabase falls back to the Site URL.
+        redirectTo: `${SITE_URL}/auth/callback`,
       },
     })
 
