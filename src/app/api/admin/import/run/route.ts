@@ -207,7 +207,6 @@ export async function POST(req: NextRequest): Promise<Response> {
             contact_email:           repEmail || null,
             female_contact_name:     rowMap.female_representative_name || null,
             female_contact_number:   rowMap.female_representative_phone || null,
-            city:                    rowMap.city || null,
             plan:                    'voluntary',
             status:                  'pending_email_verification',
             readiness_state:         'candidate_only',
