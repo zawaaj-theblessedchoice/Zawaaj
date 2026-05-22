@@ -407,6 +407,20 @@ export default function LandingPage({ isLoggedIn = false, featuredEvents = [] }:
   const [menuOpen, setMenuOpen] = useState(false)
   const stepGridRef = useStepAnimation()
 
+  // ── Supabase implicit-flow fallback ─────────────────────────────────────────
+  // When /auth/reset-password is not yet in the Supabase Redirect URL allowlist,
+  // Supabase falls back to the Site URL (this page) and appends #access_token=...
+  // to the homepage URL. Detect that and silently forward to the correct handler.
+  useEffect(() => {
+    const hash = window.location.hash
+    if (!hash) return
+    const params = new URLSearchParams(hash.slice(1))
+    if (params.get('access_token') && params.get('type') === 'recovery') {
+      // window.location.replace preserves the hash fragment (router.push does not)
+      window.location.replace('/auth/reset-password' + hash)
+    }
+  }, [])
+
   return (
     <div className="min-h-screen" style={{ background: 'var(--surface)', color: 'var(--text-primary)' }}>
 

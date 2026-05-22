@@ -19,11 +19,14 @@ export async function POST(req: NextRequest): Promise<Response> {
       type: 'recovery',
       email: normalised,
       options: {
-        // Must point to /auth/callback (registered in Supabase Redirect URL allowlist).
-        // Supabase verifies the token there, sets the session cookie, then redirects
-        // to /auth/reset-password. Pointing directly at /auth/reset-password breaks
-        // because that URL isn't in the allowlist — Supabase falls back to the Site URL.
-        redirectTo: `${SITE_URL}/auth/callback`,
+        // generateLink uses the implicit OAuth flow — the redirect appends
+        // #access_token=... as a URL hash, which only client-side JS can read.
+        // /auth/reset-password is a 'use client' page that already handles this:
+        // it reads the hash, calls setSession(), then shows the new-password form.
+        // NOTE: add https://zawaaj.uk/auth/reset-password to Supabase →
+        // Authentication → URL Configuration → Redirect URLs; until then the
+        // LandingPage hash catcher forwards the Site-URL fallback automatically.
+        redirectTo: `${SITE_URL}/auth/reset-password`,
       },
     })
 
