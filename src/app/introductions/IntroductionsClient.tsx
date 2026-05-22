@@ -508,6 +508,12 @@ function ReceivedRequestCard({
   }
 
   async function handleSimpleRespond(action: 'accept' | 'decline') {
+    if (action === 'decline') {
+      const confirmed = window.confirm(
+        'Are you sure you want to decline this introduction? This cannot be undone.'
+      )
+      if (!confirmed) return
+    }
     setSimpleSubmitting(action)
     setSimpleError(null)
     try {

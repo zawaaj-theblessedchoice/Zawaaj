@@ -178,12 +178,14 @@ export async function POST(
         return NextResponse.json({ error: 'Failed to record response' }, { status: 500 })
       }
 
-      // Create the match row immediately
+      // Create the match row immediately.
+      // profile_b_id must be the CANDIDATE's profile (the one that received the request),
+      // NOT the rep's own active profile — in Path B these are different people.
       const { error: matchError } = await supabaseAdmin
         .from('zawaaj_matches')
         .insert({
           profile_a_id: req.requesting_profile_id,  // A = original sender
-          profile_b_id: activeProfileId,             // B = acceptor
+          profile_b_id: req.target_profile_id,       // B = candidate who received the request
           mutual_date: now,
           status: 'pending_verification',
           admin_notified_date: now,

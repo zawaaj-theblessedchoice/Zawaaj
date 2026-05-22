@@ -63,6 +63,18 @@ export default async function IntroductionsPage() {
     .maybeSingle()
   const isRepresentative = !!repAccountRow
 
+  // For representatives: also fetch all profiles in their managed family account so
+  // that received requests targeting the CANDIDATE's profile are included, not just
+  // requests targeting the rep's own profile (which is a different profile in Path B).
+  let familyProfileIds: string[] = []
+  if (isRepresentative && repAccountRow) {
+    const { data: familyProfiles } = await supabase
+      .from('zawaaj_profiles')
+      .select('id')
+      .eq('family_account_id', repAccountRow.id)
+    familyProfileIds = (familyProfiles ?? []).map(p => p.id as string)
+  }
+
   // Fetch everything in parallel
   const [
     { data: profileRows },
@@ -81,12 +93,22 @@ export default async function IntroductionsPage() {
       .select('id, target_profile_id, status, created_at, expires_at, mutual_at, admin_notes, assigned_manager_id')
       .eq('requesting_profile_id', activeProfileId)
       .order('created_at', { ascending: false }),
-    supabase
-      .from('zawaaj_introduction_requests')
-      .select('id, requesting_profile_id, status, created_at, expires_at, response_deadline')
-      .eq('target_profile_id', activeProfileId)
-      .or('visible_at.is.null,visible_at.lte.' + new Date().toISOString())
-      .order('created_at', { ascending: false }),
+    // Representatives see requests targeting ANY profile in the family account
+    // (candidate's profile + their own). Non-reps see only their own profile.
+    (isRepresentative && familyProfileIds.length > 0
+      ? supabase
+          .from('zawaaj_introduction_requests')
+          .select('id, requesting_profile_id, status, created_at, expires_at, response_deadline')
+          .in('target_profile_id', [...new Set([activeProfileId, ...familyProfileIds])])
+          .or('visible_at.is.null,visible_at.lte.' + new Date().toISOString())
+          .order('created_at', { ascending: false })
+      : supabase
+          .from('zawaaj_introduction_requests')
+          .select('id, requesting_profile_id, status, created_at, expires_at, response_deadline')
+          .eq('target_profile_id', activeProfileId)
+          .or('visible_at.is.null,visible_at.lte.' + new Date().toISOString())
+          .order('created_at', { ascending: false })
+    ),
     supabase
       .from('zawaaj_saved_profiles')
       .select('id', { count: 'exact', head: true })
