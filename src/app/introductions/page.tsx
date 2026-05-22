@@ -35,45 +35,73 @@ export default async function IntroductionsPage() {
   if (role === 'super_admin') redirect('/admin')
   if (role === 'manager') redirect('/admin/introductions')
 
-  // Get active profile
-  const { data: settings } = await supabase
-    .from('zawaaj_user_settings')
-    .select('active_profile_id')
-    .eq('user_id', user.id)
-    .maybeSingle()
+  // ── Settings + representative check (parallel) ───────────────────────────
+  // Both are needed before the early-return so pure reps (no own approved
+  // profile) are not bounced to /pending when they have family profiles.
+  const [
+    { data: settings },
+    { data: repAccountRow },
+  ] = await Promise.all([
+    supabase
+      .from('zawaaj_user_settings')
+      .select('active_profile_id')
+      .eq('user_id', user.id)
+      .maybeSingle(),
+    supabase
+      .from('zawaaj_family_accounts')
+      .select('id')
+      .eq('primary_user_id', user.id)
+      .maybeSingle(),
+  ])
 
-  if (!settings?.active_profile_id) redirect('/pending')
-
-  const activeProfileId = settings.active_profile_id
-
-  // Verify profile is approved
-  const { data: profile } = await supabase
-    .from('zawaaj_profiles')
-    .select('id, status, display_initials, first_name, gender')
-    .eq('id', activeProfileId)
-    .single()
-
-  if (!profile || profile.status !== 'approved') redirect('/pending')
-
-  // Check if the current user is the family representative (primary_user_id).
-  // Determines whether to show the respond UI (rep) or candidate preference UI (candidate).
-  const { data: repAccountRow } = await supabase
-    .from('zawaaj_family_accounts')
-    .select('id')
-    .eq('primary_user_id', user.id)
-    .maybeSingle()
+  const activeProfileId: string | null = settings?.active_profile_id ?? null
   const isRepresentative = !!repAccountRow
 
-  // For representatives: also fetch all profiles in their managed family account so
-  // that received requests targeting the CANDIDATE's profile are included, not just
-  // requests targeting the rep's own profile (which is a different profile in Path B).
+  // Fetch all family profile IDs up-front — needed for the early-return
+  // decision and for the received-requests query.
+  // Also fetch display fields so we can build a viewerProfile for pure reps.
+  interface FamilyProfileRow {
+    id: string
+    display_initials: string
+    first_name: string | null
+    gender: string | null
+    status: string
+  }
+  let familyProfileRows: FamilyProfileRow[] = []
   let familyProfileIds: string[] = []
   if (isRepresentative && repAccountRow) {
-    const { data: familyProfiles } = await supabase
+    const { data: fp } = await supabase
       .from('zawaaj_profiles')
-      .select('id')
+      .select('id, display_initials, first_name, gender, status')
       .eq('family_account_id', repAccountRow.id)
-    familyProfileIds = (familyProfiles ?? []).map(p => p.id as string)
+    familyProfileRows = (fp ?? []) as FamilyProfileRow[]
+    familyProfileIds  = familyProfileRows.map(p => p.id)
+  }
+
+  // ── Early return ─────────────────────────────────────────────────────────
+  // Allow through if the user has their own active profile OR is a rep with
+  // at least one managed family profile (pure-rep path — no own profile).
+  if (!activeProfileId && (!isRepresentative || familyProfileIds.length === 0)) {
+    redirect('/pending')
+  }
+
+  // ── Own profile check ────────────────────────────────────────────────────
+  // Only required when there IS an activeProfileId.
+  // Representatives with family profiles are allowed through even when their
+  // own profile is not approved (or doesn't exist).
+  type ProfileRow = { id: string; status: string; display_initials: string; first_name: string | null; gender: string | null }
+  let profile: ProfileRow | null = null
+  if (activeProfileId) {
+    const { data: profileData } = await supabase
+      .from('zawaaj_profiles')
+      .select('id, status, display_initials, first_name, gender')
+      .eq('id', activeProfileId)
+      .single()
+    profile = profileData as ProfileRow | null
+
+    if ((!profile || profile.status !== 'approved') && (!isRepresentative || familyProfileIds.length === 0)) {
+      redirect('/pending')
+    }
   }
 
   // Imported profiles have user_id = null, so the standard RLS policies on
@@ -82,6 +110,13 @@ export default async function IntroductionsPage() {
   // We've already verified isRepresentative via the RLS-enforced primary_user_id check
   // on zawaaj_family_accounts, so it's safe to bypass RLS for IR queries here.
   const irClient = isRepresentative ? supabaseAdmin : supabase
+
+  // Target IDs for the received-requests query.
+  // Pure rep (activeProfileId = null): use family profiles only.
+  // Regular member or Path-B rep: union of own profile + family profiles.
+  const targetIds: string[] = activeProfileId
+    ? [...new Set([activeProfileId, ...familyProfileIds])]
+    : familyProfileIds
 
   // Fetch everything in parallel
   const [
@@ -96,31 +131,29 @@ export default async function IntroductionsPage() {
       .from('zawaaj_profiles')
       .select('id, display_initials, first_name, gender, status')
       .eq('user_id', user.id),
-    irClient
-      .from('zawaaj_introduction_requests')
-      .select('id, target_profile_id, status, created_at, expires_at, mutual_at, admin_notes, assigned_manager_id')
-      .eq('requesting_profile_id', activeProfileId)
-      .order('created_at', { ascending: false }),
-    // Representatives see requests targeting ANY profile in the family account
-    // (candidate's profile + their own). Non-reps see only their own profile.
-    (isRepresentative && familyProfileIds.length > 0
+    // Sent requests — only meaningful when the user has their own active profile.
+    // Pure reps (activeProfileId = null) have no profile to send from; skip.
+    activeProfileId
       ? irClient
           .from('zawaaj_introduction_requests')
-          .select('id, requesting_profile_id, status, created_at, expires_at, response_deadline')
-          .in('target_profile_id', [...new Set([activeProfileId, ...familyProfileIds])])
-          .or('visible_at.is.null,visible_at.lte.' + new Date().toISOString())
+          .select('id, target_profile_id, status, created_at, expires_at, mutual_at, admin_notes, assigned_manager_id')
+          .eq('requesting_profile_id', activeProfileId)
           .order('created_at', { ascending: false })
-      : irClient
-          .from('zawaaj_introduction_requests')
-          .select('id, requesting_profile_id, status, created_at, expires_at, response_deadline')
-          .eq('target_profile_id', activeProfileId)
-          .or('visible_at.is.null,visible_at.lte.' + new Date().toISOString())
-          .order('created_at', { ascending: false })
-    ),
-    supabase
-      .from('zawaaj_saved_profiles')
-      .select('id', { count: 'exact', head: true })
-      .eq('profile_id', activeProfileId),
+      : Promise.resolve({ data: [], error: null }),
+    // Received requests — use targetIds which handles null activeProfileId.
+    irClient
+      .from('zawaaj_introduction_requests')
+      .select('id, requesting_profile_id, status, created_at, expires_at, response_deadline')
+      .in('target_profile_id', targetIds)
+      .or('visible_at.is.null,visible_at.lte.' + new Date().toISOString())
+      .order('created_at', { ascending: false }),
+    // Shortlist count — only meaningful when user has their own profile.
+    activeProfileId
+      ? supabase
+          .from('zawaaj_saved_profiles')
+          .select('id', { count: 'exact', head: true })
+          .eq('profile_id', activeProfileId)
+      : Promise.resolve({ count: 0, data: null, error: null }),
     supabase
       .from('zawaaj_response_templates')
       .select('id, tone, text, display_order')
@@ -252,19 +285,26 @@ export default async function IntroductionsPage() {
     display_order: t.display_order as number,
   }))
 
+  // For pure reps (no own approved profile), fall back to the first managed
+  // family profile so the UI has something meaningful to render.
+  const firstFamilyProfile = familyProfileRows[0] ?? null
+  const viewerProfile = profile ?? (firstFamilyProfile
+    ? {
+        id:               firstFamilyProfile.id,
+        display_initials: firstFamilyProfile.display_initials,
+        first_name:       firstFamilyProfile.first_name ?? null,
+        gender:           firstFamilyProfile.gender ?? null,
+      }
+    : { id: '', display_initials: '?', first_name: null, gender: null })
+
   return (
     <IntroductionsClient
       requests={requests}
       receivedRequests={receivedRequests}
       shortlistCount={shortlistCount}
-      viewerProfile={{
-        id: profile.id,
-        display_initials: profile.display_initials,
-        first_name: profile.first_name,
-        gender: profile.gender,
-      }}
+      viewerProfile={viewerProfile}
       managedProfiles={managedProfiles}
-      activeProfileId={activeProfileId}
+      activeProfileId={activeProfileId ?? ''}
       responseTemplates={responseTemplates}
       plan={plan}
       isRepresentative={isRepresentative}
