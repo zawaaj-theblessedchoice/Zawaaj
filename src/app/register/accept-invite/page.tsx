@@ -138,8 +138,8 @@ function ClaimInviteContent({ tokenId }: { tokenId: string }) {
         background: 'var(--surface-2)', border: '1px solid var(--border-default)',
         borderRadius: 20, padding: 40,
       }}>
-        <div style={{ textAlign: 'center', marginBottom: 28 }}>
-          <ZawaajLogo height={220} />
+        <div style={{ marginBottom: 28 }}>
+          <ZawaajLogo height={220} style={{ display: 'block', margin: '0 auto' }} />
         </div>
 
         {loading && (
@@ -403,7 +403,7 @@ function StandardInviteContent({ tokenParam }: { tokenParam: string }) {
         borderRadius: 20, padding: 40, textAlign: 'center',
       }}>
         <div style={{ marginBottom: 28 }}>
-          <ZawaajLogo height={220} />
+          <ZawaajLogo height={220} style={{ display: 'block', margin: '0 auto' }} />
         </div>
 
         {loading && (
