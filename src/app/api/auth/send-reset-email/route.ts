@@ -30,13 +30,25 @@ export async function POST(req: NextRequest): Promise<Response> {
       },
     })
 
-    if (linkErr || !data?.properties?.action_link) {
+    if (linkErr || !data?.properties?.hashed_token) {
       // Don't reveal whether the email exists — return success regardless
       console.error('[send-reset-email] generateLink error:', linkErr?.message)
       return NextResponse.json({ ok: true })
     }
 
-    const resetLink = data.properties.action_link
+    // ── Scanner-safe link ─────────────────────────────────────────────────────
+    // We deliberately do NOT use data.properties.action_link here.
+    // action_link is a Supabase-hosted GET endpoint that immediately validates
+    // and consumes the OTP token when visited — corporate email security scanners
+    // (Barracuda, Cisco IronPort, etc.) pre-fetch every URL in an email, which
+    // silently burns the token before the user ever clicks the link.
+    //
+    // Instead we put the raw hashed_token into our own /auth/reset-password URL.
+    // That page is a 'use client' component: email scanners receive only the
+    // server-rendered HTML shell and never execute the JavaScript that calls
+    // supabase.auth.verifyOtp(). The token is therefore consumed only when a
+    // real browser visits the page and hydrates React.
+    const resetLink = `${SITE_URL}/auth/reset-password?token_hash=${encodeURIComponent(data.properties.hashed_token)}&type=recovery`
 
     // Send via Resend directly (bypasses Supabase SMTP entirely)
     const result = await sendEmail({

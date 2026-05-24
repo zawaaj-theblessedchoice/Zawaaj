@@ -20,7 +20,7 @@ export default function ResetPasswordPage() {
     const supabase = createClient()
 
     async function init() {
-      // 1. Try cookie-based session first (PKCE flow)
+      // 1. Cookie-based session (already signed in, e.g. from PKCE callback)
       const { data: { session } } = await supabase.auth.getSession()
       if (session) {
         setHasSession(true)
@@ -28,20 +28,47 @@ export default function ResetPasswordPage() {
         return
       }
 
-      // 2. Try implicit flow — parse access_token & refresh_token from hash
-      const hash = window.location.hash.substring(1)
-      const params = new URLSearchParams(hash)
-      const accessToken  = params.get('access_token')
-      const refreshToken = params.get('refresh_token')
-      const type         = params.get('type')
+      // 2. Scanner-safe token_hash flow (primary path for password reset emails)
+      //    The email link points to /auth/reset-password?token_hash=...&type=recovery
+      //    so the Supabase verify URL is never in the email. Email scanners that
+      //    pre-fetch URLs only receive the server-rendered HTML of this page and
+      //    never execute this JavaScript, so the token is consumed only here by
+      //    a real browser. The verifyOtp call sets a session cookie on success.
+      const searchParams = new URLSearchParams(window.location.search)
+      const tokenHash = searchParams.get('token_hash')
+      const paramType = searchParams.get('type')
 
-      if (accessToken && refreshToken && type === 'recovery') {
-        const { data, error } = await supabase.auth.setSession({
+      if (tokenHash && paramType === 'recovery') {
+        const { data: otpData, error: otpErr } = await supabase.auth.verifyOtp({
+          token_hash: tokenHash,
+          type:       'recovery',
+        })
+        if (!otpErr && otpData.session) {
+          // Remove the token from the URL bar — it's single-use and now spent
+          window.history.replaceState(null, '', window.location.pathname)
+          setHasSession(true)
+          setChecking(false)
+          return
+        }
+        // verifyOtp failed (expired / already used) — fall through to show error
+        setChecking(false)
+        return
+      }
+
+      // 3. Legacy implicit flow — access_token delivered as URL hash fragment
+      //    Kept for backwards compatibility with any emails sent before this fix.
+      const hash = window.location.hash.substring(1)
+      const hashParams = new URLSearchParams(hash)
+      const accessToken  = hashParams.get('access_token')
+      const refreshToken = hashParams.get('refresh_token')
+      const hashType     = hashParams.get('type')
+
+      if (accessToken && refreshToken && hashType === 'recovery') {
+        const { data: sessData, error: sessErr } = await supabase.auth.setSession({
           access_token:  accessToken,
           refresh_token: refreshToken,
         })
-        if (!error && data.session) {
-          // Clean the tokens out of the URL
+        if (!sessErr && sessData.session) {
           window.history.replaceState(null, '', window.location.pathname)
           setHasSession(true)
           setChecking(false)
