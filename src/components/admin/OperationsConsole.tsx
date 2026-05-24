@@ -198,16 +198,44 @@ export function OperationsConsole() {
 
   async function handleBulkApprove() {
     const ids = Array.from(selectedIds)
-    for (const id of ids) {
-      await handleApprove(id)
+    try {
+      const res = await fetch('/api/admin/profiles', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids, action: 'approve' }),
+      })
+      const body = await res.json() as { processed?: number; error?: string }
+      if (!res.ok) throw new Error(body.error ?? 'Bulk approve failed')
+      const n = body.processed ?? ids.length
+      setProfiles(prev =>
+        prev.map(p => ids.includes(p.id) ? { ...p, status: 'approved' } : p)
+      )
+      loadMetrics()
+      addToast(`${n} profile${n === 1 ? '' : 's'} approved`, 'success')
+    } catch (err) {
+      addToast(err instanceof Error ? err.message : 'Bulk approve failed', 'error')
     }
     setSelectedIds(new Set())
   }
 
   async function handleBulkReject() {
     const ids = Array.from(selectedIds)
-    for (const id of ids) {
-      await handleReject(id)
+    try {
+      const res = await fetch('/api/admin/profiles', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids, action: 'reject' }),
+      })
+      const body = await res.json() as { processed?: number; error?: string }
+      if (!res.ok) throw new Error(body.error ?? 'Bulk reject failed')
+      const n = body.processed ?? ids.length
+      setProfiles(prev =>
+        prev.map(p => ids.includes(p.id) ? { ...p, status: 'rejected' } : p)
+      )
+      loadMetrics()
+      addToast(`${n} profile${n === 1 ? '' : 's'} rejected`, 'success')
+    } catch (err) {
+      addToast(err instanceof Error ? err.message : 'Bulk reject failed', 'error')
     }
     setSelectedIds(new Set())
   }

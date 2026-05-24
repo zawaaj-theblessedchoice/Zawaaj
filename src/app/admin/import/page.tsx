@@ -84,8 +84,11 @@ export default function ImportPage() {
   const [previewError, setPreviewError]   = useState<string | null>(null)
 
   const [running, setRunning]     = useState(false)
-  const [runResult, setRunResult] = useState<{ success: number; errors: number; batchId: string } | null>(null)
+  const [runResult, setRunResult] = useState<{ success: number; errors: number; batchId: string; familyAccountIds: string[] } | null>(null)
   const [runError, setRunError]   = useState<string | null>(null)
+
+  const [sendingInvites, setSendingInvites] = useState(false)
+  const [inviteResult, setInviteResult]     = useState<{ sent: number; failed: number } | null>(null)
 
   const [batches, setBatches]               = useState<Batch[]>([])
   const [historyLoading, setHistoryLoading] = useState(true)
@@ -168,15 +171,42 @@ export default function ImportPage() {
       const res = await fetch('/api/admin/import/run', {
         method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: csvText,
       })
-      const json = await res.json() as { success?: number; errors?: number; batchId?: string; error?: string }
+      const json = await res.json() as { success?: number; errors?: number; batchId?: string; error?: string; results?: Array<{ family_account_id?: string }> }
       if (!res.ok) throw new Error(json.error ?? 'Import failed')
-      setRunResult({ success: json.success ?? 0, errors: json.errors ?? 0, batchId: json.batchId ?? '' })
+      const familyAccountIds = (json.results ?? [])
+        .map(r => r.family_account_id)
+        .filter((id): id is string => !!id)
+      setRunResult({ success: json.success ?? 0, errors: json.errors ?? 0, batchId: json.batchId ?? '', familyAccountIds })
+      setInviteResult(null)
       void loadHistory()
     } catch (err) {
       setRunError(err instanceof Error ? err.message : 'Unknown error')
     } finally {
       setRunning(false)
     }
+  }
+
+  async function handleSendInvites() {
+    if (!runResult?.familyAccountIds.length) return
+    setSendingInvites(true)
+    setInviteResult(null)
+    let sent = 0
+    let failed = 0
+    for (const familyAccountId of runResult.familyAccountIds) {
+      try {
+        const res = await fetch('/api/admin/activation', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'send_magic_link', family_account_id: familyAccountId }),
+        })
+        if (res.ok) sent++
+        else failed++
+      } catch {
+        failed++
+      }
+    }
+    setSendingInvites(false)
+    setInviteResult({ sent, failed })
   }
 
   const canRun = preview !== null && (preview.validCount + preview.existingFamilyCount + preview.missingDataCount) > 0 && runResult === null
@@ -434,9 +464,34 @@ export default function ImportPage() {
                 <span className="font-mono text-xs" style={{ color: 'var(--admin-muted)' }}>{runResult.batchId}</span>
               </div>
             </div>
-            <p className="mt-4 text-xs" style={{ color: 'var(--admin-muted)' }}>
-              Next: approve profiles in the Operations console, then use the Manager Activation workflow to send claim invites in batches of 5.
-            </p>
+            <div className="mt-4 flex items-center gap-4 flex-wrap">
+              <p className="text-xs" style={{ color: 'var(--admin-muted)' }}>
+                Next: approve profiles in Operations, then send claim invites below (batches of 5 recommended).
+              </p>
+              {runResult.familyAccountIds.length > 0 && !inviteResult && (
+                <button
+                  onClick={() => { void handleSendInvites() }}
+                  disabled={sendingInvites}
+                  className="shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{ background: 'rgba(234,179,8,0.12)', border: '1px solid rgba(234,179,8,0.35)', color: 'var(--status-warning)' }}
+                >
+                  {sendingInvites ? (
+                    <>
+                      <svg className="animate-spin" width="13" height="13" viewBox="0 0 14 14" fill="none">
+                        <circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.5" strokeDasharray="25" strokeDashoffset="8" strokeLinecap="round"/>
+                      </svg>
+                      Sending…
+                    </>
+                  ) : `Send claim invites (${runResult.familyAccountIds.length} ${runResult.familyAccountIds.length === 1 ? 'family' : 'families'})`}
+                </button>
+              )}
+              {inviteResult && (
+                <span className="text-xs font-medium" style={{ color: inviteResult.failed > 0 ? 'var(--status-warning)' : 'var(--status-success)' }}>
+                  {inviteResult.sent} invite{inviteResult.sent === 1 ? '' : 's'} sent
+                  {inviteResult.failed > 0 ? `, ${inviteResult.failed} failed` : ''}
+                </span>
+              )}
+            </div>
           </section>
         )}
 
