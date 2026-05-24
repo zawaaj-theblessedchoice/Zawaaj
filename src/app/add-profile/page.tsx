@@ -163,6 +163,14 @@ const INITIAL_FORM: AddProfileForm = {
   prefPartnerChildren: '',
 }
 
+// ─── Display maps ─────────────────────────────────────────────────────────────
+
+const POLYGAMY_DISPLAY: Record<string, string> = {
+  not_open:        'Not open to polygamy',
+  open_to_discuss: 'Open to discussion',
+  yes:             'Yes, open to polygamy',
+}
+
 // ─── Utilities ────────────────────────────────────────────────────────────────
 
 function wordCount(text: string): number {
@@ -709,11 +717,15 @@ function Step4({
       </Field>
       {form.gender === 'male' && (
         <Field label="Polygamy openness">
-          <ChipGroup
-            options={['No', 'Open to discussion', 'Yes']}
+          <StyledSelect
             value={form.polygamyOpenness}
-            onChange={(val) => update({ polygamyOpenness: val as string })}
-          />
+            onChange={(e) => update({ polygamyOpenness: e.target.value })}
+          >
+            <option value="">Select…</option>
+            <option value="not_open">Not open to polygamy</option>
+            <option value="open_to_discuss">Open to discussion</option>
+            <option value="yes">Yes, open to polygamy</option>
+          </StyledSelect>
         </Field>
       )}
     </>
@@ -882,7 +894,7 @@ function Step7({
         <ReviewRow label="Open to relocation" value={form.openToRelocation || null} />
         <ReviewRow label="Partner's children" value={form.openToPartnersChildren || null} />
         {form.gender === 'male' && (
-          <ReviewRow label="Polygamy openness" value={form.polygamyOpenness || null} />
+          <ReviewRow label="Polygamy openness" value={form.polygamyOpenness ? (POLYGAMY_DISPLAY[form.polygamyOpenness] ?? form.polygamyOpenness) : null} />
         )}
       </ReviewSection>
 

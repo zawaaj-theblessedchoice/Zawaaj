@@ -9,6 +9,7 @@ import AvatarInitials from '@/components/AvatarInitials'
 import { getPlanConfig } from '@/lib/plan-config'
 import type { Plan } from '@/lib/plan-config'
 import { fetchPlanLimits } from '@/lib/config/profileOptions'
+import { RELOCATION_LABELS, EDUCATION_LABELS, RELIGIOSITY_LABELS } from '@/lib/labels'
 
 interface Profile {
   id: string
@@ -427,13 +428,13 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
               <FieldRow label="Height" value={profile.height} />
               <FieldRow label="Living situation" value={displayValue(LIVING_MAP, profile.living_situation)} />
               <FieldRow label="Languages" value={profile.languages_spoken?.join(', ') ?? null} />
-              <FieldRow label="Open to relocation" value={profile.open_to_relocation} />
+              <FieldRow label="Open to relocation" value={displayValue(RELOCATION_LABELS, profile.open_to_relocation)} />
             </div>
 
             {/* Education & profession */}
             <SectionLabel>Education & profession</SectionLabel>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 24px' }}>
-              <FieldRow label="Education level" value={profile.education_level} />
+              <FieldRow label="Education level" value={displayValue(EDUCATION_LABELS, profile.education_level)} />
               <FieldRow label="Institution" value={profile.education_detail} />
               <FieldRow label="Profession" value={profile.profession_detail} />
             </div>
@@ -442,7 +443,7 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
             <SectionLabel>Faith & practice</SectionLabel>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 24px' }}>
               <FieldRow label="School of thought" value={profile.school_of_thought} />
-              <FieldRow label="Religiosity" value={profile.religiosity} />
+              <FieldRow label="Religiosity" value={displayValue(RELIGIOSITY_LABELS, profile.religiosity)} />
               <FieldRow label="Prayer regularity" value={displayValue(PRAYER_MAP, profile.prayer_regularity)} />
               {profile.gender === 'female' && (
                 <FieldRow label="Wears hijab" value={profile.wears_hijab === true ? 'Yes' : profile.wears_hijab === false ? 'No' : null} />
