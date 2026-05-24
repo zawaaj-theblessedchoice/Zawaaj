@@ -459,6 +459,18 @@ function RegisterChildPageInner() {
     return totalCm > 0 ? String(totalCm) : ''
   }
 
+  function calculateAge(dateOfBirth: string): number {
+    const today = new Date()
+    const dob = new Date(dateOfBirth)
+    if (isNaN(dob.getTime())) return -1
+    let age = today.getFullYear() - dob.getFullYear()
+    const monthDiff = today.getMonth() - dob.getMonth()
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+      age--
+    }
+    return age
+  }
+
   function validateStep(): string | null {
     // Validate based on the current DATA step
     if (step === 0) {
@@ -473,13 +485,12 @@ function RegisterChildPageInner() {
       if (!form.lastName.trim())        return 'Last name is required.'
       if (!form.dateOfBirth)            return 'Date of birth is required.'
       if (form.dateOfBirth) {
-        const today = new Date()
-        const dob   = new Date(form.dateOfBirth)
-        if (dob >= today) return 'Date of birth cannot be in the future.'
-        const age = today.getFullYear() - dob.getFullYear() -
-          (today < new Date(dob.setFullYear(today.getFullYear())) ? 1 : 0)
-        if (age < 18) return 'Candidate must be at least 18 years old to register.'
-        if (age > 80) return 'Please check the date of birth entered.'
+        const dob = new Date(form.dateOfBirth)
+        if (isNaN(dob.getTime()))       return 'Please enter a valid date of birth.'
+        if (dob >= new Date())          return 'Date of birth cannot be in the future.'
+        const age = calculateAge(form.dateOfBirth)
+        if (age < 18) return 'Candidates must be at least 18 years old to register on Zawaaj.'
+        if (age > 80) return 'Please check the date of birth — the candidate appears to be over 80 years old.'
       }
       if (!form.gender)                 return 'Gender is required.'
       if (!form.location.trim())        return 'City / location is required.'
@@ -936,14 +947,20 @@ function RegisterChildPageInner() {
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <Field label="Date of birth" required>
-                <input
-                  type="date"
-                  value={form.dateOfBirth}
-                  onChange={e => set('dateOfBirth', e.target.value)}
-                  max={(() => { const d = new Date(); d.setFullYear(d.getFullYear() - 18); return d.toISOString().split('T')[0] })()}
-                  min={(() => { const d = new Date(); d.setFullYear(d.getFullYear() - 80); return d.toISOString().split('T')[0] })()}
-                  style={inputStyle}
-                />
+                {(() => {
+                  const maxDob = new Date(); maxDob.setFullYear(maxDob.getFullYear() - 18)
+                  const minDob = new Date(); minDob.setFullYear(minDob.getFullYear() - 80)
+                  return (
+                    <input
+                      type="date"
+                      value={form.dateOfBirth}
+                      onChange={e => set('dateOfBirth', e.target.value)}
+                      max={maxDob.toISOString().split('T')[0]}
+                      min={minDob.toISOString().split('T')[0]}
+                      style={inputStyle}
+                    />
+                  )
+                })()}
               </Field>
               <Field label="Gender" required>
                 <select value={form.gender} onChange={e => set('gender', e.target.value as 'male' | 'female' | '')}

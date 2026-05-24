@@ -87,16 +87,26 @@ interface FamilyRegistrationPayload {
 // ─── DOB age validation ───────────────────────────────────────────────────────
 // Returns an error string if invalid, null if OK.
 // Accepts YYYY-MM-DD strings as produced by <input type="date">.
+function calculateAge(dateOfBirth: string): number {
+  const today = new Date()
+  const dob = new Date(dateOfBirth)
+  if (isNaN(dob.getTime())) return -1
+  let age = today.getFullYear() - dob.getFullYear()
+  const monthDiff = today.getMonth() - dob.getMonth()
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+    age--
+  }
+  return age
+}
+
 function validateDob(dateOfBirth: string): string | null {
   const dob = new Date(dateOfBirth)
-  if (isNaN(dob.getTime())) return 'Invalid date of birth.'
+  if (isNaN(dob.getTime())) return 'Please enter a valid date of birth.'
   const today = new Date()
   if (dob >= today) return 'Date of birth cannot be in the future.'
-  const age =
-    today.getFullYear() - dob.getFullYear() -
-    (today < new Date(new Date(dob).setFullYear(today.getFullYear())) ? 1 : 0)
-  if (age < 18) return 'Candidate must be at least 18 years old.'
-  if (age > 80) return 'Invalid date of birth — please check the year entered.'
+  const age = calculateAge(dateOfBirth)
+  if (age < 18) return 'Candidates must be at least 18 years old to register on Zawaaj.'
+  if (age > 80) return 'Please check the date of birth — the candidate appears to be over 80 years old.'
   return null
 }
 
