@@ -472,6 +472,15 @@ function RegisterChildPageInner() {
       if (!form.firstName.trim())       return 'First name is required.'
       if (!form.lastName.trim())        return 'Last name is required.'
       if (!form.dateOfBirth)            return 'Date of birth is required.'
+      if (form.dateOfBirth) {
+        const today = new Date()
+        const dob   = new Date(form.dateOfBirth)
+        if (dob >= today) return 'Date of birth cannot be in the future.'
+        const age = today.getFullYear() - dob.getFullYear() -
+          (today < new Date(dob.setFullYear(today.getFullYear())) ? 1 : 0)
+        if (age < 18) return 'Candidate must be at least 18 years old to register.'
+        if (age > 80) return 'Please check the date of birth entered.'
+      }
       if (!form.gender)                 return 'Gender is required.'
       if (!form.location.trim())        return 'City / location is required.'
       if (!form.ethnicity)              return 'Ethnicity is required.'
@@ -927,8 +936,14 @@ function RegisterChildPageInner() {
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <Field label="Date of birth" required>
-                <input type="date" value={form.dateOfBirth}
-                  onChange={e => set('dateOfBirth', e.target.value)} style={inputStyle} />
+                <input
+                  type="date"
+                  value={form.dateOfBirth}
+                  onChange={e => set('dateOfBirth', e.target.value)}
+                  max={(() => { const d = new Date(); d.setFullYear(d.getFullYear() - 18); return d.toISOString().split('T')[0] })()}
+                  min={(() => { const d = new Date(); d.setFullYear(d.getFullYear() - 80); return d.toISOString().split('T')[0] })()}
+                  style={inputStyle}
+                />
               </Field>
               <Field label="Gender" required>
                 <select value={form.gender} onChange={e => set('gender', e.target.value as 'male' | 'female' | '')}

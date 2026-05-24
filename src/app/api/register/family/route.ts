@@ -84,6 +84,22 @@ interface FamilyRegistrationPayload {
   logged_in_family_account_id?: string
 }
 
+// ─── DOB age validation ───────────────────────────────────────────────────────
+// Returns an error string if invalid, null if OK.
+// Accepts YYYY-MM-DD strings as produced by <input type="date">.
+function validateDob(dateOfBirth: string): string | null {
+  const dob = new Date(dateOfBirth)
+  if (isNaN(dob.getTime())) return 'Invalid date of birth.'
+  const today = new Date()
+  if (dob >= today) return 'Date of birth cannot be in the future.'
+  const age =
+    today.getFullYear() - dob.getFullYear() -
+    (today < new Date(new Date(dob).setFullYear(today.getFullYear())) ? 1 : 0)
+  if (age < 18) return 'Candidate must be at least 18 years old.'
+  if (age > 80) return 'Invalid date of birth — please check the year entered.'
+  return null
+}
+
 // ─── Handler ──────────────────────────────────────────────────────────────────
 
 export async function POST(request: Request): Promise<Response> {
@@ -131,6 +147,8 @@ export async function POST(request: Request): Promise<Response> {
           return NextResponse.json({ error: 'Profile details are required.' }, { status: 400 })
         if (!profile.firstName || !profile.lastName || !profile.dateOfBirth || !profile.gender || !profile.location || !profile.schoolOfThought)
           return NextResponse.json({ error: 'Required profile fields are missing.' }, { status: 400 })
+        const dobErr = validateDob(profile.dateOfBirth)
+        if (dobErr) return NextResponse.json({ error: dobErr }, { status: 400 })
       }
 
       const existingFamilyAccountId = tokenRow.family_account_id as string
@@ -240,6 +258,8 @@ export async function POST(request: Request): Promise<Response> {
         if (!profile.firstName || !profile.lastName || !profile.dateOfBirth || !profile.gender || !profile.location || !profile.schoolOfThought) {
           return NextResponse.json({ error: 'Required profile fields are missing.' }, { status: 400 })
         }
+        const dobErr = validateDob(profile.dateOfBirth)
+        if (dobErr) return NextResponse.json({ error: dobErr }, { status: 400 })
       }
 
       // Create profile row linked to the existing family account
@@ -320,6 +340,8 @@ export async function POST(request: Request): Promise<Response> {
         return NextResponse.json({ error: 'Profile details are required for child registration.' }, { status: 400 })
       if (!profile.firstName || !profile.lastName || !profile.dateOfBirth || !profile.gender || !profile.location || !profile.schoolOfThought)
         return NextResponse.json({ error: 'Required profile fields are missing.' }, { status: 400 })
+      const dobErr = validateDob(profile.dateOfBirth)
+      if (dobErr) return NextResponse.json({ error: dobErr }, { status: 400 })
     }
 
     // ── 1. Create auth user ───────────────────────────────────────────────────

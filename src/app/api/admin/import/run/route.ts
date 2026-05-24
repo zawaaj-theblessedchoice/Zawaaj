@@ -177,6 +177,21 @@ export async function POST(req: NextRequest): Promise<Response> {
         continue
       }
 
+      // SKIP: age out of allowed range (18–80)
+      const ageRaw = parseInt(rowMap.age, 10)
+      if (!rowMap.age?.trim() || isNaN(ageRaw)) {
+        results.push({ row: rowNum, candidate_name: rowMap.candidate_name || '—', success: false, error: 'Age is missing or not a valid number — skipped' })
+        continue
+      }
+      if (ageRaw < 18) {
+        results.push({ row: rowNum, candidate_name: rowMap.candidate_name || '—', success: false, error: `Age ${ageRaw} is below the minimum of 18 — skipped` })
+        continue
+      }
+      if (ageRaw > 80) {
+        results.push({ row: rowNum, candidate_name: rowMap.candidate_name || '—', success: false, error: `Age ${ageRaw} exceeds the maximum of 80 — skipped` })
+        continue
+      }
+
       const { score, missing } = computeCompletenessScore(rowMap)
       const normPhone = repPhone ? normalisePhone(repPhone) : null
 
