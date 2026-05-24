@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import AvatarInitials from '@/components/AvatarInitials'
 import ZawaajLogo from '@/components/ZawaajLogo'
 import NotificationBell from '@/components/NotificationBell'
+import ReportIssueModal from '@/components/ReportIssueModal'
 
 interface ManagedProfile {
   id: string
@@ -220,8 +221,9 @@ export default function Sidebar({
   onMobileClose,
 }: SidebarProps) {
   const router = useRouter()
-  const [switcherOpen, setSwitcherOpen] = useState(false)
-  const [switching, setSwitching] = useState(false)
+  const [switcherOpen, setSwitcherOpen]     = useState(false)
+  const [switching, setSwitching]           = useState(false)
+  const [reportModalOpen, setReportModal]   = useState(false)
 
   // Close mobile drawer on Escape
   useEffect(() => {
@@ -704,6 +706,31 @@ export default function Sidebar({
         </button>
 
         <button
+          onClick={() => setReportModal(true)}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 9,
+            width: '100%', padding: '9px 10px',
+            background: 'none', border: 'none', borderRadius: 8,
+            color: 'var(--text-secondary)', fontSize: 13,
+            cursor: 'pointer', textAlign: 'left',
+            transition: 'background 0.15s, color 0.15s',
+          }}
+          onMouseEnter={e => {
+            (e.currentTarget as HTMLButtonElement).style.background = 'var(--surface-3)'
+            ;(e.currentTarget as HTMLButtonElement).style.color = 'var(--text-primary)'
+          }}
+          onMouseLeave={e => {
+            (e.currentTarget as HTMLButtonElement).style.background = 'none'
+            ;(e.currentTarget as HTMLButtonElement).style.color = 'var(--text-secondary)'
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
+            <path d="M7 1.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM7 4.5v3M7 9.5h.007" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          Report an issue
+        </button>
+
+        <button
           onClick={handleSignOut}
           style={{
             display: 'flex', alignItems: 'center', gap: 9,
@@ -729,6 +756,8 @@ export default function Sidebar({
         </button>
       </div>
     </aside>
+
+    <ReportIssueModal open={reportModalOpen} onClose={() => setReportModal(false)} />
     </>
   )
 }

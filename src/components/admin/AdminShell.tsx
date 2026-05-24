@@ -132,6 +132,14 @@ function ImportIcon() {
   )
 }
 
+function FeedbackIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
+      <path d="M7 1.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM7 4.5v3M7 9.5h.007" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
 function HelpIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
@@ -178,6 +186,7 @@ const NAV_SECTIONS = [
       { href: '/admin/subscriptions', label: 'Subscriptions', icon: <SubscriptionsIcon />,  superOnly: true  },
       { href: '/admin/payments',      label: 'Payments',      icon: <PaymentsIcon />,       superOnly: true  },
       { href: '/admin/import',        label: 'Import',        icon: <ImportIcon />,         superOnly: true  },
+      { href: '/admin/feedback',      label: 'Feedback',      icon: <FeedbackIcon />,       superOnly: true  },
     ],
   },
 ]

@@ -666,6 +666,108 @@ export function cancellationConfirmedTemplate(
   return gcEmailWrapper('Your Zawaaj Premium cancellation is confirmed', body)
 }
 
+// ─── Bug / issue report admin alert ──────────────────────────────────────────
+// Sent to the super-admin inbox whenever a member submits a report.
+
+const CATEGORY_LABEL_MAP: Record<string, string> = {
+  not_working:       "Something isn't working",
+  wrong_information: 'Information looks wrong',
+  cant_find:         "I can't find something",
+  suggestion:        'Suggestion or improvement',
+  other:             'Other',
+}
+
+export function reportIssueAdminAlert({
+  profileName,
+  userEmail,
+  familyContactName,
+  category,
+  description,
+  pageUrl,
+  submittedAt,
+}: {
+  profileName:       string | null
+  userEmail:         string | null
+  familyContactName: string | null
+  category:          string
+  description:       string
+  pageUrl:           string | null
+  submittedAt:       string
+}): string {
+  const categoryLabel = CATEGORY_LABEL_MAP[category] ?? category
+  const htmlDesc = description
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/\n/g, '<br />')
+
+  const rows = [
+    ['Submitted by',    profileName  ?? '—'],
+    ['Email',           userEmail    ?? '—'],
+    ['Family account',  familyContactName ?? '—'],
+    ['Category',        categoryLabel],
+    ['Page',            pageUrl ? `<a href="${pageUrl}" style="color:#B8960C;word-break:break-all;">${pageUrl}</a>` : '—'],
+    ['Submitted at',    new Date(submittedAt).toLocaleString('en-GB', { timeZone: 'Europe/London' })],
+  ]
+
+  const tableRows = rows.map(([label, value]) => `
+    <tr>
+      <td style="padding:6px 0;color:#9ca3af;font-size:13px;width:140px;vertical-align:top;">${label}</td>
+      <td style="padding:6px 0;color:#e5e7eb;font-size:13px;">${value}</td>
+    </tr>`).join('')
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>New issue report — Zawaaj</title>
+</head>
+<body style="margin:0;padding:0;background:#111111;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#111111;padding:40px 16px;">
+    <tr>
+      <td align="center">
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;">
+          <tr>
+            <td align="center" style="padding-bottom:28px;">
+              <img src="https://zawaaj.uk/logo.png" alt="Zawaaj" width="72" style="display:block;" />
+              <p style="margin:6px 0 0;color:#B8960C;font-size:10px;letter-spacing:2px;text-transform:uppercase;">The Blessed Choice · Admin</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="background:#1A1A1A;border:1px solid #2a2a2a;border-top:2px solid #B8960C;border-radius:12px;padding:28px 28px;">
+              <h1 style="margin:0 0 6px;font-size:17px;font-weight:600;color:#ffffff;">New issue report</h1>
+              <p style="margin:0 0 20px;font-size:13px;color:#9ca3af;">A member has submitted a report via the platform.</p>
+
+              <!-- Meta table -->
+              <div style="background:#111111;border:1px solid #2a2a2a;border-radius:10px;padding:16px 20px;margin-bottom:20px;">
+                <table width="100%" cellpadding="0" cellspacing="0">${tableRows}
+                </table>
+              </div>
+
+              <!-- Description -->
+              <p style="margin:0 0 8px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:#6b7280;">Description</p>
+              <div style="background:#111111;border:1px solid #2a2a2a;border-radius:10px;padding:16px 20px;margin-bottom:20px;font-size:13px;color:#e5e7eb;line-height:1.7;">
+                ${htmlDesc}
+              </div>
+
+              <a href="https://www.zawaaj.uk/admin/feedback"
+                style="display:inline-block;padding:10px 22px;background:#B8960C;color:#111111;font-size:13px;font-weight:600;text-decoration:none;border-radius:9px;">
+                View in admin panel →
+              </a>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding-top:20px;">
+              <p style="margin:0;font-size:11px;color:#4b5563;">© Zawaaj · zawaaj.uk</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`
+}
+
 export function passwordResetRequestTemplate(resetLink: string): string {
   return `<!DOCTYPE html>
 <html lang="en">
