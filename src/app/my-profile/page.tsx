@@ -722,7 +722,7 @@ export default function MyProfilePage() {
           {/* Education & profession */}
           <SectionLabel>Education & profession</SectionLabel>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 24px' }}>
-            <FieldRow label="Education level" value={profile.education_level} />
+            <FieldRow label="Education level" value={displayValue(EDUCATION_LABELS, profile.education_level)} />
             <FieldRow label="Institution" value={profile.education_detail} />
             <FieldRow label="Profession" value={profile.profession_detail} />
           </div>
@@ -1046,10 +1046,11 @@ export default function MyProfilePage() {
                     { value: 'no',         label: 'No' },
                   ]} />
                   <EditSelect label="Polygamy openness" value={editForm.polygamyOpenness} onChange={v => setEditForm(f => ({ ...f, polygamyOpenness: v }))} options={[
-                    { value: '',              label: 'Not specified' },
-                    { value: 'not_open',      label: 'Not open to polygamy' },
+                    { value: '',                label: 'Not specified' },
+                    { value: 'not_open',        label: 'Not open to polygamy' },
                     { value: 'open_to_discuss', label: 'Open to discuss' },
-                    { value: 'open',          label: 'Open to it' },
+                    { value: 'open',            label: 'Open to it' },
+                    { value: 'yes',             label: 'Yes, open to polygamy' },
                   ]} />
                   <EditSelect label="Smoker" value={editForm.smoker} onChange={v => setEditForm(f => ({ ...f, smoker: v }))} options={[
                     { value: '', label: 'Select…' },

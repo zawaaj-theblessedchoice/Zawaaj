@@ -489,8 +489,7 @@ function RegisterChildPageInner() {
         if (isNaN(dob.getTime()))       return 'Please enter a valid date of birth.'
         if (dob >= new Date())          return 'Date of birth cannot be in the future.'
         const age = calculateAge(form.dateOfBirth)
-        if (age < 18) return 'Candidates must be at least 18 years old to register on Zawaaj.'
-        if (age > 60) return 'Please check the date of birth — the candidate appears to be over 60 years old.'
+        if (age < 18 || age > 60) return 'Please check the date of birth entered. Candidates must be at least 18 and no older than 60 years of age. Please ensure the details are correct before continuing.'
       }
       if (!form.gender)                 return 'Gender is required.'
       if (!form.location.trim())        return 'City / location is required.'
