@@ -174,6 +174,57 @@ export async function POST(req: NextRequest): Promise<Response> {
       .update({ accepted_by: userId, accepted_at: now })
       .eq('id', token_id)
 
+    // 9. Try to auto-promote to intro_ready
+    //    Checks 1 (status='active') and 2 (primary_user_id set) are already
+    //    satisfied by step 6. Run checks 3 and 4 then attempt promotion.
+    try {
+      // Check 3: at least one profile in the family must be approved
+      const { data: approvedProfiles, error: approvedErr } = await supabaseAdmin
+        .from('zawaaj_profiles')
+        .select('id')
+        .eq('family_account_id', familyAccountId)
+        .eq('status', 'approved')
+        .limit(1)
+
+      if (approvedErr) {
+        console.error('[claim] eligibility check 3 error:', approvedErr.message)
+      } else if (!approvedProfiles?.length) {
+        console.log('[claim] eligibility check 3 failed: no approved profiles in family')
+      } else {
+        // Check 4: family account must have at least one contact field
+        const { data: faContact, error: faErr } = await supabaseAdmin
+          .from('zawaaj_family_accounts')
+          .select('contact_email, contact_number')
+          .eq('id', familyAccountId)
+          .single()
+
+        if (faErr) {
+          console.error('[claim] eligibility check 4 error:', faErr.message)
+        } else {
+          const hasContact = !!(faContact?.contact_email || faContact?.contact_number)
+          if (!hasContact) {
+            console.log('[claim] eligibility check 4 failed: no contact field on family account')
+          } else {
+            // All four checks passed — promote to intro_ready
+            const { error: introErr } = await supabaseAdmin
+              .from('zawaaj_family_accounts')
+              .update({ readiness_state: 'intro_ready' })
+              .eq('id', familyAccountId)
+              .eq('readiness_state', 'representative_linked')
+
+            if (introErr) {
+              console.error('[claim] failed to set intro_ready:', introErr.message)
+            } else {
+              console.log('[claim] eligibility passed → readiness_state: intro_ready')
+            }
+          }
+        }
+      }
+    } catch (stateErr) {
+      // Safety net — promotion failure must never break the success response
+      console.error('[claim] unexpected error during readiness_state promotion:', stateErr)
+    }
+
     return NextResponse.json({ ok: true, email: email.toLowerCase() })
   } catch (err) {
     return NextResponse.json({ error: err instanceof Error ? err.message : 'Unknown error' }, { status: 500 })
