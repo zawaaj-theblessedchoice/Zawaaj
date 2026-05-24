@@ -106,7 +106,7 @@ function validateDob(dateOfBirth: string): string | null {
   if (dob >= today) return 'Date of birth cannot be in the future.'
   const age = calculateAge(dateOfBirth)
   if (age < 18) return 'Candidates must be at least 18 years old to register on Zawaaj.'
-  if (age > 80) return 'Please check the date of birth — the candidate appears to be over 80 years old.'
+  if (age > 60) return 'Please check the date of birth — the candidate appears to be over 60 years old.'
   return null
 }
 

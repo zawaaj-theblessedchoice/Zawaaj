@@ -1,4 +1,4 @@
--- Migration 050: Add CHECK constraint enforcing 18–80 year age range on date_of_birth
+-- Migration 050: Add CHECK constraint enforcing 18–60 year age range on date_of_birth
 --
 -- This is the DB-level backstop. Application-layer validation (registration form,
 -- API route, import CSV) is the primary defence; this constraint prevents any
@@ -13,6 +13,6 @@ ALTER TABLE zawaaj_profiles
     date_of_birth IS NULL
     OR (
       date_of_birth <= (CURRENT_DATE - INTERVAL '18 years')
-      AND date_of_birth >= (CURRENT_DATE - INTERVAL '80 years')
+      AND date_of_birth >= (CURRENT_DATE - INTERVAL '60 years')
     )
   );

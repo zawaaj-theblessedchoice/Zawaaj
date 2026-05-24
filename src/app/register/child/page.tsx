@@ -490,7 +490,7 @@ function RegisterChildPageInner() {
         if (dob >= new Date())          return 'Date of birth cannot be in the future.'
         const age = calculateAge(form.dateOfBirth)
         if (age < 18) return 'Candidates must be at least 18 years old to register on Zawaaj.'
-        if (age > 80) return 'Please check the date of birth — the candidate appears to be over 80 years old.'
+        if (age > 60) return 'Please check the date of birth — the candidate appears to be over 60 years old.'
       }
       if (!form.gender)                 return 'Gender is required.'
       if (!form.location.trim())        return 'City / location is required.'
@@ -949,7 +949,7 @@ function RegisterChildPageInner() {
               <Field label="Date of birth" required>
                 {(() => {
                   const maxDob = new Date(); maxDob.setFullYear(maxDob.getFullYear() - 18)
-                  const minDob = new Date(); minDob.setFullYear(minDob.getFullYear() - 80)
+                  const minDob = new Date(); minDob.setFullYear(minDob.getFullYear() - 60)
                   return (
                     <input
                       type="date"

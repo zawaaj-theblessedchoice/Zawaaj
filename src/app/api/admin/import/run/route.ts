@@ -187,8 +187,8 @@ export async function POST(req: NextRequest): Promise<Response> {
         results.push({ row: rowNum, candidate_name: rowMap.candidate_name || '—', success: false, error: `Age ${ageRaw} is below the minimum of 18 — skipped` })
         continue
       }
-      if (ageRaw > 80) {
-        results.push({ row: rowNum, candidate_name: rowMap.candidate_name || '—', success: false, error: `Age ${ageRaw} exceeds the maximum of 80 — skipped` })
+      if (ageRaw > 60) {
+        results.push({ row: rowNum, candidate_name: rowMap.candidate_name || '—', success: false, error: `Age ${ageRaw} exceeds the maximum of 60 — skipped` })
         continue
       }
 
