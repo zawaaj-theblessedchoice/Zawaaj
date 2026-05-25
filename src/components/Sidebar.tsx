@@ -224,6 +224,23 @@ export default function Sidebar({
   const [switcherOpen, setSwitcherOpen]     = useState(false)
   const [switching, setSwitching]           = useState(false)
   const [reportModalOpen, setReportModal]   = useState(false)
+  const [isParentAccount, setIsParentAccount] = useState(false)
+
+  // Detect Path A (parent) accounts — hide "My profile" nav item for them
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return
+      supabase
+        .from('zawaaj_family_accounts')
+        .select('registration_path')
+        .eq('user_id', user.id)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data?.registration_path === 'parent') setIsParentAccount(true)
+        })
+    })
+  }, [])
 
   // Close mobile drawer on Escape
   useEffect(() => {
@@ -300,11 +317,12 @@ export default function Sidebar({
     {
       section: 'Account',
       items: [
-        {
+        // Path A parent accounts do not have their own candidate profile — hide "My profile"
+        ...(!isParentAccount ? [{
           label: activeProfileId ? 'My profile' : 'Family account',
           href: activeProfileId ? '/my-profile' : '/family-account',
           icon: <ProfileIcon />,
-        },
+        } as NavItem] : []),
         { label: 'Add candidate profile', href: '/add-profile', icon: <AddFamilyIcon /> },
         { label: 'Settings', href: '/settings', icon: <SettingsIcon /> },
       ],

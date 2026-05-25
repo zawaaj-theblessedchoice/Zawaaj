@@ -20,22 +20,22 @@ const RELIGIOSITY_OPTIONS = [
 
 const QURAN_FREQUENCY_OPTIONS = [
   { value: 'not_currently',  label: "I don't currently engage with the Qur'an" },
-  { value: 'rarely',         label: 'Occasionally — a few times a month or less' },
+  { value: 'occasionally',   label: 'Occasionally — a few times a month or less' },
   { value: 'weekly',         label: 'Weekly — at least once a week' },
-  { value: 'several_weekly', label: 'Several times a week' },
+  { value: 'few_times_week', label: 'Several times a week' },
   { value: 'daily',          label: "Daily — it's part of my routine" },
 ]
 const QURAN_DEPTH_OPTIONS = [
-  { value: 'recitation', label: 'Recitation or listening — focused on the words' },
-  { value: 'reflection',  label: 'Reading with some personal reflection' },
-  { value: 'study',       label: 'Active study — working to understand meaning' },
-  { value: 'scholarly',   label: 'Structured learning with tafsir or a teacher' },
+  { value: 'recitation_listening', label: 'Recitation or listening — focused on the words' },
+  { value: 'reading_reflection',   label: 'Reading with some personal reflection' },
+  { value: 'active_study',         label: 'Active study — working to understand meaning' },
+  { value: 'structured_tafsir',    label: 'Structured learning with tafsir or a teacher' },
 ]
 const QURAN_APPLICATION_OPTIONS = [
-  { value: 'learning', label: 'Still learning how to apply it' },
-  { value: 'trying',   label: "I try to apply it — it's an ongoing journey" },
-  { value: 'guiding',  label: 'It guides my key decisions and how I treat others' },
-  { value: 'central',  label: 'It is the foundation of my character and priorities' },
+  { value: 'still_learning_apply', label: 'Still learning how to apply it' },
+  { value: 'ongoing_journey',      label: "I try to apply it — it's an ongoing journey" },
+  { value: 'guides_decisions',     label: 'It guides my key decisions and how I treat others' },
+  { value: 'foundation_character', label: 'It is the foundation of my character and priorities' },
 ]
 const PRAYER_OPTIONS = [
   { value: 'yes_regularly',   label: 'Yes, regularly' },

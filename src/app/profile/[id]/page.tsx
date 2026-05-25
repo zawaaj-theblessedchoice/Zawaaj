@@ -457,14 +457,42 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
               {profile.gender === 'male' && (
                 <FieldRow label="Keeps beard" value={profile.keeps_beard === true ? 'Yes' : profile.keeps_beard === false ? 'No' : null} />
               )}
-              {profile.quran_frequency && (
-                <FieldRow label="Qur'an frequency" value={displayValue({ rarely: 'Occasionally — a few times a month or less', weekly: 'Weekly — at least once a week', several_weekly: 'Several times a week', daily: "Daily — it's part of my routine" }, profile.quran_frequency)} />
+              {profile.quran_frequency && profile.quran_frequency !== 'not_currently' && (
+                <FieldRow label="Qur'an frequency" value={displayValue({
+                  occasionally: 'Occasionally — a few times a month or less',
+                  weekly: 'Weekly — at least once a week',
+                  few_times_week: 'Several times a week',
+                  daily: "Daily — it's part of my routine",
+                  // legacy aliases
+                  rarely: 'Occasionally — a few times a month or less',
+                  several_weekly: 'Several times a week',
+                }, profile.quran_frequency)} />
               )}
-              {profile.quran_depth && (
-                <FieldRow label="Qur'an depth" value={displayValue({ recitation: 'Recitation or listening', reflection: 'Reading with reflection', study: 'Active study', scholarly: 'Structured learning with tafsir' }, profile.quran_depth)} />
+              {profile.quran_depth && profile.quran_depth !== 'not_currently' && (
+                <FieldRow label="Qur'an depth" value={displayValue({
+                  recitation_listening: 'Recitation or listening',
+                  reading_reflection: 'Reading with reflection',
+                  active_study: 'Active study',
+                  structured_tafsir: 'Structured learning with tafsir',
+                  // legacy aliases
+                  recitation: 'Recitation or listening',
+                  reflection: 'Reading with reflection',
+                  study: 'Active study',
+                  scholarly: 'Structured learning with tafsir',
+                }, profile.quran_depth)} />
               )}
-              {profile.quran_application && (
-                <FieldRow label="Qur'an in daily life" value={displayValue({ learning: 'Still learning to apply it', trying: "Ongoing journey of applying it", guiding: 'Guides key decisions', central: 'Foundation of character and priorities' }, profile.quran_application)} />
+              {profile.quran_application && profile.quran_application !== 'not_currently' && (
+                <FieldRow label="Qur'an in daily life" value={displayValue({
+                  still_learning_apply: 'Still learning to apply it',
+                  ongoing_journey: 'Ongoing journey of applying it',
+                  guides_decisions: 'Guides key decisions',
+                  foundation_character: 'Foundation of character and priorities',
+                  // legacy aliases
+                  learning: 'Still learning to apply it',
+                  trying: 'Ongoing journey of applying it',
+                  guiding: 'Guides key decisions',
+                  central: 'Foundation of character and priorities',
+                }, profile.quran_application)} />
               )}
             </div>
 

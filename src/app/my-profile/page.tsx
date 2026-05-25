@@ -199,18 +199,35 @@ const PRAYER_LABELS: Record<string, string> = {
 }
 
 const QURAN_FREQUENCY_LABELS: Record<string, string> = {
-  rarely:         'Occasionally — a few times a month or less',
+  // current DB values
+  not_currently:  "Doesn't currently engage with the Qur'an",
+  occasionally:   'Occasionally — a few times a month or less',
   weekly:         'Weekly — at least once a week',
-  several_weekly: 'Several times a week',
+  few_times_week: 'Several times a week',
   daily:          "Daily — it's part of my routine",
+  // legacy aliases (kept for existing data)
+  rarely:         'Occasionally — a few times a month or less',
+  several_weekly: 'Several times a week',
 }
 const QURAN_DEPTH_LABELS: Record<string, string> = {
+  // current DB values
+  recitation_listening: 'Recitation or listening — focused on the words',
+  reading_reflection:   'Reading with some personal reflection',
+  active_study:         'Active study — working to understand meaning',
+  structured_tafsir:    'Structured learning with tafsir or a teacher',
+  // legacy aliases
   recitation: 'Recitation or listening — focused on the words',
   reflection:  'Reading with some personal reflection',
   study:       'Active study — working to understand meaning',
   scholarly:   'Structured learning with tafsir or a teacher',
 }
 const QURAN_APPLICATION_LABELS: Record<string, string> = {
+  // current DB values
+  still_learning_apply: 'Still learning what it means to apply it',
+  ongoing_journey:      "I try to apply it — it's an ongoing journey",
+  guides_decisions:     'It guides my key decisions and how I treat others',
+  foundation_character: 'It is the foundation of my character and priorities',
+  // legacy aliases
   learning: 'Still learning what it means to apply it',
   trying:   "I try to apply it — it's an ongoing journey",
   guiding:  'It guides my key decisions and how I treat others',
@@ -1134,27 +1151,32 @@ export default function MyProfilePage() {
                       { value: 'false', label: 'No' },
                     ]} />
                   )}
-                  <EditSelect label="Qur'an frequency" value={editForm.quranFrequency} onChange={v => setEditForm(f => ({ ...f, quranFrequency: v }))} options={[
+                  <EditSelect label="Qur'an frequency" value={editForm.quranFrequency} onChange={v => setEditForm(f => ({ ...f, quranFrequency: v, quranDepth: v === 'not_currently' ? '' : f.quranDepth, quranApplication: v === 'not_currently' ? '' : f.quranApplication }))} options={[
                     { value: '',               label: 'Not specified' },
-                    { value: 'rarely',         label: 'Occasionally — a few times a month or less' },
+                    { value: 'not_currently',  label: "I don't currently engage with the Qur'an" },
+                    { value: 'occasionally',   label: 'Occasionally — a few times a month or less' },
                     { value: 'weekly',         label: 'Weekly — at least once a week' },
-                    { value: 'several_weekly', label: 'Several times a week' },
+                    { value: 'few_times_week', label: 'Several times a week' },
                     { value: 'daily',          label: "Daily — it's part of my routine" },
                   ]} />
+                  {editForm.quranFrequency !== 'not_currently' && (
                   <EditSelect label="Qur'an depth" value={editForm.quranDepth} onChange={v => setEditForm(f => ({ ...f, quranDepth: v }))} options={[
-                    { value: '',           label: 'Not specified' },
-                    { value: 'recitation', label: 'Recitation or listening — focused on the words' },
-                    { value: 'reflection', label: 'Reading with some personal reflection' },
-                    { value: 'study',      label: 'Active study — working to understand meaning' },
-                    { value: 'scholarly',  label: 'Structured learning with tafsir or a teacher' },
+                    { value: '',                     label: 'Not specified' },
+                    { value: 'recitation_listening', label: 'Recitation or listening — focused on the words' },
+                    { value: 'reading_reflection',   label: 'Reading with some personal reflection' },
+                    { value: 'active_study',         label: 'Active study — working to understand meaning' },
+                    { value: 'structured_tafsir',    label: 'Structured learning with tafsir or a teacher' },
                   ]} />
+                  )}
+                  {editForm.quranFrequency !== 'not_currently' && (
                   <EditSelect label="Qur'an in daily life" value={editForm.quranApplication} onChange={v => setEditForm(f => ({ ...f, quranApplication: v }))} options={[
-                    { value: '',         label: 'Not specified' },
-                    { value: 'learning', label: 'Still learning what it means to apply it' },
-                    { value: 'trying',   label: "I try to apply it — it's an ongoing journey" },
-                    { value: 'guiding',  label: 'It guides my key decisions and how I treat others' },
-                    { value: 'central',  label: 'It is the foundation of my character and priorities' },
+                    { value: '',                     label: 'Not specified' },
+                    { value: 'still_learning_apply', label: 'Still learning what it means to apply it' },
+                    { value: 'ongoing_journey',      label: "I try to apply it — it's an ongoing journey" },
+                    { value: 'guides_decisions',     label: 'It guides my key decisions and how I treat others' },
+                    { value: 'foundation_character', label: 'It is the foundation of my character and priorities' },
                   ]} />
+                  )}
                 </div>
               )}
 
