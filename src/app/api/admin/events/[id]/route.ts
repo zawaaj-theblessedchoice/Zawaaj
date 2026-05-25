@@ -36,6 +36,7 @@ export async function PATCH(
     attendance_note: string | null
     show_in_history: boolean
     is_online: boolean
+    date_tbc: boolean
     description: string | null
     capacity: number | null
     event_category: string | null
@@ -55,6 +56,7 @@ export async function PATCH(
   if (body.attendance_note !== undefined) patch.attendance_note = body.attendance_note?.trim() || null
   if (body.show_in_history !== undefined) patch.show_in_history = body.show_in_history
   if (body.is_online !== undefined) patch.is_online = body.is_online
+  if (body.date_tbc !== undefined) patch.date_tbc = body.date_tbc
   if (body.description !== undefined) patch.description = body.description?.trim() || null
   if (body.capacity !== undefined) patch.capacity = body.capacity
   if (body.event_category !== undefined) patch.event_category = body.event_category || null

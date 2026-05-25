@@ -21,7 +21,7 @@ async function assertAdmin() {
 
 const EVENT_FIELDS = `
   id, title, event_date, location_text, registration_url, status,
-  attendance_note, show_in_history, is_online, description, capacity,
+  attendance_note, show_in_history, is_online, date_tbc, description, capacity,
   event_category, organiser, organiser_label, is_featured, price_gbp, tags,
   created_at
 `
@@ -52,6 +52,7 @@ export async function POST(request: Request) {
     attendance_note?: string
     show_in_history?: boolean
     is_online?: boolean
+    date_tbc?: boolean
     description?: string
     capacity?: number | null
     event_category?: string | null
@@ -77,6 +78,7 @@ export async function POST(request: Request) {
       attendance_note: body.attendance_note?.trim() || null,
       show_in_history: body.show_in_history ?? false,
       is_online: body.is_online ?? false,
+      date_tbc: body.date_tbc ?? false,
       description: body.description?.trim() || null,
       capacity: body.capacity ?? null,
       event_category: body.event_category || null,

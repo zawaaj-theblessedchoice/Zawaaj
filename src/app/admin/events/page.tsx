@@ -21,6 +21,7 @@ interface ZawaajEvent {
   price_gbp: number
   tags: string[] | null
   created_at: string
+  date_tbc: boolean
 }
 
 type EventStatus = 'upcoming' | 'ended' | 'archived'
@@ -66,6 +67,7 @@ const EMPTY_FORM = {
   attendance_note: '',
   show_in_history: false,
   is_online: false,
+  date_tbc: false,
   description: '',
   capacity: '',
   event_category: '',
@@ -124,6 +126,7 @@ export default function AdminEventsPage() {
       attendance_note: ev.attendance_note ?? '',
       show_in_history: ev.show_in_history,
       is_online: ev.is_online,
+      date_tbc: ev.date_tbc ?? false,
       description: ev.description ?? '',
       capacity: ev.capacity != null ? String(ev.capacity) : '',
       event_category: ev.event_category ?? '',
@@ -154,6 +157,7 @@ export default function AdminEventsPage() {
       attendance_note: form.attendance_note.trim() || null,
       show_in_history: form.show_in_history,
       is_online: form.is_online,
+      date_tbc: form.date_tbc,
       description: form.description.trim() || null,
       capacity: form.capacity ? parseInt(form.capacity, 10) : null,
       event_category: form.event_category || null,
@@ -291,12 +295,18 @@ export default function AdminEventsPage() {
             >
               {/* Date block */}
               <div style={{ flexShrink: 0, width: 52, height: 52, borderRadius: 10, background: '#111', border: '0.5px solid rgba(255,255,255,0.1)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                <span style={{ fontSize: 18, fontWeight: 700, color: '#B8960C', lineHeight: 1 }}>
-                  {new Date(ev.event_date).getDate()}
-                </span>
-                <span style={{ fontSize: 9, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                  {new Date(ev.event_date).toLocaleDateString('en-GB', { month: 'short' })}
-                </span>
+                {ev.date_tbc ? (
+                  <span style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.06em' }}>TBC</span>
+                ) : (
+                  <>
+                    <span style={{ fontSize: 18, fontWeight: 700, color: '#B8960C', lineHeight: 1 }}>
+                      {new Date(ev.event_date).getDate()}
+                    </span>
+                    <span style={{ fontSize: 9, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                      {new Date(ev.event_date).toLocaleDateString('en-GB', { month: 'short' })}
+                    </span>
+                  </>
+                )}
               </div>
 
               {/* Details */}
@@ -492,6 +502,10 @@ export default function AdminEventsPage() {
                 <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: 13, color: '#d1d5db' }}>
                   <input type="checkbox" checked={form.is_online} onChange={e => setForm(f => ({ ...f, is_online: e.target.checked }))} style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#B8960C' }} />
                   Online event (hides location, shows &quot;Online&quot; label)
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: 13, color: '#d1d5db' }}>
+                  <input type="checkbox" checked={form.date_tbc} onChange={e => setForm(f => ({ ...f, date_tbc: e.target.checked }))} style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#B8960C' }} />
+                  Date and venue to be confirmed (hides date from members)
                 </label>
                 <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: 13, color: '#d1d5db' }}>
                   <input type="checkbox" checked={form.show_in_history} onChange={e => setForm(f => ({ ...f, show_in_history: e.target.checked }))} style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#B8960C' }} />

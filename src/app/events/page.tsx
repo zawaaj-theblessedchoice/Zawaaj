@@ -23,6 +23,7 @@ interface ZawaajEvent {
   organiser_label: string | null
   price_gbp: number
   tags: string[] | null
+  date_tbc: boolean
 }
 
 interface ManagedProfile {
@@ -164,15 +165,15 @@ function UpcomingEventCard({
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 16px', marginBottom: 12 }}>
         <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12.5, color: 'var(--text-secondary)' }}>
           <CalendarIcon />
-          {formatEventDate(event.event_date)}
+          {event.date_tbc ? 'Date to be confirmed' : formatEventDate(event.event_date)}
         </span>
-        {locationLabel && (
+        {!event.date_tbc && locationLabel && (
           <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12.5, color: 'var(--text-secondary)' }}>
             <PinIcon />
             {locationLabel}
           </span>
         )}
-        {event.capacity && (
+        {!event.date_tbc && event.capacity && (
           <span style={{ fontSize: 12.5, color: 'var(--text-muted)' }}>
             {event.capacity} places
           </span>
@@ -341,7 +342,7 @@ export default function EventsPage() {
           .select(`
             id, title, event_date, location_text, registration_url, status,
             attendance_note, show_in_history, is_online, description, capacity,
-            event_category, organiser, organiser_label, price_gbp, tags
+            event_category, organiser, organiser_label, price_gbp, tags, date_tbc
           `)
           .neq('status', 'archived')
           .order('event_date', { ascending: true }),
