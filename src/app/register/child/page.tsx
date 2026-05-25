@@ -19,6 +19,7 @@ const RELIGIOSITY_OPTIONS = [
 ]
 
 const QURAN_FREQUENCY_OPTIONS = [
+  { value: 'not_currently',  label: "I don't currently engage with the Qur'an" },
   { value: 'rarely',         label: 'Occasionally — a few times a month or less' },
   { value: 'weekly',         label: 'Weekly — at least once a week' },
   { value: 'several_weekly', label: 'Several times a week' },
@@ -31,7 +32,7 @@ const QURAN_DEPTH_OPTIONS = [
   { value: 'scholarly',   label: 'Structured learning with tafsir or a teacher' },
 ]
 const QURAN_APPLICATION_OPTIONS = [
-  { value: 'learning', label: 'Still learning what it means to apply it' },
+  { value: 'learning', label: 'Still learning how to apply it' },
   { value: 'trying',   label: "I try to apply it — it's an ongoing journey" },
   { value: 'guiding',  label: 'It guides my key decisions and how I treat others' },
   { value: 'central',  label: 'It is the foundation of my character and priorities' },
@@ -437,6 +438,15 @@ function RegisterChildPageInner() {
       if (key === 'guardianRelationship') {
         next.noFemaleContactFlag = MALE_GUARDIAN_RELATIONSHIPS.has(value as string)
       }
+      // When "not currently" is chosen for Qur'an frequency, clear the follow-up questions
+      if (key === 'quranFrequency' && value === 'not_currently') {
+        next.quranDepth = ''
+        next.quranApplication = ''
+      }
+      // When "never married only" is chosen for proposals, clear partner's children preference
+      if (key === 'openToMaritalStatus' && value === 'never_married_only') {
+        next.openToPartnersChildren = ''
+      }
       return next
     })
     setError(null)
@@ -519,8 +529,10 @@ function RegisterChildPageInner() {
       }
       if (form.gender === 'male' && !form.keepsBeard) return 'Please indicate your beard practice.'
       if (!form.quranFrequency)              return "Please select how often you engage with the Qur'an."
-      if (!form.quranDepth)                 return "Please select how you typically engage with the Qur'an."
-      if (!form.quranApplication)           return "Please select how the Qur'an shapes your daily life."
+      if (form.quranFrequency !== 'not_currently') {
+        if (!form.quranDepth)              return "Please select how you typically engage with the Qur'an."
+        if (!form.quranApplication)        return "Please select how the Qur'an shapes your daily life."
+      }
       if (!form.bio.trim())                  return 'About / bio is required.'
     }
     if (step === 3) {
@@ -528,7 +540,8 @@ function RegisterChildPageInner() {
       if (!form.prefAgeMax)                  return 'Maximum preferred age is required.'
       if (!form.prefLocation.trim())         return 'Preferred location is required.'
       if (!form.openToRelocation)            return 'Please indicate whether you are open to relocation.'
-      if (!form.openToPartnersChildren)      return "Please indicate whether you are open to a partner's children."
+      if (!form.openToPartnersChildren && !(form.gender === 'female' && form.openToMaritalStatus === 'never_married_only'))
+        return "Please indicate whether you are open to a partner's children."
     }
     if (step === 4) {
       const step4Errs: Record<string, string> = {}
@@ -565,6 +578,7 @@ function RegisterChildPageInner() {
   }
 
   function handleNext() {
+    window.scrollTo({ top: 0, behavior: 'instant' })
     const err = validateStep()
     if (err) { setError(err); return }
     setError(null)
@@ -577,6 +591,7 @@ function RegisterChildPageInner() {
   }
 
   function handleBack() {
+    window.scrollTo({ top: 0, behavior: 'instant' })
     setError(null)
     // Logged-in parents skip step 4 going backwards too
     if (loggedInFamilyAccountId && step === 5) {
@@ -1257,47 +1272,51 @@ function RegisterChildPageInner() {
                 ))}
               </div>
             </div>
-            <div>
-              <label style={labelStyle}>How do you typically engage with it?<span style={{ color: 'var(--gold)', marginLeft: 2 }}>*</span></label>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {QURAN_DEPTH_OPTIONS.map(o => (
-                  <button
-                    key={o.value}
-                    type="button"
-                    onClick={() => set('quranDepth', o.value)}
-                    style={{
-                      padding: '8px 10px', borderRadius: 8, textAlign: 'left', cursor: 'pointer',
-                      border: `0.5px solid ${form.quranDepth === o.value ? 'var(--gold)' : 'var(--border-default)'}`,
-                      background: form.quranDepth === o.value ? 'var(--gold-muted)' : 'var(--surface-3)',
-                      color: 'var(--text-primary)',
-                    }}
-                  >
-                    <div style={{ fontSize: 13, fontWeight: form.quranDepth === o.value ? 600 : 400 }}>{o.label}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div>
-              <label style={labelStyle}>How does the Qur&apos;an shape your daily life?<span style={{ color: 'var(--gold)', marginLeft: 2 }}>*</span></label>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {QURAN_APPLICATION_OPTIONS.map(o => (
-                  <button
-                    key={o.value}
-                    type="button"
-                    onClick={() => set('quranApplication', o.value)}
-                    style={{
-                      padding: '8px 10px', borderRadius: 8, textAlign: 'left', cursor: 'pointer',
-                      border: `0.5px solid ${form.quranApplication === o.value ? 'var(--gold)' : 'var(--border-default)'}`,
-                      background: form.quranApplication === o.value ? 'var(--gold-muted)' : 'var(--surface-3)',
-                      color: 'var(--text-primary)',
-                    }}
-                  >
-                    <div style={{ fontSize: 13, fontWeight: form.quranApplication === o.value ? 600 : 400 }}>{o.label}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-            <Field label="About — character, values, and what you are looking for" required
+            {form.quranFrequency && form.quranFrequency !== 'not_currently' && (
+              <>
+                <div>
+                  <label style={labelStyle}>How do you typically engage with the Qur&apos;an?<span style={{ color: 'var(--gold)', marginLeft: 2 }}>*</span></label>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {QURAN_DEPTH_OPTIONS.map(o => (
+                      <button
+                        key={o.value}
+                        type="button"
+                        onClick={() => set('quranDepth', o.value)}
+                        style={{
+                          padding: '8px 10px', borderRadius: 8, textAlign: 'left', cursor: 'pointer',
+                          border: `0.5px solid ${form.quranDepth === o.value ? 'var(--gold)' : 'var(--border-default)'}`,
+                          background: form.quranDepth === o.value ? 'var(--gold-muted)' : 'var(--surface-3)',
+                          color: 'var(--text-primary)',
+                        }}
+                      >
+                        <div style={{ fontSize: 13, fontWeight: form.quranDepth === o.value ? 600 : 400 }}>{o.label}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label style={labelStyle}>How does the Qur&apos;an shape your daily life?<span style={{ color: 'var(--gold)', marginLeft: 2 }}>*</span></label>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {QURAN_APPLICATION_OPTIONS.map(o => (
+                      <button
+                        key={o.value}
+                        type="button"
+                        onClick={() => set('quranApplication', o.value)}
+                        style={{
+                          padding: '8px 10px', borderRadius: 8, textAlign: 'left', cursor: 'pointer',
+                          border: `0.5px solid ${form.quranApplication === o.value ? 'var(--gold)' : 'var(--border-default)'}`,
+                          background: form.quranApplication === o.value ? 'var(--gold-muted)' : 'var(--surface-3)',
+                          color: 'var(--text-primary)',
+                        }}
+                      >
+                        <div style={{ fontSize: 13, fontWeight: form.quranApplication === o.value ? 600 : 400 }}>{o.label}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+            <Field label="Describe your character and values" required
               hint="80–200 words. This is what other families will read about you.">
               <textarea value={form.bio} onChange={e => set('bio', e.target.value)}
                 placeholder="Write a short description…" rows={5}
@@ -1345,14 +1364,16 @@ function RegisterChildPageInner() {
               </select>
             </Field>
             <SectionLabel label="Lifestyle" />
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <Field label="Open to relocation" required>
-                <select value={form.openToRelocation} onChange={e => set('openToRelocation', e.target.value)}
-                  style={{ ...inputStyle, cursor: 'pointer' }}>
-                  <option value="">Select…</option>
-                  {RELOCATION_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                </select>
-              </Field>
+            <Field label="Open to relocation" required>
+              <select value={form.openToRelocation} onChange={e => set('openToRelocation', e.target.value)}
+                style={{ ...inputStyle, cursor: 'pointer' }}>
+                <option value="">Select…</option>
+                {RELOCATION_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
+            </Field>
+
+            {/* Males: open to partner's children sits here in the lifestyle section */}
+            {form.gender === 'male' && (
               <Field label="Open to partner's children" required>
                 <select value={form.openToPartnersChildren} onChange={e => set('openToPartnersChildren', e.target.value)}
                   style={{ ...inputStyle, cursor: 'pointer' }}>
@@ -1360,9 +1381,9 @@ function RegisterChildPageInner() {
                   {PARTNER_CHILDREN_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
               </Field>
-            </div>
+            )}
 
-            {/* Female-only: open to proposals from (marital status of potential spouse) */}
+            {/* Female-only: open to proposals from, then conditionally open to partner's children */}
             {form.gender === 'female' && (
               <>
                 <SectionLabel label="Proposals from" />
@@ -1388,6 +1409,15 @@ function RegisterChildPageInner() {
                     ))}
                   </div>
                 </Field>
+                {form.openToMaritalStatus && form.openToMaritalStatus !== 'never_married_only' && (
+                  <Field label="Open to partner's children" required>
+                    <select value={form.openToPartnersChildren} onChange={e => set('openToPartnersChildren', e.target.value)}
+                      style={{ ...inputStyle, cursor: 'pointer' }}>
+                      <option value="">Select…</option>
+                      {PARTNER_CHILDREN_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                    </select>
+                  </Field>
+                )}
               </>
             )}
           </div>
