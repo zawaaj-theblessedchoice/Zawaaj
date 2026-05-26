@@ -238,6 +238,7 @@ export default function RegisterParentPage() {
     setFieldErrors({})
     setError(null)
     setStep(s => s + 1)
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'instant' }), 0)
   }
 
   async function handleSubmit() {
@@ -686,7 +687,7 @@ export default function RegisterParentPage() {
         <div style={{ display: 'flex', gap: 10 }}>
           {step > 0 && (
             <button
-              onClick={() => { setStep(s => s - 1); setError(null) }}
+              onClick={() => { setStep(s => s - 1); setError(null); setTimeout(() => window.scrollTo({ top: 0, behavior: 'instant' }), 0) }}
               style={{
                 flex: 1,
                 padding: '10px 0',

@@ -224,20 +224,25 @@ export default function Sidebar({
   const [switcherOpen, setSwitcherOpen]     = useState(false)
   const [switching, setSwitching]           = useState(false)
   const [reportModalOpen, setReportModal]   = useState(false)
-  const [isParentAccount, setIsParentAccount] = useState(false)
+  // true once we confirm the signed-in user has their own zawaaj_profiles row.
+  // Path A parents have NO personal profile row — only their children do.
+  // Path B candidates registered themselves and DO have one.
+  // We start as false (hide "My profile" until confirmed) to avoid a flash.
+  const [hasOwnProfile, setHasOwnProfile] = useState(false)
 
-  // Detect Path A (parent) accounts — hide "My profile" nav item for them
+  // Use getUser() — makes a server-round-trip so we always get the current
+  // session, never stale localStorage/cookie data from a previous user.
   useEffect(() => {
     const supabase = createClient()
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) return
       supabase
-        .from('zawaaj_family_accounts')
-        .select('registration_path')
+        .from('zawaaj_profiles')
+        .select('id')
         .eq('user_id', user.id)
         .maybeSingle()
         .then(({ data }) => {
-          if (data?.registration_path === 'parent') setIsParentAccount(true)
+          setHasOwnProfile(!!data)
         })
     })
   }, [])
@@ -317,8 +322,9 @@ export default function Sidebar({
     {
       section: 'Account',
       items: [
-        // Path A parent accounts do not have their own candidate profile — hide "My profile"
-        ...(!isParentAccount ? [{
+        // Show "My profile" only when user has a personal candidate profile row.
+        // Path A parents have no profile of their own — hide this item for them.
+        ...(hasOwnProfile ? [{
           label: activeProfileId ? 'My profile' : 'Family account',
           href: activeProfileId ? '/my-profile' : '/family-account',
           icon: <ProfileIcon />,

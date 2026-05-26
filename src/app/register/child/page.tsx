@@ -578,7 +578,6 @@ function RegisterChildPageInner() {
   }
 
   function handleNext() {
-    window.scrollTo({ top: 0, behavior: 'instant' })
     const err = validateStep()
     if (err) { setError(err); return }
     setError(null)
@@ -588,10 +587,11 @@ function RegisterChildPageInner() {
     } else {
       setStep(s => s + 1)
     }
+    // Scroll after React flushes the new step — setTimeout defers until after render
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'instant' }), 0)
   }
 
   function handleBack() {
-    window.scrollTo({ top: 0, behavior: 'instant' })
     setError(null)
     // Logged-in parents skip step 4 going backwards too
     if (loggedInFamilyAccountId && step === 5) {
@@ -599,6 +599,7 @@ function RegisterChildPageInner() {
     } else {
       setStep(s => s - 1)
     }
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'instant' }), 0)
   }
 
   async function handleSubmit() {
