@@ -29,6 +29,8 @@ type IntroductionRequest = {
 
 const VALID_STATUSES = [
   'pending',
+  'accepted',
+  'declined',
   'responded_positive',
   'responded_negative',
   'mutual_confirmed',
@@ -36,6 +38,7 @@ const VALID_STATUSES = [
   'admin_assigned',
   'admin_in_progress',
   'admin_completed',
+  'facilitated',
   'expired',
   'withdrawn',
 ] as const
