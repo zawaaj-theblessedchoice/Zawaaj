@@ -296,6 +296,21 @@ export default function SideBySidePage({
   }, [supabase])
 
   const loadMatch = useCallback(async () => {
+    // When the param is "profileId1__profileId2" (from the introductions page),
+    // there is no match record yet — fetch both profiles directly by ID.
+    if (matchId.includes('__')) {
+      const [id1, id2] = matchId.split('__')
+      const [{ data: pA }, { data: pB }] = await Promise.all([
+        supabase.from('zawaaj_profiles').select('*').eq('id', id1).single(),
+        supabase.from('zawaaj_profiles').select('*').eq('id', id2).single(),
+      ])
+      setProfileA((pA as Profile) ?? null)
+      setProfileB((pB as Profile) ?? null)
+      setLoading(false)
+      return // match stays null — match-specific UI is hidden below
+    }
+
+    // Standard path: param is a real zawaaj_matches UUID
     const { data: matchData, error: matchErr } = await supabase
       .from('zawaaj_matches')
       .select('*')
@@ -381,18 +396,19 @@ export default function SideBySidePage({
     )
   }
 
-  if (!match) {
+  // No match record AND no profiles loaded → genuinely not found
+  if (!match && !profileA && !profileB) {
     return (
       <div className="min-h-screen bg-surface flex items-center justify-center">
         <div className="text-center">
-          <p className="mb-4" style={{ color: 'var(--admin-muted)' }}>Match not found.</p>
+          <p className="mb-4" style={{ color: 'var(--admin-muted)' }}>Profiles not found.</p>
           <Link href="/admin" className="text-gold text-sm hover:underline">Back to Admin</Link>
         </div>
       </div>
     )
   }
 
-  const canIntroduce = consentA && consentB && match.status !== 'introduced'
+  const canIntroduce = consentA && consentB && match?.status !== 'introduced'
 
   return (
     <div className="min-h-screen bg-surface">
@@ -429,8 +445,17 @@ export default function SideBySidePage({
       </header>
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-6">
-        {/* Match Summary Bar */}
-        <div className="bg-surface-2 rounded-2xl p-5 flex flex-wrap items-center gap-4" style={{ border: '1px solid var(--admin-border)' }}>
+        {/* No-match banner — shown when viewing profiles from introductions page */}
+        {!match && (
+          <div className="bg-surface-2 rounded-2xl px-5 py-4 flex items-center gap-3" style={{ border: '1px solid var(--admin-border)' }}>
+            <span style={{ color: 'var(--admin-muted)', fontSize: 13 }}>
+              Viewing profiles from an introduction request. No match record exists yet — consent and introduction controls are unavailable.
+            </span>
+          </div>
+        )}
+
+        {/* Match Summary Bar — only when a match record exists */}
+        {match && <div className="bg-surface-2 rounded-2xl p-5 flex flex-wrap items-center gap-4" style={{ border: '1px solid var(--admin-border)' }}>
           <div>
             <p className="text-xs uppercase tracking-wide mb-1" style={{ color: 'var(--admin-muted)' }}>Match Status</p>
             <StatusBadge status={match.status} />
@@ -470,7 +495,7 @@ export default function SideBySidePage({
               <option value="no_longer_proceeding">No Longer Proceeding</option>
             </select>
           </div>
-        </div>
+        </div>}
 
         {/* Warning banner */}
         <div className="bg-amber-50 border border-amber-200 rounded-xl px-5 py-4 flex gap-3">
@@ -501,8 +526,8 @@ export default function SideBySidePage({
           )}
         </div>
 
-        {/* Facilitate Introduction Section */}
-        <div className="bg-surface-2 rounded-2xl p-6" style={{ border: '1px solid var(--admin-border)' }}>
+        {/* Facilitate Introduction Section — only when a match record exists */}
+        {match && <div className="bg-surface-2 rounded-2xl p-6" style={{ border: '1px solid var(--admin-border)' }}>
           <h2 className="text-base font-semibold mb-4" style={{ color: 'var(--admin-text)' }}>Facilitate Introduction</h2>
 
           {match.status === 'introduced' ? (
@@ -561,10 +586,10 @@ export default function SideBySidePage({
               </div>
             </div>
           )}
-        </div>
+        </div>}
 
-        {/* Admin Notes */}
-        <div className="bg-surface-2 rounded-2xl p-6" style={{ border: '1px solid var(--admin-border)' }}>
+        {/* Admin Notes — only when a match record exists */}
+        {match && <div className="bg-surface-2 rounded-2xl p-6" style={{ border: '1px solid var(--admin-border)' }}>
           <h2 className="text-base font-semibold mb-4" style={{ color: 'var(--admin-text)' }}>Admin Notes</h2>
           <textarea
             className="w-full rounded-xl px-4 py-3 text-sm bg-surface-3 outline-none focus:border-gold resize-none transition-colors"
@@ -584,7 +609,7 @@ export default function SideBySidePage({
             </button>
             {notesSaved && <p className="text-xs text-green-600">Saved.</p>}
           </div>
-        </div>
+        </div>}
 
         {/* Back link */}
         <div className="pb-4">
