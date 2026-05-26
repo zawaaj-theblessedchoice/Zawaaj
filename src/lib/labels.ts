@@ -60,14 +60,18 @@ export const RELOCATION_LABELS: Record<string, string> = {
 // ─── Open to partner's children ───────────────────────────────────────────────
 
 export const PARTNER_CHILDREN_LABELS: Record<string, string> = {
-  yes:        'Yes',
-  Yes:        'Yes',
-  possibly:   'Possibly',
-  Possibly:   'Possibly',
-  prefer_not: 'Prefer not',
-  open:       'Open to it',
-  no:         'No',
-  No:         'No',
+  // Current DB values
+  yes:          'Yes, open to this',
+  no_preference:'No preference',
+  prefer_not:   'Would prefer not',
+  not_specified:'Not specified',
+  // Legacy / free-text variants
+  Yes:          'Yes',
+  open:         'Open to it',
+  possibly:     'Possibly',
+  Possibly:     'Possibly',
+  no:           'No',
+  No:           'No',
 }
 
 // ─── Polygamy openness ────────────────────────────────────────────────────────

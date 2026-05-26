@@ -516,7 +516,11 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
                   <FieldRow label="Location" value={profile.pref_location} />
                   <FieldRow label="Ethnicity" value={profile.pref_ethnicity} />
                   <FieldRow label="School of thought" value={profile.pref_school_of_thought?.join(', ') ?? null} />
-                  <FieldRow label="Partner's children" value={profile.pref_partner_children} />
+                  <FieldRow label="Partner's children" value={displayValue({
+                    yes: 'Yes, open to this', no_preference: 'No preference',
+                    prefer_not: 'Would prefer not', not_specified: 'Not specified',
+                    open: 'Open to it', possibly: 'Possibly', no: 'No',
+                  }, profile.pref_partner_children)} />
                 </div>
               </>
             )}

@@ -230,19 +230,27 @@ export default function Sidebar({
   // We start as false (hide "My profile" until confirmed) to avoid a flash.
   const [hasOwnProfile, setHasOwnProfile] = useState(false)
 
-  // Use getUser() — makes a server-round-trip so we always get the current
-  // session, never stale localStorage/cookie data from a previous user.
+  // Determine whether to show "My profile".
+  // Path A parents have registration_path='parent' on zawaaj_family_accounts.
+  // Path B self-registered candidates have registration_path='child'.
+  // We cannot use zawaaj_profiles.user_id because Path A parents insert
+  // candidate profiles using their own uid (so a row always exists for them).
+  // The correct check is zawaaj_family_accounts.primary_user_id (NOT user_id).
+  // Uses getUser() — server-validated, never reads stale localStorage tokens.
   useEffect(() => {
     const supabase = createClient()
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) return
       supabase
-        .from('zawaaj_profiles')
-        .select('id')
-        .eq('user_id', user.id)
+        .from('zawaaj_family_accounts')
+        .select('registration_path')
+        .eq('primary_user_id', user.id)
         .maybeSingle()
         .then(({ data }) => {
-          setHasOwnProfile(!!data)
+          // Show "My profile" for Path B candidates (registration_path='child')
+          // and for any user with no family account row (edge case / legacy).
+          // Hide for Path A parents (registration_path='parent').
+          setHasOwnProfile(!data || data.registration_path !== 'parent')
         })
     })
   }, [])

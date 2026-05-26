@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import Sidebar from '@/components/Sidebar'
 import BottomNav from '@/components/BottomNav'
@@ -550,14 +551,20 @@ export default function FamilyAccountPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {candidates.map(c => {
                   const statusMeta = STATUS_LABELS[c.status] ?? { label: c.status, color: 'var(--text-muted)', bg: 'var(--surface-3)' }
+                  const isActive = c.id === activeProfileId
                   return (
-                    <div
+                    <Link
                       key={c.id}
+                      href="/my-profile"
                       style={{
                         display: 'flex', alignItems: 'center', gap: 12,
                         padding: '12px 14px', background: 'var(--surface-3)',
-                        borderRadius: 9, border: '0.5px solid var(--border-default)',
+                        borderRadius: 9, border: `0.5px solid ${isActive ? 'var(--border-gold)' : 'var(--border-default)'}`,
+                        textDecoration: 'none', cursor: 'pointer',
+                        transition: 'border-color 0.15s, background 0.15s',
                       }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = 'var(--surface-2)' }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = 'var(--surface-3)' }}
                     >
                       {/* Avatar */}
                       <div style={{
@@ -573,6 +580,9 @@ export default function FamilyAccountPage() {
                         <div style={{ fontSize: 13, color: 'var(--text-primary)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {c.first_name ? `${c.first_name}${c.last_name ? ` ${c.last_name[0]}.` : ''}` : c.display_initials}
                         </div>
+                        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 1 }}>
+                          View profile →
+                        </div>
                       </div>
                       <span style={{
                         fontSize: 11, fontWeight: 500, padding: '2px 9px',
@@ -581,7 +591,7 @@ export default function FamilyAccountPage() {
                       }}>
                         {statusMeta.label}
                       </span>
-                    </div>
+                    </Link>
                   )
                 })}
               </div>

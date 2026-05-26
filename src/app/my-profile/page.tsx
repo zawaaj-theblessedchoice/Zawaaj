@@ -167,10 +167,17 @@ const RELOCATION_LABELS: Record<string, string> = {
 }
 
 const PARTNER_CHILDREN_LABELS: Record<string, string> = {
-  yes:        'Yes',
-  open:       'Open to it',
-  prefer_not: 'Prefer not',
-  no:         'No',
+  // Current DB values
+  yes:          'Yes, open to this',
+  no_preference:'No preference',
+  prefer_not:   'Would prefer not',
+  not_specified:'Not specified',
+  // Legacy / free-text variants
+  open:         'Open to it',
+  possibly:     'Possibly',
+  Possibly:     'Possibly',
+  no:           'No',
+  No:           'No',
 }
 
 const POLYGAMY_LABELS: Record<string, string> = {
