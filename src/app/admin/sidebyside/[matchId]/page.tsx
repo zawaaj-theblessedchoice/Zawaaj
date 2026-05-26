@@ -7,6 +7,15 @@ import ZawaajLogo from '@/components/ZawaajLogo'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+interface ProfileFamilyAccount {
+  contact_number: string | null
+  contact_email: string | null
+  contact_full_name: string | null
+  female_contact_name: string | null
+  female_contact_number: string | null
+  no_female_contact_flag: boolean | null
+}
+
 interface Profile {
   id: string
   user_id: string | null
@@ -33,6 +42,7 @@ interface Profile {
   submitted_date: string | null
   approved_date: string | null
   created_at: string | null
+  family_account: ProfileFamilyAccount | ProfileFamilyAccount[] | null
 }
 
 interface Match {
@@ -108,7 +118,12 @@ function ProfileColumn({
   onConsentChange: (value: boolean) => void
 }) {
   const bg = profile.gender === 'female' ? 'var(--status-purple)' : 'var(--status-info)'
-  const digits = phoneDigits(profile.contact_number)
+  // Resolve family account contact details (new registrations store phone/email on fa)
+  const fa = Array.isArray(profile.family_account) ? profile.family_account[0] : profile.family_account
+  const phone = fa?.contact_number ?? profile.contact_number
+  const email = fa?.contact_email ?? profile.imported_email
+  const contactName = fa?.contact_full_name ?? profile.guardian_name
+  const digits = phoneDigits(phone)
 
   function Row({ title, value }: { title: string; value: string | null | undefined }) {
     return value ? (
@@ -145,7 +160,7 @@ function ProfileColumn({
       {/* Fields */}
       <div className="px-6 py-4">
         <dl>
-          <Row title="Gender" value={profile.gender} />
+          <Row title="Gender" value={profile.gender ? profile.gender.charAt(0).toUpperCase() + profile.gender.slice(1) : null} />
           <Row title="Age" value={profile.age_display} />
           <Row title="Height" value={profile.height} />
           <Row title="Ethnicity" value={profile.ethnicity} />
@@ -194,15 +209,15 @@ function ProfileColumn({
         <dl className="space-y-2 text-sm">
           <div className="flex gap-2">
             <dt className="w-24 flex-shrink-0" style={{ color: 'var(--admin-muted)' }}>Phone:</dt>
-            <dd className="font-medium" style={{ color: 'var(--admin-text)' }}>{profile.contact_number ?? '—'}</dd>
+            <dd className="font-medium" style={{ color: 'var(--admin-text)' }}>{phone ?? '—'}</dd>
           </div>
           <div className="flex gap-2">
             <dt className="w-24 flex-shrink-0" style={{ color: 'var(--admin-muted)' }}>Guardian:</dt>
-            <dd className="font-medium" style={{ color: 'var(--admin-text)' }}>{profile.guardian_name ?? '—'}</dd>
+            <dd className="font-medium" style={{ color: 'var(--admin-text)' }}>{contactName ?? '—'}</dd>
           </div>
           <div className="flex gap-2">
             <dt className="w-24 flex-shrink-0" style={{ color: 'var(--admin-muted)' }}>Email:</dt>
-            <dd className="font-medium break-all" style={{ color: 'var(--admin-text)' }}>{profile.imported_email ?? '—'}</dd>
+            <dd className="font-medium break-all" style={{ color: 'var(--admin-text)' }}>{email ?? '—'}</dd>
           </div>
         </dl>
         {digits && (
@@ -300,9 +315,10 @@ export default function SideBySidePage({
     // there is no match record yet — fetch both profiles directly by ID.
     if (matchId.includes('__')) {
       const [id1, id2] = matchId.split('__')
+      const FA_SELECT = `*, family_account:zawaaj_family_accounts!family_account_id(contact_number,contact_email,contact_full_name,female_contact_name,female_contact_number,no_female_contact_flag)`
       const [{ data: pA }, { data: pB }] = await Promise.all([
-        supabase.from('zawaaj_profiles').select('*').eq('id', id1).single(),
-        supabase.from('zawaaj_profiles').select('*').eq('id', id2).single(),
+        supabase.from('zawaaj_profiles').select(FA_SELECT).eq('id', id1).single(),
+        supabase.from('zawaaj_profiles').select(FA_SELECT).eq('id', id2).single(),
       ])
       setProfileA((pA as Profile) ?? null)
       setProfileB((pB as Profile) ?? null)
@@ -326,9 +342,10 @@ export default function SideBySidePage({
     setOutcomeValue(m.outcome ?? 'unknown')
     setAdminNotesValue(m.admin_notes ?? '')
 
+    const FA_SELECT = `*, family_account:zawaaj_family_accounts!family_account_id(contact_number,contact_email,contact_full_name,female_contact_name,female_contact_number,no_female_contact_flag)`
     const [{ data: pA }, { data: pB }] = await Promise.all([
-      supabase.from('zawaaj_profiles').select('*').eq('id', m.profile_a_id).single(),
-      supabase.from('zawaaj_profiles').select('*').eq('id', m.profile_b_id).single(),
+      supabase.from('zawaaj_profiles').select(FA_SELECT).eq('id', m.profile_a_id).single(),
+      supabase.from('zawaaj_profiles').select(FA_SELECT).eq('id', m.profile_b_id).single(),
     ])
 
     setProfileA((pA as Profile) ?? null)
