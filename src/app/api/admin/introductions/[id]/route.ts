@@ -41,6 +41,15 @@ const VALID_STATUSES = [
   'facilitated',
   'expired',
   'withdrawn',
+  // follow-up progression
+  'following_up',
+  'contact_made',
+  'both_willing',
+  'meeting_arranged',
+  'met',
+  // outcomes
+  'nikkah_completed',
+  'not_proceeded',
 ] as const
 
 // ─── PATCH — Admin action on an introduction request ─────────────────────────
@@ -436,11 +445,12 @@ export async function PATCH(
       if (!emailA.ok) console.error('[facilitate] email to requester family failed:', emailA.error)
       if (!emailB.ok) console.error('[facilitate] email to target family failed:', emailB.error)
 
-      // Mark request as facilitated
+      // Mark request as following_up (contacts shared → follow-up begins)
       const { error: updateError } = await supabaseAdmin
         .from('zawaaj_introduction_requests')
         .update({
-          status: 'facilitated',
+          status: 'following_up',
+          facilitated_at: now,
           handled_by: activeProfileId,
           handled_at: now,
           ...(admin_notes !== undefined ? { admin_notes } : {}),
@@ -449,6 +459,21 @@ export async function PATCH(
 
       if (updateError) {
         return NextResponse.json({ error: 'Emails sent but failed to update status: ' + updateError.message }, { status: 500 })
+      }
+
+      // Insert follow-up audit row
+      const { error: followupInsertError } = await supabaseAdmin
+        .from('zawaaj_intro_followups')
+        .insert({
+          introduction_request_id: id,
+          created_by: user.id,
+          status_set: 'following_up',
+          note: 'Contacts shared — follow-up started',
+        })
+
+      if (followupInsertError) {
+        // Non-fatal — status was updated successfully, just log
+        console.error('[facilitate] Failed to insert followup row:', followupInsertError.message)
       }
 
       // In-app notifications to both profiles

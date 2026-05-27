@@ -43,18 +43,35 @@ export async function PATCH(request: Request): Promise<Response> {
       return NextResponse.json({ error: 'request_id is required' }, { status: 400 })
     }
 
-    // 4. Update the introduction request
+    const now = new Date().toISOString()
+
+    // 4. Update the introduction request — mark as following_up (contacts shared)
     const { error: updateError } = await supabase
       .from('zawaaj_introduction_requests')
       .update({
-        status: 'facilitated',
-        facilitated_at: new Date().toISOString(),
+        status: 'following_up',
+        facilitated_at: now,
         admin_notes: admin_notes ?? null,
       })
       .eq('id', request_id)
 
     if (updateError) {
       return NextResponse.json({ error: 'Failed to update introduction request' }, { status: 500 })
+    }
+
+    // 5. Insert follow-up audit row
+    const { error: followupError } = await supabase
+      .from('zawaaj_intro_followups')
+      .insert({
+        introduction_request_id: request_id,
+        created_by: user.id,
+        status_set: 'following_up',
+        note: 'Contacts shared — follow-up started',
+      })
+
+    if (followupError) {
+      // Non-fatal — status was updated successfully, just log
+      console.error('[facilitate-introduction] Failed to insert followup row:', followupError.message)
     }
 
     // TODO: Send introduction emails to both parties

@@ -62,6 +62,15 @@ function ConciergeIcon() {
   )
 }
 
+function FollowupsIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
+      <circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.3" />
+      <path d="M7 4v3.5l2 1.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
 function ManagersIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
@@ -172,9 +181,10 @@ const NAV_SECTIONS = [
   {
     label: 'Members',
     items: [
-      { href: '/admin/introductions', label: 'Introductions', icon: <IntroIcon />,          superOnly: false },
-      { href: '/admin/matches',       label: 'Matches',       icon: <MatchIcon />,          superOnly: true  },
-      { href: '/admin/concierge',     label: 'Concierge',     icon: <ConciergeIcon />,      superOnly: true  },
+      { href: '/admin/introductions', label: 'Introductions', icon: <IntroIcon />,       superOnly: false },
+      { href: '/admin/followups',     label: 'Follow-ups',    icon: <FollowupsIcon />,   superOnly: false },
+      { href: '/admin/matches',       label: 'Matches',       icon: <MatchIcon />,       superOnly: true  },
+      { href: '/admin/concierge',     label: 'Concierge',     icon: <ConciergeIcon />,   superOnly: true  },
     ],
   },
   {
@@ -258,6 +268,34 @@ export function AdminShell({ role, children }: Props) {
 
   const [theme, setTheme] = useState<'dark' | 'light'>('dark')
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [followupCount, setFollowupCount] = useState(0)
+  const [followupOverdue, setFollowupOverdue] = useState(false)
+
+  // Fetch follow-up badge counts on mount
+  useEffect(() => {
+    async function fetchFollowupCounts() {
+      try {
+        const ACTIVE = ['following_up', 'contact_made', 'both_willing', 'meeting_arranged', 'met']
+
+        const { count } = await supabase
+          .from('zawaaj_introduction_requests')
+          .select('id', { count: 'exact', head: true })
+          .in('status', ACTIVE)
+        setFollowupCount(count ?? 0)
+
+        const cutoff = new Date(Date.now() - 14 * 86400000).toISOString()
+        const { count: overdueCount } = await supabase
+          .from('zawaaj_introduction_requests')
+          .select('id', { count: 'exact', head: true })
+          .in('status', ACTIVE)
+          .lt('facilitated_at', cutoff)
+        setFollowupOverdue((overdueCount ?? 0) > 0)
+      } catch {
+        // non-fatal — sidebar badge is decorative
+      }
+    }
+    fetchFollowupCounts()
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const t = getTheme()
@@ -392,6 +430,21 @@ export function AdminShell({ role, children }: Props) {
                       </span>
                     </IconTile>
                     <span style={{ flex: 1 }}>{item.label}</span>
+                    {item.href === '/admin/followups' && followupCount > 0 && (
+                      <span style={{
+                        background: followupOverdue ? '#d97706' : gold,
+                        color: '#fff',
+                        borderRadius: 10,
+                        padding: '1px 6px',
+                        fontSize: 10,
+                        fontWeight: 700,
+                        minWidth: 16,
+                        textAlign: 'center' as const,
+                        lineHeight: 1.6,
+                      }}>
+                        {followupCount}
+                      </span>
+                    )}
                   </Link>
                 )
               })}
