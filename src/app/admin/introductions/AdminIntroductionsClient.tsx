@@ -337,7 +337,7 @@ function RequestRow({
     (role === 'super_admin' || req.assigned_manager_id === req.assigned_manager_id) // manager scope enforced at API
 
   const canComplete = req.status === 'admin_in_progress'
-  const canFacilitate = req.status === 'accepted'
+  const canFacilitate = req.status === 'accepted' || req.status === 'mutual' || req.status === 'mutual_confirmed'
   const canRecordOutcome = req.status === 'facilitated'
 
   return (
@@ -657,7 +657,7 @@ export default function AdminIntroductionsClient({
     const ok = await callApi(reqId, body)
     if (ok) {
       applyUpdate(reqId, {
-        status: 'facilitated',
+        status: 'following_up',
         handled_at: new Date().toISOString(),
       })
     }

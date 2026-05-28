@@ -317,11 +317,12 @@ export async function PATCH(
 
     // ─── Action: facilitate ───────────────────────────────────────────────────
     // Shares contact details between both families via email and marks the
-    // request as facilitated. Requires status = 'accepted'.
+    // request as following_up. Accepts 'accepted', 'mutual', or 'mutual_confirmed'.
     if (action === 'facilitate') {
-      if (req.status !== 'accepted') {
+      const FACILITATABLE = ['accepted', 'mutual', 'mutual_confirmed']
+      if (!FACILITATABLE.includes(req.status)) {
         return NextResponse.json(
-          { error: `Cannot facilitate: status is '${req.status}', expected 'accepted'` },
+          { error: `Cannot facilitate: status is '${req.status}', expected one of: ${FACILITATABLE.join(', ')}` },
           { status: 422 }
         )
       }
