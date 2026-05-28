@@ -553,12 +553,12 @@ export default function AdminIntroductionsClient({
   // ─── Tab filtering ────────────────────────────────────────────────────────
 
   const tabDefs: { key: FilterTab; label: string; statuses: string[] }[] = [
-    { key: 'pending',    label: 'Pending',           statuses: ['pending'] },
-    { key: 'mutual',     label: 'Mutual ✦',          statuses: ['accepted', 'mutual_confirmed', 'admin_pending'] },
-    { key: 'facilitated',label: 'Facilitated',       statuses: ['facilitated', 'admin_in_progress', 'admin_completed'] },
-    { key: 'active',     label: 'Legacy active',     statuses: ['admin_assigned'] },
-    { key: 'completed',  label: 'Completed',         statuses: [] },
-    { key: 'declined',   label: 'Declined / Expired', statuses: ['declined', 'responded_negative', 'expired', 'withdrawn'] },
+    { key: 'pending',     label: 'Pending',            statuses: ['pending', 'responded_positive', 'responded', 'responded_negative'] },
+    { key: 'mutual',      label: 'Mutual ✦',           statuses: ['accepted', 'mutual', 'mutual_confirmed', 'admin_pending'] },
+    { key: 'facilitated', label: 'Facilitated',        statuses: ['facilitated', 'following_up', 'contact_made', 'both_willing', 'meeting_arranged', 'met', 'admin_in_progress'] },
+    { key: 'active',      label: 'Legacy active',      statuses: ['admin_assigned'] },
+    { key: 'completed',   label: 'Completed',          statuses: ['nikkah_completed', 'completed', 'admin_completed'] },
+    { key: 'declined',    label: 'Declined / Expired', statuses: ['declined', 'expired', 'withdrawn', 'not_proceeded'] },
   ]
 
   const filtered = requests.filter((r) => {
