@@ -23,13 +23,16 @@ ALTER TABLE zawaaj_introduction_requests
     'declined',
     'expired',
     'withdrawn',
+    -- mutual / responded (set by operationsQueries mutual-match flow and respond flow)
+    'mutual',
+    'responded',
     -- admin workflow values
     'facilitated',
     'admin_assigned',
     'admin_in_progress',
     'admin_completed',
     'admin_pending',
-    -- response tracking values
+    -- response tracking values (set via override_status)
     'responded_positive',
     'responded_negative',
     'mutual_confirmed',
