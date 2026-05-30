@@ -7,7 +7,7 @@ import Sidebar from '@/components/Sidebar'
 import AvatarInitials from '@/components/AvatarInitials'
 import { getPlanConfig } from '@/lib/plan-config'
 import type { Plan } from '@/lib/plan-config'
-import { fetchPlanLimits } from '@/lib/config/profileOptions'
+import { fetchPlanLimits, PLAN_LIMITS_FALLBACK } from '@/lib/config/profileOptions'
 
 interface Profile {
   id: string
@@ -432,9 +432,13 @@ export default function MyProfilePage() {
       // Read monthly limit from zawaaj_plans via fetchPlanLimits — DB is source of truth
       const planKey = normPlan === 'free' ? 'voluntary' : normPlan
       const planLimits = await fetchPlanLimits(supabase)
-      const monthlyInterests = planLimits[planKey]?.monthlyInterests
-      // Infinity → unlimited (null); undefined/fallback → 2
-      setMonthlyLimitDb(monthlyInterests === Infinity ? null : (monthlyInterests ?? 2))
+      // Fall back to static PLAN_LIMITS_FALLBACK when DB doesn't have the plan key,
+      // so Premium users aren't incorrectly capped at 2.
+      const dbMonthlyInterests = planLimits[planKey]?.monthlyInterests
+      const staticFallback = PLAN_LIMITS_FALLBACK[planKey as keyof typeof PLAN_LIMITS_FALLBACK]?.monthlyInterests
+      const resolvedLimit = dbMonthlyInterests ?? staticFallback
+      // Infinity or undefined → null (unlimited)
+      setMonthlyLimitDb(!resolvedLimit || resolvedLimit === Infinity ? null : resolvedLimit)
 
       // Profile views data
       fetch('/api/profile-views')
@@ -677,7 +681,9 @@ export default function MyProfilePage() {
 
   const age = calcAge(profile.date_of_birth)
   const { bg: statusBg, text: statusText } = statusColour(profile.status)
+  // Exclude withdrawn and expired — they should not count against the monthly allowance
   const monthlyUsed = introRequests.filter(r => {
+    if (r.status === 'withdrawn' || r.status === 'expired') return false
     const d = new Date(r.created_at)
     const now = new Date()
     return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()
