@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { NextResponse } from 'next/server'
+import { sendEmail, notProceededTemplate } from '@/lib/email'
 
 // ─── POST — Advance a follow-up status ───────────────────────────────────────
 //
@@ -83,6 +84,68 @@ export async function POST(request: Request): Promise<Response> {
     if (insertError) {
       // Non-fatal — status was updated, log and continue
       console.error('[followup-advance] Failed to insert followup row:', insertError.message)
+    }
+
+    // ── Additional side-effects for outcome statuses ───────────────────────────
+
+    if (new_status === 'not_proceeded') {
+      // Load both profile IDs from the intro request
+      const { data: introData, error: introFetchError } = await supabaseAdmin
+        .from('zawaaj_introduction_requests')
+        .select('requesting_profile_id, target_profile_id')
+        .eq('id', intro_id)
+        .single()
+
+      if (introFetchError || !introData) {
+        console.error('[followup-advance] Could not load intro for not_proceeded handling:', introFetchError?.message)
+      } else {
+        const profileIds = [introData.requesting_profile_id, introData.target_profile_id]
+
+        // 1. Re-approve any profiles that are paused / suspended / withdrawn
+        const { error: resetError } = await supabaseAdmin
+          .from('zawaaj_profiles')
+          .update({ status: 'approved' })
+          .in('id', profileIds)
+          .in('status', ['paused', 'suspended', 'withdrawn'])
+
+        if (resetError) {
+          console.error('[followup-advance] Failed to reset profile statuses:', resetError.message)
+        }
+
+        // 2. Load family account contact details for both profiles
+        type FaContact = { contact_full_name: string | null; contact_email: string | null }
+        type ProfileWithFa = { id: string; family_account: FaContact | FaContact[] | null }
+
+        const { data: profilesData, error: profilesFetchError } = await supabaseAdmin
+          .from('zawaaj_profiles')
+          .select(`
+            id,
+            family_account:zawaaj_family_accounts!family_account_id(
+              contact_full_name, contact_email
+            )
+          `)
+          .in('id', profileIds)
+
+        if (profilesFetchError) {
+          console.error('[followup-advance] Failed to load family contacts for emails:', profilesFetchError.message)
+        } else if (profilesData) {
+          // 3. Send outcome email to each family representative
+          for (const p of (profilesData as unknown as ProfileWithFa[])) {
+            const fa = Array.isArray(p.family_account) ? (p.family_account[0] ?? null) : p.family_account
+            if (!fa?.contact_email) continue
+
+            const emailResult = await sendEmail({
+              to: fa.contact_email,
+              subject: 'An update on your Zawaaj introduction',
+              html: notProceededTemplate(fa.contact_full_name ?? 'valued member'),
+            })
+
+            if (!emailResult.ok) {
+              console.error('[followup-advance] not_proceeded email failed for profile', p.id, ':', emailResult.error)
+            }
+          }
+        }
+      }
     }
 
     return NextResponse.json({ success: true, new_status })

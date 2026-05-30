@@ -666,6 +666,65 @@ export function cancellationConfirmedTemplate(
   return gcEmailWrapper('Your Zawaaj Premium cancellation is confirmed', body)
 }
 
+// ─── Not-proceeded outcome email ─────────────────────────────────────────────
+// Sent to each family representative when an introduction does not proceed.
+
+export function notProceededTemplate(recipientName: string): string {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>An update on your Zawaaj introduction</title>
+</head>
+<body style="margin:0;padding:0;background:#111111;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#111111;padding:40px 16px;">
+    <tr>
+      <td align="center">
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;">
+          <tr>
+            <td align="center" style="padding-bottom:32px;">
+              <img src="https://zawaaj.uk/logo.png" alt="Zawaaj" width="90" style="display:block;" />
+              <p style="margin:8px 0 0;color:#B8960C;font-size:11px;letter-spacing:2px;text-transform:uppercase;">The Blessed Choice</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="background:#1A1A1A;border:1px solid #2a2a2a;border-top:1px solid rgba(184,150,12,0.3);border-radius:12px;padding:36px 32px;">
+              <h1 style="margin:0 0 16px;font-size:20px;font-weight:600;color:#ffffff;">An update on your introduction</h1>
+              <p style="margin:0 0 16px;font-size:14px;color:#9ca3af;line-height:1.7;">Assalamu alaykum ${recipientName},</p>
+              <p style="margin:0 0 16px;font-size:14px;color:#9ca3af;line-height:1.7;">
+                We wanted to let you know that the introduction did not proceed further at this time.
+                May Allah grant you ease and guide you to a blessed union, in shaa Allah.
+              </p>
+              <p style="margin:0 0 24px;font-size:14px;color:#9ca3af;line-height:1.7;">
+                Your profile remains active and you can continue browsing on Zawaaj.
+              </p>
+              <a href="https://zawaaj.uk/browse"
+                style="display:inline-block;padding:12px 28px;background:#B8960C;color:#111111;font-size:14px;font-weight:600;text-decoration:none;border-radius:10px;">
+                Continue browsing
+              </a>
+              <p style="margin:24px 0 0;font-size:13px;color:#6b7280;line-height:1.6;">
+                If you have any questions, please don't hesitate to reach out to us at
+                <a href="mailto:team@zawaaj.uk" style="color:#B8960C;text-decoration:none;">team@zawaaj.uk</a>.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding-top:24px;">
+              <p style="margin:0;font-size:11px;color:#4b5563;">
+                Jazakallahu khayran,<br />The Zawaaj Team ·
+                <a href="https://zawaaj.uk" style="color:#6b7280;text-decoration:none;">zawaaj.uk</a>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`
+}
+
 // ─── Bug / issue report admin alert ──────────────────────────────────────────
 // Sent to the super-admin inbox whenever a member submits a report.
 
