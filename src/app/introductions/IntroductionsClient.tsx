@@ -183,12 +183,17 @@ function buildDisplayName(
 
 // ─── StatusBadge ─────────────────────────────────────────────────────────────
 
+// Safe fallback for any unknown or null/undefined status value
+const UNKNOWN_BADGE: BadgeConfig = {
+  bg: 'var(--surface-3)',
+  text: 'var(--text-muted)',
+  label: 'Unknown',
+}
+
 function StatusBadge({ status }: { status: IntroStatus }) {
-  const c = STATUS_CONFIG[status] ?? {
-    bg: 'var(--surface-3)',
-    text: 'var(--text-muted)',
-    label: status.replace(/_/g, ' '),
-  }
+  // Guard against null/undefined status (can happen with legacy data or unexpected API responses)
+  const safeStatus = typeof status === 'string' ? status : ''
+  const c = STATUS_CONFIG[safeStatus] ?? STATUS_CONFIG['pending'] ?? UNKNOWN_BADGE
 
   return (
     <span
