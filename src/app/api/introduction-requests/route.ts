@@ -177,20 +177,22 @@ export async function POST(request: Request): Promise<Response> {
       }
     }
 
-    // 4g. Not already requested with an active (non-terminal) status
-    const { data: existingRequest, error: existingError } = await supabase
+    // 4g. Block only if an active (non-terminal) request already exists in this direction.
+    // Terminal statuses (withdrawn, expired, declined, etc.) do NOT block re-expression —
+    // the DB partial unique index (migration 059) enforces the same rule at the DB level.
+    const TERMINAL_STATUSES = '("withdrawn","expired","declined","not_proceeded","nikkah_completed","responded_negative","responded")'
+    const { count: existingActiveCount, error: existingError } = await supabase
       .from('zawaaj_introduction_requests')
-      .select('id')
+      .select('id', { count: 'exact', head: true })
       .eq('requesting_profile_id', activeProfileId)
       .eq('target_profile_id', target_profile_id)
-      .in('status', ['pending', 'accepted'])
-      .maybeSingle()
+      .not('status', 'in', TERMINAL_STATUSES)
 
     if (existingError) {
       return NextResponse.json({ error: 'Failed to check existing requests' }, { status: 500 })
     }
 
-    if (existingRequest) {
+    if ((existingActiveCount ?? 0) > 0) {
       return NextResponse.json({ error: 'Already requested' }, { status: 422 })
     }
 
