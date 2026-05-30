@@ -666,6 +666,62 @@ export function cancellationConfirmedTemplate(
   return gcEmailWrapper('Your Zawaaj Premium cancellation is confirmed', body)
 }
 
+// ─── Nikkah Alhamdulillah outcome email ──────────────────────────────────────
+// Sent to each family representative when a nikkah is completed.
+
+export function nikahAlhamdulillahTemplate(recipientName: string): string {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Alhamdulillah — Zawaaj</title>
+</head>
+<body style="margin:0;padding:0;background:#111111;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#111111;padding:40px 16px;">
+    <tr>
+      <td align="center">
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;">
+          <tr>
+            <td align="center" style="padding-bottom:32px;">
+              <img src="https://zawaaj.uk/logo.png" alt="Zawaaj" width="90" style="display:block;" />
+              <p style="margin:8px 0 0;color:#B8960C;font-size:11px;letter-spacing:2px;text-transform:uppercase;">The Blessed Choice</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="background:#1A1A1A;border:1px solid #2a2a2a;border-top:1px solid rgba(184,150,12,0.3);border-radius:12px;padding:36px 32px;">
+              <h1 style="margin:0 0 16px;font-size:22px;font-weight:700;color:#ffffff;">Alhamdulillah 🤍</h1>
+              <p style="margin:0 0 16px;font-size:14px;color:#9ca3af;line-height:1.7;">Assalamu alaykum ${recipientName},</p>
+              <p style="margin:0 0 16px;font-size:14px;color:#9ca3af;line-height:1.7;">
+                We are delighted to share that the introduction has led to a nikkah — may Allah bless this union
+                and grant the couple a life filled with love, mercy, and baraka, in shaa Allah.
+              </p>
+              <p style="margin:0 0 24px;font-size:14px;color:#9ca3af;line-height:1.7;">
+                Barak Allahu lakuma wa baraka 'alaykuma wa jama'a baynakuma fi khayr.
+              </p>
+              <p style="margin:0;font-size:13px;color:#6b7280;line-height:1.6;">
+                Jazakallahu khayran for trusting Zawaaj with this journey.
+                If we can be of any further assistance, please don't hesitate to reach out at
+                <a href="mailto:team@zawaaj.uk" style="color:#B8960C;text-decoration:none;">team@zawaaj.uk</a>.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding-top:24px;">
+              <p style="margin:0;font-size:11px;color:#4b5563;">
+                The Zawaaj Team ·
+                <a href="https://zawaaj.uk" style="color:#6b7280;text-decoration:none;">zawaaj.uk</a>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`
+}
+
 // ─── Not-proceeded outcome email ─────────────────────────────────────────────
 // Sent to each family representative when an introduction does not proceed.
 

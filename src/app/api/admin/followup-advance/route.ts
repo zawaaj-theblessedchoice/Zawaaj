@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { NextResponse } from 'next/server'
-import { sendEmail, notProceededTemplate } from '@/lib/email'
+import { sendEmail, nikahAlhamdulillahTemplate, notProceededTemplate } from '@/lib/email'
 
 // ─── POST — Advance a follow-up status ───────────────────────────────────────
 //
@@ -26,6 +26,110 @@ type RequestBody = {
   new_status?: string
   note?: string
 }
+
+// ─── Helper: load family contact details for two profiles ─────────────────────
+
+type DbClient = typeof supabaseAdmin
+type FaContact = { contact_full_name: string | null; contact_email: string | null }
+type ProfileWithFa = { id: string; family_account: FaContact | FaContact[] | null }
+
+async function getFamilyContacts(
+  profileIdA: string,
+  profileIdB: string,
+  client: DbClient,
+): Promise<FaContact[]> {
+  const { data } = await client
+    .from('zawaaj_profiles')
+    .select(`
+      id,
+      family_account:zawaaj_family_accounts!family_account_id(
+        contact_full_name,
+        contact_email
+      )
+    `)
+    .in('id', [profileIdA, profileIdB])
+
+  return (data ?? [])
+    .map(p => {
+      const pp = p as unknown as ProfileWithFa
+      const fa = Array.isArray(pp.family_account)
+        ? (pp.family_account[0] ?? null)
+        : pp.family_account
+      return fa
+    })
+    .filter((fa): fa is FaContact => fa !== null && fa.contact_email !== null)
+}
+
+// ─── Handler: nikkah_completed outcome ───────────────────────────────────────
+
+async function handleNikkahCompleted(
+  intro_id: string,
+  requesting_profile_id: string,
+  target_profile_id: string,
+): Promise<void> {
+  const profileIds = [requesting_profile_id, target_profile_id]
+
+  // 1. Set both profiles to nikkah_alhamdulillah — hidden from browse, preserved for stats
+  const { error: statusError } = await supabaseAdmin
+    .from('zawaaj_profiles')
+    .update({ status: 'nikkah_alhamdulillah' })
+    .in('id', profileIds)
+
+  if (statusError) {
+    console.error('[followup-advance] Failed to set nikkah_alhamdulillah status:', statusError.message)
+  }
+
+  // 2. Send congratulatory emails to both family representatives
+  const families = await getFamilyContacts(requesting_profile_id, target_profile_id, supabaseAdmin)
+  for (const family of families) {
+    if (!family.contact_email) continue
+    const result = await sendEmail({
+      to: family.contact_email,
+      subject: 'Alhamdulillah — a nikkah has been completed',
+      html: nikahAlhamdulillahTemplate(family.contact_full_name ?? 'valued member'),
+    })
+    if (!result.ok) {
+      console.error('[followup-advance] nikkah email failed:', result.error)
+    }
+  }
+}
+
+// ─── Handler: not_proceeded outcome ──────────────────────────────────────────
+
+async function handleNotProceeded(
+  intro_id: string,
+  requesting_profile_id: string,
+  target_profile_id: string,
+): Promise<void> {
+  const profileIds = [requesting_profile_id, target_profile_id]
+
+  // 1. Re-approve any profiles that are paused / suspended / withdrawn
+  const { error: resetError } = await supabaseAdmin
+    .from('zawaaj_profiles')
+    .update({ status: 'approved' })
+    .in('id', profileIds)
+    .in('status', ['paused', 'suspended', 'withdrawn'])
+
+  if (resetError) {
+    console.error('[followup-advance] Failed to reset profile statuses:', resetError.message)
+  }
+
+  // 2. Send outcome emails to both family representatives
+  const families = await getFamilyContacts(requesting_profile_id, target_profile_id, supabaseAdmin)
+  for (const family of families) {
+    if (!family.contact_email) continue
+    const result = await sendEmail({
+      to: family.contact_email,
+      subject: 'An update on your Zawaaj introduction',
+      html: notProceededTemplate(family.contact_full_name ?? 'valued member'),
+    })
+    if (!result.ok) {
+      console.error('[followup-advance] not_proceeded email failed:', result.error)
+    }
+  }
+}
+
+// ─── Route handler ────────────────────────────────────────────────────────────
 
 export async function POST(request: Request): Promise<Response> {
   try {
@@ -86,10 +190,8 @@ export async function POST(request: Request): Promise<Response> {
       console.error('[followup-advance] Failed to insert followup row:', insertError.message)
     }
 
-    // ── Additional side-effects for outcome statuses ───────────────────────────
-
-    if (new_status === 'not_proceeded') {
-      // Load both profile IDs from the intro request
+    // 6. Additional side-effects for outcome statuses
+    if (new_status === 'nikkah_completed' || new_status === 'not_proceeded') {
       const { data: introData, error: introFetchError } = await supabaseAdmin
         .from('zawaaj_introduction_requests')
         .select('requesting_profile_id, target_profile_id')
@@ -97,53 +199,14 @@ export async function POST(request: Request): Promise<Response> {
         .single()
 
       if (introFetchError || !introData) {
-        console.error('[followup-advance] Could not load intro for not_proceeded handling:', introFetchError?.message)
+        console.error('[followup-advance] Could not load intro for outcome handling:', introFetchError?.message)
       } else {
-        const profileIds = [introData.requesting_profile_id, introData.target_profile_id]
+        const { requesting_profile_id, target_profile_id } = introData
 
-        // 1. Re-approve any profiles that are paused / suspended / withdrawn
-        const { error: resetError } = await supabaseAdmin
-          .from('zawaaj_profiles')
-          .update({ status: 'approved' })
-          .in('id', profileIds)
-          .in('status', ['paused', 'suspended', 'withdrawn'])
-
-        if (resetError) {
-          console.error('[followup-advance] Failed to reset profile statuses:', resetError.message)
-        }
-
-        // 2. Load family account contact details for both profiles
-        type FaContact = { contact_full_name: string | null; contact_email: string | null }
-        type ProfileWithFa = { id: string; family_account: FaContact | FaContact[] | null }
-
-        const { data: profilesData, error: profilesFetchError } = await supabaseAdmin
-          .from('zawaaj_profiles')
-          .select(`
-            id,
-            family_account:zawaaj_family_accounts!family_account_id(
-              contact_full_name, contact_email
-            )
-          `)
-          .in('id', profileIds)
-
-        if (profilesFetchError) {
-          console.error('[followup-advance] Failed to load family contacts for emails:', profilesFetchError.message)
-        } else if (profilesData) {
-          // 3. Send outcome email to each family representative
-          for (const p of (profilesData as unknown as ProfileWithFa[])) {
-            const fa = Array.isArray(p.family_account) ? (p.family_account[0] ?? null) : p.family_account
-            if (!fa?.contact_email) continue
-
-            const emailResult = await sendEmail({
-              to: fa.contact_email,
-              subject: 'An update on your Zawaaj introduction',
-              html: notProceededTemplate(fa.contact_full_name ?? 'valued member'),
-            })
-
-            if (!emailResult.ok) {
-              console.error('[followup-advance] not_proceeded email failed for profile', p.id, ':', emailResult.error)
-            }
-          }
+        if (new_status === 'nikkah_completed') {
+          await handleNikkahCompleted(intro_id, requesting_profile_id, target_profile_id)
+        } else {
+          await handleNotProceeded(intro_id, requesting_profile_id, target_profile_id)
         }
       }
     }
