@@ -196,6 +196,17 @@ export async function POST(request: Request): Promise<Response> {
       return NextResponse.json({ error: 'Already requested' }, { status: 422 })
     }
 
+    // 4h. Detect re-expression — check if a terminal record already exists for this pair.
+    // Used to show a subtle UX message client-side ("You previously expressed interest…").
+    const { count: previousCount } = await supabase
+      .from('zawaaj_introduction_requests')
+      .select('id', { count: 'exact', head: true })
+      .eq('requesting_profile_id', activeProfileId)
+      .eq('target_profile_id', target_profile_id)
+      .in('status', ['withdrawn', 'expired', 'declined'])
+
+    const wasReExpressed = (previousCount ?? 0) > 0
+
     // 5. visible_at — always immediate (no plan-based delay)
     const visibleAt = new Date().toISOString()
 
@@ -260,7 +271,7 @@ export async function POST(request: Request): Promise<Response> {
       console.warn('[introduction-requests] no contact_email for target family — email skipped for profile', target_profile_id)
     }
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true, wasReExpressed })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Internal server error'
     return NextResponse.json({ error: message }, { status: 500 })

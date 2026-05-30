@@ -121,6 +121,7 @@ function RequestIntroductionButton({
   const [buttonState, setButtonState] = useState<ButtonState>('available')
   const [loading, setLoading] = useState(true)
   const [success, setSuccess] = useState(false)
+  const [wasReExpressed, setWasReExpressed] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -163,12 +164,13 @@ function RequestIntroductionButton({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ target_profile_id: profile.id }),
       })
-      const json = await res.json().catch(() => ({}))
+      const json = await res.json().catch(() => ({})) as { error?: string; wasReExpressed?: boolean }
       if (!res.ok) {
         setError(json.error ?? 'Something went wrong. Please try again.')
       } else {
         setButtonState('already_requested')
         setSuccess(true)
+        setWasReExpressed(json.wasReExpressed === true)
       }
     } catch {
       setError('Network error. Please try again.')
@@ -200,6 +202,11 @@ function RequestIntroductionButton({
         <div style={{ padding: '10px 14px', borderRadius: 9, background: 'rgba(74,222,128,0.08)', border: '0.5px solid rgba(74,222,128,0.25)', fontSize: 13, color: 'var(--status-success)', textAlign: 'center' }}>
           Interest sent — our team will be in touch with both families.
         </div>
+      )}
+      {success && wasReExpressed && (
+        <p style={{ fontSize: 11.5, color: 'var(--text-muted)', textAlign: 'center', margin: 0 }}>
+          You previously expressed interest in this profile. Your new request has been sent.
+        </p>
       )}
       {buttonState === 'available' && (
         <button

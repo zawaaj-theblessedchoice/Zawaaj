@@ -9,8 +9,9 @@ import type { Plan } from '@/lib/plan-config'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-// Family Model v2 — status enum aligned with DB CHECK constraint (migration 019)
-export type IntroStatus = 'pending' | 'accepted' | 'declined' | 'expired' | 'withdrawn'
+// All known introduction request statuses — kept as string for forward-compatibility
+// so new statuses added to the DB don't crash the client.
+export type IntroStatus = string
 
 interface TargetProfile {
   id: string
@@ -89,10 +90,18 @@ interface IntroductionsClientProps {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-// 'accepted' = team will facilitate introduction
-const MATCH_STATUSES: IntroStatus[] = ['accepted']
+// Statuses shown in the "Matches" tab — mutual / in-progress / facilitated
+const MATCH_STATUSES: IntroStatus[] = [
+  'accepted', 'mutual', 'mutual_confirmed',
+  'admin_pending', 'admin_assigned', 'admin_in_progress', 'admin_completed',
+  'facilitated', 'following_up', 'contact_made', 'both_willing', 'meeting_arranged', 'met',
+  'responded_positive', 'nikkah_completed',
+]
 
-const PAST_STATUSES: IntroStatus[] = ['declined', 'expired', 'withdrawn']
+// Terminal statuses shown in the "Past" section
+const PAST_STATUSES: IntroStatus[] = [
+  'declined', 'expired', 'withdrawn', 'not_proceeded', 'responded_negative', 'responded',
+]
 
 // ─── Status badge config ──────────────────────────────────────────────────────
 
@@ -103,33 +112,34 @@ interface BadgeConfig {
   pulse?: boolean
 }
 
-const STATUS_CONFIG: Record<IntroStatus, BadgeConfig> = {
-  pending: {
-    bg: 'var(--status-warning-bg)',
-    text: 'var(--status-warning)',
-    label: "Awaiting family's response",
-  },
-  accepted: {
-    bg: 'var(--gold-muted)',
-    text: 'var(--gold)',
-    label: 'Accepted — team notified',
-    pulse: true,
-  },
-  declined: {
-    bg: 'var(--surface-3)',
-    text: 'var(--text-muted)',
-    label: 'Not progressed',
-  },
-  expired: {
-    bg: 'var(--surface-3)',
-    text: 'var(--text-muted)',
-    label: 'Expired',
-  },
-  withdrawn: {
-    bg: 'var(--surface-3)',
-    text: 'var(--text-muted)',
-    label: 'Withdrawn',
-  },
+const STATUS_CONFIG: Record<string, BadgeConfig> = {
+  // Core member-visible statuses
+  pending:             { bg: 'var(--status-warning-bg)',  text: 'var(--status-warning)',  label: "Awaiting family's response" },
+  accepted:            { bg: 'var(--gold-muted)',          text: 'var(--gold)',             label: 'Accepted — team notified', pulse: true },
+  declined:            { bg: 'var(--surface-3)',           text: 'var(--text-muted)',       label: 'Not progressed' },
+  expired:             { bg: 'var(--surface-3)',           text: 'var(--text-muted)',       label: 'Expired' },
+  withdrawn:           { bg: 'var(--surface-3)',           text: 'var(--text-muted)',       label: 'Withdrawn' },
+  // Mutual / responded
+  mutual:              { bg: 'var(--gold-muted)',          text: 'var(--gold)',             label: 'Mutual interest', pulse: true },
+  mutual_confirmed:    { bg: 'var(--gold-muted)',          text: 'var(--gold)',             label: 'Mutual confirmed', pulse: true },
+  responded:           { bg: 'var(--surface-3)',           text: 'var(--text-muted)',       label: 'Responded' },
+  responded_positive:  { bg: 'var(--status-success-bg)',  text: 'var(--status-success)',   label: 'Interest accepted', pulse: true },
+  responded_negative:  { bg: 'var(--surface-3)',           text: 'var(--text-muted)',       label: 'Not progressed' },
+  // Admin workflow
+  admin_pending:       { bg: 'var(--status-warning-bg)',  text: 'var(--status-warning)',   label: 'Awaiting team review' },
+  admin_assigned:      { bg: 'var(--status-info-bg)',     text: 'var(--status-info)',      label: 'Team assigned' },
+  admin_in_progress:   { bg: 'var(--status-info-bg)',     text: 'var(--status-info)',      label: 'In progress' },
+  admin_completed:     { bg: 'var(--status-success-bg)',  text: 'var(--status-success)',   label: 'Completed' },
+  // Facilitated / follow-up progression
+  facilitated:         { bg: 'var(--status-success-bg)',  text: 'var(--status-success)',   label: 'Contacts shared', pulse: true },
+  following_up:        { bg: 'var(--status-success-bg)',  text: 'var(--status-success)',   label: 'Introduction active', pulse: true },
+  contact_made:        { bg: 'var(--status-success-bg)',  text: 'var(--status-success)',   label: 'In contact' },
+  both_willing:        { bg: 'var(--status-success-bg)',  text: 'var(--status-success)',   label: 'Both proceeding' },
+  meeting_arranged:    { bg: 'var(--status-success-bg)',  text: 'var(--status-success)',   label: 'Meeting arranged' },
+  met:                 { bg: 'var(--status-success-bg)',  text: 'var(--status-success)',   label: 'Families have met' },
+  // Outcomes
+  nikkah_completed:    { bg: 'var(--status-success-bg)',  text: 'var(--status-success)',   label: 'Alhamdulillah — Nikkah' },
+  not_proceeded:       { bg: 'var(--surface-3)',           text: 'var(--text-muted)',       label: 'Did not proceed' },
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -174,7 +184,11 @@ function buildDisplayName(
 // ─── StatusBadge ─────────────────────────────────────────────────────────────
 
 function StatusBadge({ status }: { status: IntroStatus }) {
-  const c = STATUS_CONFIG[status]
+  const c = STATUS_CONFIG[status] ?? {
+    bg: 'var(--surface-3)',
+    text: 'var(--text-muted)',
+    label: status.replace(/_/g, ' '),
+  }
 
   return (
     <span
