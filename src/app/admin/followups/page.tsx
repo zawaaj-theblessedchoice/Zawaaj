@@ -85,13 +85,21 @@ function resolveProfile(raw: ProfileRow | ProfileRow[] | null): ProfileRow | nul
   return Array.isArray(raw) ? (raw[0] ?? null) : raw
 }
 
-function familyName(raw: ProfileRow | ProfileRow[] | null): string {
+// Candidate's display name: "Muhammad Ibrahim K."
+function candidateName(raw: ProfileRow | ProfileRow[] | null): string {
   const p = resolveProfile(raw)
   if (!p) return '?'
+  if (!p.first_name) return p.display_initials
+  const lastInitial = p.last_name ? ` ${p.last_name[0]}.` : ''
+  return `${p.first_name}${lastInitial}`
+}
+
+// Family representative's name from the family account
+function repName(raw: ProfileRow | ProfileRow[] | null): string | null {
+  const p = resolveProfile(raw)
+  if (!p) return null
   const fa = Array.isArray(p.family_account) ? (p.family_account[0] ?? null) : p.family_account
-  if (fa?.contact_full_name) return fa.contact_full_name
-  if (p.first_name) return `${p.first_name} family`
-  return p.display_initials
+  return fa?.contact_full_name ?? null
 }
 
 // ─── ProgressBar ─────────────────────────────────────────────────────────────
@@ -148,10 +156,17 @@ function FollowupCard({
     }}>
       {/* Header */}
       <div style={{ padding: '14px 18px 10px', borderBottom: `1px solid ${border}` }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-          <span style={{ fontSize: 14, fontWeight: 600, color: text }}>
-            {familyName(entry.requesting_profile)} ↔ {familyName(entry.target_profile)}
-          </span>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 10 }}>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: text }}>
+              {candidateName(entry.requesting_profile)} ↔ {candidateName(entry.target_profile)}
+            </div>
+            {(repName(entry.requesting_profile) || repName(entry.target_profile)) && (
+              <div style={{ fontSize: 11, color: muted, marginTop: 3 }}>
+                Rep: {repName(entry.requesting_profile) ?? '—'} · {repName(entry.target_profile) ?? '—'}
+              </div>
+            )}
+          </div>
           <span style={{
             fontSize: 11,
             fontWeight: 600,
