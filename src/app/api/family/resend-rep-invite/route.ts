@@ -27,7 +27,7 @@ export async function POST(): Promise<Response> {
     // ── 2. Fetch family account ───────────────────────────────────────────────
     const { data: fa, error: faErr } = await supabaseAdmin
       .from('zawaaj_family_accounts')
-      .select('id, contact_full_name, contact_email, contact_number, contact_relationship, readiness_state, status')
+      .select('id, contact_full_name, contact_email, contact_number, contact_relationship, readiness_state')
       .eq('primary_user_id', user.id)
       .maybeSingle()
 
@@ -41,12 +41,9 @@ export async function POST(): Promise<Response> {
       return NextResponse.json({ error: 'Family account not found.' }, { status: 404 })
     }
 
-    if (fa.status !== 'active') {
-      return NextResponse.json(
-        { error: 'Your account is not yet active. Invitations can only be sent once your account is approved.' },
-        { status: 400 }
-      )
-    }
+    // NOTE: no account-status gate here — guardian invites must be sendable at
+    // any point after registration. The candidate needs a representative linked
+    // before the admin can approve, so blocking on 'active' creates a deadlock.
 
     const invitableStates = ['candidate_only', 'representative_invited']
     if (!invitableStates.includes(fa.readiness_state)) {

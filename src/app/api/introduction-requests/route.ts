@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server'
 import { getPlanConfig, INTRO_EXPIRY_DAYS } from '@/lib/plan-config'
 import type { Plan } from '@/lib/plan-config'
 import { fetchPlanLimits, PLAN_LIMITS_FALLBACK } from '@/lib/config/profileOptions'
+import { sendEmail, interestReceivedTemplate } from '@/lib/email'
 
 // ─── POST — Create introduction request ──────────────────────────────────────
 
@@ -137,11 +138,13 @@ export async function POST(request: Request): Promise<Response> {
       ?? PLAN_LIMITS_FALLBACK[dbPlanKey as keyof typeof PLAN_LIMITS_FALLBACK]?.monthlyInterests
       ?? planConfig.monthlyLimit
 
+    // Exclude withdrawn (and expired) so cancelling a request frees the monthly slot
     const { count: monthlyCount, error: countError } = await supabase
       .from('zawaaj_introduction_requests')
       .select('id', { count: 'exact', head: true })
       .eq('requesting_profile_id', activeProfileId)
       .gte('created_at', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString())
+      .not('status', 'in', '("withdrawn","expired")')
 
     if (countError) {
       return NextResponse.json({ error: 'Failed to check monthly limit' }, { status: 500 })
@@ -228,6 +231,32 @@ export async function POST(request: Request): Promise<Response> {
       action_url: '/introductions',
       related_interest_id: newRequest.id,
     })
+
+    // 7b. Email notification → target family's representative contact_email
+    // The representative's email is on zawaaj_family_accounts, not on the profile.
+    const { data: targetFaData } = await supabaseAdmin
+      .from('zawaaj_profiles')
+      .select('family_account:zawaaj_family_accounts!family_account_id(contact_full_name, contact_email)')
+      .eq('id', target_profile_id)
+      .single()
+
+    type FaRow = { contact_full_name: string | null; contact_email: string | null }
+    const rawFa = (targetFaData as unknown as { family_account: FaRow | FaRow[] | null })?.family_account
+    const targetFa = Array.isArray(rawFa) ? (rawFa[0] ?? null) : rawFa
+
+    if (targetFa?.contact_email) {
+      console.log('[introduction-requests] sending interest notification email to', targetFa.contact_email)
+      const emailResult = await sendEmail({
+        to: targetFa.contact_email,
+        subject: 'A family has expressed interest on Zawaaj',
+        html: interestReceivedTemplate(targetFa.contact_full_name ?? 'valued member'),
+      })
+      if (!emailResult.ok) {
+        console.error('[introduction-requests] interest notification email failed:', emailResult.error)
+      }
+    } else {
+      console.warn('[introduction-requests] no contact_email for target family — email skipped for profile', target_profile_id)
+    }
 
     return NextResponse.json({ success: true })
   } catch (err) {
