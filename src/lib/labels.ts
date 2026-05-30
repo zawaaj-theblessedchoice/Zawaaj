@@ -114,6 +114,20 @@ export const PRAYER_LABELS: Record<string, string> = {
   not_currently: 'Not currently',
 }
 
+// ─── Profile status ───────────────────────────────────────────────────────────
+
+export const PROFILE_STATUS_LABELS: Record<string, string> = {
+  pending:               'Pending review',
+  approved:              'Approved',
+  paused:                'Paused',
+  rejected:              'Rejected',
+  withdrawn:             'Withdrawn',
+  suspended:             'Suspended',
+  introduced:            'Introduced',
+  unlinked:              'Unlinked',
+  nikkah_alhamdulillah:  'Nikkah — Alhamdulillah',
+}
+
 // ─── Education level ──────────────────────────────────────────────────────────
 
 export const EDUCATION_LABELS: Record<string, string> = {

@@ -103,12 +103,13 @@ async function handleNotProceeded(
 ): Promise<void> {
   const profileIds = [requesting_profile_id, target_profile_id]
 
-  // 1. Re-approve any profiles that are paused / suspended / withdrawn
+  // 1. Re-approve profiles that are paused or suspended only.
+  // 'withdrawn' is intentional and must NOT be overridden here.
   const { error: resetError } = await supabaseAdmin
     .from('zawaaj_profiles')
     .update({ status: 'approved' })
     .in('id', profileIds)
-    .in('status', ['paused', 'suspended', 'withdrawn'])
+    .in('status', ['paused', 'suspended'])
 
   if (resetError) {
     console.error('[followup-advance] Failed to reset profile statuses:', resetError.message)
