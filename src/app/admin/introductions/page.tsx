@@ -56,8 +56,11 @@ export default async function AdminIntroductionsPage() {
     }
   })
 
-  // 4. Fetch all introduction requests with related profiles and new columns
-  const { data } = await supabase
+  // 4. Fetch introduction requests with related profiles and new columns.
+  //    Managers see ONLY intros assigned to them — intro_requests.assigned_manager_id
+  //    holds a PROFILE id, so scope by the manager's active_profile_id.
+  //    Super-admins see everything (no scope).
+  let introQuery = supabase
     .from('zawaaj_introduction_requests')
     .select(`
       id,
@@ -75,6 +78,12 @@ export default async function AdminIntroductionsPage() {
       target_profile:zawaaj_profiles!target_profile_id(id, display_initials, first_name, last_name, gender)
     `)
     .order('created_at', { ascending: false })
+
+  if (adminRole === 'manager') {
+    introQuery = introQuery.eq('assigned_manager_id', settings.active_profile_id)
+  }
+
+  const { data } = await introQuery
 
   // Resolve suggested manager names server-side
   const suggestedIds = [

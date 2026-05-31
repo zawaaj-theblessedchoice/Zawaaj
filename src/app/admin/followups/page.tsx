@@ -309,9 +309,28 @@ export default function FollowupsPage() {
   const load = useCallback(async () => {
     setLoading(true)
     setError(null)
+
+    // Resolve role + manager scope. Managers see ONLY their assigned follow-ups —
+    // intro_requests.assigned_manager_id holds a PROFILE id, so scope by the
+    // manager's active_profile_id. Super-admins see all. This naturally excludes
+    // "Manager: Unassigned" follow-ups from any manager's queue.
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { setError('Not authenticated'); setLoading(false); return }
+
+    const { data: role } = await supabase.rpc('zawaaj_get_role')
+    let managerProfileId: string | null = null
+    if (role === 'manager') {
+      const { data: settings } = await supabase
+        .from('zawaaj_user_settings')
+        .select('active_profile_id')
+        .eq('user_id', user.id)
+        .maybeSingle()
+      managerProfileId = (settings?.active_profile_id as string | null) ?? null
+    }
+
     const FA_COLS = 'contact_full_name'
     const PROFILE_COLS = `id, display_initials, first_name, last_name, family_account:zawaaj_family_accounts!family_account_id(${FA_COLS})`
-    const { data, error: fetchError } = await supabase
+    let query = supabase
       .from('zawaaj_introduction_requests')
       .select(`
         id, status, facilitated_at, created_at, assigned_manager_id,
@@ -321,6 +340,13 @@ export default function FollowupsPage() {
       `)
       .in('status', ALL_STATUSES)
       .order('created_at', { ascending: false })
+
+    if (role === 'manager') {
+      // No managers-scope profile → impossible filter → empty, never the global set.
+      query = query.eq('assigned_manager_id', managerProfileId ?? '00000000-0000-0000-0000-000000000000')
+    }
+
+    const { data, error: fetchError } = await query
 
     if (fetchError) {
       setError('Failed to load follow-ups: ' + fetchError.message)

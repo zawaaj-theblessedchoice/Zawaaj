@@ -45,18 +45,40 @@ export default async function FamiliesPage() {
   const { data: role } = await supabase.rpc('zawaaj_get_role')
   if (role !== 'super_admin' && role !== 'manager') redirect('/admin')
 
-  const { data: families } = await supabaseAdmin
+  // Managers see ONLY families assigned to them. family_accounts.assigned_manager_id
+  // holds a zawaaj_managers.id (NOT a profile id — see Phase 3 dual-id model), so
+  // resolve this manager's managers-row id and scope by it. Super-admins see all.
+  let managerRecordId: string | null = null
+  if (role === 'manager') {
+    const { data: mgrRow } = await supabaseAdmin
+      .from('zawaaj_managers')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('is_active', true)
+      .maybeSingle()
+    managerRecordId = (mgrRow?.id as string | null) ?? null
+  }
+
+  let familiesQuery = supabaseAdmin
     .from('zawaaj_family_accounts')
     .select(`
       id, contact_full_name, contact_relationship, contact_number, contact_email,
       female_contact_name, female_contact_number, no_female_contact_flag, father_explanation,
       plan, status, readiness_state, registration_path, terms_agreed, terms_agreed_at,
-      approved_at, created_at, updated_at, primary_user_id,
+      approved_at, created_at, updated_at, primary_user_id, assigned_manager_id,
       profiles:zawaaj_profiles(
         id, display_initials, first_name, last_name, gender, status, duplicate_flag
       )
     `)
     .order('created_at', { ascending: false })
+
+  if (role === 'manager') {
+    // A manager with no managers-row (shouldn't happen) gets an impossible filter
+    // → empty list, never the global set.
+    familiesQuery = familiesQuery.eq('assigned_manager_id', managerRecordId ?? '00000000-0000-0000-0000-000000000000')
+  }
+
+  const { data: families } = await familiesQuery
 
   // Fetch last_sign_in_at from auth.users to show "last active" per family account
   let lastSeenMap: Record<string, string | null> = {}
