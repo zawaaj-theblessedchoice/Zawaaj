@@ -38,26 +38,31 @@ async function computeSuggestedManager(
 
   if (!managers?.length || !profiles?.length) return null
 
-  // Values to match against
+  // Values to match against.
+  // City / ethnicity / language all use SUBSTRING matching against the profile's
+  // free-text fields (a scope tag is "found in" the profile text), because
+  // profile.location may be "London, UK" and ethnicity "South Asian (Pakistani)" —
+  // exact equality would silently score zero. Gender is a controlled enum, so
+  // exact match (after lowercasing) is correct there.
   const lc = (s: string | null | undefined) => (s ?? '').toLowerCase()
-  const cities    = profiles.map(p => lc((p as { location?: string | null }).location)).filter(Boolean)
-  const eths      = profiles.map(p => lc((p as { ethnicity?: string | null }).ethnicity)).filter(Boolean)
-  const genders   = profiles.map(p => lc((p as { gender?: string | null }).gender)).filter(Boolean)
-  const langsText = profiles.map(p => lc((p as { languages_spoken?: string | null }).languages_spoken)).join(' ')
+  const citiesText = profiles.map(p => lc((p as { location?: string | null }).location)).join(' ')
+  const ethsText   = profiles.map(p => lc((p as { ethnicity?: string | null }).ethnicity)).join(' ')
+  const langsText  = profiles.map(p => lc((p as { languages_spoken?: string | null }).languages_spoken)).join(' ')
+  const genders    = profiles.map(p => lc((p as { gender?: string | null }).gender)).filter(Boolean)
 
   let best: { id: string; score: number } | null = null
 
   for (const mgr of managers) {
     let score = 0
 
-    const scopeCities  = ((mgr.scope_cities  ?? []) as string[]).map(lc)
-    const scopeEths    = ((mgr.scope_ethnicities ?? []) as string[]).map(lc)
-    const scopeLangs   = ((mgr.scope_languages ?? []) as string[]).map(lc)
-    const scopeGenders = ((mgr.scope_genders  ?? []) as string[]).map(lc)
+    const scopeCities  = ((mgr.scope_cities  ?? []) as string[]).map(lc).filter(Boolean)
+    const scopeEths    = ((mgr.scope_ethnicities ?? []) as string[]).map(lc).filter(Boolean)
+    const scopeLangs   = ((mgr.scope_languages ?? []) as string[]).map(lc).filter(Boolean)
+    const scopeGenders = ((mgr.scope_genders  ?? []) as string[]).map(lc).filter(Boolean)
 
-    if (scopeCities.some(c  => cities.includes(c)))                                           score += 3
-    if (scopeEths.some(e    => eths.includes(e)))                                             score += 2
-    if (scopeLangs.some(l   => langsText.includes(l)))                                        score += 2
+    if (scopeCities.some(c => citiesText.includes(c)))                                        score += 3
+    if (scopeEths.some(e   => ethsText.includes(e)))                                          score += 2
+    if (scopeLangs.some(l  => langsText.includes(l)))                                         score += 2
     if (scopeGenders.includes('all') || scopeGenders.some(g => genders.includes(g)))          score += 1
 
     if (best === null || score > best.score) best = { id: mgr.id, score }
