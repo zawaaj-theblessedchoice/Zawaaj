@@ -17,7 +17,7 @@ export interface ManagerRow {
   scope_genders: string[] | null
   scope_ethnicities: string[] | null
   scope_languages: string[] | null
-  role: 'manager' | 'senior_manager'
+  role: 'manager'
   is_active: boolean
   notes: string | null
   appointed_at: string | null
@@ -209,7 +209,7 @@ function AddManagerForm({ onCreated }: AddManagerFormProps) {
   // Step 2 — form fields (pre-filled after lookup)
   const [fullName,    setFullName]    = useState('')
   const [phone,       setPhone]       = useState('')
-  const [role,        setRole]        = useState<'manager' | 'senior_manager'>('manager')
+  const role = 'manager' as const // Manager is the only supported tier
   const [cities,      setCities]      = useState<string[]>([])
   const [genders,     setGenders]     = useState<string[]>([])
   const [ethnicities, setEthnicities] = useState<string[]>([])
@@ -223,7 +223,7 @@ function AddManagerForm({ onCreated }: AddManagerFormProps) {
 
   function reset() {
     setQuery(''); setResults([]); setSearching(false); setSearchErr(null); setFound(null)
-    setFullName(''); setPhone(''); setRole('manager')
+    setFullName(''); setPhone('')
     setCities([]); setGenders([]); setEthnicities([]); setLanguages([])
     setNotes(''); setGrantPremium(true); setErr(null)
   }
@@ -518,17 +518,6 @@ function AddManagerForm({ onCreated }: AddManagerFormProps) {
                 />
               </div>
 
-              <div>
-                <label style={LABEL_STYLE}>Role *</label>
-                <select
-                  value={role}
-                  onChange={e => setRole(e.target.value as 'manager' | 'senior_manager')}
-                  style={INPUT_STYLE}
-                >
-                  <option value="manager">Manager</option>
-                  <option value="senior_manager">Senior manager</option>
-                </select>
-              </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <ScopeChips  label="Scope — cities"      value={cities}      onChange={setCities}      placeholder="e.g. London" />
@@ -629,7 +618,7 @@ function ManagerCard({ manager, onUpdate, onRemove }: ManagerCardProps) {
   const [fullName, setFullName] = useState(manager.full_name)
   const [email, setEmail] = useState(manager.email ?? '')
   const [phone, setPhone] = useState(manager.contact_number ?? '')
-  const [role, setRole] = useState<'manager' | 'senior_manager'>(manager.role)
+  const role = 'manager' as const // Manager is the only supported tier
   const [cities, setCities] = useState<string[]>(manager.scope_cities ?? [])
   const [genders, setGenders] = useState<string[]>(manager.scope_genders ?? [])
   const [ethnicities, setEthnicities] = useState<string[]>(manager.scope_ethnicities ?? [])
@@ -749,7 +738,7 @@ function ManagerCard({ manager, onUpdate, onRemove }: ManagerCardProps) {
               className="px-2 py-0.5 rounded-full text-xs font-medium"
               style={{ backgroundColor: 'rgba(184,150,12,0.15)', color: '#B8960C' }}
             >
-              {manager.role === 'senior_manager' ? 'Senior manager' : 'Manager'}
+              Manager
             </span>
             {!manager.is_active && (
               <span
@@ -848,13 +837,6 @@ function ManagerCard({ manager, onUpdate, onRemove }: ManagerCardProps) {
             <div>
               <label style={LABEL_STYLE}>Contact number</label>
               <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} style={INPUT_STYLE} />
-            </div>
-            <div>
-              <label style={LABEL_STYLE}>Role</label>
-              <select value={role} onChange={e => setRole(e.target.value as 'manager' | 'senior_manager')} style={INPUT_STYLE}>
-                <option value="manager">Manager</option>
-                <option value="senior_manager">Senior manager</option>
-              </select>
             </div>
           </div>
 
