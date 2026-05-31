@@ -24,14 +24,37 @@ export default async function AdminIntroductionsPage() {
 
   const adminRole = role as 'super_admin' | 'manager'
 
-  // 3. Fetch manager profiles for assignment dropdown
-  const { data: managersData } = await supabase
-    .from('zawaaj_profiles')
-    .select('id, display_initials, first_name, last_name')
-    .eq('role', 'manager')
-    .order('first_name', { ascending: true })
+  // 3. Fetch active managers from zawaaj_managers (correct source of truth)
+  const { data: mgrRows } = await supabase
+    .from('zawaaj_managers')
+    .select('id, user_id, full_name')
+    .eq('is_active', true)
+    .order('full_name', { ascending: true })
 
-  const managers: ManagerProfile[] = (managersData ?? []) as ManagerProfile[]
+  // Resolve profile IDs for assignment (assign_manager uses profile IDs)
+  const mgrUserIds = (mgrRows ?? []).map(m => m.user_id as string).filter(Boolean)
+  const { data: mgrProfiles } = mgrUserIds.length > 0
+    ? await supabase
+        .from('zawaaj_profiles')
+        .select('id, user_id, display_initials, first_name, last_name')
+        .in('user_id', mgrUserIds)
+    : { data: [] }
+
+  const mgrProfileByUserId = new Map(
+    (mgrProfiles ?? []).map(p => [p.user_id as string, p])
+  )
+
+  const managers: ManagerProfile[] = (mgrRows ?? []).map(m => {
+    const p = mgrProfileByUserId.get(m.user_id as string)
+    const nameParts = (m.full_name as string).split(' ')
+    return {
+      id:               (p?.id as string | null) ?? (m.id as string),
+      display_initials: (p?.display_initials as string | null) ?? nameParts.map((n: string) => n[0]).join('').slice(0, 2).toUpperCase(),
+      first_name:       (p?.first_name as string | null) ?? (nameParts[0] ?? null),
+      last_name:        (p?.last_name  as string | null) ?? (nameParts.slice(1).join(' ') || null),
+      manager_id:       m.id as string,
+    }
+  })
 
   // 4. Fetch all introduction requests with related profiles and new columns
   const { data } = await supabase
@@ -44,6 +67,7 @@ export default async function AdminIntroductionsPage() {
       mutual_at,
       responded_at,
       assigned_manager_id,
+      suggested_manager_id,
       handled_by,
       handled_at,
       admin_notes,
@@ -52,9 +76,37 @@ export default async function AdminIntroductionsPage() {
     `)
     .order('created_at', { ascending: false })
 
+  // Resolve suggested manager names server-side
+  const suggestedIds = [
+    ...new Set(
+      (data ?? [])
+        .map(r => (r as { suggested_manager_id?: string | null }).suggested_manager_id)
+        .filter((id): id is string => !!id)
+    ),
+  ]
+  const { data: suggestedMgrs } = suggestedIds.length > 0
+    ? await supabase
+        .from('zawaaj_managers')
+        .select('id, full_name')
+        .in('id', suggestedIds)
+    : { data: [] }
+
+  const suggestedNameMap = new Map(
+    (suggestedMgrs ?? []).map(m => [m.id as string, m.full_name as string])
+  )
+
+  const requests = (data ?? []).map(r => {
+    const raw = r as Record<string, unknown>
+    const smId = raw.suggested_manager_id as string | null
+    return {
+      ...raw,
+      suggested_manager_name: smId ? (suggestedNameMap.get(smId) ?? null) : null,
+    }
+  })
+
   return (
     <AdminIntroductionsClient
-      requests={(data ?? []) as unknown as IntroRequest[]}
+      requests={requests as unknown as IntroRequest[]}
       managers={managers}
       role={adminRole}
     />

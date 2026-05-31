@@ -723,6 +723,127 @@ export function interestReceivedTemplate(recipientName: string): string {
 </html>`
 }
 
+// ─── Manager assignment emails ────────────────────────────────────────────────
+// managerAssignedFamilyTemplate — sent to both family reps when a manager is assigned.
+// managerAssignedManagerTemplate — sent to the manager themselves.
+
+export function managerAssignedFamilyTemplate(
+  recipientName: string,
+  managerFirstName: string,
+): string {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your Zawaaj introduction — a manager has been assigned</title>
+</head>
+<body style="margin:0;padding:0;background:#111111;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#111111;padding:40px 16px;">
+    <tr>
+      <td align="center">
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;">
+          <tr>
+            <td align="center" style="padding-bottom:32px;">
+              <img src="https://zawaaj.uk/logo.png" alt="Zawaaj" width="90" style="display:block;" />
+              <p style="margin:8px 0 0;color:#B8960C;font-size:11px;letter-spacing:2px;text-transform:uppercase;">The Blessed Choice</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="background:#1A1A1A;border:1px solid #2a2a2a;border-top:1px solid rgba(184,150,12,0.3);border-radius:12px;padding:36px 32px;">
+              <h1 style="margin:0 0 16px;font-size:20px;font-weight:600;color:#ffffff;">A manager has been assigned</h1>
+              <p style="margin:0 0 16px;font-size:14px;color:#9ca3af;line-height:1.7;">Assalamu alaykum ${recipientName},</p>
+              <p style="margin:0 0 16px;font-size:14px;color:#9ca3af;line-height:1.7;">
+                We are pleased to let you know that <strong style="color:#e5e7eb;">${managerFirstName}</strong> has been assigned
+                to support your introduction. They will be in touch with you shortly, in shaa Allah.
+              </p>
+              <p style="margin:0;font-size:13px;color:#6b7280;line-height:1.6;">
+                If you need anything in the meantime, please contact us at
+                <a href="mailto:team@zawaaj.uk" style="color:#B8960C;text-decoration:none;">team@zawaaj.uk</a>.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding-top:24px;">
+              <p style="margin:0;font-size:11px;color:#4b5563;">
+                Jazakallahu khayran,<br />The Zawaaj Team ·
+                <a href="https://zawaaj.uk" style="color:#6b7280;text-decoration:none;">zawaaj.uk</a>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`
+}
+
+export function managerAssignedManagerTemplate(
+  managerName: string,
+  familyARepName: string,
+  familyAPhone: string,
+  familyBRepName: string,
+  familyBPhone: string,
+): string {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>New introduction assigned to you — Zawaaj</title>
+</head>
+<body style="margin:0;padding:0;background:#111111;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#111111;padding:40px 16px;">
+    <tr>
+      <td align="center">
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;">
+          <tr>
+            <td align="center" style="padding-bottom:32px;">
+              <img src="https://zawaaj.uk/logo.png" alt="Zawaaj" width="90" style="display:block;" />
+              <p style="margin:8px 0 0;color:#B8960C;font-size:11px;letter-spacing:2px;text-transform:uppercase;">The Blessed Choice · Admin</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="background:#1A1A1A;border:1px solid #2a2a2a;border-top:1px solid rgba(184,150,12,0.3);border-radius:12px;padding:36px 32px;">
+              <h1 style="margin:0 0 16px;font-size:20px;font-weight:600;color:#ffffff;">New introduction assigned to you</h1>
+              <p style="margin:0 0 16px;font-size:14px;color:#9ca3af;line-height:1.7;">Assalamu alaykum ${managerName},</p>
+              <p style="margin:0 0 20px;font-size:14px;color:#9ca3af;line-height:1.7;">
+                A new introduction has been assigned to you. Please make contact with both families within the next few days, in shaa Allah.
+              </p>
+              <div style="background:#111111;border:1px solid #2a2a2a;border-radius:10px;padding:20px 24px;margin-bottom:20px;">
+                <table width="100%" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="padding:6px 0;color:#9ca3af;font-size:13px;width:100px;vertical-align:top;">Family A</td>
+                    <td style="padding:6px 0;color:#e5e7eb;font-size:13px;font-weight:500;">${familyARepName} — <a href="tel:${familyAPhone}" style="color:#B8960C;text-decoration:none;">${familyAPhone}</a></td>
+                  </tr>
+                  <tr>
+                    <td style="padding:6px 0;color:#9ca3af;font-size:13px;vertical-align:top;">Family B</td>
+                    <td style="padding:6px 0;color:#e5e7eb;font-size:13px;font-weight:500;">${familyBRepName} — <a href="tel:${familyBPhone}" style="color:#B8960C;text-decoration:none;">${familyBPhone}</a></td>
+                  </tr>
+                </table>
+              </div>
+              <a href="https://zawaaj.uk/admin/followups"
+                style="display:inline-block;padding:12px 28px;background:#B8960C;color:#111111;font-size:14px;font-weight:600;text-decoration:none;border-radius:10px;">
+                View in admin
+              </a>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding-top:24px;">
+              <p style="margin:0;font-size:11px;color:#4b5563;">
+                © Zawaaj · <a href="https://zawaaj.uk" style="color:#6b7280;text-decoration:none;">zawaaj.uk</a>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`
+}
+
 // ─── Nikkah Alhamdulillah outcome email ──────────────────────────────────────
 // Sent to each family representative when a nikkah is completed.
 

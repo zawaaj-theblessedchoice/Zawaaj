@@ -27,16 +27,19 @@ export interface IntroRequest {
   mutual_at: string | null
   responded_at: string | null
   assigned_manager_id: string | null
+  suggested_manager_id: string | null
+  suggested_manager_name: string | null
   handled_by: string | null
   handled_at: string | null
   admin_notes: string | null
 }
 
 export interface ManagerProfile {
-  id: string
+  id: string            // zawaaj_profiles.id — used for assignment
   display_initials: string
   first_name: string | null
   last_name: string | null
+  manager_id?: string   // zawaaj_managers.id — used for suggestion matching
 }
 
 export interface AdminIntroductionsClientProps {
@@ -194,6 +197,8 @@ interface AssignManagerDropdownProps {
   reqId: string
   managers: ManagerProfile[]
   currentAssignedId: string | null
+  suggestedManagerId: string | null
+  suggestedManagerName: string | null
   loading: boolean
   onAssign: (reqId: string, managerId: string) => void
 }
@@ -202,6 +207,8 @@ function AssignManagerDropdown({
   reqId,
   managers,
   currentAssignedId,
+  suggestedManagerId,
+  suggestedManagerName,
   loading,
   onAssign,
 }: AssignManagerDropdownProps) {
@@ -209,14 +216,21 @@ function AssignManagerDropdown({
 
   if (!open) {
     return (
-      <button
-        onClick={() => setOpen(true)}
-        disabled={loading}
-        className="px-2.5 py-1 rounded text-xs font-medium transition-colors disabled:opacity-50"
-        style={{ border: '1px solid var(--admin-border)', color: 'var(--admin-text)' }}
-      >
-        {currentAssignedId ? 'Reassign' : 'Assign manager'}
-      </button>
+      <div className="flex flex-col gap-1">
+        <button
+          onClick={() => setOpen(true)}
+          disabled={loading}
+          className="px-2.5 py-1 rounded text-xs font-medium transition-colors disabled:opacity-50"
+          style={{ border: '1px solid var(--admin-border)', color: 'var(--admin-text)' }}
+        >
+          {currentAssignedId ? 'Reassign' : 'Assign manager'}
+        </button>
+        {!currentAssignedId && suggestedManagerName && (
+          <span style={{ fontSize: 10, color: '#B8960C' }}>
+            ✦ Suggested: {suggestedManagerName}
+          </span>
+        )}
+      </div>
     )
   }
 
@@ -226,7 +240,7 @@ function AssignManagerDropdown({
         autoFocus
         className="text-xs rounded px-2 py-1 outline-none"
         style={{ background: 'var(--admin-surface)', border: '0.5px solid var(--admin-border)', color: 'var(--admin-text)' }}
-        defaultValue=""
+        defaultValue={managers.find(m => m.manager_id === suggestedManagerId)?.id ?? ''}
         onChange={(e) => {
           if (e.target.value) {
             onAssign(reqId, e.target.value)
@@ -237,7 +251,9 @@ function AssignManagerDropdown({
       >
         <option value="" disabled>Select manager…</option>
         {managers.map((m) => (
-          <option key={m.id} value={m.id}>{managerName(m)}</option>
+          <option key={m.id} value={m.id}>
+            {m.manager_id === suggestedManagerId ? '✦ ' : ''}{managerName(m)}
+          </option>
         ))}
       </select>
       <button
@@ -330,7 +346,7 @@ function RequestRow({
 
   const canAssign =
     role === 'super_admin' &&
-    (req.status === 'mutual_confirmed' || req.status === 'admin_pending')
+    ['accepted', 'mutual', 'mutual_confirmed', 'admin_pending'].includes(req.status)
 
   const canSetInProgress =
     req.status === 'admin_assigned' &&
@@ -416,6 +432,8 @@ function RequestRow({
                 reqId={req.id}
                 managers={managers}
                 currentAssignedId={req.assigned_manager_id}
+                suggestedManagerId={req.suggested_manager_id}
+                suggestedManagerName={req.suggested_manager_name}
                 loading={loading}
                 onAssign={onAssignManager}
               />

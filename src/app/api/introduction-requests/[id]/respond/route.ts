@@ -17,6 +17,55 @@ import { supabaseAdmin } from '@/lib/supabase/admin'
 import { NextResponse } from 'next/server'
 import { sendEmail, mutualMatchTemplate } from '@/lib/email'
 
+// ─── Manager suggestion scoring ───────────────────────────────────────────────
+// Called after a mutual match (status → 'accepted'). Scores every active manager
+// against the two profiles and returns the best-fit manager's zawaaj_managers.id.
+
+async function computeSuggestedManager(
+  reqProfileId: string,
+  tgtProfileId: string,
+): Promise<string | null> {
+  const [{ data: managers }, { data: profiles }] = await Promise.all([
+    supabaseAdmin
+      .from('zawaaj_managers')
+      .select('id, scope_cities, scope_genders, scope_ethnicities, scope_languages')
+      .eq('is_active', true),
+    supabaseAdmin
+      .from('zawaaj_profiles')
+      .select('id, location, ethnicity, gender, languages_spoken')
+      .in('id', [reqProfileId, tgtProfileId]),
+  ])
+
+  if (!managers?.length || !profiles?.length) return null
+
+  // Values to match against
+  const lc = (s: string | null | undefined) => (s ?? '').toLowerCase()
+  const cities    = profiles.map(p => lc((p as { location?: string | null }).location)).filter(Boolean)
+  const eths      = profiles.map(p => lc((p as { ethnicity?: string | null }).ethnicity)).filter(Boolean)
+  const genders   = profiles.map(p => lc((p as { gender?: string | null }).gender)).filter(Boolean)
+  const langsText = profiles.map(p => lc((p as { languages_spoken?: string | null }).languages_spoken)).join(' ')
+
+  let best: { id: string; score: number } | null = null
+
+  for (const mgr of managers) {
+    let score = 0
+
+    const scopeCities  = ((mgr.scope_cities  ?? []) as string[]).map(lc)
+    const scopeEths    = ((mgr.scope_ethnicities ?? []) as string[]).map(lc)
+    const scopeLangs   = ((mgr.scope_languages ?? []) as string[]).map(lc)
+    const scopeGenders = ((mgr.scope_genders  ?? []) as string[]).map(lc)
+
+    if (scopeCities.some(c  => cities.includes(c)))                                           score += 3
+    if (scopeEths.some(e    => eths.includes(e)))                                             score += 2
+    if (scopeLangs.some(l   => langsText.includes(l)))                                        score += 2
+    if (scopeGenders.includes('all') || scopeGenders.some(g => genders.includes(g)))          score += 1
+
+    if (best === null || score > best.score) best = { id: mgr.id, score }
+  }
+
+  return best ? best.id : null
+}
+
 type FreeBody = { action: 'accept' | 'decline' }
 type PaidBody = { template_id: string }
 type RespondBody = FreeBody | PaidBody
@@ -251,6 +300,20 @@ export async function POST(
       } catch (emailErr) {
         console.error('[respond] mutual match email error:', emailErr)
       }
+
+      // Score managers and surface the best-fit suggestion — non-blocking
+      computeSuggestedManager(req.requesting_profile_id, req.target_profile_id)
+        .then(suggestedId => {
+          if (!suggestedId) return
+          return supabaseAdmin
+            .from('zawaaj_introduction_requests')
+            .update({ suggested_manager_id: suggestedId })
+            .eq('id', requestId)
+            .then(({ error }) => {
+              if (error) console.error('[respond] Failed to set suggested_manager_id:', error.message)
+            })
+        })
+        .catch(err => console.error('[respond] Manager suggestion error:', err))
 
       return NextResponse.json({ success: true, mutual: true })
 

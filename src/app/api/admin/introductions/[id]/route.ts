@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { NextResponse } from 'next/server'
-import { sendEmail, contactSharingTemplate } from '@/lib/email'
+import { sendEmail, contactSharingTemplate, managerAssignedFamilyTemplate, managerAssignedManagerTemplate } from '@/lib/email'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -169,6 +169,75 @@ export async function PATCH(
       if (notifyError) {
         console.error('[admin/introductions] Failed to notify manager:', notifyError.message)
       }
+
+      // ── Email notifications ────────────────────────────────────────────────
+      // Resolve family contacts for both profiles
+      type FaRow = { contact_full_name: string | null; contact_email: string | null; contact_number: string | null }
+      type ProfileFa = { id: string; family_account: FaRow | FaRow[] | null }
+
+      const { data: faProfiles } = await supabaseAdmin
+        .from('zawaaj_profiles')
+        .select('id, family_account:zawaaj_family_accounts!family_account_id(contact_full_name, contact_email, contact_number)')
+        .in('id', [req.requesting_profile_id, req.target_profile_id])
+
+      function resolveFA(profileId: string): FaRow | null {
+        const p = (faProfiles ?? []).find(x => x.id === profileId) as unknown as ProfileFa | undefined
+        if (!p) return null
+        const fa = Array.isArray(p.family_account) ? (p.family_account[0] ?? null) : p.family_account
+        return fa
+      }
+
+      const faA = resolveFA(req.requesting_profile_id)
+      const faB = resolveFA(req.target_profile_id)
+
+      // Resolve manager's name and email from zawaaj_managers via profile → user_id
+      const { data: mgrProfile } = await supabaseAdmin
+        .from('zawaaj_profiles')
+        .select('user_id')
+        .eq('id', manager_profile_id)
+        .single()
+
+      const { data: mgrRow } = mgrProfile?.user_id
+        ? await supabaseAdmin
+            .from('zawaaj_managers')
+            .select('full_name, email')
+            .eq('user_id', mgrProfile.user_id)
+            .single()
+        : { data: null }
+
+      const managerFirstName = (mgrRow?.full_name as string | null)?.split(' ')[0] ?? 'your manager'
+      const managerName = (mgrRow?.full_name as string | null) ?? 'the assigned manager'
+      const managerEmail = mgrRow?.email as string | null
+
+      // Email both families
+      const familyEmailPromises = [
+        faA?.contact_email && sendEmail({
+          to: faA.contact_email,
+          subject: 'Your Zawaaj introduction — a manager has been assigned',
+          html: managerAssignedFamilyTemplate(faA.contact_full_name ?? 'valued member', managerFirstName),
+        }),
+        faB?.contact_email && sendEmail({
+          to: faB.contact_email,
+          subject: 'Your Zawaaj introduction — a manager has been assigned',
+          html: managerAssignedFamilyTemplate(faB.contact_full_name ?? 'valued member', managerFirstName),
+        }),
+      ].filter(Boolean)
+
+      // Email the manager
+      const managerEmailPromise = managerEmail && sendEmail({
+        to: managerEmail,
+        subject: 'New introduction assigned to you',
+        html: managerAssignedManagerTemplate(
+          managerName,
+          faA?.contact_full_name ?? '—',
+          faA?.contact_number ?? '—',
+          faB?.contact_full_name ?? '—',
+          faB?.contact_number ?? '—',
+        ),
+      })
+
+      await Promise.all([...familyEmailPromises, managerEmailPromise].filter(Boolean))
+        .catch(err => console.error('[admin/introductions] assign_manager emails failed:', err))
 
       return NextResponse.json({ success: true })
     }

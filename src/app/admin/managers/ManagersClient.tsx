@@ -51,6 +51,63 @@ const LABEL_STYLE: React.CSSProperties = {
   display: 'block',
 }
 
+const LANGUAGES = [
+  'English', 'Arabic', 'Urdu', 'Bengali / Sylheti', 'Punjabi',
+  'Somali', 'Turkish', 'French', 'Gujarati', 'Pashto / Dari',
+  'Persian / Farsi', 'Tamil', 'Swahili', 'Albanian', 'Polish', 'Other',
+]
+
+// Fixed-list language picker — same chip UI as ScopeChips but driven by a dropdown
+function ScopeSelect({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string
+  value: string[]
+  onChange: (v: string[]) => void
+  options: string[]
+}) {
+  const remaining = options.filter(o => !value.includes(o))
+
+  return (
+    <div>
+      <span style={LABEL_STYLE}>{label}</span>
+      <div className="flex flex-wrap gap-1.5 mb-2">
+        {value.map(v => (
+          <span
+            key={v}
+            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs"
+            style={{ backgroundColor: 'rgba(184,150,12,0.15)', color: '#B8960C', border: '0.5px solid rgba(184,150,12,0.3)' }}
+          >
+            {v}
+            <button
+              type="button"
+              onClick={() => onChange(value.filter(x => x !== v))}
+              style={{ color: 'rgba(184,150,12,0.7)', lineHeight: 1, marginLeft: 2 }}
+            >
+              ×
+            </button>
+          </span>
+        ))}
+      </div>
+      {remaining.length > 0 && (
+        <select
+          value=""
+          onChange={e => { if (e.target.value) onChange([...value, e.target.value]) }}
+          style={{ ...INPUT_STYLE, width: 'auto' }}
+        >
+          <option value="" disabled>Add language…</option>
+          {remaining.map(o => (
+            <option key={o} value={o}>{o}</option>
+          ))}
+        </select>
+      )}
+    </div>
+  )
+}
+
 function ScopeChips({
   label,
   value,
@@ -389,10 +446,10 @@ function AddManagerForm({ onCreated }: AddManagerFormProps) {
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <ScopeChips label="Scope — cities"      value={cities}      onChange={setCities}      placeholder="e.g. London" />
-                <ScopeChips label="Scope — genders"     value={genders}     onChange={setGenders}     placeholder="Male / Female / All" />
-                <ScopeChips label="Scope — ethnicities" value={ethnicities} onChange={setEthnicities} placeholder="e.g. South Asian" />
-                <ScopeChips label="Scope — languages"   value={languages}   onChange={setLanguages}   placeholder="e.g. Urdu" />
+                <ScopeChips  label="Scope — cities"      value={cities}      onChange={setCities}      placeholder="e.g. London" />
+                <ScopeChips  label="Scope — genders"     value={genders}     onChange={setGenders}     placeholder="Male / Female / All" />
+                <ScopeChips  label="Scope — ethnicities" value={ethnicities} onChange={setEthnicities} placeholder="e.g. South Asian" />
+                <ScopeSelect label="Scope — languages"   value={languages}   onChange={setLanguages}   options={LANGUAGES} />
               </div>
 
               <div>
@@ -717,10 +774,10 @@ function ManagerCard({ manager, onUpdate, onRemove }: ManagerCardProps) {
           </div>
 
           <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))' }}>
-            <ScopeChips label="Scope — cities" value={cities} onChange={setCities} placeholder="e.g. London" />
-            <ScopeChips label="Scope — genders" value={genders} onChange={setGenders} placeholder="Male / Female" />
-            <ScopeChips label="Scope — ethnicities" value={ethnicities} onChange={setEthnicities} placeholder="e.g. South Asian" />
-            <ScopeChips label="Scope — languages" value={languages} onChange={setLanguages} placeholder="e.g. Urdu" />
+            <ScopeChips  label="Scope — cities"      value={cities}      onChange={setCities}      placeholder="e.g. London" />
+            <ScopeChips  label="Scope — genders"     value={genders}     onChange={setGenders}     placeholder="Male / Female" />
+            <ScopeChips  label="Scope — ethnicities" value={ethnicities} onChange={setEthnicities} placeholder="e.g. South Asian" />
+            <ScopeSelect label="Scope — languages"   value={languages}   onChange={setLanguages}   options={LANGUAGES} />
           </div>
 
           <div>
