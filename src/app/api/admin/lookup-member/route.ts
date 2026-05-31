@@ -80,7 +80,7 @@ export async function POST(request: Request): Promise<Response> {
 
     const { data: profiles, error: profErr } = await supabaseAdmin
       .from('zawaaj_profiles')
-      .select('id, user_id, first_name, last_name, display_initials, gender')
+      .select('id, user_id, first_name, last_name, display_initials, gender, family_account_id')
       .eq('is_admin', false)
       .or(orParts.join(','))
 
@@ -115,13 +115,36 @@ export async function POST(request: Request): Promise<Response> {
       .in('user_id', finalUserIds)
     const planById = new Map<string, string>((subs ?? []).map(s => [s.user_id as string, s.plan as string]))
 
+    // 6b. Resolve family-account CONTACT names for the final set.
+    //     On parent-path accounts the profile row is the candidate (child) but
+    //     user_id is the parent's auth uid — the person being promoted is the
+    //     account CONTACT (e.g. the father), whose name lives on the family
+    //     account, NOT on the candidate profile. Prefer contact_full_name;
+    //     fall back to the candidate profile name (self/child-path where
+    //     contact = candidate, or no family account).
+    const familyAccountIds = [
+      ...new Set(eligible.map(p => (p as { family_account_id?: string | null }).family_account_id).filter((id): id is string => !!id)),
+    ]
+    const { data: faRows } = familyAccountIds.length > 0
+      ? await supabaseAdmin
+          .from('zawaaj_family_accounts')
+          .select('id, contact_full_name')
+          .in('id', familyAccountIds)
+      : { data: [] }
+    const contactNameByFaId = new Map<string, string | null>(
+      (faRows ?? []).map(fa => [fa.id as string, (fa.contact_full_name as string | null) ?? null])
+    )
+
     // 7. Build result rows
     const results: MemberResult[] = eligible.map(p => {
-      const name = [p.first_name, p.last_name].filter(Boolean).join(' ') || (p.display_initials as string | null) || null
+      const candidateName = [p.first_name, p.last_name].filter(Boolean).join(' ') || (p.display_initials as string | null) || null
+      const faId = (p as { family_account_id?: string | null }).family_account_id
+      const contactName = faId ? contactNameByFaId.get(faId) : null
       return {
         user_id:    p.user_id as string,
         profile_id: (p.id as string) ?? null,
-        name,
+        // Account contact wins (the person actually being promoted); candidate name is fallback.
+        name:       contactName?.trim() || candidateName,
         email:      emailById.get(p.user_id as string) ?? null,
         gender:     (p.gender as string | null) ?? null,
         plan:       planById.get(p.user_id as string) ?? 'free',
