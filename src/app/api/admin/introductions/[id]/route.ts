@@ -173,11 +173,11 @@ export async function PATCH(
       // ── Email notifications ────────────────────────────────────────────────
       // Resolve family contacts for both profiles
       type FaRow = { contact_full_name: string | null; contact_email: string | null; contact_number: string | null }
-      type ProfileFa = { id: string; family_account: FaRow | FaRow[] | null }
+      type ProfileFa = { id: string; family_account_id: string | null; family_account: FaRow | FaRow[] | null }
 
       const { data: faProfiles } = await supabaseAdmin
         .from('zawaaj_profiles')
-        .select('id, family_account:zawaaj_family_accounts!family_account_id(contact_full_name, contact_email, contact_number)')
+        .select('id, family_account_id, family_account:zawaaj_family_accounts!family_account_id(contact_full_name, contact_email, contact_number)')
         .in('id', [req.requesting_profile_id, req.target_profile_id])
 
       function resolveFA(profileId: string): FaRow | null {
@@ -200,7 +200,7 @@ export async function PATCH(
       const { data: mgrRow } = mgrProfile?.user_id
         ? await supabaseAdmin
             .from('zawaaj_managers')
-            .select('full_name, email')
+            .select('id, full_name, email')
             .eq('user_id', mgrProfile.user_id)
             .single()
         : { data: null }
@@ -208,6 +208,31 @@ export async function PATCH(
       const managerFirstName = (mgrRow?.full_name as string | null)?.split(' ')[0] ?? 'your manager'
       const managerName = (mgrRow?.full_name as string | null) ?? 'the assigned manager'
       const managerEmail = mgrRow?.email as string | null
+      const managerRecordId = mgrRow?.id as string | null  // zawaaj_managers.id — distinct from manager_profile_id
+
+      // ── Close the scoping write-gap ────────────────────────────────────────
+      // family_accounts.assigned_manager_id references zawaaj_managers(id), NOT a
+      // profile id. Phase 3 manager-family scoping reads this column, so write it
+      // here too — otherwise an intro-assigned manager's "My families" is silently
+      // empty even though intro_requests.assigned_manager_id (a profile id) is set.
+      if (managerRecordId) {
+        const familyAccountIds = [
+          ...new Set(
+            (faProfiles ?? [])
+              .map(p => (p as unknown as ProfileFa).family_account_id)
+              .filter((fid): fid is string => !!fid)
+          ),
+        ]
+        if (familyAccountIds.length > 0) {
+          const { error: faAssignErr } = await supabaseAdmin
+            .from('zawaaj_family_accounts')
+            .update({ assigned_manager_id: managerRecordId })
+            .in('id', familyAccountIds)
+          if (faAssignErr) {
+            console.error('[admin/introductions] Failed to write family_accounts.assigned_manager_id:', faAssignErr.message)
+          }
+        }
+      }
 
       // Email both families
       const familyEmailPromises = [

@@ -14,17 +14,6 @@ interface Props {
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 
-function OperationsIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
-      <rect x="1" y="1" width="5" height="3" rx="1" stroke="currentColor" strokeWidth="1.3" />
-      <rect x="1" y="6" width="5" height="3" rx="1" stroke="currentColor" strokeWidth="1.3" />
-      <rect x="1" y="11" width="5" height="2" rx="1" stroke="currentColor" strokeWidth="1.3" />
-      <path d="M8.5 2.5h4M8.5 7.5h4M8.5 12h4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-    </svg>
-  )
-}
-
 function DashboardIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
@@ -42,22 +31,6 @@ function IntroIcon() {
       <circle cx="4.5" cy="4.5" r="2.2" stroke="currentColor" strokeWidth="1.3" />
       <circle cx="9.5" cy="4.5" r="2.2" stroke="currentColor" strokeWidth="1.3" />
       <path d="M1 12c0-1.93 1.57-3.5 3.5-3.5M13 12c0-1.93-1.57-3.5-3.5-3.5M7 9v2M5.7 10.3h2.6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-    </svg>
-  )
-}
-
-function MatchIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
-      <path d="M7 12S1.5 8.5 1.5 4.8a3 3 0 0 1 5.5-1.65A3 3 0 0 1 12.5 4.8C12.5 8.5 7 12 7 12Z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
-    </svg>
-  )
-}
-
-function ConciergeIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
-      <path d="M7 1l1.5 3.1L12 4.6l-2.5 2.4.6 3.4L7 8.8l-3.1 1.6.6-3.4L2 4.6l3.5-.5L7 1Z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
     </svg>
   )
 }
@@ -169,34 +142,62 @@ function SignOutIcon() {
 
 // ─── Nav config ───────────────────────────────────────────────────────────────
 
-const NAV_SECTIONS = [
+interface NavItem {
+  href: string
+  label: string
+  icon: React.ReactNode
+  badgeKey?: 'followups'
+}
+interface NavSection {
+  label: string
+  items: NavItem[]
+}
+
+// Super Admin sidebar — full platform access (Phase 3 structure)
+const SA_NAV_SECTIONS: NavSection[] = [
   {
-    label: 'Dashboard',
+    label: 'Work',
     items: [
-      { href: '/admin',               label: 'Dashboard',     icon: <DashboardIcon />,     superOnly: true  },
-      { href: '/admin/operations',    label: 'Operations',    icon: <OperationsIcon />,    superOnly: true  },
-      { href: '/admin/families',       label: 'Families',      icon: <AccountsIcon />,      superOnly: true  },
+      { href: '/admin/inbox',         label: 'Inbox',         icon: <DashboardIcon /> },
+      { href: '/admin/followups',     label: 'Follow-ups',    icon: <FollowupsIcon />, badgeKey: 'followups' },
     ],
   },
   {
     label: 'Members',
     items: [
-      { href: '/admin/introductions', label: 'Introductions', icon: <IntroIcon />,       superOnly: false },
-      { href: '/admin/followups',     label: 'Follow-ups',    icon: <FollowupsIcon />,   superOnly: false },
-      { href: '/admin/matches',       label: 'Matches',       icon: <MatchIcon />,       superOnly: true  },
-      { href: '/admin/concierge',     label: 'Concierge',     icon: <ConciergeIcon />,   superOnly: true  },
+      { href: '/admin/families',      label: 'Families',      icon: <AccountsIcon /> },
+      { href: '/admin/introductions', label: 'Introductions', icon: <IntroIcon /> },
+      { href: '/admin/events',        label: 'Events',        icon: <EventsIcon /> },
+      { href: '/admin/feedback',      label: 'Feedback',      icon: <FeedbackIcon /> },
     ],
   },
   {
-    label: 'Settings',
+    label: 'Platform',
     items: [
-      { href: '/admin/events',        label: 'Events',        icon: <EventsIcon />,         superOnly: true  },
-      { href: '/admin/offers',        label: 'Offers',        icon: <OffersIcon />,         superOnly: true  },
-      { href: '/admin/managers',      label: 'Managers',      icon: <ManagersIcon />,       superOnly: true  },
-      { href: '/admin/subscriptions', label: 'Subscriptions', icon: <SubscriptionsIcon />,  superOnly: true  },
-      { href: '/admin/payments',      label: 'Payments',      icon: <PaymentsIcon />,       superOnly: true  },
-      { href: '/admin/import',        label: 'Import',        icon: <ImportIcon />,         superOnly: true  },
-      { href: '/admin/feedback',      label: 'Feedback',      icon: <FeedbackIcon />,       superOnly: true  },
+      { href: '/admin/dashboard',     label: 'Dashboard',     icon: <DashboardIcon /> },
+      { href: '/admin/managers',      label: 'Managers',      icon: <ManagersIcon /> },
+      { href: '/admin/subscriptions', label: 'Subscriptions', icon: <SubscriptionsIcon /> },
+      { href: '/admin/payments',      label: 'Payments',      icon: <PaymentsIcon /> },
+      { href: '/admin/import',        label: 'Import',        icon: <ImportIcon /> },
+      { href: '/admin/offers',        label: 'Offers',        icon: <OffersIcon /> },
+    ],
+  },
+]
+
+// Manager sidebar — scoped to their assigned work only (Phase 3 structure)
+const MANAGER_NAV_SECTIONS: NavSection[] = [
+  {
+    label: 'My work',
+    items: [
+      { href: '/admin/introductions', label: 'My queue',      icon: <IntroIcon /> },
+      { href: '/admin/followups',     label: 'My follow-ups', icon: <FollowupsIcon />, badgeKey: 'followups' },
+    ],
+  },
+  {
+    label: 'Members',
+    items: [
+      { href: '/admin/families',      label: 'Families',      icon: <AccountsIcon /> },
+      { href: '/admin/events',        label: 'Events',        icon: <EventsIcon /> },
     ],
   },
 ]
@@ -270,32 +271,66 @@ export function AdminShell({ role, children }: Props) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [followupCount, setFollowupCount] = useState(0)
   const [followupOverdue, setFollowupOverdue] = useState(false)
+  // Manager identity. The sidebar badge scopes the follow-up count to the
+  // manager's intros, which are keyed by PROFILE id on
+  // intro_requests.assigned_manager_id (NOT zawaaj_managers.id — see Phase 3
+  // pre-flight). The managers.id needed for family/match scoping is resolved
+  // inside the Families page where it's consumed, not here.
+  const [managerProfileId, setManagerProfileId] = useState<string | null>(null)
+  const isManager = role === 'manager'
 
-  // Fetch follow-up badge counts on mount
+  // Resolve the manager's active profile id on mount (manager view only)
+  useEffect(() => {
+    if (role !== 'manager') return
+    async function resolveManagerProfileId() {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
+        const { data: settings } = await supabase
+          .from('zawaaj_user_settings')
+          .select('active_profile_id')
+          .eq('user_id', user.id)
+          .maybeSingle()
+        setManagerProfileId((settings?.active_profile_id as string | null) ?? null)
+      } catch {
+        // non-fatal — scoped badge falls back to empty rather than crash
+      }
+    }
+    resolveManagerProfileId()
+  }, [role]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Fetch follow-up badge counts on mount.
+  // Manager view scopes to their assigned intros (by profile id); SA sees all.
   useEffect(() => {
     async function fetchFollowupCounts() {
       try {
         const ACTIVE = ['following_up', 'contact_made', 'both_willing', 'meeting_arranged', 'met']
+        // Managers: wait until profile id resolved, then scope; SA: unscoped.
+        if (role === 'manager' && !managerProfileId) return
 
-        const { count } = await supabase
+        let activeQ = supabase
           .from('zawaaj_introduction_requests')
           .select('id', { count: 'exact', head: true })
           .in('status', ACTIVE)
+        if (role === 'manager' && managerProfileId) activeQ = activeQ.eq('assigned_manager_id', managerProfileId)
+        const { count } = await activeQ
         setFollowupCount(count ?? 0)
 
         const cutoff = new Date(Date.now() - 14 * 86400000).toISOString()
-        const { count: overdueCount } = await supabase
+        let overdueQ = supabase
           .from('zawaaj_introduction_requests')
           .select('id', { count: 'exact', head: true })
           .in('status', ACTIVE)
           .lt('facilitated_at', cutoff)
+        if (role === 'manager' && managerProfileId) overdueQ = overdueQ.eq('assigned_manager_id', managerProfileId)
+        const { count: overdueCount } = await overdueQ
         setFollowupOverdue((overdueCount ?? 0) > 0)
       } catch {
         // non-fatal — sidebar badge is decorative
       }
     }
     fetchFollowupCounts()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [role, managerProfileId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const t = getTheme()
@@ -395,66 +430,82 @@ export function AdminShell({ role, children }: Props) {
         </span>
       </div>
 
-      {/* Nav */}
+      {/* Nav — role-specific structure (Phase 3) */}
       <nav style={{ flex: 1 }}>
-        {NAV_SECTIONS.map(section => {
-          const visibleItems = section.items.filter(item => !item.superOnly || role === 'super_admin')
-          if (visibleItems.length === 0) return null
-          return (
-            <div key={section.label}>
-              <SectionLabel label={section.label} muted={muted} />
-              {visibleItems.map(item => {
-                const active = isActive(item.href)
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setSidebarOpen(false)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 9,
-                      padding: '6px 16px',
-                      fontSize: 13,
-                      fontWeight: active ? 500 : 400,
-                      color: active ? gold : muted,
-                      textDecoration: 'none',
-                      borderLeft: active ? `2px solid ${gold}` : '2px solid transparent',
-                      background: active ? 'rgba(184,150,12,0.07)' : 'transparent',
-                      transition: 'color 0.15s, background 0.15s',
-                    }}
-                  >
-                    <IconTile active={active} isDark={isDark}>
-                      <span style={{ color: active ? gold : muted, display: 'flex' }}>
-                        {item.icon}
-                      </span>
-                    </IconTile>
-                    <span style={{ flex: 1 }}>{item.label}</span>
-                    {item.href === '/admin/followups' && followupCount > 0 && (
-                      <span style={{
-                        background: followupOverdue ? '#d97706' : gold,
-                        color: '#fff',
-                        borderRadius: 10,
-                        padding: '1px 6px',
-                        fontSize: 10,
-                        fontWeight: 700,
-                        minWidth: 16,
-                        textAlign: 'center' as const,
-                        lineHeight: 1.6,
-                      }}>
-                        {followupCount}
-                      </span>
-                    )}
-                  </Link>
-                )
-              })}
-            </div>
-          )
-        })}
+        {(isManager ? MANAGER_NAV_SECTIONS : SA_NAV_SECTIONS).map(section => (
+          <div key={section.label}>
+            <SectionLabel label={section.label} muted={muted} />
+            {section.items.map(item => {
+              const active = isActive(item.href)
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setSidebarOpen(false)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 9,
+                    padding: '6px 16px',
+                    fontSize: 13,
+                    fontWeight: active ? 500 : 400,
+                    color: active ? gold : muted,
+                    textDecoration: 'none',
+                    borderLeft: active ? `2px solid ${gold}` : '2px solid transparent',
+                    background: active ? 'rgba(184,150,12,0.07)' : 'transparent',
+                    transition: 'color 0.15s, background 0.15s',
+                  }}
+                >
+                  <IconTile active={active} isDark={isDark}>
+                    <span style={{ color: active ? gold : muted, display: 'flex' }}>
+                      {item.icon}
+                    </span>
+                  </IconTile>
+                  <span style={{ flex: 1 }}>{item.label}</span>
+                  {item.badgeKey === 'followups' && followupCount > 0 && (
+                    <span style={{
+                      background: followupOverdue ? '#d97706' : gold,
+                      color: '#fff',
+                      borderRadius: 10,
+                      padding: '1px 6px',
+                      fontSize: 10,
+                      fontWeight: 700,
+                      minWidth: 16,
+                      textAlign: 'center' as const,
+                      lineHeight: 1.6,
+                    }}>
+                      {followupCount}
+                    </span>
+                  )}
+                </Link>
+              )
+            })}
+          </div>
+        ))}
       </nav>
 
       {/* Bottom actions */}
       <div style={{ borderTop: `1px solid ${border}` }}>
+        {/* Role switcher — manager view only: jump back to their member account */}
+        {isManager && (
+          <button
+            onClick={() => router.push('/browse')}
+            style={{
+              display: 'block',
+              width: '100%',
+              textAlign: 'left',
+              padding: '10px 18px',
+              border: 'none',
+              borderBottom: `1px solid ${border}`,
+              background: 'rgba(184,150,12,0.05)',
+              cursor: 'pointer',
+            }}
+          >
+            <div style={{ fontSize: 10, color: muted, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Switch to</div>
+            <div style={{ fontSize: 13, color: gold, fontWeight: 500 }}>My Zawaaj account ↗</div>
+          </button>
+        )}
+
         {/* View site */}
         <Link
           href="/browse"
