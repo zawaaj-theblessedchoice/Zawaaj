@@ -49,7 +49,7 @@ export async function PATCH(
     is_active?: boolean
   }
 
-  const validRoles = ['manager', 'senior_manager']
+  const validRoles = ['manager'] // 'senior_manager' removed — phantom tier
   const updates: Record<string, unknown> = {}
 
   if (body.full_name !== undefined)        updates.full_name        = body.full_name.trim()

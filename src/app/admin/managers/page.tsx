@@ -37,7 +37,7 @@ export default async function AdminManagersPage() {
     scope_genders: (r.scope_genders as string[] | null) ?? null,
     scope_ethnicities: (r.scope_ethnicities as string[] | null) ?? null,
     scope_languages: (r.scope_languages as string[] | null) ?? null,
-    role: (r.role as 'manager' | 'senior_manager'),
+    role: 'manager' as const, // Manager is the only supported tier
     is_active: (r.is_active as boolean),
     notes: (r.notes as string | null) ?? null,
     appointed_at: (r.appointed_at as string | null) ?? null,

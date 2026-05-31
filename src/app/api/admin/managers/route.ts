@@ -56,7 +56,7 @@ export async function POST(request: Request): Promise<Response> {
     return NextResponse.json({ error: 'user_id and full_name are required' }, { status: 400 })
   }
 
-  const validRoles = ['manager', 'senior_manager']
+  const validRoles = ['manager'] // 'senior_manager' removed — phantom tier
   const managerRole = body.role && validRoles.includes(body.role) ? body.role : 'manager'
 
   const { data, error: dbError } = await supabaseAdmin
