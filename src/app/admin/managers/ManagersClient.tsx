@@ -3,7 +3,7 @@
 // /admin/managers — Manager admin UI (Section 7, Family Model v2)
 // Super admin only.
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -182,6 +182,16 @@ interface LookupResult {
   already_manager: { id: string; is_active: boolean } | null
 }
 
+// A single member match from the keyword search (name or email)
+interface MemberResult {
+  user_id:    string
+  profile_id: string | null
+  name:       string | null
+  email:      string | null
+  gender:     string | null
+  plan:       string
+}
+
 interface AddManagerFormProps {
   onCreated: (m: ManagerRow) => void
 }
@@ -189,11 +199,12 @@ interface AddManagerFormProps {
 function AddManagerForm({ onCreated }: AddManagerFormProps) {
   const [open, setOpen] = useState(false)
 
-  // Step 1 — lookup
-  const [emailQuery,     setEmailQuery]     = useState('')
-  const [lookupLoading,  setLookupLoading]  = useState(false)
-  const [lookupErr,      setLookupErr]      = useState<string | null>(null)
-  const [found,          setFound]          = useState<LookupResult | null>(null)
+  // Step 1 — keyword search (name or email)
+  const [query,     setQuery]     = useState('')
+  const [results,   setResults]   = useState<MemberResult[]>([])
+  const [searching, setSearching] = useState(false)
+  const [searchErr, setSearchErr] = useState<string | null>(null)
+  const [found,     setFound]     = useState<LookupResult | null>(null)
 
   // Step 2 — form fields (pre-filled after lookup)
   const [fullName,    setFullName]    = useState('')
@@ -211,31 +222,56 @@ function AddManagerForm({ onCreated }: AddManagerFormProps) {
   const [err,     setErr]     = useState<string | null>(null)
 
   function reset() {
-    setEmailQuery(''); setLookupErr(null); setFound(null)
+    setQuery(''); setResults([]); setSearching(false); setSearchErr(null); setFound(null)
     setFullName(''); setPhone(''); setRole('manager')
     setCities([]); setGenders([]); setEthnicities([]); setLanguages([])
     setNotes(''); setGrantPremium(true); setErr(null)
   }
 
-  async function handleLookup(e: React.FormEvent) {
-    e.preventDefault()
-    if (!emailQuery.trim()) return
-    setLookupLoading(true); setLookupErr(null); setFound(null)
-    try {
-      const res = await fetch('/api/admin/lookup-member', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: emailQuery.trim() }),
-      })
-      const json = await res.json() as LookupResult & { error?: string }
-      if (!res.ok) { setLookupErr(json.error ?? 'Not found'); return }
-      setFound(json)
-      setFullName(json.name ?? '')
-    } catch {
-      setLookupErr('Network error')
-    } finally {
-      setLookupLoading(false)
-    }
+  // Debounced keyword search — fires 300ms after typing stops, min 2 chars.
+  useEffect(() => {
+    const term = query.trim()
+    if (found) return // a member is already selected; don't search
+    if (term.length < 2) { setResults([]); setSearchErr(null); setSearching(false); return }
+
+    setSearching(true)
+    let active = true
+    const handle = setTimeout(async () => {
+      try {
+        const res = await fetch('/api/admin/lookup-member', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ q: term }),
+        })
+        const json = await res.json() as { results?: MemberResult[]; error?: string }
+        if (!active) return
+        if (!res.ok) { setSearchErr(json.error ?? 'Search failed'); setResults([]); return }
+        setResults(json.results ?? [])
+        setSearchErr(null)
+      } catch {
+        if (active) { setSearchErr('Network error'); setResults([]) }
+      } finally {
+        if (active) setSearching(false)
+      }
+    }, 300)
+
+    return () => { active = false; clearTimeout(handle) }
+  }, [query, found])
+
+  function selectMember(m: MemberResult) {
+    setFound({
+      user_id:         m.user_id,
+      email:           m.email ?? '',
+      name:            m.name,
+      gender:          m.gender,
+      profile_id:      m.profile_id,
+      current_plan:    m.plan,
+      already_manager: null,
+    })
+    setFullName(m.name ?? '')
+    setResults([])
+    setQuery('')
+    setSearchErr(null)
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -329,43 +365,92 @@ function AddManagerForm({ onCreated }: AddManagerFormProps) {
         <div style={{ padding: '20px 24px 16px', borderBottom: '0.5px solid var(--admin-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
             <p style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--admin-text)' }}>Add manager</p>
-            <p style={{ margin: '2px 0 0', fontSize: 12, color: 'var(--admin-muted)' }}>Look up an existing member by email</p>
+            <p style={{ margin: '2px 0 0', fontSize: 12, color: 'var(--admin-muted)' }}>Search an existing member by name or email</p>
           </div>
           <button onClick={() => { setOpen(false); reset() }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--admin-muted)', fontSize: 22, lineHeight: 1, padding: 4 }}>×</button>
         </div>
 
         <div style={{ flex: 1, padding: '24px', display: 'flex', flexDirection: 'column', gap: 24 }}>
 
-          {/* ── Step 1: Email lookup ── */}
-          <div>
-            <label style={LABEL_STYLE}>Member email *</label>
-            <form onSubmit={handleLookup} style={{ display: 'flex', gap: 8 }}>
+          {/* ── Step 1: Member keyword search (name or email) ── */}
+          {!found && (
+            <div>
+              <label style={LABEL_STYLE}>Search members *</label>
               <input
-                type="email"
-                value={emailQuery}
-                onChange={e => { setEmailQuery(e.target.value); setFound(null); setLookupErr(null) }}
-                placeholder="member@example.com"
-                style={{ ...INPUT_STYLE, flex: 1 }}
-                disabled={lookupLoading}
+                type="text"
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                placeholder="Name or email…"
+                style={INPUT_STYLE}
+                autoFocus
               />
-              <button
-                type="submit"
-                disabled={lookupLoading || !emailQuery.trim()}
-                style={{
-                  padding: '8px 14px', borderRadius: 8, fontSize: 12, fontWeight: 600,
-                  background: '#B8960C', color: '#111', border: 'none',
-                  cursor: lookupLoading || !emailQuery.trim() ? 'not-allowed' : 'pointer',
-                  opacity: !emailQuery.trim() ? 0.5 : 1,
-                  flexShrink: 0,
-                }}
-              >
-                {lookupLoading ? '…' : 'Look up'}
-              </button>
-            </form>
-            {lookupErr && (
-              <p style={{ margin: '8px 0 0', fontSize: 12, color: '#f87171' }}>{lookupErr}</p>
-            )}
-          </div>
+
+              {query.trim().length > 0 && query.trim().length < 2 && (
+                <p style={{ margin: '8px 0 0', fontSize: 12, color: 'var(--admin-muted)' }}>Type 2 or more characters.</p>
+              )}
+              {searching && (
+                <p style={{ margin: '8px 0 0', fontSize: 12, color: 'var(--admin-muted)' }}>Searching…</p>
+              )}
+              {searchErr && (
+                <p style={{ margin: '8px 0 0', fontSize: 12, color: '#f87171' }}>{searchErr}</p>
+              )}
+              {!searching && !searchErr && query.trim().length >= 2 && results.length === 0 && (
+                <p style={{ margin: '8px 0 0', fontSize: 12, color: 'var(--admin-muted)' }}>No members match.</p>
+              )}
+
+              {results.length > 0 && (
+                <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {results.map(m => (
+                    <button
+                      key={m.user_id}
+                      type="button"
+                      onClick={() => selectMember(m)}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 10, width: '100%', textAlign: 'left',
+                        padding: '10px 12px', borderRadius: 8, cursor: 'pointer',
+                        background: 'var(--admin-bg)', border: '0.5px solid var(--admin-border)',
+                      }}
+                    >
+                      <div style={{
+                        width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
+                        background: m.gender === 'female' ? 'var(--avatar-female-bg)' : 'var(--avatar-male-bg)',
+                        color: m.gender === 'female' ? 'var(--avatar-female-text)' : 'var(--avatar-male-text)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700,
+                      }}>
+                        {(m.name ?? m.email ?? '?').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                      </div>
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: 'var(--admin-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {m.name ?? '(no name on profile)'}
+                        </p>
+                        <p style={{ margin: '1px 0 0', fontSize: 11.5, color: 'var(--admin-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {m.email ?? '—'}
+                        </p>
+                      </div>
+                      <span style={{
+                        flexShrink: 0, fontSize: 10.5, fontWeight: 600, padding: '2px 7px', borderRadius: 5,
+                        background: m.plan === 'premium' ? 'var(--gold-muted)' : 'var(--admin-border)',
+                        color: m.plan === 'premium' ? 'var(--gold)' : 'var(--admin-muted)',
+                      }}>
+                        {m.plan.charAt(0).toUpperCase() + m.plan.slice(1)}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Selected member — allow reselecting */}
+          {found && (
+            <button
+              type="button"
+              onClick={() => { setFound(null); setFullName('') }}
+              style={{ alignSelf: 'flex-start', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--gold)', fontSize: 12, padding: 0 }}
+            >
+              ← Search a different member
+            </button>
+          )}
 
           {/* ── Found member card ── */}
           {found && (
