@@ -33,6 +33,9 @@ export async function POST(req: NextRequest) {
 
   const now = new Date().toISOString()
 
+  // Track the affected user so we can mirror the plan onto their family account.
+  let affectedUserId: string | null = user_id ?? null
+
   if (subscription_id) {
     // Existing subscription row — simple update
     const { error } = await supabaseAdmin
@@ -40,6 +43,16 @@ export async function POST(req: NextRequest) {
       .update({ plan, updated_at: now })
       .eq('id', subscription_id)
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+    // Resolve the user_id from the subscription so the family-account sync below works
+    if (!affectedUserId) {
+      const { data: subRow } = await supabaseAdmin
+        .from('zawaaj_subscriptions')
+        .select('user_id')
+        .eq('id', subscription_id)
+        .maybeSingle()
+      affectedUserId = (subRow?.user_id as string | null) ?? null
+    }
   } else {
     // No subscription row yet — create one (virtual free account override)
     const { error } = await supabaseAdmin
@@ -56,6 +69,26 @@ export async function POST(req: NextRequest) {
         { onConflict: 'user_id', ignoreDuplicates: false }
       )
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  // ── Keep zawaaj_family_accounts.plan in sync ──────────────────────────────
+  // Both columns are canonical: member-facing surfaces read subscriptions.plan,
+  // the admin families list reads family_accounts.plan. GoCardless + Stripe both
+  // write the pair together; this admin override (incl. the "Grant Premium"
+  // manager tickbox) must do the same, or a comped member shows the wrong plan
+  // in the families list. Writes the explicit enum — never a boolean — so the
+  // Plus tier stays distinct and re-activatable.
+  if (affectedUserId) {
+    // updated_at is maintained by the zfa_updated_at trigger — no need to set it here.
+    const { error: faErr } = await supabaseAdmin
+      .from('zawaaj_family_accounts')
+      .update({ plan })
+      .eq('primary_user_id', affectedUserId)
+    if (faErr) {
+      // Non-fatal: subscriptions (the payment-side source) was updated successfully.
+      // Log so a divergence is visible rather than silent.
+      console.error('[override-plan] family_accounts.plan sync failed:', faErr.message)
+    }
   }
 
   return NextResponse.json({ ok: true })
