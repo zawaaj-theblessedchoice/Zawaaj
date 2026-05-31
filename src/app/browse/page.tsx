@@ -29,13 +29,18 @@ export default async function BrowsePage({
     redirect('/login')
   }
 
-  // 2. Admin check — use zawaaj_get_role() so managers route correctly.
-  //    super_admin → /admin dashboard, manager → /admin/introductions.
+  // 2. Admin check — use zawaaj_get_role() so roles route correctly.
+  //    super_admin → /admin dashboard (they may have no member profile).
+  //    manager → NOT bounced: a manager is also a member (promoted from one,
+  //    so they always have a profile) and the admin sidebar's "Switch to My
+  //    Zawaaj account" / "View site" links target /browse. Bouncing managers
+  //    back to /admin made that switcher a no-op (round-trip). Let them through
+  //    to their member experience; the active_profile_id guard below handles
+  //    the (unexpected) profile-less manager.
   //    Exception: ?preview=1 lets an admin see the member-facing browse view.
   if (params.preview !== '1') {
     const { data: role } = await supabase.rpc('zawaaj_get_role')
     if (role === 'super_admin') redirect('/admin')
-    if (role === 'manager') redirect('/admin/introductions')
   }
 
   // 3. Get active_profile_id
