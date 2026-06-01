@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "obsidian:index": "tsx tools/obsidian-memory/index-vault.ts",
+    "obsidian:search": "tsx tools/obsidian-memory/search-vault.ts",
+    "obsidian:context": "tsx tools/obsidian-memory/build-context-pack.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.0",
@@ -25,6 +28,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.2",
     "tailwindcss": "^4",
+    "tsx": "^4.22.4",
     "typescript": "^5",
     "xlsx": "^0.18.5"
   }

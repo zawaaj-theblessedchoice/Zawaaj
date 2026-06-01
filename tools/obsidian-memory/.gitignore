@@ -1,0 +1,6 @@
+# Generated index — rebuilt by `npm run obsidian:index`
+.index/
+
+# Dated context packs are generated artifacts; keep only the named verification report
+context-packs/*
+!context-packs/zawaaj-memory-verification.md
