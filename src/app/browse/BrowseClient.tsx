@@ -1078,7 +1078,13 @@ export default function BrowseClient({
     ])
     setMonthlyUsed(prev => prev + 1)
 
-    setToast('Interest sent')
+    // Re-express case: the API flags when a previously-withdrawn interest is
+    // re-sent, so the member knows their new request went through.
+    setToast(
+      (json as { wasReExpressed?: boolean }).wasReExpressed === true
+        ? 'You previously expressed interest in this profile. Your new request has been sent.'
+        : 'Interest sent',
+    )
   }
 
   const openProfile = openProfileId ? profiles.find(p => p.id === openProfileId) ?? null : null
