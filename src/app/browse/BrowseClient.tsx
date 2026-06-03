@@ -559,7 +559,11 @@ function BrowsingAsBanner({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ profile_id: profileId }),
       })
-      window.location.href = '/browse'
+      // Full reload to re-fetch server state for the newly active profile.
+      // assign() instead of `location.href =` to satisfy react-hooks/immutability
+      // (property assignment on the external location object is flagged); behaviour
+      // is identical — a navigation to /browse.
+      window.location.assign('/browse')
     } catch {
       setSwitching(false)
     }

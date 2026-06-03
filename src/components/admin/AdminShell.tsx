@@ -333,7 +333,13 @@ export function AdminShell({ role, children }: Props) {
   }, [role, managerProfileId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
+    // Intentional, hydration-safe pattern: state initialises to 'dark' (matching
+    // the server render), then we correct from localStorage AFTER mount. Moving
+    // this read into a lazy useState initializer would make the client hydration
+    // render read 'light' while the server rendered 'dark' → hydration mismatch.
+    // So the setState-in-effect is correct here; the lint rule is a false positive.
     const t = getTheme()
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTheme(t)
     if (t === 'dark') {
       document.documentElement.setAttribute('data-theme', 'dark')
@@ -372,7 +378,10 @@ export function AdminShell({ role, children }: Props) {
     return pathname.startsWith(href)
   }
 
-  const SidebarContent = () => (
+  // A JSX value, not a component-defined-in-render. Rendering it as {sidebarContent}
+  // (instead of <SidebarContent />) avoids react-hooks/static-components and the
+  // remount-every-render footgun, while rendering identically (it was never memoised).
+  const sidebarContent = (
     <aside
       style={{
         width: 220,
@@ -619,7 +628,7 @@ export function AdminShell({ role, children }: Props) {
       )}
 
       {/* ── Sidebar (desktop always visible, mobile slide-in) ── */}
-      <SidebarContent />
+      {sidebarContent}
 
       {/* ── Main area ── */}
       <div

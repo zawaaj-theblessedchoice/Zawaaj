@@ -380,7 +380,9 @@ export default async function BrowsePage({
     existingBrowseState?.filters_json &&
     existingBrowseState?.filters_updated_at
   ) {
-    const ageMs = Date.now() - new Date(existingBrowseState.filters_updated_at as string).getTime()
+    // Reuse `now` (captured above) instead of Date.now() — keeps this server
+    // component's render free of impure calls (lint: react-hooks/purity).
+    const ageMs = now.getTime() - new Date(existingBrowseState.filters_updated_at as string).getTime()
     if (ageMs < FILTER_EXPIRY_MS) {
       initialFilters = existingBrowseState.filters_json as FilterState
     }

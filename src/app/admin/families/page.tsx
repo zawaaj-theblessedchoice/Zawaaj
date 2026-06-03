@@ -81,7 +81,7 @@ export default async function FamiliesPage() {
   const { data: families } = await familiesQuery
 
   // Fetch last_sign_in_at from auth.users to show "last active" per family account
-  let lastSeenMap: Record<string, string | null> = {}
+  const lastSeenMap: Record<string, string | null> = {}
   try {
     const { data: authData } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 })
     if (authData?.users) {
