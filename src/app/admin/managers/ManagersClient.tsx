@@ -295,6 +295,8 @@ function AddManagerForm({ onCreated }: AddManagerFormProps) {
           scope_ethnicities: ethnicities.length ? ethnicities : undefined,
           scope_languages:   languages.length   ? languages   : undefined,
           notes:             notes.trim()        || undefined,
+          // Drives the promotion email's premium line (server sends the email).
+          granted_premium:   grantPremium && found.current_plan !== 'premium',
         }),
       })
       const json = await res.json() as { id?: string; error?: string }

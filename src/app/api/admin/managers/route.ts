@@ -6,6 +6,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { NextResponse } from 'next/server'
+import { sendEmail, managerPromotionTemplate } from '@/lib/email'
 
 async function guardSuperAdmin(): Promise<{ userId: string | null; error: string | null }> {
   const supabase = await createClient()
@@ -50,6 +51,7 @@ export async function POST(request: Request): Promise<Response> {
     scope_ethnicities?: string[]
     scope_languages?: string[]
     notes?: string
+    granted_premium?: boolean   // whether "Grant Premium" was ticked at promotion
   }
 
   if (!body.user_id || !body.full_name?.trim()) {
@@ -80,5 +82,28 @@ export async function POST(request: Request): Promise<Response> {
     .single()
 
   if (dbError) return NextResponse.json({ error: dbError.message }, { status: 500 })
+
+  // ── Promotion-notification email ──────────────────────────────────────────
+  // Recipient = the account contact (body.email is already the contact email,
+  // resolved client-side from the family-account contact per Fix 3). full_name
+  // is likewise the contact name. The premium line is included ONLY when
+  // "Grant Premium" was ticked, so the copy never over-promises.
+  // Non-fatal: a failed email must not fail the manager creation.
+  const notifyEmail = body.email?.trim()
+  if (notifyEmail) {
+    try {
+      const result = await sendEmail({
+        to: notifyEmail,
+        subject: 'You are now a Zawaaj manager',
+        html: managerPromotionTemplate(body.full_name.trim(), body.granted_premium === true),
+      })
+      if (!result.ok) {
+        console.error('[admin/managers] promotion email failed:', result.error)
+      }
+    } catch (err) {
+      console.error('[admin/managers] promotion email threw:', err)
+    }
+  }
+
   return NextResponse.json({ success: true, id: (data as { id: string }).id }, { status: 201 })
 }

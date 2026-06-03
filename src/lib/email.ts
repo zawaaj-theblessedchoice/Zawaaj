@@ -844,6 +844,80 @@ export function managerAssignedManagerTemplate(
 </html>`
 }
 
+// ─── Manager promotion email ─────────────────────────────────────────────────
+// Sent to a member when they are promoted to manager. The premium line is only
+// included when premium was actually granted at promotion (grantedPremium=true),
+// so the copy never promises something the system didn't do.
+
+export function managerPromotionTemplate(
+  recipientName: string,
+  grantedPremium: boolean,
+): string {
+  const premiumLine = grantedPremium
+    ? `<p style="margin:0 0 16px;font-size:14px;color:#9ca3af;line-height:1.7;">
+         As part of your role, your Zawaaj membership has been upgraded to
+         <strong style="color:#e5e7eb;">Premium at no charge</strong>.
+       </p>`
+    : ''
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Welcome to the Zawaaj team</title>
+</head>
+<body style="margin:0;padding:0;background:#111111;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#111111;padding:40px 16px;">
+    <tr>
+      <td align="center">
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;">
+          <tr>
+            <td align="center" style="padding-bottom:32px;">
+              <img src="https://zawaaj.uk/logo.png" alt="Zawaaj" width="90" style="display:block;" />
+              <p style="margin:8px 0 0;color:#B8960C;font-size:11px;letter-spacing:2px;text-transform:uppercase;">The Blessed Choice</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="background:#1A1A1A;border:1px solid #2a2a2a;border-top:1px solid rgba(184,150,12,0.3);border-radius:12px;padding:36px 32px;">
+              <h1 style="margin:0 0 16px;font-size:20px;font-weight:600;color:#ffffff;">Welcome to the Zawaaj team</h1>
+              <p style="margin:0 0 16px;font-size:14px;color:#9ca3af;line-height:1.7;">Assalamu alaykum ${recipientName},</p>
+              <p style="margin:0 0 16px;font-size:14px;color:#9ca3af;line-height:1.7;">
+                You have been appointed as a <strong style="color:#e5e7eb;">manager</strong> on Zawaaj.
+                In this role you help families through the introduction process with care, discretion,
+                and Islamic etiquette — a serious amanah, and we are grateful to have you.
+              </p>
+              <p style="margin:0 0 16px;font-size:14px;color:#9ca3af;line-height:1.7;">
+                You now have access to the <strong style="color:#e5e7eb;">manager dashboard</strong>,
+                where you can see the families and introductions assigned to you and move them forward.
+              </p>
+              ${premiumLine}
+              <a href="https://zawaaj.uk/admin"
+                style="display:inline-block;padding:12px 28px;background:#B8960C;color:#111111;font-size:14px;font-weight:600;text-decoration:none;border-radius:10px;margin-bottom:20px;">
+                Open manager dashboard
+              </a>
+              <p style="margin:0;font-size:13px;color:#6b7280;line-height:1.6;">
+                If you have any questions about your role, please reach out to us at
+                <a href="mailto:team@zawaaj.uk" style="color:#B8960C;text-decoration:none;">team@zawaaj.uk</a>.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding-top:24px;">
+              <p style="margin:0;font-size:11px;color:#4b5563;">
+                Jazakallahu khayran,<br />The Zawaaj Team ·
+                <a href="https://zawaaj.uk" style="color:#6b7280;text-decoration:none;">zawaaj.uk</a>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`
+}
+
 // ─── Nikkah Alhamdulillah outcome email ──────────────────────────────────────
 // Sent to each family representative when a nikkah is completed.
 
