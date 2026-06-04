@@ -183,7 +183,7 @@ export async function fetchPlansFromDb(
         label: 'Community Access',
         price_monthly_gbp: 0,
         price_annual_gbp: 0,
-        monthly_interests: 2,        // fallback — real value lives in zawaaj_plans
+        monthly_interests: 5,        // fallback — mirrors zawaaj_plans seed (025); real value lives in zawaaj_plans
         max_profiles: 2,
         features: ['admin_mediated_intros', 'profile_review', 'basic_search'],
         is_active: true,
@@ -206,7 +206,7 @@ export async function fetchPlansFromDb(
         price_monthly_gbp: 1900,
         price_annual_gbp: 18000,
         monthly_interests: null,
-        max_profiles: 6,
+        max_profiles: 4,        // mirrors zawaaj_plans seed (025); was 6 — contradicted the seed
         features: ['admin_mediated_intros', 'profile_review', 'basic_search', 'priority_admin', 'profile_boost_weekly', 'new_profile_alerts', 'full_bio_on_received_interests', 'dedicated_manager', 'manager_followup', 'spotlight_monthly', 'who_viewed'],
         is_active: true,
         sort_order: 3,

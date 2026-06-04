@@ -84,9 +84,14 @@ export const RELOCATION_OPTIONS = [
   { value: 'no',       label: 'No, prefer to stay local' },
 ] as const
 
-/** Static fallback — used only when zawaaj_plans DB table is unreachable. */
+/**
+ * Static fallback — used ONLY when the zawaaj_plans DB table is unreachable.
+ * Values MUST mirror the zawaaj_plans seed (migration 025) so the fallback can
+ * never contradict the canonical source: voluntary 5/2, plus 15/4, premium ∞/4.
+ * (Previously voluntary was 2 here — a contradiction with the seed's 5.)
+ */
 export const PLAN_LIMITS_FALLBACK = {
-  voluntary: { monthlyInterests: 2,        maxProfiles: 2 },
+  voluntary: { monthlyInterests: 5,        maxProfiles: 2 },
   plus:      { monthlyInterests: 15,       maxProfiles: 4 },
   premium:   { monthlyInterests: Infinity, maxProfiles: 4 },
 } as const
