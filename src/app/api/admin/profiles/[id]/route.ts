@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { evaluateReadiness } from '@/lib/zawaaj/evaluateReadiness'
 
 const ALLOWED_STATUSES = ['approved', 'rejected', 'paused', 'suspended', 'pending'] as const
 type AllowedStatus = (typeof ALLOWED_STATUSES)[number]
@@ -54,6 +55,19 @@ export async function PATCH(
     if (error) {
       console.error('[admin/profiles PATCH]', error.message)
       return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    // Approval is a Path B readiness input — recompute the profile's family so a
+    // pre-approval link now auto-advances to intro_ready. Idempotent + non-fatal.
+    if (newStatus === 'approved') {
+      const { data: approvedProfile } = await supabaseAdmin
+        .from('zawaaj_profiles')
+        .select('family_account_id')
+        .eq('id', id)
+        .maybeSingle()
+      if (approvedProfile?.family_account_id) {
+        await evaluateReadiness(approvedProfile.family_account_id as string)
+      }
     }
 
     // ── Send in-app notification on status transitions ─────────────────────────

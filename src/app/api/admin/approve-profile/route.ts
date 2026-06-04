@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { evaluateReadiness } from '@/lib/zawaaj/evaluateReadiness'
 
 export async function POST(request: Request): Promise<Response> {
   try {
@@ -18,7 +19,7 @@ export async function POST(request: Request): Promise<Response> {
     // Fetch the profile to check if we need to send an invite
     const { data: profile, error: fetchError } = await supabaseAdmin
       .from('zawaaj_profiles')
-      .select('id, user_id, imported_email, status')
+      .select('id, user_id, imported_email, status, family_account_id')
       .eq('id', profile_id)
       .single()
 
@@ -32,6 +33,13 @@ export async function POST(request: Request): Promise<Response> {
       .eq('id', profile_id)
 
     if (updateError) return NextResponse.json({ error: updateError.message }, { status: 500 })
+
+    // Approval is an eligibility input for Path B readiness — recompute so a
+    // family that linked its rep BEFORE this approval now auto-advances to
+    // intro_ready. Idempotent + non-fatal.
+    if (profile.family_account_id) {
+      await evaluateReadiness(profile.family_account_id as string)
+    }
 
     // If profile has an imported_email and no user_id yet, send invite email
     let invited = false

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { evaluateReadiness } from '@/lib/zawaaj/evaluateReadiness'
 
 /**
  * POST /api/invite/accept
@@ -114,82 +115,11 @@ export async function POST(request: Request): Promise<Response> {
       console.log('[invite/accept] readiness_state → representative_linked')
     }
 
-    // STEP B — eligibility checks for auto-promotion to intro_ready
-
-    // Check 1: family account must be active
-    if (fa?.status !== 'active') {
-      console.log('[invite/accept] eligibility check failed: family status is not active (status:', fa?.status, ')')
-      return NextResponse.json({ success: true, family_account_id: familyAccountId })
-    }
-
-    // Check 2: primary_user_id is set (either pre-existing or just set in step 5)
-    const primaryUserId = fa?.primary_user_id ?? user.id
-    if (!primaryUserId) {
-      console.log('[invite/accept] eligibility check failed: primary_user_id is null')
-      return NextResponse.json({ success: true, family_account_id: familyAccountId })
-    }
-
-    // Check 3: at least one profile in the family with status = 'approved'
-    const { data: approvedProfiles, error: approvedErr } = await supabaseAdmin
-      .from('zawaaj_profiles')
-      .select('id')
-      .eq('family_account_id', familyAccountId)
-      .eq('status', 'approved')
-      .limit(1)
-
-    if (approvedErr) {
-      console.error('[invite/accept] eligibility check failed: error fetching approved profiles:', approvedErr.message)
-      return NextResponse.json({ success: true, family_account_id: familyAccountId })
-    }
-    if (!approvedProfiles?.length) {
-      console.log('[invite/accept] eligibility check failed: no approved profiles in family')
-      return NextResponse.json({ success: true, family_account_id: familyAccountId })
-    }
-
-    // Check 4: rep's profile has first_name, last_name, and at least one contact field
-    // Contact field: profile contact_number OR family account contact_email / contact_number
-    const { data: repProfile, error: repProfileErr } = await supabaseAdmin
-      .from('zawaaj_profiles')
-      .select('first_name, last_name, contact_number')
-      .eq('id', profileId)
-      .maybeSingle()
-
-    if (repProfileErr) {
-      console.error('[invite/accept] eligibility check failed: error fetching rep profile:', repProfileErr.message)
-      return NextResponse.json({ success: true, family_account_id: familyAccountId })
-    }
-
-    const hasContact = !!(
-      repProfile?.contact_number ||
-      fa?.contact_email ||
-      fa?.contact_number
-    )
-
-    if (!repProfile?.first_name) {
-      console.log('[invite/accept] eligibility check failed: rep profile missing first_name')
-      return NextResponse.json({ success: true, family_account_id: familyAccountId })
-    }
-    if (!repProfile?.last_name) {
-      console.log('[invite/accept] eligibility check failed: rep profile missing last_name')
-      return NextResponse.json({ success: true, family_account_id: familyAccountId })
-    }
-    if (!hasContact) {
-      console.log('[invite/accept] eligibility check failed: rep profile has no contact field')
-      return NextResponse.json({ success: true, family_account_id: familyAccountId })
-    }
-
-    // All four checks passed — auto-promote to intro_ready
-    const { error: stateErrB } = await supabaseAdmin
-      .from('zawaaj_family_accounts')
-      .update({ readiness_state: 'intro_ready' })
-      .eq('id', familyAccountId)
-      .eq('readiness_state', 'representative_linked')
-
-    if (stateErrB) {
-      console.error('[invite/accept] failed to set intro_ready:', stateErrB.message)
-    } else {
-      console.log('[invite/accept] eligibility passed → readiness_state: intro_ready')
-    }
+    // STEP B — derived readiness. Auto-promote to intro_ready IF eligible NOW.
+    // The same evaluateReadiness() is also called from the profile-approval paths,
+    // so a family that links before approval still advances when approval lands
+    // later (the previously-missed async case).
+    await evaluateReadiness(familyAccountId)
 
   } catch (stateErr) {
     // Safety net — state advancement must never break the success response

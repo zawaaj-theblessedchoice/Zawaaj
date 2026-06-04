@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { evaluateReadiness } from '@/lib/zawaaj/evaluateReadiness'
 
 // PATCH /api/admin/profiles
 // Body: { ids: string[], action: 'approve' | 'reject' }
@@ -40,10 +41,10 @@ export async function PATCH(req: NextRequest): Promise<Response> {
           approved_date: now,
         }
 
-        // Set listed_at only on first approval
+        // Set listed_at only on first approval; grab family_account_id for readiness recompute
         const { data: existing } = await supabaseAdmin
           .from('zawaaj_profiles')
-          .select('listed_at')
+          .select('listed_at, family_account_id')
           .eq('id', id)
           .maybeSingle()
 
@@ -59,6 +60,11 @@ export async function PATCH(req: NextRequest): Promise<Response> {
         if (error) {
           console.error(`[batch approve] profile ${id}:`, error.message)
           continue
+        }
+
+        // Approval is a Path B readiness input — recompute this profile's family.
+        if (existing?.family_account_id) {
+          await evaluateReadiness(existing.family_account_id as string)
         }
 
         // In-app notification
