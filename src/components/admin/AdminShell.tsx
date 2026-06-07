@@ -278,6 +278,29 @@ export function AdminShell({ role, children }: Props) {
   // inside the Families page where it's consumed, not here.
   const [managerProfileId, setManagerProfileId] = useState<string | null>(null)
   const isManager = role === 'manager'
+  // ITEM A: logged-in-as identity — the account name/email beside the role badge.
+  const [accountName, setAccountName] = useState<string | null>(null)
+
+  useEffect(() => {
+    async function resolveAccountName() {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
+        const { data: profile } = await supabase
+          .from('zawaaj_profiles')
+          .select('first_name, last_name, display_initials')
+          .eq('user_id', user.id)
+          .maybeSingle()
+        const name = profile
+          ? [profile.first_name, profile.last_name].filter(Boolean).join(' ') || (profile.display_initials as string | null)
+          : null
+        setAccountName(name || user.email || null)
+      } catch {
+        // non-fatal — indicator simply omits the name
+      }
+    }
+    resolveAccountName()
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Resolve the manager's active profile id on mount (manager view only)
   useEffect(() => {
@@ -422,7 +445,7 @@ export function AdminShell({ role, children }: Props) {
         />
       </Link>
 
-      {/* Role badge */}
+      {/* Role badge + logged-in-as identity (ITEM A) */}
       <div style={{ padding: '10px 16px 4px' }}>
         <span style={{
           fontSize: 10,
@@ -437,6 +460,11 @@ export function AdminShell({ role, children }: Props) {
         }}>
           {role === 'super_admin' ? 'Super Admin' : 'Manager'}
         </span>
+        {accountName && (
+          <div style={{ fontSize: 11, color: muted, marginTop: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            Logged in as <span style={{ color: text }}>{accountName}</span>
+          </div>
+        )}
       </div>
 
       {/* Nav — role-specific structure (Phase 3) */}

@@ -229,6 +229,23 @@ export default function Sidebar({
   // Path B candidates registered themselves and DO have one.
   // We start as false (hide "My profile" until confirmed) to avoid a flash.
   const [hasOwnProfile, setHasOwnProfile] = useState(false)
+  // Session identity (ITEM A: logged-in-as indicator) + manager switch (ITEM B).
+  // role is the ACTUAL session role (Member / Manager / Super Admin) — distinct
+  // from the "Browsing as" impersonation banner (SA viewing a member).
+  const [sessionRole, setSessionRole] = useState<'member' | 'manager' | 'super_admin' | null>(null)
+  const [sessionEmail, setSessionEmail] = useState<string | null>(null)
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return
+      setSessionEmail(user.email ?? null)
+      supabase.rpc('zawaaj_get_role').then(({ data }) => {
+        const r = data as string | null
+        setSessionRole(r === 'super_admin' || r === 'manager' ? r : 'member')
+      })
+    })
+  }, [])
 
   // Determine whether to show "My profile".
   // Path A parents have registration_path='parent' on zawaaj_family_accounts.
@@ -687,6 +704,47 @@ export default function Sidebar({
           )}
         </div>
       )}
+      {/* ITEM B — Manager panel switch (member → manager), mirrors the
+          "Switch to My Zawaaj account" button in the admin sidebar. Only shown
+          to managers. Navigates to the scoped (RLS-062) manager queue. */}
+      {sessionRole === 'manager' && (
+        <div style={{ padding: '8px 10px 0' }}>
+          <button
+            onClick={() => router.push('/admin/introductions')}
+            style={{
+              display: 'block', width: '100%', textAlign: 'left',
+              padding: '8px 12px', borderRadius: 9, cursor: 'pointer',
+              border: '0.5px solid var(--border-gold)',
+              background: 'rgba(184,150,12,0.06)',
+            }}
+          >
+            <div style={{ fontSize: 9.5, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Switch to</div>
+            <div style={{ fontSize: 12.5, color: 'var(--gold)', fontWeight: 500 }}>Manager panel ↗</div>
+          </button>
+        </div>
+      )}
+
+      {/* ITEM A — Persistent logged-in-as indicator. The ACTUAL session
+          identity + role, distinct from the "Browsing as" impersonation banner.
+          Always visible so the user knows which account they're operating as. */}
+      {sessionRole && (
+        <div style={{
+          padding: '8px 14px',
+          borderTop: '0.5px solid var(--border-default)',
+          display: 'flex', flexDirection: 'column', gap: 1,
+        }}>
+          <div style={{ fontSize: 9.5, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            Logged in as
+          </div>
+          <div style={{ fontSize: 12, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {profile?.first_name ?? sessionEmail ?? 'Account'}
+          </div>
+          <div style={{ fontSize: 10.5, color: 'var(--gold)', fontWeight: 500 }}>
+            {sessionRole === 'super_admin' ? 'Super Admin' : sessionRole === 'manager' ? 'Manager' : 'Member'}
+          </div>
+        </div>
+      )}
+
       {/* Help + Privacy + Sign out — grouped with slight separation */}
       <div style={{ padding: '8px 10px', borderTop: '0.5px solid var(--border-default)', display: 'flex', flexDirection: 'column', gap: 2 }}>
         <Link
