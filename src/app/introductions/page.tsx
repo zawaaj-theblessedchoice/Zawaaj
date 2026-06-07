@@ -30,10 +30,13 @@ export default async function IntroductionsPage() {
 
   if (userError || !user) redirect('/login')
 
-  // Admin check — super_admin → /admin, manager → /admin/introductions
+  // Admin check — super_admin → /admin (no member-side flow).
+  // Managers are NOT redirected: a manager is also a member and must see their
+  // OWN member introductions here. The scoped manager queue is reached via the
+  // explicit "Manager panel" switch in the sidebar (mirrors the manager→member
+  // switcher), not by hijacking this member link.
   const { data: role } = await supabase.rpc('zawaaj_get_role')
   if (role === 'super_admin') redirect('/admin')
-  if (role === 'manager') redirect('/admin/introductions')
 
   // ── Settings + representative check (parallel) ───────────────────────────
   // Both are needed before the early-return so pure reps (no own approved
