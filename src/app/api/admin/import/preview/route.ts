@@ -77,7 +77,10 @@ function normalisePhone(phone: string): string {
 // ─── Completeness scoring ──────────────────────────────────────────────────────
 
 const REQUIRED_FIELDS = ['candidate_name', 'age', 'gender', 'city', 'representative_phone', 'representative_email'] as const
-const OPTIONAL_FIELDS = ['ethnicity', 'profile_text', 'female_representative_name', 'female_representative_phone'] as const
+const OPTIONAL_FIELDS = [
+  'ethnicity', 'profile_text', 'female_representative_name', 'female_representative_phone',
+  'height', 'education', 'profession', 'madhhab', 'best_describes', 'spouse_preferences', 'consent',
+] as const
 
 function computeCompletnessScore(row: Record<string, string>): { score: number; missing: string[] } {
   const requiredScore = REQUIRED_FIELDS.filter(f => row[f]?.trim()).length / REQUIRED_FIELDS.length * 70
@@ -138,13 +141,26 @@ export async function POST(req: NextRequest): Promise<Response> {
       const values = rows[i]
       const rowNum = i + 2 // 1-indexed, skipping header
 
+      // Age: accept an `age` column or convert a `dob` column (DOB itself is
+      // never stored — see import/run). For preview we only need presence, so a
+      // non-empty dob counts as age-present even before conversion.
+      const ageCol = get(values, 'age')
+      const dobCol = get(values, 'dob') || get(values, 'date_of_birth')
+
       const rowMap: Record<string, string> = {
         candidate_name:             get(values, 'candidate_name'),
-        age:                        get(values, 'age'),
+        age:                        ageCol || dobCol,
         gender:                     get(values, 'gender'),
         city:                       get(values, 'city'),
         ethnicity:                  get(values, 'ethnicity'),
         profile_text:               get(values, 'profile_text'),
+        height:                     get(values, 'height'),
+        education:                  get(values, 'education') || get(values, 'qualifications'),
+        profession:                 get(values, 'profession') || get(values, 'occupation'),
+        madhhab:                    get(values, 'madhhab') || get(values, 'school_of_thought'),
+        best_describes:             get(values, 'best_describes'),
+        spouse_preferences:         get(values, 'spouse_preferences') || get(values, 'future_spouse_preferences'),
+        consent:                    get(values, 'consent'),
         representative_name:        get(values, 'representative_name'),
         representative_relationship: get(values, 'representative_relationship'),
         representative_phone:       get(values, 'representative_phone'),

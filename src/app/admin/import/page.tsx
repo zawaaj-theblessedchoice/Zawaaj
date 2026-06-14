@@ -6,11 +6,16 @@ import type { PreviewResult, PreviewRow } from '@/app/api/admin/import/preview/r
 
 // ─── CSV template ─────────────────────────────────────────────────────────────
 
+// Full intake schema. `age` OR `dob` accepted (dob → age at parse, DOB never
+// stored). Required: candidate_name, age (or dob), gender, city, and a
+// representative phone OR email. Everything else is optional but imported when
+// present. `best_describes` = the path/role selector (self → child path;
+// parent/guardian → parent path). `madhhab` aliases school_of_thought.
 const NEW_CSV_HEADERS =
-  'candidate_name,age,gender,city,ethnicity,profile_text,representative_name,representative_relationship,representative_phone,representative_email,female_representative_name,female_representative_phone'
+  'candidate_name,age,dob,gender,city,ethnicity,height,education,profession,madhhab,best_describes,profile_text,spouse_preferences,consent,representative_name,representative_relationship,representative_phone,representative_email,female_representative_name,female_representative_phone'
 
 const NEW_CSV_EXAMPLE =
-  'Amira Khan,24,female,London,British Pakistani,Practising Muslim looking for a kind and family-oriented spouse.,Yasmin Khan,mother,07700900001,yasmin@example.com,,'
+  'Amira Khan,24,,female,London,British Pakistani,5ft 5in,BSc Pharmacy,Pharmacist,Hanafi,parent (for daughter),Practising Muslim looking for a kind and family-oriented spouse.,Seeking a practising spouse who values family.,yes,Yasmin Khan,mother,07700900001,yasmin@example.com,,'
 
 const CSV_TEMPLATE = `${NEW_CSV_HEADERS}\n${NEW_CSV_EXAMPLE}\n`
 

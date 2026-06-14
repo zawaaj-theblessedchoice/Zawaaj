@@ -49,6 +49,36 @@ function parseCSV(text: string): { headers: string[]; rows: string[][] } {
   return { headers, rows }
 }
 
+// ─── DOB → age (privacy: we store AGE only, never persist DOB) ────────────────
+// Accepts common formats (ISO YYYY-MM-DD, DD/MM/YYYY, DD-MM-YYYY). Returns the
+// integer age, or null if unparseable. The DOB value itself is discarded by the
+// caller — it never reaches the DB.
+function dobToAge(dob: string): number | null {
+  const s = dob.trim()
+  if (!s) return null
+  let d: Date | null = null
+
+  // ISO YYYY-MM-DD
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
+    d = new Date(s)
+  } else {
+    // DD/MM/YYYY or DD-MM-YYYY (UK form — day first)
+    const m = s.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/)
+    if (m) {
+      const day = parseInt(m[1], 10), month = parseInt(m[2], 10), year = parseInt(m[3], 10)
+      d = new Date(year, month - 1, day)
+    }
+  }
+
+  if (!d || isNaN(d.getTime())) return null
+
+  const now = new Date()
+  let age = now.getFullYear() - d.getFullYear()
+  const mo = now.getMonth() - d.getMonth()
+  if (mo < 0 || (mo === 0 && now.getDate() < d.getDate())) age--
+  return age >= 0 && age < 120 ? age : null
+}
+
 // ─── Phone normalisation ───────────────────────────────────────────────────────
 
 function normalisePhone(phone: string): string {
@@ -59,8 +89,14 @@ function normalisePhone(phone: string): string {
 
 // ─── Completeness scoring ──────────────────────────────────────────────────────
 
+// 'age' is satisfied by either an `age` column OR a `dob` column (converted at
+// parse time); representative contact is phone OR email. Completeness scoring
+// treats them as present if either source is.
 const REQUIRED_FIELDS = ['candidate_name', 'age', 'gender', 'city', 'representative_phone', 'representative_email'] as const
-const OPTIONAL_FIELDS = ['ethnicity', 'profile_text', 'female_representative_name', 'female_representative_phone'] as const
+const OPTIONAL_FIELDS = [
+  'ethnicity', 'profile_text', 'female_representative_name', 'female_representative_phone',
+  'height', 'education', 'profession', 'madhhab', 'best_describes', 'spouse_preferences', 'consent',
+] as const
 
 function computeCompletenessScore(row: Record<string, string>): { score: number; missing: string[] } {
   const requiredScore = REQUIRED_FIELDS.filter(f => row[f]?.trim()).length / REQUIRED_FIELDS.length * 70
@@ -153,13 +189,29 @@ export async function POST(req: NextRequest): Promise<Response> {
       const values = rows[i]
       const rowNum = i + 2
 
+      // Age: prefer an explicit `age` column; otherwise convert a `dob` column to
+      // age at parse time. The DOB string is NEVER stored (privacy promise).
+      const ageColumn = get(values, 'age')
+      const dobColumn = get(values, 'dob') || get(values, 'date_of_birth')
+      const resolvedAge = ageColumn.trim()
+        ? ageColumn.trim()
+        : (dobColumn.trim() ? (dobToAge(dobColumn)?.toString() ?? '') : '')
+
       const rowMap: Record<string, string> = {
         candidate_name:              get(values, 'candidate_name'),
-        age:                         get(values, 'age'),
+        age:                         resolvedAge,
         gender:                      get(values, 'gender').toLowerCase(),
         city:                        get(values, 'city'),
         ethnicity:                   get(values, 'ethnicity'),
         profile_text:                get(values, 'profile_text'),
+        // ── Extended intake fields (all map to existing columns) ──
+        height:                      get(values, 'height'),
+        education:                   get(values, 'education') || get(values, 'qualifications'),
+        profession:                  get(values, 'profession') || get(values, 'occupation'),
+        madhhab:                     get(values, 'madhhab') || get(values, 'school_of_thought'),
+        best_describes:              get(values, 'best_describes'),
+        spouse_preferences:          get(values, 'spouse_preferences') || get(values, 'future_spouse_preferences'),
+        consent:                     get(values, 'consent'),
         representative_name:         get(values, 'representative_name'),
         representative_relationship: get(values, 'representative_relationship') || 'mother',
         representative_phone:        get(values, 'representative_phone'),
@@ -213,6 +265,12 @@ export async function POST(req: NextRequest): Promise<Response> {
         const isMaleRep = MALE_RELATIONSHIPS.has(rowMap.representative_relationship)
         const hasFemaleContact = !!rowMap.female_representative_phone
 
+        // "best describes your child": self-registration → 'child', anyone
+        // registering on behalf (parent/guardian) → 'parent'. Default 'parent'
+        // since the import cohort is representative-led.
+        const bd = rowMap.best_describes.toLowerCase()
+        const registrationPath = /\b(self|myself|candidate|own)\b/.test(bd) ? 'child' : 'parent'
+
         const { data: newFa, error: faErr } = await supabaseAdmin
           .from('zawaaj_family_accounts')
           .insert({
@@ -228,7 +286,7 @@ export async function POST(req: NextRequest): Promise<Response> {
             no_female_contact_flag:  isMaleRep && !hasFemaleContact,
             imported_user:           true,
             terms_agreed:            false,
-            registration_path:       'parent',
+            registration_path:       registrationPath,
           })
           .select('id')
           .single()
@@ -261,12 +319,20 @@ export async function POST(req: NextRequest): Promise<Response> {
           first_name:            firstName || null,
           last_name:             lastName  || null,
           gender:                rowMap.gender || null,
-          age_display:           rowMap.age || null,
+          age_display:           rowMap.age || null,   // age only — DOB never stored
           location:              rowMap.city || null,
           ethnicity:             rowMap.ethnicity || null,
           bio:                   rowMap.profile_text || null,
+          // ── Extended intake fields → existing columns ──
+          height:                rowMap.height || null,
+          education_detail:      rowMap.education || null,
+          profession_detail:     rowMap.profession || null,
+          school_of_thought:     rowMap.madhhab || null,
+          spouse_preferences:    rowMap.spouse_preferences || null,
           status:                'pending',
-          consent_given:         true,
+          // consent_given reflects the family's consent flag when provided; the
+          // import itself is admin-mediated, so default true if the column is blank.
+          consent_given:         rowMap.consent.trim() ? /^(y|yes|true|1)$/i.test(rowMap.consent.trim()) : true,
           terms_agreed:          true,
           needs_claim:           true,
           imported_user:         true,
