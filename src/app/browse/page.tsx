@@ -7,6 +7,7 @@ import type { FilterState } from '@/lib/filter-types'
 import { getPlanConfig } from '@/lib/plan-config'
 import type { Plan } from '@/lib/plan-config'
 import { fetchPlanLimits } from '@/lib/config/profileOptions'
+import { isProfileComplete, type MandatoryProfileFields } from '@/lib/zawaaj/profileCompleteness'
 import Link from 'next/link'
 
 const FILTER_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000 // 7 days
@@ -145,13 +146,21 @@ export default async function BrowsePage({
        quran_frequency, quran_depth, quran_application, bio, open_to_relocation,
        open_to_partners_children, pref_age_min, pref_age_max, pref_location, pref_ethnicity,
        pref_school_of_thought, pref_relocation, pref_partner_children, status, listed_at,
-       islamic_background, smoker, place_of_birth, marriage_reason, open_to_marital_status`
+       islamic_background, smoker, place_of_birth, marriage_reason, open_to_marital_status,
+       education_detail, spouse_preferences, consent_given, is_admin`
     )
     .eq('id', activeProfileId)
     .single()
 
   if (viewerError || !viewerProfile) {
     redirect('/pending')
+  }
+
+  // CD-010 — mandatory completion gate. A profile missing any mandatory field is
+  // NOT browse-eligible: route to the completion form until complete. Derived
+  // live from the mandatory columns (no stored flag). Admins are exempt.
+  if (!viewerProfile.is_admin && !isProfileComplete(viewerProfile as MandatoryProfileFields)) {
+    redirect('/complete-profile')
   }
 
   if (viewerProfile.status !== 'approved') {
@@ -256,6 +265,12 @@ export default async function BrowsePage({
 
   const profiles: ProfileRecord[] = (rawProfiles ?? []).map(p => ({
     ...p,
+    // CD-004 / ITEM 4 privacy: a candidate's real name must NEVER reach the
+    // member-facing client for OTHER people's profiles. Tiles show display_initials
+    // only; strip first/last name from the discover payload so they can't be read
+    // via devtools or searched. (Admin/matching uses names server-side only.)
+    first_name: null,
+    last_name: null,
     // Ensure nulls for missing fields
     wears_hijab: p.wears_hijab ?? null,
     keeps_beard: p.keeps_beard ?? null,
