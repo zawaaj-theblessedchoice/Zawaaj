@@ -890,9 +890,10 @@ export default function BrowseClient({
   function applySearch(list: ProfileRecord[]): ProfileRecord[] {
     if (!searchQuery.trim()) return list
     const q = searchQuery.toLowerCase()
+    // Privacy (CD-004 / ITEM 4): do NOT search by candidate name — names are not
+    // exposed to members. Search profession + location only.
     return list.filter(
       p =>
-        p.first_name?.toLowerCase().includes(q) ||
         p.profession_detail?.toLowerCase().includes(q) ||
         p.location?.toLowerCase().includes(q)
     )
