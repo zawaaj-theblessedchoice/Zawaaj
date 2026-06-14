@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { sendEmail, guardianInviteTemplate } from '@/lib/email'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://zawaaj.uk'
 
@@ -88,7 +89,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     // Load family account
     const { data: fa, error: faErr } = await supabaseAdmin
       .from('zawaaj_family_accounts')
-      .select('id, contact_email, admin_notes, last_contacted_at, snoozed_until')
+      .select('id, contact_email, contact_full_name, admin_notes, last_contacted_at, snoozed_until')
       .eq('id', family_account_id)
       .single()
 
@@ -133,15 +134,36 @@ export async function POST(req: NextRequest): Promise<Response> {
 
       const link = claimUrl(newToken.id as string)
 
-      // Log to admin_notes
+      // Actually dispatch the email via the proven sendEmail path (this was the
+      // delivery bug: previously the token was created and "sent" reported, but
+      // no email was ever sent). The claim link both claims the profile AND
+      // auto-verifies the email on click (see /api/claim POST, email_confirm:true).
+      const emailResult = await sendEmail({
+        to: contactEmail,
+        subject: 'Claim your Zawaaj family profile',
+        html: guardianInviteTemplate(
+          link,
+          (fa.contact_full_name as string | null) ?? null,
+          (fa.contact_full_name as string | null) ?? 'your family',
+        ),
+      })
+
+      if (!emailResult.ok) {
+        return NextResponse.json(
+          { error: emailResult.error ?? 'Email failed to send', claim_link: link },
+          { status: 502 },
+        )
+      }
+
+      // Log to admin_notes (only after a confirmed send)
       const prevNotes = (fa.admin_notes as string | null) ?? ''
-      const note = `[${timestamp}] Magic link sent by ${user.email ?? 'admin'}.`
+      const note = `[${timestamp}] Claim invite emailed to ${contactEmail} by ${user.email ?? 'admin'}.`
       await supabaseAdmin
         .from('zawaaj_family_accounts')
         .update({ admin_notes: `${note}\n\n${prevNotes}`.trim() })
         .eq('id', family_account_id)
 
-      return NextResponse.json({ ok: true, claim_link: link })
+      return NextResponse.json({ ok: true, claim_link: link, emailed: contactEmail })
     }
 
     // ── resend_magic_link ──────────────────────────────────────────────────────
@@ -178,14 +200,32 @@ export async function POST(req: NextRequest): Promise<Response> {
 
       const link = claimUrl(newToken.id as string)
 
+      // Dispatch the email (same proven path as send_magic_link).
+      const emailResult = await sendEmail({
+        to: contactEmail,
+        subject: 'Claim your Zawaaj family profile',
+        html: guardianInviteTemplate(
+          link,
+          (fa.contact_full_name as string | null) ?? null,
+          (fa.contact_full_name as string | null) ?? 'your family',
+        ),
+      })
+
+      if (!emailResult.ok) {
+        return NextResponse.json(
+          { error: emailResult.error ?? 'Email failed to send', claim_link: link },
+          { status: 502 },
+        )
+      }
+
       const prevNotes = (fa.admin_notes as string | null) ?? ''
-      const note = `[${timestamp}] Magic link resent by ${user.email ?? 'admin'}.`
+      const note = `[${timestamp}] Claim invite re-emailed to ${contactEmail} by ${user.email ?? 'admin'}.`
       await supabaseAdmin
         .from('zawaaj_family_accounts')
         .update({ admin_notes: `${note}\n\n${prevNotes}`.trim() })
         .eq('id', family_account_id)
 
-      return NextResponse.json({ ok: true, claim_link: link })
+      return NextResponse.json({ ok: true, claim_link: link, emailed: contactEmail })
     }
 
     // ── mark_contacted ─────────────────────────────────────────────────────────
