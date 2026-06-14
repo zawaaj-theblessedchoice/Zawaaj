@@ -172,6 +172,9 @@ export default function PricingPage() {
                 {annual && p.monthly > 0 && (
                   <p className="text-xs text-gold mt-1">£{p.annual * 12}/yr · save 20%</p>
                 )}
+                {price > 0 && (
+                  <p className="text-xs text-white/40 mt-1">Net proceeds go towards charity.</p>
+                )}
                 {p.cta ? (
                   <Link href={p.cta}
                     className={`mt-3 block py-2 rounded-xl text-xs font-semibold transition-colors ${

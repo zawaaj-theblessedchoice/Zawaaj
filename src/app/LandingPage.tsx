@@ -203,6 +203,9 @@ function PlanCard({ plan, annual, isLoggedIn }: { plan: typeof PLANS[number]; an
         {saving && (
           <span className="mt-1 inline-block text-xs text-gold font-medium">Save 20% · £{plan.annual * 12}/yr</span>
         )}
+        {price > 0 && (
+          <span className="mt-1 block text-xs text-muted">Net proceeds go towards charity.</span>
+        )}
         <p className="mt-2 text-sm text-muted">{plan.description}</p>
       </div>
 

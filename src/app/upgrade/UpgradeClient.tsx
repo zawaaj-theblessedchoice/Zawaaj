@@ -141,6 +141,9 @@ export function UpgradeClient({ currentPlan, profileId: _profileId }: Props) {
                 Billed as £{PLAN_PRICES.premium.annual * 12}/yr
               </p>
             )}
+            <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: '6px 0 0' }}>
+              Net proceeds go towards charity.
+            </p>
           </div>
           {isPremium ? (
             <button disabled style={{

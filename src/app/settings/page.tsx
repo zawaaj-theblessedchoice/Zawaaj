@@ -663,6 +663,9 @@ function SettingsContent() {
                       )
                     })}
                   </div>
+                  <p style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'center', margin: '10px 0 0' }}>
+                    Net proceeds go towards charity.
+                  </p>
                 </div>
 
                 {/* Full comparison table */}

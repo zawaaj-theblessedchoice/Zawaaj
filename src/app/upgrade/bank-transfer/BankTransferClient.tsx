@@ -204,6 +204,9 @@ export function BankTransferClient({
             <p style={{ margin: '3px 0 0', fontSize: 20, color: 'var(--text-primary)', fontWeight: 700 }}>
               £{PLAN_PRICE}<span style={{ fontSize: 13, fontWeight: 400, color: 'var(--text-secondary)' }}> / month</span>
             </p>
+            <p style={{ margin: '6px 0 0', fontSize: 11, color: 'var(--text-muted)' }}>
+              Net proceeds go towards charity.
+            </p>
           </div>
         </div>
 

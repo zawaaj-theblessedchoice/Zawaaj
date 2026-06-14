@@ -189,6 +189,11 @@ export default function UpgradeModal({ trigger, onClose }: UpgradeModalProps) {
           ))}
         </div>
 
+        {/* Charity note — one clear placement near the prices */}
+        <p style={{ padding: '0 20px', fontSize: 11, color: 'var(--text-muted)', textAlign: 'center', margin: '4px 0 0' }}>
+          Net proceeds go towards charity.
+        </p>
+
         {/* Footer */}
         <div style={{ padding: '14px 20px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: 12, cursor: 'pointer' }}>
