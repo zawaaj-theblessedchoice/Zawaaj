@@ -223,6 +223,14 @@ export async function POST(req: NextRequest): Promise<Response> {
       const repPhone = rowMap.representative_phone
       const repEmail = rowMap.representative_email
 
+      // IGNORE silently: a completely empty row (trailing blanks from a sheet
+      // export — commas but no real data). Not an error, just skip — otherwise a
+      // 319-row export with trailing blanks floods the error report with noise.
+      const hasAnyRealData = !!(
+        rowMap.candidate_name || repPhone || repEmail || rowMap.age || rowMap.gender || rowMap.city
+      )
+      if (!hasAnyRealData) continue
+
       // SKIP: critical contact info missing
       if (!repPhone && !repEmail) {
         results.push({ row: rowNum, candidate_name: rowMap.candidate_name || '—', success: false, error: 'Missing both representative phone and email — skipped' })

@@ -174,6 +174,13 @@ export async function POST(req: NextRequest): Promise<Response> {
       const repPhone = rowMap.representative_phone
       const repEmail = rowMap.representative_email
 
+      // IGNORE silently: completely empty row (trailing blanks from a sheet
+      // export). Don't list it in the preview at all — matches run/route.ts.
+      const hasAnyRealData = !!(
+        rowMap.candidate_name || repPhone || repEmail || rowMap.age || rowMap.gender || rowMap.city
+      )
+      if (!hasAnyRealData) continue
+
       // SKIP: no representative phone AND no representative email
       if (!repPhone && !repEmail) {
         previewRows.push({
