@@ -292,6 +292,12 @@ export async function POST(req: NextRequest): Promise<Response> {
             status:                  'pending_email_verification',
             readiness_state:         'candidate_only',
             no_female_contact_flag:  isMaleRep && !hasFemaleContact,
+            // Constraint zfa_flag_requires_explanation: when no_female_contact_flag
+            // is true, father_explanation must be non-empty. Provide an import
+            // context note so male-rep rows with no female contact don't violate it.
+            father_explanation:      (isMaleRep && !hasFemaleContact)
+              ? 'Imported cohort — no female representative provided at intake.'
+              : '',
             imported_user:           true,
             terms_agreed:            false,
             registration_path:       registrationPath,
@@ -336,7 +342,16 @@ export async function POST(req: NextRequest): Promise<Response> {
           education_detail:      rowMap.education || null,
           profession_detail:     rowMap.profession || null,
           school_of_thought:     rowMap.madhhab || null,
-          spouse_preferences:    rowMap.spouse_preferences || null,
+          // spouse_preferences is text[] (migration 003 converted it from text).
+          // The UI stores it as string[]; mirror that — split free text on
+          // newlines/semicolons into elements, else a single-element array; null
+          // when blank. A plain string here caused "malformed array literal".
+          spouse_preferences:    (() => {
+            const raw = rowMap.spouse_preferences.trim()
+            if (!raw) return null
+            const parts = raw.split(/[\n;]+/).map(s => s.trim()).filter(Boolean)
+            return parts.length > 0 ? parts : null
+          })(),
           status:                'pending',
           // consent_given reflects the family's consent flag when provided; the
           // import itself is admin-mediated, so default true if the column is blank.
