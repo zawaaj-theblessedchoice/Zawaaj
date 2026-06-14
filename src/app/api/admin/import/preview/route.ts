@@ -76,7 +76,8 @@ function normalisePhone(phone: string): string {
 
 // ─── Completeness scoring ──────────────────────────────────────────────────────
 
-const REQUIRED_FIELDS = ['candidate_name', 'age', 'gender', 'city', 'representative_phone', 'representative_email'] as const
+// candidate_name OPTIONAL — collected at claim via the completion gate (CD-010).
+const REQUIRED_FIELDS = ['age', 'gender', 'city', 'representative_phone', 'representative_email'] as const
 const OPTIONAL_FIELDS = [
   'ethnicity', 'profile_text', 'female_representative_name', 'female_representative_phone',
   'height', 'education', 'profession', 'madhhab', 'best_describes', 'spouse_preferences', 'consent',

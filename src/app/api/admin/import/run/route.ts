@@ -92,7 +92,10 @@ function normalisePhone(phone: string): string {
 // 'age' is satisfied by either an `age` column OR a `dob` column (converted at
 // parse time); representative contact is phone OR email. Completeness scoring
 // treats them as present if either source is.
-const REQUIRED_FIELDS = ['candidate_name', 'age', 'gender', 'city', 'representative_phone', 'representative_email'] as const
+// candidate_name is OPTIONAL at import — the Google Form intake never collected
+// it; it's gathered from the family at claim time via the completion gate
+// (CD-010). A no-name row imports fine (display_initials falls back to 'XX').
+const REQUIRED_FIELDS = ['age', 'gender', 'city', 'representative_phone', 'representative_email'] as const
 const OPTIONAL_FIELDS = [
   'ethnicity', 'profile_text', 'female_representative_name', 'female_representative_phone',
   'height', 'education', 'profession', 'madhhab', 'best_describes', 'spouse_preferences', 'consent',
