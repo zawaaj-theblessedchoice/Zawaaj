@@ -93,7 +93,11 @@ export default function ImportPage() {
   const [runError, setRunError]   = useState<string | null>(null)
 
   const [sendingInvites, setSendingInvites] = useState(false)
-  const [inviteResult, setInviteResult]     = useState<{ sent: number; failed: number } | null>(null)
+  const [inviteResult, setInviteResult]     = useState<{
+    sent: number
+    failed: number
+    failures: Array<{ familyAccountId: string; reason: string }>
+  } | null>(null)
 
   const [batches, setBatches]               = useState<Batch[]>([])
   const [historyLoading, setHistoryLoading] = useState(true)
@@ -197,6 +201,7 @@ export default function ImportPage() {
     setInviteResult(null)
     let sent = 0
     let failed = 0
+    const failures: Array<{ familyAccountId: string; reason: string }> = []
     for (const familyAccountId of runResult.familyAccountIds) {
       try {
         const res = await fetch('/api/admin/activation', {
@@ -204,14 +209,23 @@ export default function ImportPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ action: 'send_magic_link', family_account_id: familyAccountId }),
         })
-        if (res.ok) sent++
-        else failed++
-      } catch {
+        if (res.ok) {
+          sent++
+        } else {
+          // Surface WHY this specific family's invite didn't send (no contact
+          // email → 400, Resend dispatch error → 502) instead of folding it into
+          // an anonymous "failed" count. No silent failures.
+          failed++
+          const body = await res.json().catch(() => ({})) as { error?: string }
+          failures.push({ familyAccountId, reason: body.error ?? `HTTP ${res.status}` })
+        }
+      } catch (err) {
         failed++
+        failures.push({ familyAccountId, reason: err instanceof Error ? err.message : 'Network error' })
       }
     }
     setSendingInvites(false)
-    setInviteResult({ sent, failed })
+    setInviteResult({ sent, failed, failures })
   }
 
   const canRun = preview !== null && (preview.validCount + preview.existingFamilyCount + preview.missingDataCount) > 0 && runResult === null
@@ -497,6 +511,26 @@ export default function ImportPage() {
                 </span>
               )}
             </div>
+
+            {/* Per-family failure breakdown — never let a failed send hide as a
+                bare count. Each row shows exactly which family and why. */}
+            {inviteResult && inviteResult.failures.length > 0 && (
+              <div className="mt-3 rounded-xl p-3 text-xs" style={{ background: 'var(--status-error-bg)', border: '1px solid var(--status-error-br)' }}>
+                <p className="font-medium mb-2" style={{ color: 'var(--status-error)' }}>
+                  {inviteResult.failures.length} invite{inviteResult.failures.length === 1 ? '' : 's'} did not send — these families have NOT been emailed:
+                </p>
+                <ul className="space-y-1">
+                  {inviteResult.failures.map(f => (
+                    <li key={f.familyAccountId} style={{ color: 'var(--admin-muted)' }}>
+                      <span className="font-mono">{f.familyAccountId.slice(0, 8)}…</span> — {f.reason}
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-2" style={{ color: 'var(--admin-muted)' }}>
+                  Fix the contact email in Families and resend, or retry if it was a temporary send error.
+                </p>
+              </div>
+            )}
           </section>
         )}
 
