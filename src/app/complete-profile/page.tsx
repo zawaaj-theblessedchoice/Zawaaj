@@ -41,7 +41,6 @@ export default async function CompleteProfilePage() {
 
   return (
     <CompleteProfileClient
-      profileId={activeProfileId as string}
       gender={(profile.gender as string | null) ?? null}
       missing={missing}
     />

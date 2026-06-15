@@ -2,12 +2,13 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import { MANDATORY_FIELD_LABELS } from '@/lib/zawaaj/profileCompleteness'
 import { SCHOOL_OF_THOUGHT_OPTIONS } from '@/lib/config/profileOptions'
 
 interface Props {
-  profileId: string
+  // profileId is intentionally not passed — the save route resolves the caller's
+  // active profile server-side from the session (more secure; the client can't
+  // target another profile).
   gender: string | null
   missing: string[]
 }
@@ -27,9 +28,8 @@ type FormState = {
   consent: boolean
 }
 
-export default function CompleteProfileClient({ profileId, gender, missing }: Props) {
+export default function CompleteProfileClient({ gender, missing }: Props) {
   const router = useRouter()
-  const supabase = createClient()
   const missingSet = new Set(missing)
 
   const [form, setForm] = useState<FormState>({
@@ -95,18 +95,43 @@ export default function CompleteProfileClient({ profileId, gender, missing }: Pr
     }
     if (missingSet.has('consent')) update.consent_given = form.consent
 
-    const { error: updErr } = await supabase
-      .from('zawaaj_profiles')
-      .update(update)
-      .eq('id', profileId)
-
-    if (updErr) {
-      setError(updErr.message)
+    // Persist via the server route (service-role). A CLIENT-side update is
+    // silently blocked by RLS for claimed imported profiles (user_id is null on
+    // the candidate row → "auth.uid() = user_id" fails), which caused the
+    // completion gate to loop forever. The route writes with supabaseAdmin after
+    // verifying this is the caller's own active profile.
+    let resp: { success?: boolean; complete?: boolean; missing?: string[]; error?: string }
+    try {
+      const res = await fetch('/api/complete-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(update),
+      })
+      resp = await res.json()
+      if (!res.ok || !resp.success) {
+        setError(resp.error ?? 'Could not save. Please try again.')
+        setSaving(false)
+        return
+      }
+    } catch {
+      setError('Network error. Please try again.')
       setSaving(false)
       return
     }
 
-    // Complete → release to browse (server gate re-checks; will pass now).
+    // Only release to browse when the server confirms the profile is now
+    // complete — otherwise show exactly which field is still outstanding rather
+    // than bouncing the user blindly.
+    if (!resp.complete) {
+      const stillMissing = (resp.missing ?? [])
+        .map(k => MANDATORY_FIELD_LABELS[k] ?? k)
+        .join(', ')
+      setError(`Still missing: ${stillMissing || 'some required fields'}. Please contact support if this persists.`)
+      setSaving(false)
+      return
+    }
+
+    // Complete → release to browse.
     router.push('/browse')
   }
 
