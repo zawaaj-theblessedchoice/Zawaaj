@@ -10,6 +10,7 @@ import { getPlanConfig } from '@/lib/plan-config'
 import type { Plan } from '@/lib/plan-config'
 import { fetchPlanLimits } from '@/lib/config/profileOptions'
 import { RELOCATION_LABELS, EDUCATION_LABELS, RELIGIOSITY_LABELS } from '@/lib/labels'
+import { isProfileComplete, type MandatoryProfileFields } from '@/lib/zawaaj/profileCompleteness'
 
 interface Profile {
   id: string
@@ -260,7 +261,10 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
         supabase
           .from('zawaaj_profiles')
           .select(
-            'id, display_initials, gender, age_display, height, ethnicity, nationality, school_of_thought, education_level, education_detail, profession_detail, location, bio, religiosity, prayer_regularity, wears_hijab, wears_niqab, wears_abaya, keeps_beard, quran_frequency, quran_depth, quran_application, marital_status, has_children, languages_spoken, living_situation, open_to_relocation, pref_age_min, pref_age_max, pref_location, pref_ethnicity, pref_school_of_thought, pref_partner_children, status'
+            // first_name/date_of_birth/spouse_preferences/consent_given are fetched
+            // ONLY to evaluate completeness (CD-010) — they are discarded before the
+            // profile is stored in state, never rendered (CD-004 privacy).
+            'id, display_initials, gender, age_display, height, ethnicity, nationality, school_of_thought, education_level, education_detail, profession_detail, location, bio, religiosity, prayer_regularity, wears_hijab, wears_niqab, wears_abaya, keeps_beard, quran_frequency, quran_depth, quran_application, marital_status, has_children, languages_spoken, living_situation, open_to_relocation, pref_age_min, pref_age_max, pref_location, pref_ethnicity, pref_school_of_thought, pref_partner_children, status, first_name, date_of_birth, spouse_preferences, consent_given'
           )
           .eq('id', id)
           .eq('status', 'approved')
@@ -273,7 +277,26 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
         setLoading(false)
         return
       }
-      setProfile(profileData)
+
+      // CD-010 — an incomplete ("XX") profile must not be viewable by anyone,
+      // even via a direct link. Check completeness with the shared isProfileComplete
+      // (single source of truth), then discard the name/DOB fields so they never
+      // reach component state or render (CD-004 privacy — only initials shown).
+      const { first_name, date_of_birth, spouse_preferences, consent_given, ...renderProfile } =
+        profileData as Profile & MandatoryProfileFields
+      if (!isProfileComplete({
+        first_name, date_of_birth, spouse_preferences, consent_given,
+        gender: renderProfile.gender, location: renderProfile.location,
+        age_display: renderProfile.age_display, height: renderProfile.height,
+        ethnicity: renderProfile.ethnicity, education_level: renderProfile.education_level,
+        education_detail: renderProfile.education_detail, profession_detail: renderProfile.profession_detail,
+        school_of_thought: renderProfile.school_of_thought,
+      })) {
+        setNotFound(true)
+        setLoading(false)
+        return
+      }
+      setProfile(renderProfile)
 
       if (user) {
         const { data: settings } = await supabase

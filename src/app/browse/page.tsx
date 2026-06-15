@@ -236,13 +236,14 @@ export default async function BrowsePage({
     .from('zawaaj_profiles')
     .select(
       `id, display_initials, first_name, last_name, gender, date_of_birth, age_display,
-       location, profession_detail, education_level, school_of_thought, ethnicity,
+       location, profession_detail, education_level, education_detail, school_of_thought, ethnicity,
        languages_spoken, nationality, marital_status, has_children, height, living_situation,
        religiosity, prayer_regularity, wears_hijab, keeps_beard, wears_niqab, wears_abaya,
        quran_frequency, quran_depth, quran_application, bio, open_to_relocation,
        open_to_partners_children, pref_age_min, pref_age_max, pref_location, pref_ethnicity,
        pref_school_of_thought, pref_relocation, pref_partner_children, status, listed_at,
-       islamic_background, smoker, place_of_birth, marriage_reason, open_to_marital_status`
+       islamic_background, smoker, place_of_birth, marriage_reason, open_to_marital_status,
+       spouse_preferences, consent_given`
     )
     .eq('status', 'approved')
     .order('listed_at', { ascending: false })
@@ -263,7 +264,17 @@ export default async function BrowsePage({
     redirect('/pending')
   }
 
-  const profiles: ProfileRecord[] = (rawProfiles ?? []).map(p => ({
+  // CD-010 — incomplete profiles are NOT browse-eligible and must NOT be
+  // discoverable by anyone (an "XX" placeholder profile must stay hidden until
+  // its family completes it). Filter with the SAME isProfileComplete used by the
+  // gate so the two never drift. Done in JS (not SQL) because completeness has
+  // OR-fallbacks (age_display|date_of_birth, education_level|education_detail)
+  // and an array length check that don't map cleanly to a single query predicate.
+  const completeRawProfiles = (rawProfiles ?? []).filter(
+    p => isProfileComplete(p as MandatoryProfileFields)
+  )
+
+  const profiles: ProfileRecord[] = completeRawProfiles.map(p => ({
     ...p,
     // CD-004 / ITEM 4 privacy: a candidate's real name must NEVER reach the
     // member-facing client for OTHER people's profiles. Tiles show display_initials
