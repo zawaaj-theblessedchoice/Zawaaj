@@ -25,6 +25,16 @@ function DashboardIcon() {
   )
 }
 
+function OperationsIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
+      <rect x="2.5" y="2" width="9" height="11" rx="1.5" stroke="currentColor" strokeWidth="1.3" />
+      <path d="M5 1.2v1.8h4V1.2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M4.8 7l1.3 1.3 2.6-2.8" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
 function IntroIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
@@ -158,7 +168,11 @@ const SA_NAV_SECTIONS: NavSection[] = [
   {
     label: 'Work',
     items: [
-      { href: '/admin/inbox',         label: 'Inbox',         icon: <DashboardIcon /> },
+      // The actionable work queue = the OperationsConsole (approve/reject).
+      // Previously this was a duplicate "Inbox" that re-rendered the /admin
+      // dashboard; consolidated to the real console so the two nav items no
+      // longer render the same page. /admin/inbox now redirects here.
+      { href: '/admin/operations',    label: 'Operations',    icon: <OperationsIcon /> },
       { href: '/admin/followups',     label: 'Follow-ups',    icon: <FollowupsIcon />, badgeKey: 'followups' },
     ],
   },
