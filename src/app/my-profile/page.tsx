@@ -390,16 +390,43 @@ export default function MyProfilePage() {
         .eq('user_id', user.id)
         .maybeSingle()
 
-      const { data: profileRows } = await supabase
-        .from('zawaaj_profiles')
-        .select('id, display_initials, first_name, last_name, gender, date_of_birth, age_display, height, ethnicity, nationality, school_of_thought, education_level, education_detail, profession_detail, location, bio, religiosity, prayer_regularity, wears_hijab, wears_niqab, wears_abaya, keeps_beard, quran_frequency, quran_depth, quran_application, marital_status, has_children, languages_spoken, living_situation, open_to_relocation, open_to_partners_children, polygamy_openness, pref_age_min, pref_age_max, pref_location, pref_ethnicity, pref_school_of_thought, pref_partner_children, pref_relocation, status, is_admin, interests_this_month, islamic_background, smoker, place_of_birth, marriage_reason, open_to_marital_status')
-        .eq('user_id', user.id)
+      const PROFILE_COLUMNS = 'id, display_initials, first_name, last_name, gender, date_of_birth, age_display, height, ethnicity, nationality, school_of_thought, education_level, education_detail, profession_detail, location, bio, religiosity, prayer_regularity, wears_hijab, wears_niqab, wears_abaya, keeps_beard, quran_frequency, quran_depth, quran_application, marital_status, has_children, languages_spoken, living_situation, open_to_relocation, open_to_partners_children, polygamy_openness, pref_age_min, pref_age_max, pref_location, pref_ethnicity, pref_school_of_thought, pref_partner_children, pref_relocation, status, is_admin, interests_this_month, islamic_background, smoker, place_of_birth, marriage_reason, open_to_marital_status'
 
-      if (!profileRows?.length) { setLoading(false); return }
-      const activeId = settings?.active_profile_id ?? profileRows[0].id
-      const active = profileRows.find(p => p.id === activeId) ?? profileRows[0]
+      // Resolve the user's profiles the SAME way browse does. Claimed/imported
+      // profiles have user_id = NULL — they're linked via the family account
+      // (family_accounts.primary_user_id → zawaaj_profiles.family_account_id),
+      // NOT via profiles.user_id. A user_id-only lookup misses them entirely,
+      // which is why claimed members saw "No profile found".
+      const { data: familyAccount } = await supabase
+        .from('zawaaj_family_accounts')
+        .select('id')
+        .eq('primary_user_id', user.id)
+        .maybeSingle()
+      const familyAccountId = familyAccount?.id ?? null
+
+      const profilesQuery = familyAccountId
+        ? supabase.from('zawaaj_profiles').select(PROFILE_COLUMNS).eq('family_account_id', familyAccountId)
+        : supabase.from('zawaaj_profiles').select(PROFILE_COLUMNS).eq('user_id', user.id)
+      let profileRows = (await profilesQuery).data ?? []
+
+      const activeId = settings?.active_profile_id ?? profileRows[0]?.id ?? null
+      let active = profileRows.find(p => p.id === activeId) ?? profileRows[0] ?? null
+
+      // Safety net: if the active profile isn't in the family/user set (linkage
+      // edge cases), fetch it directly by id so a claimed member with a valid
+      // active_profile_id is never shown "No profile found".
+      if (!active && activeId) {
+        const { data: direct } = await supabase
+          .from('zawaaj_profiles')
+          .select(PROFILE_COLUMNS)
+          .eq('id', activeId)
+          .maybeSingle()
+        if (direct) { active = direct; profileRows = [direct] }
+      }
+
+      if (!active) { setLoading(false); return }
       setProfile(active)
-      setActiveProfileId(activeId)
+      setActiveProfileId(active.id)
       // Populate managed profiles for the Sidebar switcher
       setManagedProfiles(profileRows.map(p => ({
         id: p.id,
