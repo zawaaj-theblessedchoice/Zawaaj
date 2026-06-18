@@ -497,8 +497,14 @@ export default function MyProfilePage() {
     if (!profile) return
     setActionLoading(true)
     const newStatus = profile.status === 'approved' ? 'paused' : 'approved'
-    const { error } = await supabase.from('zawaaj_profiles').update({ status: newStatus }).eq('id', profile.id)
-    if (!error) setProfile({ ...profile, status: newStatus })
+    // Persist via the service-role route — a client-session update RLS-no-ops
+    // for claimed/imported profiles (user_id NULL). See /api/my-profile.
+    const res = await fetch('/api/my-profile', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: newStatus }),
+    })
+    if (res.ok) setProfile({ ...profile, status: newStatus })
     setActionLoading(false)
   }
 
@@ -569,7 +575,7 @@ export default function MyProfilePage() {
     setEditLoading(true)
     setEditError(null)
     const sotPref = editForm.prefSchoolOfThought.split(',').map(s => s.trim()).filter(Boolean)
-    const { error } = await supabase.from('zawaaj_profiles').update({
+    const update = {
       location: editForm.location || null,
       height: editForm.height || null,
       languages_spoken: editForm.languagesSpoken.length > 0 ? editForm.languagesSpoken : null,
@@ -605,8 +611,20 @@ export default function MyProfilePage() {
       place_of_birth: editForm.placeOfBirth || null,
       marriage_reason: profile.gender === 'male' && editForm.marriageReason ? editForm.marriageReason : null,
       open_to_marital_status: profile.gender === 'female' ? (editForm.openToMaritalStatus || null) : null,
-    }).eq('id', profile.id)
-    if (error) { setEditError(error.message); setEditLoading(false); return }
+    }
+    // Persist via the service-role route (client-session update RLS-no-ops for
+    // claimed/imported profiles whose user_id is NULL). See /api/my-profile.
+    const res = await fetch('/api/my-profile', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(update),
+    })
+    if (!res.ok) {
+      const j = await res.json().catch(() => ({})) as { error?: string }
+      setEditError(j.error ?? 'Could not save changes. Please try again.')
+      setEditLoading(false)
+      return
+    }
     setProfile({
       ...profile,
       location: editForm.location || null,
@@ -668,8 +686,14 @@ export default function MyProfilePage() {
   async function handleWithdraw() {
     if (!profile) return
     setActionLoading(true)
-    const { error } = await supabase.from('zawaaj_profiles').update({ status: 'withdrawn', withdrawal_reason: withdrawReason }).eq('id', profile.id)
-    if (!error) {
+    // Persist via the service-role route (claimed/imported profiles have
+    // user_id NULL → client-session update RLS-no-ops). See /api/my-profile.
+    const res = await fetch('/api/my-profile', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'withdrawn', withdrawal_reason: withdrawReason }),
+    })
+    if (res.ok) {
       setProfile({ ...profile, status: 'withdrawn' })
       setWithdrawn(true)
       setShowWithdrawModal(false)
