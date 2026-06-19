@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { supabaseAdmin } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
 import BrowseClient from './BrowseClient'
 import Sidebar from '@/components/Sidebar'
@@ -250,6 +251,18 @@ export default async function BrowsePage({
 
   if (oppositeGender) {
     profilesQuery = profilesQuery.eq('gender', oppositeGender)
+  }
+
+  // CD-010 / archive (063): never surface candidates whose family account is
+  // archived. Guarded — if migration 063 isn't applied yet, archErr is set and
+  // we simply skip the exclusion rather than breaking browse.
+  const { data: archivedFams, error: archErr } = await supabaseAdmin
+    .from('zawaaj_family_accounts')
+    .select('id')
+    .not('archived_at', 'is', null)
+  const archivedFamilyIds: string[] = archErr ? [] : (archivedFams ?? []).map(r => r.id as string)
+  if (archivedFamilyIds.length > 0) {
+    profilesQuery = profilesQuery.not('family_account_id', 'in', `(${archivedFamilyIds.join(',')})`)
   }
 
   // Exclude all profiles linked to the same family account (siblings).
