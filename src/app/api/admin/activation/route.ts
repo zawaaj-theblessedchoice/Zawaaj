@@ -53,6 +53,7 @@ export async function GET(req: NextRequest): Promise<Response> {
 type ActivationAction =
   | 'send_magic_link'
   | 'resend_magic_link'
+  | 'get_claim_link'
   | 'mark_contacted'
   | 'mark_invalid'
   | 'snooze'
@@ -226,6 +227,46 @@ export async function POST(req: NextRequest): Promise<Response> {
         .eq('id', family_account_id)
 
       return NextResponse.json({ ok: true, claim_link: link, emailed: contactEmail })
+    }
+
+    // ── get_claim_link ─────────────────────────────────────────────────────────
+    // Return a claim link WITHOUT sending an email — for "Copy link" / "Share via
+    // WhatsApp" (manual send via Khalil's own WhatsApp). Reuses the current
+    // pending token if one exists, else mints a fresh one. Works even when the
+    // family has no contact email (so we never show a false "sent").
+    if (action === 'get_claim_link') {
+      const { data: existing } = await supabaseAdmin
+        .from('zawaaj_invite_tokens')
+        .select('id, expires_at')
+        .eq('family_account_id', family_account_id)
+        .eq('purpose', 'claim_invite')
+        .is('accepted_at', null)
+        .gt('expires_at', now)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      if (existing) {
+        return NextResponse.json({ ok: true, claim_link: claimUrl(existing.id as string), reused: true })
+      }
+
+      const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+      const { data: newToken, error: tokenErr } = await supabaseAdmin
+        .from('zawaaj_invite_tokens')
+        .insert({
+          family_account_id,
+          purpose:      'claim_invite',
+          invited_email: (fa.contact_email as string | null) ?? null,
+          expires_at:   expiresAt,
+          created_by:   user.id,
+        })
+        .select('id')
+        .single()
+
+      if (tokenErr || !newToken) {
+        return NextResponse.json({ error: tokenErr?.message ?? 'Failed to create token' }, { status: 500 })
+      }
+      return NextResponse.json({ ok: true, claim_link: claimUrl(newToken.id as string), reused: false })
     }
 
     // ── mark_contacted ─────────────────────────────────────────────────────────
