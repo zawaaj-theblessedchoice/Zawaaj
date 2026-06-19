@@ -83,6 +83,47 @@ function ReadinessBadge({ state }: { state: string }) {
   )
 }
 
+const CLAIM_CONFIG: Record<string, { label: string; bg: string; text: string }> = {
+  not_sent: { label: 'Not invited', bg: 'rgba(255,255,255,0.06)', text: 'var(--admin-muted)' },
+  sent:     { label: 'Invite sent', bg: 'rgba(59,130,246,0.15)',  text: '#3b82f6' },
+  claimed:  { label: 'Claimed',     bg: 'rgba(34,197,94,0.15)',   text: '#16a34a' },
+}
+
+function ClaimStatusBadge({ status }: { status: string }) {
+  const c = CLAIM_CONFIG[status] ?? CLAIM_CONFIG.not_sent
+  return (
+    <span style={{
+      fontSize: 10.5, fontWeight: 600, padding: '2px 7px', borderRadius: 99,
+      background: c.bg, color: c.text, whiteSpace: 'nowrap',
+    }}>
+      {c.label}
+    </span>
+  )
+}
+
+function ImportedBadge() {
+  return (
+    <span title="Created via CSV import" style={{
+      fontSize: 9.5, fontWeight: 700, padding: '1px 6px', borderRadius: 99,
+      background: 'rgba(184,150,12,0.15)', color: '#B8960C', whiteSpace: 'nowrap',
+      letterSpacing: '0.06em',
+    }}>
+      IMPORTED
+    </span>
+  )
+}
+
+// Build a wa.me URL. Best-effort UK normalisation of the contact number; falls
+// back to a recipient-less share (Khalil picks the chat) when no usable number.
+function whatsappUrl(rawNumber: string | null, message: string): string {
+  const text = encodeURIComponent(message)
+  let digits = (rawNumber ?? '').replace(/[^\d]/g, '')
+  if (digits.startsWith('00')) digits = digits.slice(2)
+  else if (digits.startsWith('0') && digits.length === 11) digits = `44${digits.slice(1)}` // UK mobile
+  if (digits.length >= 10 && digits.length <= 15) return `https://wa.me/${digits}?text=${text}`
+  return `https://wa.me/?text=${text}`
+}
+
 function fmtDate(d: string | null) {
   if (!d) return '—'
   return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
@@ -171,6 +212,47 @@ const BLANK_CREATE: CreateFamilyForm = {
   terms_agreed: true,
 }
 
+// Hoisted out of CreateFamilyModal so they are stable module-level components
+// (defining components inside render remounts inputs every keystroke → focus loss,
+// and trips react-hooks/static-components).
+function FField({ label, field, form, setForm, type = 'text', placeholder = '' }: {
+  label: string; field: keyof CreateFamilyForm
+  form: CreateFamilyForm; setForm: React.Dispatch<React.SetStateAction<CreateFamilyForm>>
+  type?: string; placeholder?: string
+}) {
+  return (
+    <div>
+      <label style={labelStyle}>{label}</label>
+      <input
+        type={type}
+        value={form[field] as string}
+        onChange={e => setForm(f => ({ ...f, [field]: e.target.value }))}
+        placeholder={placeholder}
+        style={inputStyle}
+      />
+    </div>
+  )
+}
+
+function FSelect({ label, field, form, setForm, options }: {
+  label: string; field: keyof CreateFamilyForm
+  form: CreateFamilyForm; setForm: React.Dispatch<React.SetStateAction<CreateFamilyForm>>
+  options: { value: string; label: string }[]
+}) {
+  return (
+    <div>
+      <label style={labelStyle}>{label}</label>
+      <select
+        value={form[field] as string}
+        onChange={e => setForm(f => ({ ...f, [field]: e.target.value }))}
+        style={{ ...inputStyle, appearance: 'none' }}
+      >
+        {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+      </select>
+    </div>
+  )
+}
+
 function CreateFamilyModal({
   onClose,
   onCreated,
@@ -215,40 +297,6 @@ function CreateFamilyModal({
     onClose()
   }
 
-  function F({ label, field, type = 'text', placeholder = '' }: {
-    label: string; field: keyof CreateFamilyForm; type?: string; placeholder?: string
-  }) {
-    return (
-      <div>
-        <label style={labelStyle}>{label}</label>
-        <input
-          type={type}
-          value={form[field] as string}
-          onChange={e => setForm(f => ({ ...f, [field]: e.target.value }))}
-          placeholder={placeholder}
-          style={inputStyle}
-        />
-      </div>
-    )
-  }
-
-  function Select({ label, field, options }: {
-    label: string; field: keyof CreateFamilyForm; options: { value: string; label: string }[]
-  }) {
-    return (
-      <div>
-        <label style={labelStyle}>{label}</label>
-        <select
-          value={form[field] as string}
-          onChange={e => setForm(f => ({ ...f, [field]: e.target.value }))}
-          style={{ ...inputStyle, appearance: 'none' }}
-        >
-          {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-        </select>
-      </div>
-    )
-  }
-
   return (
     <div
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
@@ -265,8 +313,8 @@ function CreateFamilyModal({
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <F label="Full name" field="contact_full_name" placeholder="Fatima Khan" />
-            <Select label="Relationship" field="contact_relationship" options={[
+            <FField form={form} setForm={setForm} label="Full name" field="contact_full_name" placeholder="Fatima Khan" />
+            <FSelect form={form} setForm={setForm} label="Relationship" field="contact_relationship" options={[
               { value: 'mother',          label: 'Mother'           },
               { value: 'grandmother',     label: 'Grandmother'      },
               { value: 'aunt',            label: 'Aunt'             },
@@ -277,8 +325,8 @@ function CreateFamilyModal({
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <F label="Contact number" field="contact_number" placeholder="+44 7700 900000" />
-            <F label="Contact email" field="contact_email" type="email" placeholder="family@email.com" />
+            <FField form={form} setForm={setForm} label="Contact number" field="contact_number" placeholder="+44 7700 900000" />
+            <FField form={form} setForm={setForm} label="Contact email" field="contact_email" type="email" placeholder="family@email.com" />
           </div>
 
           {isMale && (
@@ -288,11 +336,11 @@ function CreateFamilyModal({
               </p>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                <F label="Female contact name" field="female_contact_name" placeholder="Aisha Khan" />
-                <F label="Female contact number" field="female_contact_number" placeholder="+44 7700 900001" />
+                <FField form={form} setForm={setForm} label="Female contact name" field="female_contact_name" placeholder="Aisha Khan" />
+                <FField form={form} setForm={setForm} label="Female contact number" field="female_contact_number" placeholder="+44 7700 900001" />
               </div>
 
-              <Select label="Female contact relationship" field="female_contact_relationship" options={[
+              <FSelect form={form} setForm={setForm} label="Female contact relationship" field="female_contact_relationship" options={[
                 { value: '',                 label: '— Select —'        },
                 { value: 'grandmother',      label: 'Grandmother'       },
                 { value: 'aunt',             label: 'Aunt'              },
@@ -314,7 +362,7 @@ function CreateFamilyModal({
                 </label>
                 {form.no_female_contact_flag && (
                   <div style={{ marginTop: 8 }}>
-                    <F label="Explanation" field="father_explanation" placeholder="Brief explanation why no female contact is available" />
+                    <FField form={form} setForm={setForm} label="Explanation" field="father_explanation" placeholder="Brief explanation why no female contact is available" />
                   </div>
                 )}
               </div>
@@ -322,12 +370,12 @@ function CreateFamilyModal({
           )}
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <Select label="Plan" field="plan" options={[
+            <FSelect form={form} setForm={setForm} label="Plan" field="plan" options={[
               { value: 'voluntary', label: 'Voluntary (free)' },
               { value: 'plus',      label: 'Plus'             },
               { value: 'premium',   label: 'Premium'          },
             ]} />
-            <Select label="Registration path" field="registration_path" options={[
+            <FSelect form={form} setForm={setForm} label="Registration path" field="registration_path" options={[
               { value: 'parent', label: 'Parent-led' },
               { value: 'child',  label: 'Child-led'  },
             ]} />
@@ -833,9 +881,13 @@ function LinkProfileModal({
 
 interface Props {
   families: FamilyRow[]
+  archiveEnabled: boolean
+  isSuperAdmin: boolean
 }
 
-export function FamiliesClient({ families: initial }: Props) {
+export interface SendResult { id: string; name: string; ok: boolean; reason: string }
+
+export function FamiliesClient({ families: initial, archiveEnabled, isSuperAdmin }: Props) {
   const [families, setFamilies]           = useState(initial)
   const [search, setSearch]               = useState('')
   const [statusFilter, setStatusFilter]   = useState<string>('all')
@@ -848,9 +900,21 @@ export function FamiliesClient({ families: initial }: Props) {
   const [inviteFamily, setInviteFamily]     = useState<FamilyRow | null>(null)
   const [linkFamily, setLinkFamily]         = useState<FamilyRow | null>(null)
   const [emailFamily, setEmailFamily]       = useState<FamilyRow | null>(null)
+  const [deleteFamily, setDeleteFamily]     = useState<FamilyRow | null>(null)
 
+  // ITEM 5 — claim-invite send: multi-select + per-family results + copy feedback.
+  const [selectedIds, setSelectedIds]       = useState<Set<string>>(new Set())
+  const [sendingBatch, setSendingBatch]     = useState(false)
+  const [sendResults, setSendResults]       = useState<SendResult[] | null>(null)
+  const [copiedId, setCopiedId]             = useState<string | null>(null)
+
+  // Archived rows are hidden everywhere except the dedicated "Archived" tab.
   const filtered = families.filter(f => {
-    const matchStatus = statusFilter === 'all' || f.status === statusFilter
+    const isArchived = !!f.archived_at
+    if (statusFilter === 'archived') { if (!isArchived) return false }
+    else if (isArchived) return false
+
+    const matchStatus = statusFilter === 'all' || statusFilter === 'archived' || f.status === statusFilter
     const matchReadiness = readinessFilter === 'all' || f.readiness_state === readinessFilter
     const q = search.toLowerCase()
     const matchSearch = !q ||
@@ -860,6 +924,129 @@ export function FamiliesClient({ families: initial }: Props) {
       f.profiles.some(p => [p.first_name, p.last_name].filter(Boolean).join(' ').toLowerCase().includes(q))
     return matchStatus && matchReadiness && matchSearch
   })
+
+  // Keep selection in sync with what's visible (e.g. after switching tabs).
+  const visibleIds = new Set(filtered.map(f => f.id))
+  const selectedVisible = [...selectedIds].filter(id => visibleIds.has(id))
+
+  function toggleSelect(id: string) {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id); else next.add(id)
+      return next
+    })
+  }
+  function toggleSelectAll() {
+    setSelectedIds(prev => {
+      const allSelected = filtered.every(f => prev.has(f.id)) && filtered.length > 0
+      if (allSelected) return new Set()
+      return new Set(filtered.map(f => f.id))
+    })
+  }
+
+  // POST a single send_magic_link; returns a normalised per-family result.
+  async function sendOne(f: FamilyRow): Promise<SendResult> {
+    try {
+      const res = await fetch('/api/admin/activation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'send_magic_link', family_account_id: f.id }),
+      })
+      if (res.ok) return { id: f.id, name: f.contact_full_name, ok: true, reason: 'Emailed' }
+      const j = await res.json().catch(() => ({})) as { error?: string }
+      return { id: f.id, name: f.contact_full_name, ok: false, reason: j.error ?? `HTTP ${res.status}` }
+    } catch (err) {
+      return { id: f.id, name: f.contact_full_name, ok: false, reason: err instanceof Error ? err.message : 'Network error' }
+    }
+  }
+
+  async function sendInvite(f: FamilyRow) {
+    setActionLoading(f.id)
+    const r = await sendOne(f)
+    setActionLoading(null)
+    setSendResults([r])
+    if (r.ok) setFamilies(prev => prev.map(x => x.id === f.id ? { ...x, claim_status: 'sent' } : x))
+  }
+
+  async function batchSend() {
+    const targets = filtered.filter(f => selectedIds.has(f.id))
+    if (targets.length === 0) return
+    setSendingBatch(true)
+    setSendResults(null)
+    const results: SendResult[] = []
+    for (const f of targets) results.push(await sendOne(f))
+    setSendingBatch(false)
+    setSendResults(results)
+    const sentOk = new Set(results.filter(r => r.ok).map(r => r.id))
+    if (sentOk.size > 0) {
+      setFamilies(prev => prev.map(x => sentOk.has(x.id) ? { ...x, claim_status: 'sent' } : x))
+    }
+    setSelectedIds(new Set())
+  }
+
+  // Get-or-create a claim link WITHOUT emailing, for copy / WhatsApp.
+  async function getClaimLink(f: FamilyRow): Promise<string | null> {
+    const res = await fetch('/api/admin/activation', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'get_claim_link', family_account_id: f.id }),
+    })
+    if (!res.ok) {
+      const j = await res.json().catch(() => ({})) as { error?: string }
+      alert(j.error ?? 'Could not generate claim link')
+      return null
+    }
+    const j = await res.json() as { claim_link?: string }
+    return j.claim_link ?? null
+  }
+
+  async function copyClaimLink(f: FamilyRow) {
+    setActionLoading(f.id)
+    const link = await getClaimLink(f)
+    setActionLoading(null)
+    if (!link) return
+    try {
+      await navigator.clipboard.writeText(link)
+      setCopiedId(f.id)
+      setTimeout(() => setCopiedId(c => (c === f.id ? null : c)), 2000)
+    } catch {
+      window.prompt('Copy this claim link:', link)
+    }
+  }
+
+  async function shareWhatsApp(f: FamilyRow) {
+    setActionLoading(f.id)
+    const link = await getClaimLink(f)
+    setActionLoading(null)
+    if (!link) return
+    const msg = `Assalamu alaikum ${f.contact_full_name}, here is your Zawaaj claim link to set up your family account: ${link}`
+    window.open(whatsappUrl(f.contact_number, msg), '_blank', 'noopener')
+  }
+
+  async function archiveFamily(f: FamilyRow, archive: boolean) {
+    setActionLoading(f.id)
+    const res = await fetch(`/api/admin/families/${f.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: archive ? 'archive' : 'restore' }),
+    })
+    setActionLoading(null)
+    if (res.ok) {
+      setFamilies(prev => prev.map(x => x.id === f.id
+        ? { ...x, archived_at: archive ? new Date().toISOString() : null }
+        : x))
+      setExpandedId(null)
+    } else {
+      const j = await res.json().catch(() => ({})) as { error?: string }
+      alert(j.error ?? (archive ? 'Archive failed' : 'Restore failed'))
+    }
+  }
+
+  function onDeleted(id: string) {
+    setFamilies(prev => prev.filter(x => x.id !== id))
+    setDeleteFamily(null)
+    setExpandedId(null)
+  }
 
   async function resendVerification(id: string) {
     setActionLoading(id)
@@ -889,24 +1076,6 @@ export function FamiliesClient({ families: initial }: Props) {
     if (res.ok) setFamilies(prev => prev.map(f => f.id === id ? { ...f, status } : f))
   }
 
-  async function deleteAccount(f: FamilyRow) {
-    const profileCount = f.profiles?.length ?? 0
-    const warning = profileCount > 0
-      ? `This will permanently delete the family account, ${profileCount} linked profile(s), and the auth login. This cannot be undone.`
-      : 'This will permanently delete the family account and its auth login. This cannot be undone.'
-    if (!window.confirm(warning)) return
-    setActionLoading(f.id)
-    const res = await fetch(`/api/admin/families/${f.id}`, { method: 'DELETE' })
-    setActionLoading(null)
-    if (res.ok) {
-      setFamilies(prev => prev.filter(x => x.id !== f.id))
-      setExpandedId(null)
-    } else {
-      const json = await res.json().catch(() => ({})) as { error?: string }
-      alert(json.error ?? 'Delete failed')
-    }
-  }
-
   function handleCreated(row: FamilyRow) {
     setFamilies(prev => [row, ...prev])
     setExpandedId(row.id)
@@ -922,12 +1091,15 @@ export function FamiliesClient({ families: initial }: Props) {
     ))
   }
 
+  // Live (non-archived) counts for the status tabs; archived counted separately.
+  const live = families.filter(f => !f.archived_at)
   const counts = {
-    all: families.length,
-    pending_email_verification: families.filter(f => f.status === 'pending_email_verification').length,
-    pending_approval: families.filter(f => f.status === 'pending_approval').length,
-    active: families.filter(f => f.status === 'active').length,
-    suspended: families.filter(f => f.status === 'suspended').length,
+    all: live.length,
+    pending_email_verification: live.filter(f => f.status === 'pending_email_verification').length,
+    pending_approval: live.filter(f => f.status === 'pending_approval').length,
+    active: live.filter(f => f.status === 'active').length,
+    suspended: live.filter(f => f.status === 'suspended').length,
+    archived: families.filter(f => !!f.archived_at).length,
   }
 
   return (
@@ -939,8 +1111,14 @@ export function FamiliesClient({ families: initial }: Props) {
             Family Accounts
           </h1>
           <p style={{ fontSize: 13, color: 'var(--admin-muted)', marginTop: 4 }}>
-            {families.length} registered family accounts
+            {counts.all} live family account{counts.all === 1 ? '' : 's'}
+            {counts.archived > 0 ? ` · ${counts.archived} archived` : ''}
           </p>
+          {!archiveEnabled && isSuperAdmin && (
+            <p style={{ fontSize: 12, color: '#ea580c', marginTop: 4 }}>
+              Archive/delete is inactive until migration 063 (family archive) is run.
+            </p>
+          )}
         </div>
         <button
           onClick={() => setShowCreate(true)}
@@ -967,7 +1145,10 @@ export function FamiliesClient({ families: initial }: Props) {
           }}
         />
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          {(['all', 'pending_email_verification', 'pending_approval', 'active', 'suspended'] as const).map(s => (
+          {([
+            'all', 'pending_email_verification', 'pending_approval', 'active', 'suspended',
+            ...(isSuperAdmin ? ['archived'] as const : []),
+          ] as const).map(s => (
             <button
               key={s}
               onClick={() => setStatusFilter(s)}
@@ -978,11 +1159,12 @@ export function FamiliesClient({ families: initial }: Props) {
                 color: statusFilter === s ? '#111' : 'var(--admin-muted)',
               }}
             >
-              {s === 'all' ? `All (${families.length})`
+              {s === 'all' ? `All (${counts.all})`
                 : s === 'pending_email_verification' ? `Verifying email (${counts.pending_email_verification})`
                 : s === 'pending_approval' ? `Awaiting approval (${counts.pending_approval})`
                 : s === 'active' ? `Active (${counts.active})`
-                : `Suspended (${counts.suspended})`}
+                : s === 'suspended' ? `Suspended (${counts.suspended})`
+                : `Archived (${counts.archived})`}
             </button>
           ))}
         </div>
@@ -1012,6 +1194,64 @@ export function FamiliesClient({ families: initial }: Props) {
         </div>
       </div>
 
+      {/* Batch claim-invite toolbar */}
+      {selectedVisible.length > 0 && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
+          padding: '10px 14px', marginBottom: 12, borderRadius: 10,
+          background: 'rgba(184,150,12,0.08)', border: '1px solid rgba(184,150,12,0.25)',
+        }}>
+          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--admin-text)' }}>
+            {selectedVisible.length} selected
+          </span>
+          <button
+            onClick={() => void batchSend()}
+            disabled={sendingBatch}
+            style={{
+              padding: '6px 14px', borderRadius: 7, fontSize: 12, fontWeight: 600, border: 'none',
+              cursor: sendingBatch ? 'not-allowed' : 'pointer', background: '#B8960C', color: '#111',
+              opacity: sendingBatch ? 0.6 : 1,
+            }}
+          >
+            {sendingBatch ? 'Sending…' : `✉ Send claim invites (${selectedVisible.length})`}
+          </button>
+          <button
+            onClick={() => setSelectedIds(new Set())}
+            style={{ background: 'none', border: 'none', color: 'var(--admin-muted)', fontSize: 12, cursor: 'pointer' }}
+          >
+            Clear
+          </button>
+          <span style={{ fontSize: 11, color: 'var(--admin-muted)' }}>
+            Families with no email will report a failure here — use Copy link / WhatsApp instead.
+          </span>
+        </div>
+      )}
+
+      {/* Per-family send results */}
+      {sendResults && (
+        <div style={{
+          padding: '12px 14px', marginBottom: 12, borderRadius: 10,
+          background: 'var(--admin-surface)', border: '1px solid var(--admin-border)',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--admin-text)' }}>
+              {sendResults.filter(r => r.ok).length} sent
+              {sendResults.some(r => !r.ok) ? `, ${sendResults.filter(r => !r.ok).length} failed` : ''}
+            </span>
+            <button onClick={() => setSendResults(null)} style={{ background: 'none', border: 'none', color: 'var(--admin-muted)', fontSize: 12, cursor: 'pointer' }}>Dismiss</button>
+          </div>
+          {sendResults.some(r => !r.ok) && (
+            <ul style={{ margin: '4px 0 0', paddingLeft: 18 }}>
+              {sendResults.filter(r => !r.ok).map(r => (
+                <li key={r.id} style={{ fontSize: 12, color: '#dc2626' }}>
+                  {r.name}: {r.reason}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
       {/* Table */}
       <div style={{
         background: 'var(--admin-surface)', border: '1px solid var(--admin-border)',
@@ -1031,7 +1271,16 @@ export function FamiliesClient({ families: initial }: Props) {
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--admin-border)' }}>
-                {['Contact', 'Relationship', 'Email / Phone', 'Plan', 'Status', 'Readiness', 'Members', 'Last active', 'Created', ''].map(h => (
+                <th style={{ padding: '10px 8px 10px 14px', width: 28 }}>
+                  <input
+                    type="checkbox"
+                    aria-label="Select all"
+                    checked={filtered.length > 0 && filtered.every(f => selectedIds.has(f.id))}
+                    onChange={toggleSelectAll}
+                    style={{ cursor: 'pointer', accentColor: '#B8960C' }}
+                  />
+                </th>
+                {['Contact', 'Relationship', 'Email / Phone', 'Plan', 'Status', 'Claim', 'Readiness', 'Members', 'Last active', 'Created', ''].map(h => (
                   <th key={h} style={{
                     padding: '10px 14px', textAlign: 'left', fontSize: 11,
                     fontWeight: 600, color: 'var(--admin-muted)',
@@ -1052,8 +1301,20 @@ export function FamiliesClient({ families: initial }: Props) {
                       background: expandedId === f.id ? 'rgba(184,150,12,0.04)' : 'transparent',
                     }}
                   >
+                    <td style={{ padding: '12px 8px 12px 14px' }}>
+                      <input
+                        type="checkbox"
+                        aria-label={`Select ${f.contact_full_name}`}
+                        checked={selectedIds.has(f.id)}
+                        onChange={() => toggleSelect(f.id)}
+                        style={{ cursor: 'pointer', accentColor: '#B8960C' }}
+                      />
+                    </td>
                     <td style={{ padding: '12px 14px', fontSize: 13, fontWeight: 500, color: 'var(--admin-text)' }}>
-                      {f.contact_full_name}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                        {f.contact_full_name}
+                        {f.imported_user && <ImportedBadge />}
+                      </div>
                     </td>
                     <td style={{ padding: '12px 14px', fontSize: 13, color: 'var(--admin-muted)' }}>
                       {RELATIONSHIP_LABELS[f.contact_relationship] ?? f.contact_relationship}
@@ -1064,6 +1325,7 @@ export function FamiliesClient({ families: initial }: Props) {
                     </td>
                     <td style={{ padding: '12px 14px' }}><PlanBadge plan={f.plan} /></td>
                     <td style={{ padding: '12px 14px' }}><StatusBadge status={f.status} /></td>
+                    <td style={{ padding: '12px 14px' }}><ClaimStatusBadge status={f.claim_status} /></td>
                     <td style={{ padding: '12px 14px' }}><ReadinessBadge state={f.readiness_state} /></td>
                     <td style={{ padding: '12px 14px', fontSize: 13, color: 'var(--admin-muted)' }}>
                       {f.profiles.length}
@@ -1090,7 +1352,7 @@ export function FamiliesClient({ families: initial }: Props) {
 
                   {expandedId === f.id && (
                     <tr key={`${f.id}-expand`} style={{ borderBottom: i < filtered.length - 1 ? '1px solid var(--admin-border)' : 'none' }}>
-                      <td colSpan={10} style={{ padding: '0 14px 16px' }}>
+                      <td colSpan={12} style={{ padding: '0 14px 16px' }}>
                         <div style={{
                           background: 'rgba(255,255,255,0.03)', borderRadius: 10,
                           border: '1px solid var(--admin-border)', padding: 16,
@@ -1163,8 +1425,28 @@ export function FamiliesClient({ families: initial }: Props) {
                           </div>
                         </div>
 
-                        {/* Actions */}
-                        <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
+                        {/* Claim-invite actions (ITEM 5) — send (email), copy link, WhatsApp */}
+                        <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+                          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--admin-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginRight: 2 }}>
+                            Claim invite:
+                          </span>
+                          <ActionBtn
+                            label={f.claim_status === 'sent' ? '↺ Resend invite email' : '✉ Send invite email'}
+                            color="#B8960C" bg="rgba(184,150,12,0.12)"
+                            loading={actionLoading === f.id} onClick={() => sendInvite(f)} />
+                          <ActionBtn
+                            label={copiedId === f.id ? '✓ Link copied' : '🔗 Copy claim link'}
+                            color="var(--admin-text)" bg="rgba(255,255,255,0.07)"
+                            loading={actionLoading === f.id} onClick={() => copyClaimLink(f)} />
+                          <ActionBtn label="🟢 Share via WhatsApp" color="#16a34a" bg="rgba(34,197,94,0.10)"
+                            loading={actionLoading === f.id} onClick={() => shareWhatsApp(f)} />
+                          {f.claim_status === 'claimed' && (
+                            <span style={{ fontSize: 11, color: '#16a34a', fontWeight: 600 }}>Already claimed</span>
+                          )}
+                        </div>
+
+                        {/* Management actions */}
+                        <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
                           {f.status === 'pending_email_verification' && (
                             <ActionBtn label="↺ Resend verification email" color="#ea580c" bg="rgba(251,146,60,0.12)"
                               loading={actionLoading === f.id} onClick={() => resendVerification(f.id)} />
@@ -1194,8 +1476,20 @@ export function FamiliesClient({ families: initial }: Props) {
                             loading={false} onClick={() => setLinkFamily(f)} />
                           <ActionBtn label="✉ Email family" color="var(--admin-text)" bg="rgba(255,255,255,0.05)"
                             loading={false} onClick={() => setEmailFamily(f)} />
-                          <ActionBtn label="🗑 Delete account" color="#dc2626" bg="rgba(239,68,68,0.08)"
-                            loading={actionLoading === f.id} onClick={() => deleteAccount(f)} />
+
+                          {/* Archive / restore / delete (super-admin only) */}
+                          {isSuperAdmin && archiveEnabled && !f.archived_at && (
+                            <ActionBtn label="📦 Archive" color="#ea580c" bg="rgba(251,146,60,0.10)"
+                              loading={actionLoading === f.id} onClick={() => archiveFamily(f, true)} />
+                          )}
+                          {isSuperAdmin && archiveEnabled && f.archived_at && (
+                            <>
+                              <ActionBtn label="♻ Restore" color="#16a34a" bg="rgba(34,197,94,0.12)"
+                                loading={actionLoading === f.id} onClick={() => archiveFamily(f, false)} />
+                              <ActionBtn label="🗑 Permanently delete" color="#dc2626" bg="rgba(239,68,68,0.12)"
+                                loading={actionLoading === f.id} onClick={() => setDeleteFamily(f)} />
+                            </>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -1224,6 +1518,152 @@ export function FamiliesClient({ families: initial }: Props) {
       {emailFamily && (
         <EmailFamilyModal family={emailFamily} onClose={() => setEmailFamily(null)} />
       )}
+      {deleteFamily && (
+        <DeleteFamilyModal family={deleteFamily} onClose={() => setDeleteFamily(null)} onDeleted={onDeleted} />
+      )}
+    </div>
+  )
+}
+
+// ─── Delete Family Modal (guarded hard-delete) ────────────────────────────────
+
+interface DeleteImpact {
+  contact_full_name: string
+  archived: boolean
+  profileCount: number
+  introCount: number
+  blockers: { introId: string; otherFamily: string; status: string }[]
+}
+
+function DeleteFamilyModal({
+  family,
+  onClose,
+  onDeleted,
+}: {
+  family: FamilyRow
+  onClose: () => void
+  onDeleted: (id: string) => void
+}) {
+  const [impact, setImpact] = useState<DeleteImpact | null>(null)
+  const [loadingImpact, setLoadingImpact] = useState(true)
+  const [impactError, setImpactError] = useState<string | null>(null)
+  const [confirmText, setConfirmText] = useState('')
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+
+  React.useEffect(() => {
+    let active = true
+    ;(async () => {
+      try {
+        const res = await fetch(`/api/admin/families/${family.id}`)
+        const j = await res.json().catch(() => ({})) as { impact?: DeleteImpact; error?: string }
+        if (!active) return
+        if (!res.ok) { setImpactError(j.error ?? 'Could not load delete impact'); setLoadingImpact(false); return }
+        setImpact(j.impact ?? null)
+      } catch {
+        if (active) setImpactError('Could not load delete impact')
+      } finally {
+        if (active) setLoadingImpact(false)
+      }
+    })()
+    return () => { active = false }
+  }, [family.id])
+
+  const blocked = (impact?.blockers.length ?? 0) > 0
+  const confirmTarget = family.contact_full_name.trim()
+  const confirmOk = confirmText.trim() === confirmTarget
+  const canDelete = !blocked && confirmOk && !deleting && !loadingImpact && !!impact
+
+  async function doDelete() {
+    setDeleting(true)
+    setDeleteError(null)
+    const res = await fetch(`/api/admin/families/${family.id}`, { method: 'DELETE' })
+    if (res.ok) { onDeleted(family.id); return }
+    const j = await res.json().catch(() => ({})) as { error?: string }
+    setDeleteError(j.error ?? 'Delete failed')
+    setDeleting(false)
+  }
+
+  return (
+    <div
+      onClick={e => { if (e.target === e.currentTarget) onClose() }}
+      style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+    >
+      <div style={{ width: '100%', maxWidth: 480, background: 'var(--admin-surface)', border: '1px solid var(--admin-border)', borderRadius: 14, padding: 22 }}>
+        <h2 style={{ fontSize: 16, fontWeight: 700, color: '#dc2626', margin: '0 0 4px' }}>
+          Permanently delete family account
+        </h2>
+        <p style={{ fontSize: 13, color: 'var(--admin-text)', margin: '0 0 14px' }}>
+          {family.contact_full_name}
+        </p>
+
+        {loadingImpact ? (
+          <p style={{ fontSize: 13, color: 'var(--admin-muted)' }}>Checking what will be removed…</p>
+        ) : impactError ? (
+          <p style={{ fontSize: 13, color: '#dc2626' }}>{impactError}</p>
+        ) : impact ? (
+          <>
+            <div style={{ background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 10, padding: '12px 14px', marginBottom: 14 }}>
+              <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--admin-text)', margin: '0 0 6px' }}>This will permanently remove:</p>
+              <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12.5, color: 'var(--admin-text)', lineHeight: 1.7 }}>
+                <li>The family account + its login</li>
+                <li>{impact.profileCount} candidate profile{impact.profileCount === 1 ? '' : 's'}</li>
+                <li>{impact.introCount} introduction record{impact.introCount === 1 ? '' : 's'} involving them</li>
+                <li>Pending claim tokens</li>
+              </ul>
+              <p style={{ fontSize: 11.5, color: 'var(--admin-muted)', margin: '8px 0 0' }}>This cannot be undone.</p>
+            </div>
+
+            {blocked && (
+              <div style={{ background: 'rgba(234,179,8,0.08)', border: '1px solid rgba(234,179,8,0.3)', borderRadius: 10, padding: '12px 14px', marginBottom: 14 }}>
+                <p style={{ fontSize: 12.5, fontWeight: 600, color: '#ca8a04', margin: '0 0 4px' }}>
+                  Blocked — live introductions with active families
+                </p>
+                <p style={{ fontSize: 12, color: 'var(--admin-text)', margin: 0 }}>
+                  This family has {impact.blockers.length} in-progress introduction(s) with:{' '}
+                  {[...new Set(impact.blockers.map(b => b.otherFamily))].join(', ')}. Withdraw or resolve those
+                  introductions before deleting, so the other families aren&rsquo;t affected.
+                </p>
+              </div>
+            )}
+
+            {!blocked && (
+              <>
+                <label style={{ fontSize: 12, color: 'var(--admin-muted)', display: 'block', marginBottom: 6 }}>
+                  Type <strong style={{ color: 'var(--admin-text)' }}>{confirmTarget}</strong> to confirm:
+                </label>
+                <input
+                  value={confirmText}
+                  onChange={e => setConfirmText(e.target.value)}
+                  placeholder={confirmTarget}
+                  style={{ ...inputStyle, marginBottom: 12 }}
+                />
+              </>
+            )}
+
+            {deleteError && (
+              <p style={{ fontSize: 12.5, color: '#dc2626', margin: '0 0 10px' }}>{deleteError}</p>
+            )}
+          </>
+        ) : null}
+
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+          <button onClick={onClose} style={{ padding: '8px 16px', borderRadius: 8, fontSize: 13, fontWeight: 500, border: '1px solid var(--admin-border)', background: 'transparent', color: 'var(--admin-text)', cursor: 'pointer' }}>
+            Cancel
+          </button>
+          <button
+            onClick={() => void doDelete()}
+            disabled={!canDelete}
+            style={{
+              padding: '8px 16px', borderRadius: 8, fontSize: 13, fontWeight: 600, border: 'none',
+              background: canDelete ? '#dc2626' : 'rgba(239,68,68,0.4)',
+              color: '#fff', cursor: canDelete ? 'pointer' : 'not-allowed',
+            }}
+          >
+            {deleting ? 'Deleting…' : 'Permanently delete'}
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
