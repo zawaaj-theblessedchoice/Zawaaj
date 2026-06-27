@@ -1257,6 +1257,9 @@ export function FamiliesClient({ families: initial, archiveEnabled, isSuperAdmin
         background: 'var(--admin-surface)', border: '1px solid var(--admin-border)',
         borderRadius: 12, overflow: 'hidden',
       }}>
+        {/* Horizontal scroll so the right-hand columns (Last active, Created…)
+            are never clipped on narrower viewports. */}
+        <div style={{ overflowX: 'auto' }}>
         {filtered.length === 0 ? (
           <div style={{ padding: 48, textAlign: 'center', color: 'var(--admin-muted)', fontSize: 14 }}>
             No family accounts found.{' '}
@@ -1268,7 +1271,7 @@ export function FamiliesClient({ families: initial, archiveEnabled, isSuperAdmin
             </button>
           </div>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <table style={{ width: '100%', minWidth: 1080, borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--admin-border)' }}>
                 <th style={{ padding: '10px 8px 10px 14px', width: 28 }}>
@@ -1327,8 +1330,26 @@ export function FamiliesClient({ families: initial, archiveEnabled, isSuperAdmin
                     <td style={{ padding: '12px 14px' }}><StatusBadge status={f.status} /></td>
                     <td style={{ padding: '12px 14px' }}><ClaimStatusBadge status={f.claim_status} /></td>
                     <td style={{ padding: '12px 14px' }}><ReadinessBadge state={f.readiness_state} /></td>
-                    <td style={{ padding: '12px 14px', fontSize: 13, color: 'var(--admin-muted)' }}>
-                      {f.profiles.length}
+                    <td style={{ padding: '12px 14px', fontSize: 13 }}>
+                      {/* MEMBERS is an expander — reveals the candidate profiles
+                          linked under this family (incl. ones the import linked
+                          into an existing family, which only showed in Operations). */}
+                      {f.profiles.length > 0 ? (
+                        <button
+                          onClick={() => setExpandedId(expandedId === f.id ? null : f.id)}
+                          title="Show linked candidate profiles"
+                          style={{
+                            display: 'inline-flex', alignItems: 'center', gap: 4,
+                            background: 'none', border: 'none', cursor: 'pointer',
+                            color: '#B8960C', fontSize: 13, fontWeight: 600, padding: 0,
+                          }}
+                        >
+                          {f.profiles.length} {f.profiles.length === 1 ? 'member' : 'members'}
+                          <span style={{ fontSize: 10 }}>{expandedId === f.id ? '▾' : '▸'}</span>
+                        </button>
+                      ) : (
+                        <span style={{ color: 'var(--admin-muted)' }}>0</span>
+                      )}
                     </td>
                     <td style={{ padding: '12px 14px', fontSize: 12, color: 'var(--admin-muted)' }}>
                       {fmtRelative(f.last_active)}
@@ -1499,6 +1520,7 @@ export function FamiliesClient({ families: initial, archiveEnabled, isSuperAdmin
             </tbody>
           </table>
         )}
+        </div>
       </div>
 
       {/* Modals */}
