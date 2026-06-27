@@ -74,6 +74,17 @@ function normalisePhone(phone: string): string {
   return digits
 }
 
+// Duplicate keys — must match import/run exactly so preview and insert agree.
+const MIN_PHONE_DIGITS = 10
+function phoneKey(raw: string): string | null {
+  const norm = normalisePhone(raw ?? '')
+  return norm.length >= MIN_PHONE_DIGITS ? norm : null
+}
+function emailKeyOf(raw: string): string | null {
+  const e = (raw ?? '').trim().toLowerCase()
+  return e.includes('@') ? e : null
+}
+
 // ─── DOB → age (mirrors import/run so preview and insert agree on age) ─────────
 function dobToAge(dob: string): number | null {
   const s = dob.trim()
@@ -140,20 +151,22 @@ export async function POST(req: NextRequest): Promise<Response> {
     // Load all existing contact numbers and female contact numbers for duplicate detection
     const { data: existingFamilies } = await supabaseAdmin
       .from('zawaaj_family_accounts')
-      .select('id, contact_number, female_contact_number')
+      .select('id, contact_number, contact_email')
 
+    // Match on the representative's own phone (length-guarded) OR email — NOT the
+    // female fallback number. Mirrors import/run so preview classification agrees.
     const phoneToFamilyId = new Map<string, string>()
+    const emailToFamilyId = new Map<string, string>()
     for (const fa of existingFamilies ?? []) {
-      if (fa.contact_number) {
-        phoneToFamilyId.set(normalisePhone(fa.contact_number as string), fa.id as string)
-      }
-      if (fa.female_contact_number) {
-        phoneToFamilyId.set(normalisePhone(fa.female_contact_number as string), fa.id as string)
-      }
+      const pk = phoneKey((fa.contact_number as string | null) ?? '')
+      if (pk) phoneToFamilyId.set(pk, fa.id as string)
+      const ek = emailKeyOf((fa.contact_email as string | null) ?? '')
+      if (ek) emailToFamilyId.set(ek, fa.id as string)
     }
 
-    // Track phones seen in this CSV to catch intra-CSV duplicates
-    const seenPhones = new Map<string, number>() // normalisedPhone → first row number
+    // Track phones/emails seen in this CSV to catch intra-CSV duplicates
+    const seenPhones = new Map<string, number>() // phoneKey → first row number
+    const seenEmails = new Map<string, number>() // emailKey → first row number
 
     const previewRows: PreviewRow[] = []
 
@@ -251,9 +264,12 @@ export async function POST(req: NextRequest): Promise<Response> {
         continue
       }
 
-      // Duplicate detection — check DB
-      const normPhone = repPhone ? normalisePhone(repPhone) : null
-      const existingFamilyId = normPhone ? (phoneToFamilyId.get(normPhone) ?? null) : null
+      // Duplicate detection — check DB on rep phone OR email (mirrors run)
+      const normPhone = phoneKey(repPhone)
+      const emailKey = emailKeyOf(repEmail)
+      const existingFamilyId: string | null =
+        (normPhone ? phoneToFamilyId.get(normPhone) : undefined) ??
+        (emailKey ? emailToFamilyId.get(emailKey) : undefined) ?? null
 
       if (existingFamilyId) {
         previewRows.push({
@@ -273,8 +289,12 @@ export async function POST(req: NextRequest): Promise<Response> {
         continue
       }
 
-      // Intra-CSV duplicate
-      if (normPhone && seenPhones.has(normPhone)) {
+      // Intra-CSV duplicate — same rep phone OR email as an earlier row
+      const dupRow =
+        (normPhone && seenPhones.has(normPhone)) ? seenPhones.get(normPhone)
+        : (emailKey && seenEmails.has(emailKey)) ? seenEmails.get(emailKey)
+        : undefined
+      if (dupRow !== undefined) {
         previewRows.push({
           row: rowNum,
           candidate_name: rowMap.candidate_name || '—',
@@ -286,13 +306,14 @@ export async function POST(req: NextRequest): Promise<Response> {
           status: 'duplicate',
           completeness_score: score,
           missing_fields: missing,
-          error: `Duplicate phone — same as row ${seenPhones.get(normPhone) ?? '?'}`,
+          error: `Duplicate contact — same phone/email as row ${dupRow}`,
           existing_family_id: null,
         })
         continue
       }
 
       if (normPhone) seenPhones.set(normPhone, rowNum)
+      if (emailKey) seenEmails.set(emailKey, rowNum)
 
       // Missing critical data (score < 100 for required fields)
       if (missing.length > 0) {

@@ -87,6 +87,20 @@ function normalisePhone(phone: string): string {
   return digits
 }
 
+// Duplicate-detection keys. A phone is only a usable key when it has enough
+// digits to be a real number — short/placeholder values (e.g. "0", "n/a" → "")
+// must NOT collapse distinct families together. Email key is the lowercased
+// address, only when it actually looks like one.
+const MIN_PHONE_DIGITS = 10
+function phoneKey(raw: string): string | null {
+  const norm = normalisePhone(raw ?? '')
+  return norm.length >= MIN_PHONE_DIGITS ? norm : null
+}
+function emailKeyOf(raw: string): string | null {
+  const e = (raw ?? '').trim().toLowerCase()
+  return e.includes('@') ? e : null
+}
+
 // ─── Completeness scoring ──────────────────────────────────────────────────────
 
 // 'age' is satisfied by either an `age` column OR a `dob` column (converted at
@@ -170,20 +184,23 @@ export async function POST(req: NextRequest): Promise<Response> {
     // ── Load existing phone → family_account_id map ────────────────────────────
     const { data: existingFamilies } = await supabaseAdmin
       .from('zawaaj_family_accounts')
-      .select('id, contact_number, female_contact_number')
+      .select('id, contact_number, contact_email')
 
+    // Key existing families by the REPRESENTATIVE's own phone (length-guarded)
+    // and email. We deliberately do NOT key on female_contact_number — a shared
+    // or fallback female number was collapsing genuinely-distinct families.
     const phoneToFamilyId = new Map<string, string>()
+    const emailToFamilyId = new Map<string, string>()
     for (const fa of existingFamilies ?? []) {
-      if (fa.contact_number) {
-        phoneToFamilyId.set(normalisePhone(fa.contact_number as string), fa.id as string)
-      }
-      if (fa.female_contact_number) {
-        phoneToFamilyId.set(normalisePhone(fa.female_contact_number as string), fa.id as string)
-      }
+      const pk = phoneKey((fa.contact_number as string | null) ?? '')
+      if (pk) phoneToFamilyId.set(pk, fa.id as string)
+      const ek = emailKeyOf((fa.contact_email as string | null) ?? '')
+      if (ek) emailToFamilyId.set(ek, fa.id as string)
     }
 
-    // Track phones seen in this run to prevent intra-batch duplicates
-    const seenPhones = new Map<string, string>() // normalisedPhone → family_account_id
+    // Track phones/emails seen in this run to prevent intra-batch duplicates
+    const seenPhones = new Map<string, string>() // phoneKey → family_account_id
+    const seenEmails = new Map<string, string>() // emailKey → family_account_id
 
     // ── Create batch record ────────────────────────────────────────────────────
     const { data: batch, error: batchErr } = await supabaseAdmin
@@ -278,16 +295,21 @@ export async function POST(req: NextRequest): Promise<Response> {
       }
 
       const { score, missing } = computeCompletenessScore(rowMap)
-      const normPhone = repPhone ? normalisePhone(repPhone) : null
+      const normPhone = phoneKey(repPhone)
+      const emailKey = emailKeyOf(repEmail)
 
       // ── Find or create family account ──────────────────────────────────────────
       let familyAccountId: string
       let action: 'created_family' | 'linked_existing' = 'created_family'
 
-      // Check DB existing
-      const existingFaId = normPhone ? (phoneToFamilyId.get(normPhone) ?? null) : null
-      // Check intra-batch
-      const batchFaId = normPhone ? (seenPhones.get(normPhone) ?? null) : null
+      // Link to an existing family ONLY on a true match of the representative's
+      // own phone OR email. Distinct phone AND distinct email ⇒ a NEW family.
+      const existingFaId: string | null =
+        (normPhone ? phoneToFamilyId.get(normPhone) : undefined) ??
+        (emailKey ? emailToFamilyId.get(emailKey) : undefined) ?? null
+      const batchFaId: string | null =
+        (normPhone ? seenPhones.get(normPhone) : undefined) ??
+        (emailKey ? seenEmails.get(emailKey) : undefined) ?? null
 
       if (existingFaId || batchFaId) {
         familyAccountId = (existingFaId ?? batchFaId) as string
@@ -341,10 +363,14 @@ export async function POST(req: NextRequest): Promise<Response> {
 
         familyAccountId = newFa.id as string
 
-        // Add to phone map to prevent intra-batch duplicates
+        // Register both keys so later rows in this batch dedupe correctly.
         if (normPhone) {
           phoneToFamilyId.set(normPhone, familyAccountId)
           seenPhones.set(normPhone, familyAccountId)
+        }
+        if (emailKey) {
+          emailToFamilyId.set(emailKey, familyAccountId)
+          seenEmails.set(emailKey, familyAccountId)
         }
       }
 
@@ -412,6 +438,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         if (action === 'created_family') {
           await supabaseAdmin.from('zawaaj_family_accounts').delete().eq('id', familyAccountId)
           if (normPhone) { phoneToFamilyId.delete(normPhone); seenPhones.delete(normPhone) }
+          if (emailKey) { emailToFamilyId.delete(emailKey); seenEmails.delete(emailKey) }
         }
         results.push({ row: rowNum, candidate_name: rowMap.candidate_name || '—', success: false, error: profileErr?.message ?? 'Failed to create profile' })
         continue
