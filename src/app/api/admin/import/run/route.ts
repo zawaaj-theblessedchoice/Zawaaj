@@ -389,17 +389,30 @@ export async function POST(req: NextRequest): Promise<Response> {
           consent_given:         rowMap.consent.trim() ? /^(y|yes|true|1)$/i.test(rowMap.consent.trim()) : true,
           terms_agreed:          true,
           needs_claim:           true,
-          imported_user:         true,
+          // NOTE: imported_user lives on zawaaj_family_accounts only (migration
+          // 040) — it does NOT exist on zawaaj_profiles. Writing it here made the
+          // profile insert fail ("column imported_user does not exist"), which
+          // left the just-created family account orphaned with 0 members. The
+          // profile's imported status is tracked by imported_at/imported_by/needs_claim.
           imported_at:           now,
           imported_by:           user.id,
           data_completeness_score: score,
-          missing_fields_json:   missing.length > 0 ? JSON.stringify(missing) : null,
+          // jsonb column — pass the array directly (was being stored as a JSON
+          // string via JSON.stringify).
+          missing_fields_json:   missing.length > 0 ? missing : null,
           submitted_date:        now,
         })
         .select('id')
         .single()
 
       if (profileErr || !profile) {
+        // Atomicity: the family insert already committed above. If we created
+        // that family in THIS row, delete it so a profile failure never leaves an
+        // orphaned 0-member family. (linked_existing families pre-date this row.)
+        if (action === 'created_family') {
+          await supabaseAdmin.from('zawaaj_family_accounts').delete().eq('id', familyAccountId)
+          if (normPhone) { phoneToFamilyId.delete(normPhone); seenPhones.delete(normPhone) }
+        }
         results.push({ row: rowNum, candidate_name: rowMap.candidate_name || '—', success: false, error: profileErr?.message ?? 'Failed to create profile' })
         continue
       }
