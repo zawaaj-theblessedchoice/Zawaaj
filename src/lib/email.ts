@@ -9,8 +9,12 @@ interface SendEmailOptions {
 
 interface SendEmailResult {
   ok: boolean
+  id?: string      // Resend message id — proof the provider accepted it
   error?: string
 }
+
+// Sender address. Override via RESEND_FROM if the verified domain differs.
+const FROM_ADDRESS = process.env.RESEND_FROM ?? 'Zawaaj <noreply@zawaaj.uk>'
 
 export async function sendEmail({ to, subject, html }: SendEmailOptions): Promise<SendEmailResult> {
   const apiKey = process.env.RESEND_API_KEY
@@ -19,27 +23,48 @@ export async function sendEmail({ to, subject, html }: SendEmailOptions): Promis
     return { ok: false, error: 'Email service not configured' }
   }
 
-  const res = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      from: 'Zawaaj <noreply@zawaaj.uk>',
-      to: [to],
-      subject,
-      html,
-    }),
-  })
-
-  if (!res.ok) {
-    const body = await res.text()
-    console.error(`[email] Resend error ${res.status}:`, body)
-    return { ok: false, error: `Resend error: ${res.status}` }
+  let res: Response
+  try {
+    res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: FROM_ADDRESS,
+        to: [to],
+        subject,
+        html,
+      }),
+    })
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : 'network error'
+    console.error('[email] Resend request failed:', msg)
+    return { ok: false, error: `Resend request failed: ${msg}` }
   }
 
-  return { ok: true }
+  // Always read + parse the body so we can (a) confirm a real message id on
+  // success and (b) surface the provider's actual error reason on failure.
+  const bodyText = await res.text()
+  let parsed: { id?: string; message?: string; name?: string } = {}
+  try { parsed = bodyText ? JSON.parse(bodyText) : {} } catch { /* non-JSON body */ }
+
+  if (!res.ok) {
+    const reason = parsed.message || parsed.name || bodyText || `HTTP ${res.status}`
+    console.error(`[email] Resend rejected (${res.status}): ${reason}`)
+    return { ok: false, error: `Resend ${res.status}: ${reason}` }
+  }
+
+  // A 2xx WITHOUT a message id means Resend did not actually queue a deliverable
+  // email — treat it as a failure rather than a false "sent".
+  if (!parsed.id) {
+    console.error('[email] Resend returned 2xx without a message id:', bodyText)
+    return { ok: false, error: 'Resend accepted the request but returned no message id (check API key / domain verification)' }
+  }
+
+  console.log(`[email] Resend accepted → id=${parsed.id} to=${to}`)
+  return { ok: true, id: parsed.id }
 }
 
 // ─── Email templates ──────────────────────────────────────────────────────────

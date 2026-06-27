@@ -156,15 +156,16 @@ export async function POST(req: NextRequest): Promise<Response> {
         )
       }
 
-      // Log to admin_notes (only after a confirmed send)
+      // Log to admin_notes (only after a confirmed send — includes the Resend
+      // message id so a "sent" claim is traceable in the Resend dashboard).
       const prevNotes = (fa.admin_notes as string | null) ?? ''
-      const note = `[${timestamp}] Claim invite emailed to ${contactEmail} by ${user.email ?? 'admin'}.`
+      const note = `[${timestamp}] Claim invite emailed to ${contactEmail} by ${user.email ?? 'admin'} (Resend id ${emailResult.id ?? '—'}).`
       await supabaseAdmin
         .from('zawaaj_family_accounts')
         .update({ admin_notes: `${note}\n\n${prevNotes}`.trim() })
         .eq('id', family_account_id)
 
-      return NextResponse.json({ ok: true, claim_link: link, emailed: contactEmail })
+      return NextResponse.json({ ok: true, claim_link: link, emailed: contactEmail, email_id: emailResult.id })
     }
 
     // ── resend_magic_link ──────────────────────────────────────────────────────
@@ -220,13 +221,13 @@ export async function POST(req: NextRequest): Promise<Response> {
       }
 
       const prevNotes = (fa.admin_notes as string | null) ?? ''
-      const note = `[${timestamp}] Claim invite re-emailed to ${contactEmail} by ${user.email ?? 'admin'}.`
+      const note = `[${timestamp}] Claim invite re-emailed to ${contactEmail} by ${user.email ?? 'admin'} (Resend id ${emailResult.id ?? '—'}).`
       await supabaseAdmin
         .from('zawaaj_family_accounts')
         .update({ admin_notes: `${note}\n\n${prevNotes}`.trim() })
         .eq('id', family_account_id)
 
-      return NextResponse.json({ ok: true, claim_link: link, emailed: contactEmail })
+      return NextResponse.json({ ok: true, claim_link: link, emailed: contactEmail, email_id: emailResult.id })
     }
 
     // ── get_claim_link ─────────────────────────────────────────────────────────
