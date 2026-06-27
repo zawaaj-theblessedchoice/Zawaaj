@@ -74,6 +74,25 @@ function normalisePhone(phone: string): string {
   return digits
 }
 
+// ─── DOB → age (mirrors import/run so preview and insert agree on age) ─────────
+function dobToAge(dob: string): number | null {
+  const s = dob.trim()
+  if (!s) return null
+  let d: Date | null = null
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
+    d = new Date(s)
+  } else {
+    const m = s.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/)
+    if (m) d = new Date(parseInt(m[3], 10), parseInt(m[2], 10) - 1, parseInt(m[1], 10))
+  }
+  if (!d || isNaN(d.getTime())) return null
+  const now = new Date()
+  let age = now.getFullYear() - d.getFullYear()
+  const mo = now.getMonth() - d.getMonth()
+  if (mo < 0 || (mo === 0 && now.getDate() < d.getDate())) age--
+  return age >= 0 && age < 120 ? age : null
+}
+
 // ─── Completeness scoring ──────────────────────────────────────────────────────
 
 // candidate_name OPTIONAL — collected at claim via the completion gate (CD-010).
@@ -147,10 +166,15 @@ export async function POST(req: NextRequest): Promise<Response> {
       // non-empty dob counts as age-present even before conversion.
       const ageCol = get(values, 'age')
       const dobCol = get(values, 'dob') || get(values, 'date_of_birth')
+      // Resolve to a real integer age the same way import/run does, so the
+      // preview's age presence/validity judgement matches the actual insert.
+      const resolvedAge = ageCol.trim()
+        ? ageCol.trim()
+        : (dobCol.trim() ? (dobToAge(dobCol)?.toString() ?? '') : '')
 
       const rowMap: Record<string, string> = {
         candidate_name:             get(values, 'candidate_name'),
-        age:                        ageCol || dobCol,
+        age:                        resolvedAge,
         gender:                     get(values, 'gender'),
         city:                       get(values, 'city'),
         ethnicity:                  get(values, 'ethnicity'),
@@ -196,6 +220,32 @@ export async function POST(req: NextRequest): Promise<Response> {
           completeness_score: score,
           missing_fields: missing,
           error: 'Missing both representative phone and email — cannot contact representative',
+          existing_family_id: null,
+        })
+        continue
+      }
+
+      // SKIP on age — mirror import/run exactly (missing/invalid, <18, >60) so a
+      // row the insert will skip is never shown as "valid" in the preview.
+      const ageNum = parseInt(rowMap.age, 10)
+      const ageSkip =
+        (!rowMap.age.trim() || isNaN(ageNum)) ? 'Age is missing or not a valid number — skipped'
+        : ageNum < 18 ? `Age ${ageNum} is below the minimum of 18 — skipped`
+        : ageNum > 60 ? `Age ${ageNum} exceeds the maximum of 60 — skipped`
+        : null
+      if (ageSkip) {
+        previewRows.push({
+          row: rowNum,
+          candidate_name: rowMap.candidate_name || '—',
+          gender: rowMap.gender || '—',
+          city: rowMap.city || '—',
+          representative_name: rowMap.representative_name || '—',
+          representative_email: repEmail || '—',
+          representative_phone: repPhone || '—',
+          status: 'skipped',
+          completeness_score: score,
+          missing_fields: missing,
+          error: ageSkip,
           existing_family_id: null,
         })
         continue

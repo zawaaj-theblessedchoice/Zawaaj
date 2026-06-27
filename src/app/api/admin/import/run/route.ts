@@ -118,6 +118,28 @@ function computeInitials(name: string): string {
   return 'XX'
 }
 
+// ─── Blank-data safeguards (the import cohort omits rep name; some rows have only
+//     one of phone/email; relationship/gender may be dirty) ─────────────────────
+
+// zawaaj_family_accounts.contact_full_name is NOT NULL. The new intake form never
+// captured the rep's name, so default a safe placeholder (derived from the email
+// local-part when possible) — the family corrects it at claim time.
+function placeholderContactName(email: string): string {
+  const local = (email.split('@')[0] ?? '').replace(/[._\-+]+/g, ' ').trim()
+  if (local) return local.replace(/\b\w/g, c => c.toUpperCase()).slice(0, 80)
+  return 'Parent/Guardian'
+}
+
+// contact_relationship is NOT NULL and CHECK-constrained to this set. Anything
+// blank or unrecognised defaults to 'mother' (female → no female-fallback rule).
+const VALID_RELATIONSHIPS = new Set([
+  'mother', 'grandmother', 'aunt', 'female_guardian', 'father', 'male_guardian',
+])
+function normaliseRelationship(raw: string): string {
+  const v = raw.toLowerCase().trim()
+  return VALID_RELATIONSHIPS.has(v) ? v : 'mother'
+}
+
 // ─── Route handler ────────────────────────────────────────────────────────────
 
 export async function POST(req: NextRequest): Promise<Response> {
@@ -216,7 +238,7 @@ export async function POST(req: NextRequest): Promise<Response> {
         spouse_preferences:          get(values, 'spouse_preferences') || get(values, 'future_spouse_preferences'),
         consent:                     get(values, 'consent'),
         representative_name:         get(values, 'representative_name'),
-        representative_relationship: get(values, 'representative_relationship') || 'mother',
+        representative_relationship: normaliseRelationship(get(values, 'representative_relationship')),
         representative_phone:        get(values, 'representative_phone'),
         representative_email:        get(values, 'representative_email'),
         female_representative_name:  get(values, 'female_representative_name'),
@@ -272,7 +294,9 @@ export async function POST(req: NextRequest): Promise<Response> {
         action = 'linked_existing'
       } else {
         // Determine if male relationship → need female rep (set no_female_contact_flag if none)
-        const MALE_RELATIONSHIPS = new Set(['father', 'brother', 'uncle', 'male_guardian'])
+        // Only 'father'/'male_guardian' trigger the female-fallback CHECK; the
+        // relationship is already whitelisted to a valid value above.
+        const MALE_RELATIONSHIPS = new Set(['father', 'male_guardian'])
         const isMaleRep = MALE_RELATIONSHIPS.has(rowMap.representative_relationship)
         const hasFemaleContact = !!rowMap.female_representative_phone
 
@@ -285,10 +309,12 @@ export async function POST(req: NextRequest): Promise<Response> {
         const { data: newFa, error: faErr } = await supabaseAdmin
           .from('zawaaj_family_accounts')
           .insert({
-            contact_full_name:       rowMap.representative_name || null,
+            // These three columns are NOT NULL. Blank cohort data (esp. rep name,
+            // and rows with only one of phone/email) must never null them out.
+            contact_full_name:       rowMap.representative_name.trim() || placeholderContactName(repEmail),
             contact_relationship:    rowMap.representative_relationship,
-            contact_number:          repPhone || null,
-            contact_email:           repEmail || null,
+            contact_number:          repPhone || '',
+            contact_email:           repEmail || '',
             female_contact_name:     rowMap.female_representative_name || null,
             female_contact_number:   rowMap.female_representative_phone || null,
             plan:                    'voluntary',
@@ -335,7 +361,9 @@ export async function POST(req: NextRequest): Promise<Response> {
           display_initials:      displayInitials,
           first_name:            firstName || null,
           last_name:             lastName  || null,
-          gender:                rowMap.gender || null,
+          // gender is CHECK('male','female'); a dirty/blank value → null (allowed)
+          // rather than a CHECK violation. The family sets it at claim (mandatory).
+          gender:                (rowMap.gender === 'male' || rowMap.gender === 'female') ? rowMap.gender : null,
           age_display:           rowMap.age || null,   // age only — DOB never stored
           location:              rowMap.city || null,
           ethnicity:             rowMap.ethnicity || null,
