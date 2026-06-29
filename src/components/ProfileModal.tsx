@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import SlidePanel from '@/components/SlidePanel'
-import AvatarInitials from '@/components/AvatarInitials'
+import AvatarInitials, { isNamePending, NAME_PENDING_LABEL } from '@/components/AvatarInitials'
 import CompatibilityBar from '@/components/CompatibilityBar'
 import Toast from '@/components/Toast'
 import UpgradeModal from '@/components/UpgradeModal'
@@ -205,7 +205,9 @@ export default function ProfileModal({
 
   const isOpen = profile !== null
 
-  const displayName = profile ? profile.display_initials : ''
+  const displayName = profile
+    ? (isNamePending(profile.display_initials) ? NAME_PENDING_LABEL : profile.display_initials)
+    : ''
 
   const age = profile ? calcAge(profile.date_of_birth) : null
 
@@ -264,7 +266,7 @@ export default function ProfileModal({
                     color: 'var(--text-primary)',
                   }}
                 >
-                  {displayName || profile.display_initials}
+                  {displayName}
                 </div>
 
                 <div

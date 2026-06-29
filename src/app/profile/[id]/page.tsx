@@ -5,12 +5,12 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Sidebar from '@/components/Sidebar'
-import AvatarInitials from '@/components/AvatarInitials'
+import AvatarInitials, { isNamePending, NAME_PENDING_LABEL } from '@/components/AvatarInitials'
 import { getPlanConfig } from '@/lib/plan-config'
 import type { Plan } from '@/lib/plan-config'
 import { fetchPlanLimits } from '@/lib/config/profileOptions'
 import { RELOCATION_LABELS, EDUCATION_LABELS, RELIGIOSITY_LABELS } from '@/lib/labels'
-import { isProfileComplete, type MandatoryProfileFields } from '@/lib/zawaaj/profileCompleteness'
+import { isProfileBrowseVisible, type MandatoryProfileFields } from '@/lib/zawaaj/profileCompleteness'
 
 interface Profile {
   id: string
@@ -264,7 +264,7 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
             // first_name/date_of_birth/spouse_preferences/consent_given are fetched
             // ONLY to evaluate completeness (CD-010) — they are discarded before the
             // profile is stored in state, never rendered (CD-004 privacy).
-            'id, display_initials, gender, age_display, height, ethnicity, nationality, school_of_thought, education_level, education_detail, profession_detail, location, bio, religiosity, prayer_regularity, wears_hijab, wears_niqab, wears_abaya, keeps_beard, quran_frequency, quran_depth, quran_application, marital_status, has_children, languages_spoken, living_situation, open_to_relocation, pref_age_min, pref_age_max, pref_location, pref_ethnicity, pref_school_of_thought, pref_partner_children, status, first_name, date_of_birth, spouse_preferences, consent_given'
+            'id, display_initials, gender, age_display, height, ethnicity, nationality, school_of_thought, education_level, education_detail, profession_detail, location, bio, religiosity, prayer_regularity, wears_hijab, wears_niqab, wears_abaya, keeps_beard, quran_frequency, quran_depth, quran_application, marital_status, has_children, languages_spoken, living_situation, open_to_relocation, pref_age_min, pref_age_max, pref_location, pref_ethnicity, pref_school_of_thought, pref_partner_children, status, first_name, date_of_birth, spouse_preferences, consent_given, imported_at'
           )
           .eq('id', id)
           .eq('status', 'approved')
@@ -278,20 +278,20 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
         return
       }
 
-      // CD-010 — an incomplete ("XX") profile must not be viewable by anyone,
-      // even via a direct link. Check completeness with the shared isProfileComplete
-      // (single source of truth), then discard the name/DOB fields so they never
-      // reach component state or render (CD-004 privacy — only initials shown).
-      const { first_name, date_of_birth, spouse_preferences, consent_given, ...renderProfile } =
-        profileData as Profile & MandatoryProfileFields
-      if (!isProfileComplete({
+      // A profile not discoverable by browse must also be 404 via direct link.
+      // Scoped (Option C): imported legacy-cohort profiles use the light core-field
+      // bar; everyone else the full CD-010 bar. Name/DOB fields are fetched only
+      // for the check and discarded before render (CD-004 privacy — initials only).
+      const { first_name, date_of_birth, spouse_preferences, consent_given, imported_at, ...renderProfile } =
+        profileData as Profile & MandatoryProfileFields & { imported_at?: string | null }
+      if (!isProfileBrowseVisible({
         first_name, date_of_birth, spouse_preferences, consent_given,
         gender: renderProfile.gender, location: renderProfile.location,
         age_display: renderProfile.age_display, height: renderProfile.height,
         ethnicity: renderProfile.ethnicity, education_level: renderProfile.education_level,
         education_detail: renderProfile.education_detail, profession_detail: renderProfile.profession_detail,
         school_of_thought: renderProfile.school_of_thought,
-      })) {
+      }, !!imported_at)) {
         setNotFound(true)
         setLoading(false)
         return
@@ -426,7 +426,7 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
               <AvatarInitials initials={profile.display_initials} gender={profile.gender} size="xl" goldBorder />
               <div>
                 <div style={{ fontSize: 18, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 6 }}>
-                  {profile.display_initials}
+                  {isNamePending(profile.display_initials) ? NAME_PENDING_LABEL : profile.display_initials}
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
                   {profile.gender && (
