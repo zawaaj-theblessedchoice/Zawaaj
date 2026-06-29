@@ -1,12 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
-import { sendEmail, guardianInviteTemplate } from '@/lib/email'
+import { sendEmail, claimInviteTemplate } from '@/lib/email'
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://zawaaj.uk'
+// Canonical domain is www.zawaaj.uk (matches metadataBase + the working email
+// verification links). Prod sets NEXT_PUBLIC_SITE_URL; the fallback now matches
+// so claim links never point at a non-resolving bare-domain host.
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.zawaaj.uk'
 
 function claimUrl(tokenId: string): string {
   return `${SITE_URL}/register/accept-invite?token=${tokenId}`
+}
+
+// Name to greet the family contact by — but NOT the email-handle placeholder the
+// import derives when the real rep name is blank (e.g. "mrkhalil@…" → "Mrkhalil"),
+// nor the generic "Parent/Guardian" fallback. Returns null when there's no real
+// name, so the email greets with a clean "Assalamu alaikum,".
+function greetingName(name: string | null, email: string | null): string | null {
+  const n = (name ?? '').trim()
+  if (!n) return null
+  if (n.toLowerCase() === 'parent/guardian') return null
+  const local = (email?.split('@')[0] ?? '').replace(/[._\-+]+/g, ' ').trim().toLowerCase()
+  if (local) {
+    const nNorm = n.toLowerCase()
+    if (nNorm === local || nNorm.replace(/\s+/g, '') === local.replace(/\s+/g, '')) return null
+  }
+  return n
 }
 
 // ─── GET — fetch activation status for a family account ──────────────────────
@@ -141,11 +160,10 @@ export async function POST(req: NextRequest): Promise<Response> {
       // auto-verifies the email on click (see /api/claim POST, email_confirm:true).
       const emailResult = await sendEmail({
         to: contactEmail,
-        subject: 'Claim your Zawaaj family profile',
-        html: guardianInviteTemplate(
+        subject: 'Claim your Zawaaj family account',
+        html: claimInviteTemplate(
           link,
-          (fa.contact_full_name as string | null) ?? null,
-          (fa.contact_full_name as string | null) ?? 'your family',
+          greetingName(fa.contact_full_name as string | null, contactEmail),
         ),
       })
 
@@ -205,11 +223,10 @@ export async function POST(req: NextRequest): Promise<Response> {
       // Dispatch the email (same proven path as send_magic_link).
       const emailResult = await sendEmail({
         to: contactEmail,
-        subject: 'Claim your Zawaaj family profile',
-        html: guardianInviteTemplate(
+        subject: 'Claim your Zawaaj family account',
+        html: claimInviteTemplate(
           link,
-          (fa.contact_full_name as string | null) ?? null,
-          (fa.contact_full_name as string | null) ?? 'your family',
+          greetingName(fa.contact_full_name as string | null, contactEmail),
         ),
       })
 
