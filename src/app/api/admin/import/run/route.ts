@@ -166,6 +166,12 @@ export async function POST(req: NextRequest): Promise<Response> {
     const isSuperAdmin = _role === 'super_admin'
     if (!isSuperAdmin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
+    // Opt-in, per-run: the LEGACY COHORT (319 pre-vetted existing clients) imports
+    // as APPROVED so they're immediately discoverable, instead of pending→manual
+    // review. Khalil sets ?auto_approve=1 ONLY for the cohort run; ordinary and
+    // future imports omit it and keep the pending→review flow. Never a default.
+    const autoApprove = req.nextUrl.searchParams.get('auto_approve') === '1'
+
     const csvText = await req.text()
     if (!csvText.trim()) {
       return NextResponse.json({ error: 'Empty CSV body' }, { status: 400 })
@@ -409,7 +415,11 @@ export async function POST(req: NextRequest): Promise<Response> {
             const parts = raw.split(/[\n;]+/).map(s => s.trim()).filter(Boolean)
             return parts.length > 0 ? parts : null
           })(),
-          status:                'pending',
+          // Legacy cohort (auto_approve) lands APPROVED + listed so it's
+          // immediately browse-eligible; everything else stays pending for review.
+          status:                autoApprove ? 'approved' : 'pending',
+          listed_at:             autoApprove ? now : null,
+          approved_date:         autoApprove ? now : null,
           // consent_given reflects the family's consent flag when provided; the
           // import itself is admin-mediated, so default true if the column is blank.
           consent_given:         rowMap.consent.trim() ? /^(y|yes|true|1)$/i.test(rowMap.consent.trim()) : true,

@@ -91,6 +91,8 @@ export default function ImportPage() {
   const [running, setRunning]     = useState(false)
   const [runResult, setRunResult] = useState<{ success: number; errors: number; batchId: string; familyAccountIds: string[] } | null>(null)
   const [runError, setRunError]   = useState<string | null>(null)
+  // Opt-in: import the legacy 319 cohort as APPROVED (pre-vetted). Off by default.
+  const [autoApprove, setAutoApprove] = useState(false)
 
   const [sendingInvites, setSendingInvites] = useState(false)
   const [inviteResult, setInviteResult]     = useState<{
@@ -177,7 +179,7 @@ export default function ImportPage() {
     setRunError(null)
 
     try {
-      const res = await fetch('/api/admin/import/run', {
+      const res = await fetch(`/api/admin/import/run${autoApprove ? '?auto_approve=1' : ''}`, {
         method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: csvText,
       })
       const json = await res.json() as { success?: number; errors?: number; batchId?: string; error?: string; results?: Array<{ family_account_id?: string }> }
@@ -435,9 +437,27 @@ export default function ImportPage() {
                   {(preview?.validCount ?? 0) + (preview?.existingFamilyCount ?? 0) + (preview?.missingDataCount ?? 0)}
                 </strong> family account(s) and candidate profiles.
                 Skipped and duplicate rows are excluded.
-                All profiles start as <code className="text-xs px-1 py-0.5 rounded" style={{ background: 'var(--admin-border)' }}>pending</code> — approve them separately.
+                {autoApprove
+                  ? <> Profiles will be imported as <code className="text-xs px-1 py-0.5 rounded" style={{ background: 'var(--admin-border)' }}>approved</code> (legacy cohort).</>
+                  : <> All profiles start as <code className="text-xs px-1 py-0.5 rounded" style={{ background: 'var(--admin-border)' }}>pending</code> — approve them separately.</>}
               </p>
             </div>
+
+            {/* Opt-in: legacy cohort imports as approved (pre-vetted clients). */}
+            <label className="flex items-start gap-2.5 p-3 rounded-xl cursor-pointer"
+              style={{ background: 'rgba(234,179,8,0.06)', border: '1px solid rgba(234,179,8,0.25)' }}>
+              <input
+                type="checkbox"
+                checked={autoApprove}
+                onChange={e => setAutoApprove(e.target.checked)}
+                style={{ marginTop: 2, accentColor: '#B8960C' }}
+              />
+              <span className="text-xs" style={{ color: 'var(--admin-muted)' }}>
+                <strong style={{ color: 'var(--status-warning)' }}>Legacy cohort — auto-approve.</strong>{' '}
+                Import these 319 pre-vetted existing clients as <strong>approved</strong> (immediately discoverable),
+                skipping manual review. Leave OFF for ordinary or self-registration imports.
+              </span>
+            </label>
 
             {runError && (
               <div className="rounded-xl border border-error/20 bg-status-error-bg p-4 text-sm text-error">{runError}</div>
