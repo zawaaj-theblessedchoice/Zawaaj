@@ -1252,14 +1252,13 @@ export function FamiliesClient({ families: initial, archiveEnabled, isSuperAdmin
         </div>
       )}
 
-      {/* Table */}
+      {/* Table — the card IS the horizontal scroll container (single overflow
+          container; the table's minWidth forces a scrollbar instead of clipping
+          the right-hand columns when the content area is narrower than the table). */}
       <div style={{
         background: 'var(--admin-surface)', border: '1px solid var(--admin-border)',
-        borderRadius: 12, overflow: 'hidden',
+        borderRadius: 12, overflowX: 'auto', overflowY: 'visible',
       }}>
-        {/* Horizontal scroll so the right-hand columns (Last active, Created…)
-            are never clipped on narrower viewports. */}
-        <div style={{ overflowX: 'auto' }}>
         {filtered.length === 0 ? (
           <div style={{ padding: 48, textAlign: 'center', color: 'var(--admin-muted)', fontSize: 14 }}>
             No family accounts found.{' '}
@@ -1520,7 +1519,6 @@ export function FamiliesClient({ families: initial, archiveEnabled, isSuperAdmin
             </tbody>
           </table>
         )}
-        </div>
       </div>
 
       {/* Modals */}
