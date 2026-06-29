@@ -8,7 +8,7 @@ import type { FilterState } from '@/lib/filter-types'
 import { getPlanConfig } from '@/lib/plan-config'
 import type { Plan } from '@/lib/plan-config'
 import { fetchPlanLimits } from '@/lib/config/profileOptions'
-import { isProfileComplete, type MandatoryProfileFields } from '@/lib/zawaaj/profileCompleteness'
+import { isProfileComplete, isProfileBrowseVisible, type MandatoryProfileFields } from '@/lib/zawaaj/profileCompleteness'
 import Link from 'next/link'
 
 const FILTER_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000 // 7 days
@@ -244,7 +244,7 @@ export default async function BrowsePage({
        open_to_partners_children, pref_age_min, pref_age_max, pref_location, pref_ethnicity,
        pref_school_of_thought, pref_relocation, pref_partner_children, status, listed_at,
        islamic_background, smoker, place_of_birth, marriage_reason, open_to_marital_status,
-       spouse_preferences, consent_given`
+       spouse_preferences, consent_given, imported_at`
     )
     .eq('status', 'approved')
     .order('listed_at', { ascending: false })
@@ -277,14 +277,17 @@ export default async function BrowsePage({
     redirect('/pending')
   }
 
-  // CD-010 — incomplete profiles are NOT browse-eligible and must NOT be
-  // discoverable by anyone (an "XX" placeholder profile must stay hidden until
-  // its family completes it). Filter with the SAME isProfileComplete used by the
-  // gate so the two never drift. Done in JS (not SQL) because completeness has
-  // OR-fallbacks (age_display|date_of_birth, education_level|education_detail)
-  // and an array length check that don't map cleanly to a single query predicate.
+  // Discovery visibility, scoped by origin (Option C / CD-012):
+  //  - imported legacy-cohort profiles → light bar: core matchable fields only
+  //    (gender, age, city, ethnicity) — may lack name + other mandatory fields;
+  //  - self-registered profiles → the full CD-010 completion bar (unchanged).
+  // All rows here are already status='approved' (query). Done in JS because the
+  // predicates use OR-fallbacks that don't map cleanly to one SQL filter.
   const completeRawProfiles = (rawProfiles ?? []).filter(
-    p => isProfileComplete(p as MandatoryProfileFields)
+    p => isProfileBrowseVisible(
+      p as MandatoryProfileFields,
+      !!(p as { imported_at?: string | null }).imported_at,
+    )
   )
 
   const profiles: ProfileRecord[] = completeRawProfiles.map(p => ({

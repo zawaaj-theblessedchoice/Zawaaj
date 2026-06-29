@@ -66,6 +66,29 @@ export function isProfileComplete(p: MandatoryProfileFields): boolean {
   return missingMandatoryFields(p).length === 0
 }
 
+// CD-012 / Option C — imported (legacy cohort) profiles use a LIGHTER discovery
+// bar than self-registered ones: the CORE MATCHABLE fields only (gender, age,
+// city, ethnicity). They may be missing name and other mandatory fields and
+// still appear. Truly bare shells (missing any core field) stay hidden.
+export function hasCoreMatchableFields(p: MandatoryProfileFields): boolean {
+  return (
+    nonEmpty(p.gender) &&
+    (nonEmpty(p.age_display) || nonEmpty(p.date_of_birth)) &&
+    nonEmpty(p.location) &&
+    nonEmpty(p.ethnicity)
+  )
+}
+
+/**
+ * Browse/search visibility, scoped by origin:
+ *  - imported profiles → light bar (core matchable fields present);
+ *  - everyone else → the full CD-010 completion bar.
+ * Approval (status='approved') is enforced separately by the query.
+ */
+export function isProfileBrowseVisible(p: MandatoryProfileFields, isImported: boolean): boolean {
+  return isImported ? hasCoreMatchableFields(p) : isProfileComplete(p)
+}
+
 // The exact column list to SELECT when evaluating completeness server-side.
 export const MANDATORY_SELECT =
   'first_name, gender, location, age_display, date_of_birth, height, ethnicity, ' +
