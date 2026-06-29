@@ -1330,25 +1330,25 @@ export function FamiliesClient({ families: initial, archiveEnabled, isSuperAdmin
                     <td style={{ padding: '12px 14px' }}><ClaimStatusBadge status={f.claim_status} /></td>
                     <td style={{ padding: '12px 14px' }}><ReadinessBadge state={f.readiness_state} /></td>
                     <td style={{ padding: '12px 14px', fontSize: 13 }}>
-                      {/* MEMBERS is an expander — reveals the candidate profiles
-                          linked under this family (incl. ones the import linked
-                          into an existing family, which only showed in Operations). */}
-                      {f.profiles.length > 0 ? (
-                        <button
-                          onClick={() => setExpandedId(expandedId === f.id ? null : f.id)}
-                          title="Show linked candidate profiles"
-                          style={{
-                            display: 'inline-flex', alignItems: 'center', gap: 4,
-                            background: 'none', border: 'none', cursor: 'pointer',
-                            color: '#B8960C', fontSize: 13, fontWeight: 600, padding: 0,
-                          }}
-                        >
-                          {f.profiles.length} {f.profiles.length === 1 ? 'member' : 'members'}
-                          <span style={{ fontSize: 10 }}>{expandedId === f.id ? '▾' : '▸'}</span>
-                        </button>
-                      ) : (
-                        <span style={{ color: 'var(--admin-muted)' }}>0</span>
-                      )}
+                      {/* MEMBERS is an expander for EVERY family (even 0-member),
+                          so the actions panel — Archive, Permanent delete, claim
+                          invite, etc. — is always reachable. With members it also
+                          reveals the linked candidate profiles. 0-member orphan
+                          shells must be archivable/deletable, so this must never
+                          be gated behind profiles.length. */}
+                      <button
+                        onClick={() => setExpandedId(expandedId === f.id ? null : f.id)}
+                        title="Open family actions and linked profiles"
+                        style={{
+                          display: 'inline-flex', alignItems: 'center', gap: 4,
+                          background: 'none', border: 'none', cursor: 'pointer',
+                          color: f.profiles.length > 0 ? '#B8960C' : 'var(--admin-muted)',
+                          fontSize: 13, fontWeight: 600, padding: 0,
+                        }}
+                      >
+                        {f.profiles.length} {f.profiles.length === 1 ? 'member' : 'members'}
+                        <span style={{ fontSize: 10 }}>{expandedId === f.id ? '▾' : '▸'}</span>
+                      </button>
                     </td>
                     <td style={{ padding: '12px 14px', fontSize: 12, color: 'var(--admin-muted)' }}>
                       {fmtRelative(f.last_active)}
