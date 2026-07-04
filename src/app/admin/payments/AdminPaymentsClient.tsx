@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { isNamePending, NAME_PENDING_LABEL, NameGlyph } from '@/components/AvatarInitials'
 import Link from 'next/link'
 import type { PaymentRequestRow, GCSubscriptionRow } from './page'
 
@@ -18,7 +19,7 @@ function fmtTime(d: string | null): string {
 
 function profileName(p: PaymentRequestRow['profile']): string {
   if (!p) return 'Unknown'
-  if (!p.first_name) return p.display_initials
+  if (!p.first_name) return isNamePending(p.display_initials) ? NAME_PENDING_LABEL : p.display_initials
   const last = p.last_name ? `${p.last_name[0]}.` : ''
   return [p.first_name, last].filter(Boolean).join(' ')
 }
@@ -475,7 +476,7 @@ export default function AdminPaymentsClient({
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       fontSize: 10, fontWeight: 600,
                     }}>
-                      {req.profile?.display_initials ?? '??'}
+                      {!req.profile ? '??' : isNamePending(req.profile.display_initials) ? <NameGlyph /> : req.profile.display_initials}
                     </div>
                     <div>
                       <p style={{ margin: 0, fontSize: 13, color: 'var(--admin-text)', fontWeight: 500 }}>

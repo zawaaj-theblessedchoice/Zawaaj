@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { isNamePending, NAME_PENDING_LABEL, NameGlyph } from '@/components/AvatarInitials'
 import type { ConciergeProfile, CandidateProfile, ExistingSuggestion } from './page'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -16,7 +17,7 @@ function calcAge(dob: string | null): number | null {
 }
 
 function profileName(p: { first_name: string | null; last_name: string | null; display_initials: string }): string {
-  if (!p.first_name) return p.display_initials
+  if (!p.first_name) return isNamePending(p.display_initials) ? NAME_PENDING_LABEL : p.display_initials
   const last = p.last_name ? `${p.last_name[0]}.` : ''
   return [p.first_name, last].filter(Boolean).join(' ')
 }
@@ -133,7 +134,7 @@ function SuggestPicker({
               }}
             >
               <div style={{ ...avatarStyle(c.gender), width: 28, height: 28, borderRadius: 7, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9.5, fontWeight: 600 }}>
-                {c.display_initials}
+                {isNamePending(c.display_initials) ? <NameGlyph /> : c.display_initials}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 12.5, color: 'var(--admin-text)', fontWeight: 500 }}>{profileName(c)}</div>
@@ -225,7 +226,7 @@ export default function AdminConciergeClient({
                   }}
                 >
                   <div style={{ ...avatarStyle(member.gender), width: 36, height: 36, borderRadius: 9, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 600 }}>
-                    {member.display_initials}
+                    {isNamePending(member.display_initials) ? <NameGlyph /> : member.display_initials}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 13.5, fontWeight: 500, color: 'var(--admin-text)', marginBottom: 3 }}>

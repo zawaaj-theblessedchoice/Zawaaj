@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { StatusBadge } from './OperationsTable'
+import { isNamePending, NAME_PENDING_LABEL, NameGlyph } from '@/components/AvatarInitials'
 
 interface ProfilePanelProps {
   profile: ProfileRow | null
@@ -298,7 +299,7 @@ export function ProfilePanel({
             flexShrink: 0,
           }}
         >
-          {profile.display_initials}
+          {isNamePending(profile.display_initials) ? <NameGlyph /> : profile.display_initials}
         </div>
         <div style={{ flex: 1 }}>
           <div
@@ -309,7 +310,7 @@ export function ProfilePanel({
               marginBottom: 4,
             }}
           >
-            {profile.first_name ?? profile.display_initials}
+            {profile.first_name ?? (isNamePending(profile.display_initials) ? NAME_PENDING_LABEL : profile.display_initials)}
           </div>
           <StatusBadge status={profile.status} />
         </div>

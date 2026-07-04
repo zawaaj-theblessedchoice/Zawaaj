@@ -4,6 +4,7 @@ import { use, useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import ZawaajLogo from '@/components/ZawaajLogo'
+import { isNamePending, NAME_PENDING_LABEL, NameGlyph } from '@/components/AvatarInitials'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -145,10 +146,10 @@ function ProfileColumn({
           className="w-20 h-20 rounded-full flex items-center justify-center font-bold text-2xl"
           style={{ backgroundColor: bg, color: 'white' }}
         >
-          {profile.display_initials}
+          {isNamePending(profile.display_initials) ? <NameGlyph /> : profile.display_initials}
         </div>
         <p className="text-sm font-medium" style={{ color: 'var(--admin-muted)' }}>{label}</p>
-        <p className="text-lg font-bold" style={{ color: 'var(--admin-text)' }}>{profile.display_initials}</p>
+        <p className="text-lg font-bold" style={{ color: 'var(--admin-text)' }}>{isNamePending(profile.display_initials) ? NAME_PENDING_LABEL : profile.display_initials}</p>
         {profile.legacy_ref && (
           <span className="px-2.5 py-0.5 rounded-full text-xs bg-surface-2" style={{ border: '1px solid var(--admin-border)', color: 'var(--admin-muted)' }}>
             {profile.legacy_ref}

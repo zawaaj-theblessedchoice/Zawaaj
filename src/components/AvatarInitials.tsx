@@ -17,8 +17,10 @@ export function isNamePending(initials: string | null | undefined): boolean {
 }
 
 // Person silhouette for the pending state — clearly NOT letters, so it reads as
-// "no name yet" rather than fake initials.
-function PersonGlyph() {
+// "no name yet" rather than fake initials. Exported so surfaces that render their
+// OWN avatar circle (e.g. admin lists) can show the same silhouette for no-name
+// profiles instead of "XX".
+export function NameGlyph() {
   return (
     <svg viewBox="0 0 24 24" fill="none" width="58%" height="58%" aria-hidden="true">
       <circle cx="12" cy="8" r="4" fill="currentColor" />
@@ -54,7 +56,7 @@ export default function AvatarInitials({
       style={{ backgroundColor: bg, color, ...borderStyle }}
       title={pending ? NAME_PENDING_LABEL : undefined}
     >
-      {pending ? <PersonGlyph /> : initials.trim().slice(0, 3)}
+      {pending ? <NameGlyph /> : initials.trim().slice(0, 3)}
     </div>
   )
 }

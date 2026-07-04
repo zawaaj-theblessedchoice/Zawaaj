@@ -7,6 +7,7 @@ import {
 } from '@/lib/admin/operationsQueries'
 import { createClient } from '@/lib/supabase/client'
 import { useEffect, useState } from 'react'
+import { isNamePending, NAME_PENDING_LABEL, NameGlyph } from '@/components/AvatarInitials'
 
 interface IntroModalProps {
   profile: ProfileRow | null
@@ -88,7 +89,7 @@ export function IntroModal({ profile, onClose, onSuccess }: IntroModalProps) {
               margin: 0,
             }}
           >
-            Start introduction for {profile.display_initials}
+            Start introduction for {isNamePending(profile.display_initials) ? NAME_PENDING_LABEL : profile.display_initials}
           </h2>
           <button
             onClick={onClose}
@@ -161,7 +162,7 @@ export function IntroModal({ profile, onClose, onSuccess }: IntroModalProps) {
                   flexShrink: 0,
                 }}
               >
-                {s.display_initials}
+                {isNamePending(s.display_initials) ? <NameGlyph /> : s.display_initials}
               </div>
               <div style={{ flex: 1 }}>
                 <div
@@ -171,7 +172,7 @@ export function IntroModal({ profile, onClose, onSuccess }: IntroModalProps) {
                     color: 'var(--admin-text)',
                   }}
                 >
-                  {s.display_initials}
+                  {isNamePending(s.display_initials) ? NAME_PENDING_LABEL : s.display_initials}
                 </div>
                 <div style={{ fontSize: 11, color: 'var(--admin-muted)' }}>
                   {[s.age_display, s.location, s.school_of_thought]

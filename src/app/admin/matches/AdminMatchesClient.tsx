@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import AvatarInitials from '@/components/AvatarInitials'
+import AvatarInitials, { isNamePending, NAME_PENDING_LABEL } from '@/components/AvatarInitials'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -91,7 +91,7 @@ function formatDate(d: string | null): string {
 
 function profileName(p: MatchProfile): string {
   const n = `${p.first_name ?? ''} ${p.last_name ? p.last_name[0] + '.' : ''}`.trim()
-  return n || p.display_initials
+  return n || (isNamePending(p.display_initials) ? NAME_PENDING_LABEL : p.display_initials)
 }
 
 function contactVerificationLabel(fa: FamilyContact | null): string {

@@ -4,6 +4,7 @@ import { use, useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { isNamePending, NAME_PENDING_LABEL, NameGlyph } from '@/components/AvatarInitials'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -307,11 +308,11 @@ export default function ProfileEditPage({
             className="w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-xl flex-shrink-0"
             style={{ backgroundColor: avatarBg }}
           >
-            {profile.display_initials}
+            {isNamePending(profile.display_initials) ? <NameGlyph /> : profile.display_initials}
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 flex-wrap">
-              <h1 className="text-xl font-bold text-white">{profile.display_initials}</h1>
+              <h1 className="text-xl font-bold text-white">{isNamePending(profile.display_initials) ? NAME_PENDING_LABEL : profile.display_initials}</h1>
               {profile.legacy_ref && (
                 <span className="px-2 py-0.5 rounded-full bg-white/10 text-xs text-white/60 border border-white/10">
                   {profile.legacy_ref}

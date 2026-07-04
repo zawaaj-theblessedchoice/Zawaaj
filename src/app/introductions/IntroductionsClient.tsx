@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Sidebar from '@/components/Sidebar'
-import AvatarInitials from '@/components/AvatarInitials'
+import AvatarInitials, { isNamePending, NAME_PENDING_LABEL } from '@/components/AvatarInitials'
 import { getPlanConfig } from '@/lib/plan-config'
 import type { Plan } from '@/lib/plan-config'
 
@@ -178,6 +178,7 @@ function buildDisplayName(
   display_initials: string
 ): string {
   if (!display_initials) return '—'
+  if (isNamePending(display_initials)) return NAME_PENDING_LABEL
   return display_initials.split('').join('.') + '.'
 }
 

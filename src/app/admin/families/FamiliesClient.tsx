@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import Link from 'next/link'
+import { isNamePending, NAME_PENDING_LABEL, NameGlyph } from '@/components/AvatarInitials'
 import type { FamilyRow } from './page'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -803,7 +804,8 @@ function LinkProfileModal({
         {results.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 16 }}>
             {results.map(p => {
-              const name = [p.first_name, p.last_name].filter(Boolean).join(' ') || p.display_initials
+              const name = [p.first_name, p.last_name].filter(Boolean).join(' ')
+                || (isNamePending(p.display_initials) ? NAME_PENDING_LABEL : p.display_initials)
               const isSelected = selectedId === p.id
               const alreadyLinked = !!p.family_account_id
 
@@ -826,7 +828,7 @@ function LinkProfileModal({
                     background: p.gender === 'female' ? '#EEEDFE' : '#E6F1FB',
                     color: p.gender === 'female' ? '#534AB7' : '#185FA5',
                   }}>
-                    {p.display_initials}
+                    {isNamePending(p.display_initials) ? <NameGlyph /> : p.display_initials}
                   </span>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--admin-text)' }}>{name}</div>
@@ -1424,12 +1426,13 @@ export function FamiliesClient({ families: initial, archiveEnabled, isSuperAdmin
                                       background: p.gender === 'female' ? '#EEEDFE' : '#E6F1FB',
                                       color: p.gender === 'female' ? '#534AB7' : '#185FA5',
                                     }}>
-                                      {p.display_initials}
+                                      {isNamePending(p.display_initials) ? <NameGlyph /> : p.display_initials}
                                     </span>
                                     <div style={{ flex: 1, minWidth: 0 }}>
                                       <Link href={`/admin/profile/${p.id}`}
                                         style={{ fontSize: 13, color: '#B8960C', textDecoration: 'none', fontWeight: 500 }}>
-                                        {[p.first_name, p.last_name].filter(Boolean).join(' ') || p.display_initials}
+                                        {[p.first_name, p.last_name].filter(Boolean).join(' ')
+                                          || (isNamePending(p.display_initials) ? NAME_PENDING_LABEL : p.display_initials)}
                                       </Link>
                                       {p.duplicate_flag && (
                                         <span style={{ marginLeft: 6, fontSize: 10, padding: '1px 6px', borderRadius: 99, background: 'rgba(239,68,68,0.15)', color: '#dc2626', fontWeight: 600 }}>

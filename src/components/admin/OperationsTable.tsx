@@ -3,6 +3,7 @@
 import { ProfileRow, isContactComplete } from '@/lib/admin/operationsQueries'
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
+import { isNamePending, NAME_PENDING_LABEL, NameGlyph } from '@/components/AvatarInitials'
 
 interface OperationsTableProps {
   profiles: ProfileRow[]
@@ -372,7 +373,7 @@ export function OperationsTable({
                             color: p.gender === 'female' ? '#C4BCFF' : '#7BBFE8',
                           }}
                         >
-                          {p.display_initials}
+                          {isNamePending(p.display_initials) ? <NameGlyph /> : p.display_initials}
                         </div>
                         <div>
                           <div
@@ -382,7 +383,7 @@ export function OperationsTable({
                               color: 'var(--admin-text)',
                             }}
                           >
-                            {p.first_name ?? p.display_initials}
+                            {p.first_name ?? (isNamePending(p.display_initials) ? NAME_PENDING_LABEL : p.display_initials)}
                           </div>
                         </div>
                       </div>

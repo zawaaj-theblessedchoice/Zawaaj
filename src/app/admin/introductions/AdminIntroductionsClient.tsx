@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { isNamePending, NAME_PENDING_LABEL, NameGlyph } from '@/components/AvatarInitials'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -76,7 +77,7 @@ function fmtDate(dateStr: string | null): string {
 }
 
 function profileName(p: IntroRequest['requesting_profile']): string {
-  if (!p.first_name && !p.last_name) return p.display_initials
+  if (!p.first_name && !p.last_name) return isNamePending(p.display_initials) ? NAME_PENDING_LABEL : p.display_initials
   const last = p.last_name ? `${p.last_name[0]}.` : ''
   return [p.first_name, last].filter(Boolean).join(' ')
 }
@@ -170,7 +171,7 @@ function ProfileCell({ profile }: { profile: IntroRequest['requesting_profile'] 
           color: avatarTextColor(profile.gender),
         }}
       >
-        {profile.display_initials}
+        {isNamePending(profile.display_initials) ? <NameGlyph /> : profile.display_initials}
       </div>
       <span className="text-sm truncate" style={{ color: 'var(--admin-text)' }}>
         {profileName(profile)}

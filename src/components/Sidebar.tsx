@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import AvatarInitials from '@/components/AvatarInitials'
+import AvatarInitials, { isNamePending, NAME_PENDING_LABEL } from '@/components/AvatarInitials'
 import ZawaajLogo from '@/components/ZawaajLogo'
 import NotificationBell from '@/components/NotificationBell'
 import ReportIssueModal from '@/components/ReportIssueModal'
@@ -588,7 +588,7 @@ export default function Sidebar({
               size="sm"
             />
             <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {profile.first_name ?? profile.display_initials}
+              {profile.first_name ?? (isNamePending(profile.display_initials) ? NAME_PENDING_LABEL : profile.display_initials)}
             </span>
             <span style={{ fontSize: 9, color: 'var(--text-muted)', flexShrink: 0 }}>
               {switcherOpen ? '▲' : '▼'}
@@ -637,7 +637,7 @@ export default function Sidebar({
                       size="sm"
                     />
                     <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {p.first_name ?? p.display_initials}
+                      {p.first_name ?? (isNamePending(p.display_initials) ? NAME_PENDING_LABEL : p.display_initials)}
                     </span>
                     {isActive && (
                       <span style={{ fontSize: 9, color: 'var(--gold)', flexShrink: 0 }}>✓</span>

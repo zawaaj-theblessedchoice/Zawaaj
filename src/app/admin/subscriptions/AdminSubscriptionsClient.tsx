@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { isNamePending, NAME_PENDING_LABEL, NameGlyph } from '@/components/AvatarInitials'
 import type { SubscriptionRow } from './page'
 import { PLAN_PRICES } from '@/lib/plan-config'
 
@@ -14,7 +15,7 @@ function fmtDate(d: string | null): string {
 
 function profileName(p: SubscriptionRow['profile']): string {
   if (!p) return 'Unknown'
-  if (!p.first_name) return p.display_initials
+  if (!p.first_name) return isNamePending(p.display_initials) ? NAME_PENDING_LABEL : p.display_initials
   const last = p.last_name ? `${p.last_name[0]}.` : ''
   return [p.first_name, last].filter(Boolean).join(' ')
 }
@@ -230,7 +231,7 @@ export default function AdminSubscriptionsClient({ subs: initialSubs }: { subs: 
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 10, fontWeight: 600,
                   }}>
-                    {sub.profile?.display_initials ?? '??'}
+                    {!sub.profile ? '??' : isNamePending(sub.profile.display_initials) ? <NameGlyph /> : sub.profile.display_initials}
                   </div>
                   <span style={{ fontSize: 13, color: 'var(--admin-text)' }}>{profileName(sub.profile)}</span>
                 </div>
