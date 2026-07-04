@@ -39,6 +39,10 @@ export interface FamilyRow {
     gender: string | null
     status: string | null
     duplicate_flag: boolean | null
+    // The candidate's OWN contact number on zawaaj_profiles (distinct from the
+    // family account's contact_number). Admin-only, sensitive. Null for imported
+    // parent-registrations that never captured a candidate-own number.
+    contact_number: string | null
   }[]
 }
 
@@ -50,7 +54,7 @@ const SELECT_BASE = `
   plan, status, readiness_state, registration_path, terms_agreed, terms_agreed_at,
   approved_at, created_at, updated_at, primary_user_id, assigned_manager_id, imported_user,
   profiles:zawaaj_profiles(
-    id, display_initials, first_name, last_name, gender, status, duplicate_flag
+    id, display_initials, first_name, last_name, gender, status, duplicate_flag, contact_number
   )
 `
 const SELECT_WITH_ARCHIVE = `${SELECT_BASE}, archived_at`

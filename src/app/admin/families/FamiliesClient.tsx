@@ -1088,7 +1088,7 @@ export function FamiliesClient({ families: initial, archiveEnabled, isSuperAdmin
     // For now, increment the profile count optimistically.
     setFamilies(prev => prev.map(f =>
       f.id === familyId
-        ? { ...f, profiles: [...f.profiles, { id: profileId, display_initials: '…', first_name: null, last_name: null, gender: null, status: 'pending', duplicate_flag: null }] }
+        ? { ...f, profiles: [...f.profiles, { id: profileId, display_initials: '…', first_name: null, last_name: null, gender: null, status: 'pending', duplicate_flag: null, contact_number: null }] }
         : f
     ))
   }
@@ -1439,20 +1439,19 @@ export function FamiliesClient({ families: initial, archiveEnabled, isSuperAdmin
                                           SIBLING FLAG
                                         </span>
                                       )}
-                                      {/* Admin-only: candidate's contact email (the family's rep/parent
-                                          email). Informational. Never rendered on any member-facing
-                                          surface — browse/profile payloads don't include contact_email. */}
-                                      {f.contact_email && (
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 2 }}>
-                                          <svg width="11" height="11" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
-                                            <rect x="1.5" y="3" width="11" height="8" rx="1.5" stroke="var(--admin-muted)" strokeWidth="1.2" />
-                                            <path d="M2 4l5 3.5L12 4" stroke="var(--admin-muted)" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
-                                          </svg>
-                                          <span style={{ fontSize: 11, color: 'var(--admin-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                            {f.contact_email}
-                                          </span>
-                                        </div>
-                                      )}
+                                      {/* Admin-only: the CANDIDATE's OWN contact number from
+                                          zawaaj_profiles (NOT the parent/rep email or the family
+                                          account number). Imported parent-registrations have none →
+                                          show "Not available" rather than falling back to the parent's
+                                          contact. Never rendered on any member-facing surface. */}
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 2 }}>
+                                        <svg width="11" height="11" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
+                                          <path d="M3 2.5h2l1 3-1.5 1a7 7 0 0 0 3 3l1-1.5 3 1v2c0 .6-.5 1-1 1A9.5 9.5 0 0 1 2 3.5c0-.5.4-1 1-1Z" stroke="var(--admin-muted)" strokeWidth="1.1" strokeLinejoin="round" />
+                                        </svg>
+                                        <span style={{ fontSize: 11, color: 'var(--admin-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                          Candidate contact: {p.contact_number?.trim() ? p.contact_number : 'Not available'}
+                                        </span>
+                                      </div>
                                     </div>
                                     <StatusBadge status={p.status ?? 'unknown'} />
                                   </div>
