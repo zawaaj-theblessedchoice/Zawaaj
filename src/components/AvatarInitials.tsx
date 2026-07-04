@@ -7,7 +7,7 @@ interface AvatarInitialsProps {
 
 // Neutral label shown wherever a name/initials would appear for a profile that
 // has no derivable name yet (e.g. ~37 of the legacy cohort). Never "XX".
-export const NAME_PENDING_LABEL = 'Name pending'
+export const NAME_PENDING_LABEL = 'Awaiting details'
 
 // A profile's name is "pending" when there are no real initials to show — the
 // import stores 'XX' as the no-name sentinel; treat that and blank as pending.

@@ -1426,7 +1426,7 @@ export function FamiliesClient({ families: initial, archiveEnabled, isSuperAdmin
                                     }}>
                                       {p.display_initials}
                                     </span>
-                                    <div style={{ flex: 1 }}>
+                                    <div style={{ flex: 1, minWidth: 0 }}>
                                       <Link href={`/admin/profile/${p.id}`}
                                         style={{ fontSize: 13, color: '#B8960C', textDecoration: 'none', fontWeight: 500 }}>
                                         {[p.first_name, p.last_name].filter(Boolean).join(' ') || p.display_initials}
@@ -1435,6 +1435,20 @@ export function FamiliesClient({ families: initial, archiveEnabled, isSuperAdmin
                                         <span style={{ marginLeft: 6, fontSize: 10, padding: '1px 6px', borderRadius: 99, background: 'rgba(239,68,68,0.15)', color: '#dc2626', fontWeight: 600 }}>
                                           SIBLING FLAG
                                         </span>
+                                      )}
+                                      {/* Admin-only: candidate's contact email (the family's rep/parent
+                                          email). Informational. Never rendered on any member-facing
+                                          surface — browse/profile payloads don't include contact_email. */}
+                                      {f.contact_email && (
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 2 }}>
+                                          <svg width="11" height="11" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
+                                            <rect x="1.5" y="3" width="11" height="8" rx="1.5" stroke="var(--admin-muted)" strokeWidth="1.2" />
+                                            <path d="M2 4l5 3.5L12 4" stroke="var(--admin-muted)" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+                                          </svg>
+                                          <span style={{ fontSize: 11, color: 'var(--admin-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                            {f.contact_email}
+                                          </span>
+                                        </div>
                                       )}
                                     </div>
                                     <StatusBadge status={p.status ?? 'unknown'} />
