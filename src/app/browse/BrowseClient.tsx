@@ -166,7 +166,7 @@ interface ProfileCardProps {
   profile: ProfileRecord
   isNew: boolean
   isSaved: boolean
-  introStatus: 'none' | 'pending' | 'accepted' | 'declined' | 'expired' | 'limit_reached'
+  introStatus: 'none' | 'pending' | 'accepted' | 'declined' | 'expired' | 'unavailable' | 'limit_reached'
   score: number
   showCompatBar: boolean
   onOpen: () => void
@@ -418,6 +418,11 @@ function ProfileCard({
       {introStatus === 'expired' && (
         <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
           Interest expired
+        </div>
+      )}
+      {introStatus === 'unavailable' && (
+        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
+          Not available
         </div>
       )}
     </div>
@@ -818,29 +823,27 @@ export default function BrowseClient({
     [introRequests]
   )
 
-  // Helper: get intro status for a profile
-  // declined/expired show their status label for 48h then revert to 'none'
+  // Helper: get intro status for a profile.
+  // A family-side terminal outcome (declined / expired / not_proceeded / etc.) is
+  // now PERSISTENT — it never reverts to 'none', so the profile stays badged and
+  // the Express button stays disabled (a decline is final for launch). Only the
+  // member's OWN cancellation (withdrawn) leaves the profile re-expressible, and
+  // those rows aren't fetched, so they surface here as no-record → 'none'.
+  // NOTE (future): to "soften" this, add a confirm-to-re-express path for
+  // declined/expired instead of a hard lock.
   const getIntroStatus = useCallback(
-    (profileId: string): 'none' | 'pending' | 'accepted' | 'declined' | 'expired' | 'limit_reached' => {
+    (profileId: string): 'none' | 'pending' | 'accepted' | 'declined' | 'expired' | 'unavailable' | 'limit_reached' => {
       const req = introRequests.find(r => r.target_profile_id === profileId)
       if (!req) {
         if (monthlyUsed >= monthlyLimit) return 'limit_reached'
         return 'none'
       }
-      if (req.status === 'pending')   return 'pending'
-      if (req.status === 'accepted')  return 'accepted'
-      // declined/expired: show for 48 hours, then revert to none
-      if (req.status === 'declined' || req.status === 'expired') {
-        const settledAt = req.responded_at ?? req.created_at
-        if (settledAt) {
-          const hoursSince = (Date.now() - new Date(settledAt).getTime()) / (1000 * 60 * 60)
-          if (hoursSince < 48) return req.status as 'declined' | 'expired'
-        }
-        if (monthlyUsed >= monthlyLimit) return 'limit_reached'
-        return 'none'
-      }
-      if (monthlyUsed >= monthlyLimit) return 'limit_reached'
-      return 'none'
+      if (req.status === 'pending')  return 'pending'
+      if (req.status === 'accepted') return 'accepted'
+      if (req.status === 'declined') return 'declined'
+      if (req.status === 'expired')  return 'expired'
+      // not_proceeded / responded_negative / responded / nikkah_completed
+      return 'unavailable'
     },
     [introRequests, monthlyUsed, monthlyLimit]
   )

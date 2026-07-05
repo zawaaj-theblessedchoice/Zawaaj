@@ -63,7 +63,7 @@ interface ProfileModalProps {
   viewerProfile: ProfileRecord | null
   isSaved: boolean
   onToggleSave: (profileId: string) => void
-  introStatus: 'none' | 'pending' | 'accepted' | 'declined' | 'expired' | 'limit_reached'
+  introStatus: 'none' | 'pending' | 'accepted' | 'declined' | 'expired' | 'unavailable' | 'limit_reached'
   onRequestIntro: (profileId: string) => void
   monthlyUsed: number
   /** Monthly limit from zawaaj_plans (DB source of truth). Falls back to plan-config if not passed. */
@@ -366,6 +366,24 @@ export default function ProfileModal({
                           }}
                         >
                           Interest expired
+                        </button>
+                      )}
+                      {/* Family-side terminal outcomes (not_proceeded / responded /
+                          nikkah_completed …) — persistent, non-interactable. */}
+                      {introStatus === 'unavailable' && (
+                        <button
+                          disabled
+                          style={{
+                            padding: '7px 14px',
+                            borderRadius: 8,
+                            fontSize: 12,
+                            background: 'var(--surface-3)',
+                            border: '0.5px solid var(--border-default)',
+                            color: 'var(--text-muted)',
+                            cursor: 'default',
+                          }}
+                        >
+                          Not available
                         </button>
                       )}
                       {introStatus === 'limit_reached' && (

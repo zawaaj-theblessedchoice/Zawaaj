@@ -350,13 +350,19 @@ export default async function BrowsePage({
 
   const lastBrowsedAt: string | null = existingBrowseState?.last_browsed_at ?? null
 
-  // 7. Get sent intro requests — include recent declined/expired so we can show
-  //    the 48-hour status label before the card reverts to "Express interest"
+  // 7. Get sent intro requests. Include the family-side terminal outcomes so a
+  //    declined/ended profile stays PERSISTENTLY badged and non-re-expressible
+  //    (a decline is final for launch). We deliberately do NOT fetch 'withdrawn'
+  //    — that is the member cancelling their OWN request, which stays
+  //    re-expressible (no record → shows as available again).
   const { data: introRows } = await supabase
     .from('zawaaj_introduction_requests')
     .select('target_profile_id, status, created_at, responded_at')
     .eq('requesting_profile_id', activeProfileId)
-    .in('status', ['pending', 'accepted', 'declined', 'expired'])
+    .in('status', [
+      'pending', 'accepted',
+      'declined', 'expired', 'not_proceeded', 'responded_negative', 'responded', 'nikkah_completed',
+    ])
 
   const introRequests = (introRows ?? []).map(r => ({
     target_profile_id: r.target_profile_id as string,
@@ -382,11 +388,15 @@ export default async function BrowsePage({
     ).length
   }
 
-  // Monthly used count
+  // Monthly used count — MUST match the server cap in /api/introduction-requests,
+  // which excludes 'withdrawn' and 'expired' (both free the slot). So the on-screen
+  // "X of N" counts this month's requests EXCEPT expired (withdrawn isn't fetched
+  // here anyway). Declined DOES count against the cap on the server — keep it counted.
   const now = new Date()
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+  const CAP_EXCLUDED_STATUSES = new Set(['withdrawn', 'expired'])
   const monthlyUsed = introRequests.filter(
-    r => r.created_at && r.created_at >= monthStart
+    r => r.created_at && r.created_at >= monthStart && !CAP_EXCLUDED_STATUSES.has(r.status)
   ).length
 
   // Member's subscription plan (falls back to 'free' if no active subscription)

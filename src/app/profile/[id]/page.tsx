@@ -58,7 +58,12 @@ interface ActiveProfile {
   first_name: string | null
 }
 
-type ButtonState = 'hidden' | 'not_approved' | 'limit_reached' | 'already_requested' | 'available'
+type ButtonState = 'hidden' | 'not_approved' | 'limit_reached' | 'already_requested' | 'declined' | 'unavailable' | 'available'
+
+// Family-side terminal outcomes lock the pair PERSISTENTLY (a decline/ending is
+// final for launch — no re-expression). 'withdrawn' is deliberately NOT here: it
+// is the member's OWN cancellation, so the profile stays re-expressible.
+const LOCKED_TERMINAL_STATUSES = ['declined', 'expired', 'not_proceeded', 'responded_negative', 'responded', 'nikkah_completed']
 
 // ── Display-value maps ────────────────────────────────────────────────────────
 
@@ -137,20 +142,41 @@ function RequestIntroductionButton({
         setLoading(false)
         return
       }
+      // Derive state from the LATEST request for this pair. Pair state takes
+      // precedence over the monthly limit (a declined profile shows the lock, not
+      // "limit reached").
+      const { data: latest } = await supabase
+        .from('zawaaj_introduction_requests')
+        .select('status')
+        .eq('requesting_profile_id', activeProfile.id)
+        .eq('target_profile_id', profile.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      const latestStatus = (latest?.status as string | undefined) ?? null
+      if (latestStatus === 'pending' || latestStatus === 'accepted') {
+        setButtonState('already_requested')
+        setLoading(false)
+        return
+      }
+      if (latestStatus === 'declined') {
+        setButtonState('declined')
+        setLoading(false)
+        return
+      }
+      if (latestStatus && LOCKED_TERMINAL_STATUSES.includes(latestStatus)) {
+        setButtonState('unavailable')
+        setLoading(false)
+        return
+      }
+      // No record, or 'withdrawn' (member cancelled) → re-expressible.
       if (activeProfile.interests_this_month >= monthlyLimit) {
         setButtonState('limit_reached')
         setLoading(false)
         return
       }
-      const { data: existing } = await supabase
-        .from('zawaaj_introduction_requests')
-        .select('id')
-        .eq('requesting_profile_id', activeProfile.id)
-        .eq('target_profile_id', profile.id)
-        .in('status', ['pending', 'accepted'])
-        .maybeSingle()
-
-      setButtonState(existing ? 'already_requested' : 'available')
+      setButtonState('available')
       setLoading(false)
     }
     determineState()
@@ -197,6 +223,17 @@ function RequestIntroductionButton({
       {buttonState === 'already_requested' && !success && (
         <div style={{ padding: '10px 14px', borderRadius: 9, background: 'var(--surface-3)', border: '0.5px solid var(--border-default)', fontSize: 13, color: 'var(--text-secondary)', textAlign: 'center' }}>
           Interest already sent
+        </div>
+      )}
+      {/* Persistent locks — a decline/ending is final for launch (no re-express). */}
+      {buttonState === 'declined' && (
+        <div style={{ padding: '10px 14px', borderRadius: 9, background: 'var(--surface-3)', border: '0.5px solid var(--border-default)', fontSize: 13, color: 'var(--text-muted)', textAlign: 'center' }}>
+          This family has respectfully responded
+        </div>
+      )}
+      {buttonState === 'unavailable' && (
+        <div style={{ padding: '10px 14px', borderRadius: 9, background: 'var(--surface-3)', border: '0.5px solid var(--border-default)', fontSize: 13, color: 'var(--text-muted)', textAlign: 'center' }}>
+          Not available
         </div>
       )}
       {success && (
