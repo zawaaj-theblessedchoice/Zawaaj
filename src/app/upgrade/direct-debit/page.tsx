@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { CHARITY_NOTICE } from '@/lib/charityNotice'
 import Sidebar from '@/components/Sidebar'
 import { GC_PRICES, GC_ENABLED } from '@/lib/gocardless/config'
 
@@ -141,7 +142,7 @@ function DirectDebitContent() {
               </p>
             )}
             <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: '6px 0 0' }}>
-              Net proceeds go towards charity.
+              {CHARITY_NOTICE}
             </p>
           </div>
 

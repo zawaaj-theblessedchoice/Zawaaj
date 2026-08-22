@@ -1779,7 +1779,7 @@ export const ARTICLES: HelpArticle[] = [
       },
       {
         type: 'p',
-        text: 'Premium gives you unlimited interest expressions per month, a dedicated manager, weekly profile boosts, concierge matching (our team proactively suggests profiles for you), and the ability to see who has viewed your profile. It is for families who want the full service.',
+        text: 'Premium gives you 8 interest expressions per month, a dedicated manager, weekly profile boosts, concierge matching (our team proactively suggests profiles for you), and the ability to see who has viewed your profile. It is for families who want the full service.',
       },
       {
         type: 'callout',
@@ -2236,7 +2236,7 @@ export const ARTICLES: HelpArticle[] = [
         type: 'ul',
         items: [
           'Full profile detail view (Plus and above)',
-          'More than 5 monthly introduction requests (Plus: 15, Premium: unlimited)',
+          'More monthly introduction requests (Community: 2, Plus: 4, Premium: 8)',
           'Profile boosts (Plus and above)',
           'Concierge matching — where our team proactively suggests profiles for you (Premium only)',
           'A dedicated manager (Premium only)',

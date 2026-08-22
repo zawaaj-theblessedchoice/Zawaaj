@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { planDisplayName } from '@/lib/zawaaj/planDisplayName'
+import { CHARITY_NOTICE } from '@/lib/charityNotice'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -21,7 +22,7 @@ interface UpgradeModalProps {
 // ─── Plan data (compact — 5 key rows) ────────────────────────────────────────
 
 const KEY_ROWS = [
-  { feature: 'Monthly expressions', free: '2',    plus: '4',          premium: 'Unlimited' },
+  { feature: 'Monthly expressions', free: '2',    plus: '4',          premium: '8' },
   { feature: 'Profile boost',       free: '—',    plus: '1× / month', premium: 'Weekly' },
   { feature: 'Full profile detail', free: 'Basic', plus: '✓',         premium: '✓' },
   { feature: 'See who viewed you',  free: '—',    plus: '—',          premium: '✓' },
@@ -191,7 +192,7 @@ export default function UpgradeModal({ trigger, onClose }: UpgradeModalProps) {
 
         {/* Charity note — one clear placement near the prices */}
         <p style={{ padding: '0 20px', fontSize: 11, color: 'var(--text-muted)', textAlign: 'center', margin: '4px 0 0' }}>
-          Net proceeds go towards charity.
+          {CHARITY_NOTICE}
         </p>
 
         {/* Footer */}

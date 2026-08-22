@@ -86,14 +86,14 @@ export const RELOCATION_OPTIONS = [
 
 /**
  * Static fallback — used ONLY when the zawaaj_plans DB table is unreachable.
- * Values MUST mirror the zawaaj_plans seed (migration 025) so the fallback can
- * never contradict the canonical source: voluntary 5/2, plus 15/4, premium ∞/4.
- * (Previously voluntary was 2 here — a contradiction with the seed's 5.)
+ * Values MUST mirror the zawaaj_plans seed (migration 065): interest caps are
+ * FINITE for every tier — voluntary 2, plus 4, premium 8. No tier is unlimited
+ * (founder decision — unlimited signals non-seriousness).
  */
 export const PLAN_LIMITS_FALLBACK = {
-  voluntary: { monthlyInterests: 5,        maxProfiles: 2 },
-  plus:      { monthlyInterests: 15,       maxProfiles: 4 },
-  premium:   { monthlyInterests: Infinity, maxProfiles: 4 },
+  voluntary: { monthlyInterests: 2, maxProfiles: 2 },
+  plus:      { monthlyInterests: 4, maxProfiles: 4 },
+  premium:   { monthlyInterests: 8, maxProfiles: 4 },
 } as const
 
 /** Live fetch — use this everywhere in application code (server-side only). */
@@ -119,7 +119,10 @@ export async function fetchPlanLimits(
     if (!error && data) {
       return Object.fromEntries(
         data.map(p => [p.key, {
-          monthlyInterests: p.monthly_interests ?? Infinity,
+          // No tier is unlimited (founder decision). A NULL monthly_interests in
+          // the DB (legacy 'unlimited' Premium, before migration 065) defaults to
+          // the Premium cap of 8 rather than Infinity.
+          monthlyInterests: p.monthly_interests ?? 8,
           maxProfiles: p.max_profiles,
         }])
       )

@@ -139,7 +139,7 @@ export interface DbPlanRow {
   label: string
   price_monthly_gbp: number
   price_annual_gbp: number
-  monthly_interests: number | null  // null = unlimited
+  monthly_interests: number | null  // finite for every tier (2/4/8); NULL is legacy, treated as the Premium cap (8)
   max_profiles: number
   features: string[]
   is_active: boolean
@@ -186,7 +186,7 @@ export async function fetchPlansFromDb(
         label: 'Community Access',
         price_monthly_gbp: 0,
         price_annual_gbp: 0,
-        monthly_interests: 5,        // fallback — mirrors zawaaj_plans seed (025); real value lives in zawaaj_plans
+        monthly_interests: 2,        // fallback — mirrors zawaaj_plans (Community = 2); real value lives in zawaaj_plans
         max_profiles: 2,
         features: ['admin_mediated_intros', 'profile_review', 'basic_search'],
         is_active: true,
@@ -197,7 +197,7 @@ export async function fetchPlansFromDb(
         label: 'Plus',
         price_monthly_gbp: 500,
         price_annual_gbp: 4800,
-        monthly_interests: 15,       // fallback — real value lives in zawaaj_plans
+        monthly_interests: 4,        // fallback — real value lives in zawaaj_plans
         max_profiles: 4,
         features: ['admin_mediated_intros', 'profile_review', 'basic_search', 'priority_admin', 'profile_boost_monthly', 'new_profile_alerts', 'full_bio_on_received_interests'],
         is_active: true,
@@ -208,7 +208,7 @@ export async function fetchPlansFromDb(
         label: 'Premium',
         price_monthly_gbp: 1000,
         price_annual_gbp: 9600,
-        monthly_interests: null,
+        monthly_interests: 8,        // HARD cap — Premium is 8/month, not unlimited (founder decision)
         max_profiles: 4,        // mirrors zawaaj_plans seed (025); was 6 — contradicted the seed
         features: ['admin_mediated_intros', 'profile_review', 'basic_search', 'priority_admin', 'profile_boost_weekly', 'new_profile_alerts', 'full_bio_on_received_interests', 'dedicated_manager', 'manager_followup', 'spotlight_monthly', 'who_viewed'],
         is_active: true,

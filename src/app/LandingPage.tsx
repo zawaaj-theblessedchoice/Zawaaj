@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import ZawaajLogo from '@/components/ZawaajLogo'
+import { CHARITY_NOTICE } from '@/lib/charityNotice'
 import { PLAN_CONFIG, PLAN_PRICES, PLAN_LABELS } from '@/lib/plan-config'
 
 // ─── Plan data — limits derived from central PLAN_CONFIG ─────────────────────
@@ -53,7 +54,7 @@ const PLANS = [
     name: PLAN_LABELS.premium,
     monthly: PLAN_PRICES.premium.monthly,
     annual: PLAN_PRICES.premium.annual,
-    description: 'Unlimited introductions, concierge matching, and full visibility.',
+    description: '8 introductions a month, concierge matching, and full visibility.',
     cta: 'Get Premium',
     ctaHref: '/signup',
     highlight: false,
@@ -204,7 +205,7 @@ function PlanCard({ plan, annual, isLoggedIn }: { plan: typeof PLANS[number]; an
           <span className="mt-1 inline-block text-xs text-gold font-medium">Save 20% · £{plan.annual * 12}/yr</span>
         )}
         {price > 0 && (
-          <span className="mt-1 block text-xs text-muted">Net proceeds go towards charity.</span>
+          <span className="mt-1 block text-xs text-muted">{CHARITY_NOTICE}</span>
         )}
         <p className="mt-2 text-sm text-muted">{plan.description}</p>
       </div>
@@ -825,7 +826,7 @@ export default function LandingPage({ isLoggedIn = false, featuredEvents = [] }:
         </div>
         <div className="border-t border-br">
           <p className="max-w-5xl mx-auto px-4 md:px-5 py-4 text-xs text-muted text-center md:text-left">
-            Zawaaj is operated by Ingenious Education Ltd. Net proceeds support Radiance of Hope, a charitable organisation currently undergoing registration.
+            Zawaaj is operated by Ingenious Education Ltd. A portion of proceeds is set aside to fund Radiance of Hope, a charitable initiative currently being established.
           </p>
         </div>
       </footer>

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { planDisplayName } from '@/lib/zawaaj/planDisplayName'
+import { CHARITY_NOTICE } from '@/lib/charityNotice'
 import { PLAN_PRICES } from '@/lib/plan-config'
 import { GC_ENABLED } from '@/lib/gocardless/config'
 
@@ -142,7 +143,7 @@ export function UpgradeClient({ currentPlan, profileId: _profileId }: Props) {
               </p>
             )}
             <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: '6px 0 0' }}>
-              Net proceeds go towards charity.
+              {CHARITY_NOTICE}
             </p>
           </div>
           {isPremium ? (

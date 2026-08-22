@@ -217,7 +217,7 @@ function RequestIntroductionButton({
       )}
       {buttonState === 'limit_reached' && (
         <div style={{ padding: '10px 14px', borderRadius: 9, background: 'var(--surface-3)', border: '0.5px solid var(--border-default)', fontSize: 13, color: 'var(--text-muted)', textAlign: 'center' }}>
-          Monthly limit reached ({monthlyLimit}/{monthlyLimit === Infinity ? '∞' : monthlyLimit}) — resets on the 1st
+          Monthly limit reached ({monthlyLimit}/{monthlyLimit}) — resets on the 1st
         </div>
       )}
       {buttonState === 'already_requested' && !success && (
