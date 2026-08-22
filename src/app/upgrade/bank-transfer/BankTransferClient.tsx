@@ -19,7 +19,7 @@ interface Props {
 type Step = 'details' | 'success'
 type CopyKey = 'ref' | 'sort' | 'acc' | 'name'
 
-const PLAN_PRICE = 19
+const PLAN_PRICE = 10   // Premium £/month (bank transfer). Keep in sync with PLAN_PRICES.premium.monthly
 
 // ─── Small copy button ─────────────────────────────────────────────────────────
 

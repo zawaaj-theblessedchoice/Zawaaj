@@ -2,9 +2,10 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 
+// Whole £ per month, recorded on the bank-transfer payment request.
 const PLAN_AMOUNTS: Record<string, number> = {
-  plus: 9,
-  premium: 19,
+  plus: 5,
+  premium: 10,
 }
 
 export async function POST(req: Request) {

@@ -4,14 +4,14 @@
 export const GC_PRICES = {
   premium: {
     monthly: {
-      amount: 1900,                    // £19.00
+      amount: 1000,                    // £10.00
       currency: 'GBP' as const,
       interval_unit: 'monthly' as const,
       interval: 1,
       name: 'Zawaaj Premium — Monthly',
     },
     annual: {
-      amount: 18000,                   // £180.00
+      amount: 9600,                    // £96.00
       currency: 'GBP' as const,
       interval_unit: 'yearly' as const,
       interval: 1,

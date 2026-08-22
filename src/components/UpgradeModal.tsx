@@ -44,7 +44,7 @@ export default function UpgradeModal({ trigger, onClose }: UpgradeModalProps) {
 
   const plans = [
     { key: 'free',    name: planDisplayName('voluntary'), monthly: 0,  annual: 0,  highlight: false, col: 0 },
-    { key: 'premium', name: planDisplayName('premium'),   monthly: 19, annual: 15, highlight: true,  col: 1 },
+    { key: 'premium', name: planDisplayName('premium'),   monthly: 10, annual: 8,  highlight: true,  col: 1 },
   ]
 
   return (

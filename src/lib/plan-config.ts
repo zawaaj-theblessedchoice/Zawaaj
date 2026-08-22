@@ -107,10 +107,13 @@ export const PLAN_LABELS: Record<Plan, string> = {
 
 // ─── Pricing ──────────────────────────────────────────────────────────────────
 
+// Prices in whole £. `annual` is the per-MONTH price when billed annually
+// (×12 = the yearly figure shown on the pricing page). Premium annual £8/mo =
+// £96/yr, a clean 20% off £10/mo (keeps the on-page "save 20%" copy accurate).
 export const PLAN_PRICES: Record<Plan, { monthly: number; annual: number }> = {
   free:    { monthly: 0,  annual: 0  },
-  plus:    { monthly: 9,  annual: 7  },
-  premium: { monthly: 19, annual: 15 },
+  plus:    { monthly: 5,  annual: 4  },
+  premium: { monthly: 10, annual: 8  },
 }
 
 // ─── Helper (static) ──────────────────────────────────────────────────────────
@@ -192,8 +195,8 @@ export async function fetchPlansFromDb(
       {
         key: 'plus',
         label: 'Plus',
-        price_monthly_gbp: 900,
-        price_annual_gbp: 7200,
+        price_monthly_gbp: 500,
+        price_annual_gbp: 4800,
         monthly_interests: 15,       // fallback — real value lives in zawaaj_plans
         max_profiles: 4,
         features: ['admin_mediated_intros', 'profile_review', 'basic_search', 'priority_admin', 'profile_boost_monthly', 'new_profile_alerts', 'full_bio_on_received_interests'],
@@ -203,8 +206,8 @@ export async function fetchPlansFromDb(
       {
         key: 'premium',
         label: 'Premium',
-        price_monthly_gbp: 1900,
-        price_annual_gbp: 18000,
+        price_monthly_gbp: 1000,
+        price_annual_gbp: 9600,
         monthly_interests: null,
         max_profiles: 4,        // mirrors zawaaj_plans seed (025); was 6 — contradicted the seed
         features: ['admin_mediated_intros', 'profile_review', 'basic_search', 'priority_admin', 'profile_boost_weekly', 'new_profile_alerts', 'full_bio_on_received_interests', 'dedicated_manager', 'manager_followup', 'spotlight_monthly', 'who_viewed'],
