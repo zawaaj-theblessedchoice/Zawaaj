@@ -1062,7 +1062,9 @@ function RegisterChildPageInner() {
                 <select value={form.maritalStatus} onChange={e => set('maritalStatus', e.target.value)}
                   style={{ ...inputStyle, cursor: 'pointer' }}>
                   <option value="">Select…</option>
-                  {MARITAL_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                  {/* "Married" only for male candidates (polygyny). Never for females. */}
+                  {[...MARITAL_OPTIONS, ...(form.gender === 'male' ? [{ value: 'married', label: 'Married' }] : [])]
+                    .map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
               </Field>
               {form.maritalStatus !== 'never_married' && (

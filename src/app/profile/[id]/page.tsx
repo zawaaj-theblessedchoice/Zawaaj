@@ -71,6 +71,8 @@ const MARITAL_MAP: Record<string, string> = {
   never_married: 'Never married',
   divorced: 'Divorced',
   widowed: 'Widowed',
+  married: 'Married',
+  annulled: 'Annulled',
 }
 const LIVING_MAP: Record<string, string> = {
   independent: 'Independent',

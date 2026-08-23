@@ -536,8 +536,12 @@ function Step1({
         />
       </Field>
       <Field label="Marital status">
+        {/* "Married" is offered ONLY for male candidates (polygyny — a married man
+            seeking an additional wife). Never shown for female candidates. */}
         <ChipGroup
-          options={['Never married', 'Divorced', 'Widowed']}
+          options={form.gender === 'male'
+            ? ['Never married', 'Divorced', 'Widowed', 'Married']
+            : ['Never married', 'Divorced', 'Widowed']}
           value={form.maritalStatus}
           onChange={(val) => update({ maritalStatus: val as string })}
         />
