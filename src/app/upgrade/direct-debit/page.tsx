@@ -24,11 +24,6 @@ function DirectDebitContent() {
   const [shortlistCount, setShortlistCount] = useState(0)
   const [introCount, setIntroCount] = useState(0)
 
-  // Render nothing until redirect completes
-  if (!GC_ENABLED) return null
-
-  const priceConfig = GC_PRICES.premium[billing]
-
   useEffect(() => {
     if (!GC_ENABLED) return  // already redirecting
     const supabase = createClient()
@@ -67,6 +62,13 @@ function DirectDebitContent() {
     }
     void load()
   }, [router])
+
+  // All hooks are called above this line unconditionally. Only now is it safe to
+  // short-circuit the render — returning before any hook would violate the Rules
+  // of Hooks (hook order must be identical on every render).
+  if (!GC_ENABLED) return null
+
+  const priceConfig = GC_PRICES.premium[billing]
 
   async function handleSetupDirectDebit() {
     setLoading(true)

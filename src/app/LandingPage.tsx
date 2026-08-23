@@ -136,7 +136,7 @@ const FAQS = [
   },
   {
     q: 'Can I see who expressed interest in me?',
-    a: 'One-sided interest is completely private — the other family is never notified. You are only informed when interest is mutual and our team is ready to facilitate.',
+    a: "Yes — when a family expresses interest in you, you are notified, and they are NOT told whether you noticed. Interest stays completely private on both sides. The family who expressed interest will only know when you express it back. You are only introduced when BOTH families have expressed interest in each other — at that point our team steps in to arrange a respectful introduction. This protects everyone's privacy and dignity: no one ever knows they were 'passed over', and no one feels watched. Mutual interest is the only thing that moves forward.",
   },
   {
     q: 'How does the introduction work?',
