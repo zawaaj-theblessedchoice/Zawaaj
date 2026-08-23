@@ -259,7 +259,11 @@ function SettingsContent() {
 
   function startCheckout(plan: 'plus' | 'premium') {
     setCheckoutLoading(plan)
-    router.push(`/upgrade/bank-transfer?plan=${plan}`)
+    // Route to the unified /upgrade flow, where Direct Debit (GoCardless) is the
+    // primary/default method and bank transfer is a clearly-secondary fallback
+    // (CD-002). Previously this jumped straight to the bank-transfer page, making
+    // it an accidental default and diverging from the other "Upgrade" entry point.
+    router.push('/upgrade')
   }
 
   async function handleCancelSubscription() {
