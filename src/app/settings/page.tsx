@@ -4,7 +4,6 @@ import { useEffect, useState, Suspense } from 'react'
 import { usePathname, useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { CHARITY_NOTICE } from '@/lib/charityNotice'
 import Sidebar from '@/components/Sidebar'
 import { PLAN_LABELS, PLAN_PRICES, PLAN_CONFIG } from '@/lib/plan-config'
 import { planDisplayName } from '@/lib/zawaaj/planDisplayName'
@@ -668,9 +667,6 @@ function SettingsContent() {
                       )
                     })}
                   </div>
-                  <p style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'center', margin: '10px 0 0' }}>
-                    {CHARITY_NOTICE}
-                  </p>
                 </div>
 
                 {/* Full comparison table */}

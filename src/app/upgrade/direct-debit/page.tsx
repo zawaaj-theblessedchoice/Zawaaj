@@ -4,7 +4,6 @@ import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { CHARITY_NOTICE } from '@/lib/charityNotice'
 import Sidebar from '@/components/Sidebar'
 import { GC_PRICES, GC_ENABLED } from '@/lib/gocardless/config'
 
@@ -200,9 +199,6 @@ function DirectDebitContent() {
                 Billed as a single payment of £{(priceConfig.amount / 100).toFixed(0)}/year
               </p>
             )}
-            <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: '6px 0 0' }}>
-              {CHARITY_NOTICE}
-            </p>
           </div>
 
           {/* What happens next */}

@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { CHARITY_NOTICE } from '@/lib/charityNotice'
 
 interface Props {
   initialPlan:     'premium' | null
@@ -204,9 +203,6 @@ export function BankTransferClient({
             </p>
             <p style={{ margin: '3px 0 0', fontSize: 20, color: 'var(--text-primary)', fontWeight: 700 }}>
               £{PLAN_PRICE}<span style={{ fontSize: 13, fontWeight: 400, color: 'var(--text-secondary)' }}> / month</span>
-            </p>
-            <p style={{ margin: '6px 0 0', fontSize: 11, color: 'var(--text-muted)' }}>
-              {CHARITY_NOTICE}
             </p>
           </div>
         </div>

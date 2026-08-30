@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { planDisplayName } from '@/lib/zawaaj/planDisplayName'
-import { CHARITY_NOTICE } from '@/lib/charityNotice'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -190,10 +189,6 @@ export default function UpgradeModal({ trigger, onClose }: UpgradeModalProps) {
           ))}
         </div>
 
-        {/* Charity note — one clear placement near the prices */}
-        <p style={{ padding: '0 20px', fontSize: 11, color: 'var(--text-muted)', textAlign: 'center', margin: '4px 0 0' }}>
-          {CHARITY_NOTICE}
-        </p>
 
         {/* Footer */}
         <div style={{ padding: '14px 20px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

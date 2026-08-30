@@ -84,7 +84,6 @@ function UpcomingEventCard({
   registering: string | null
 }) {
   const [expanded, setExpanded] = useState(false)
-  const showRohBadge = event.organiser === 'radiance_of_hope' || event.organiser === 'both'
   const categoryLabel = event.event_category ? CATEGORY_LABELS[event.event_category] : null
   const locationLabel = event.is_online ? 'Online' : (event.location_text ?? null)
   const isRegistered = registeredIds.has(event.id)
@@ -114,21 +113,6 @@ function UpcomingEventCard({
             padding: '2px 8px',
           }}>
             {categoryLabel}
-          </span>
-        )}
-        {showRohBadge && (
-          <span style={{
-            fontSize: 10,
-            fontWeight: 600,
-            textTransform: 'uppercase',
-            letterSpacing: '0.07em',
-            color: '#0d9488',
-            background: 'rgba(13,148,136,0.1)',
-            border: '0.5px solid rgba(13,148,136,0.3)',
-            borderRadius: 999,
-            padding: '2px 8px',
-          }}>
-            {event.organiser_label ?? 'Radiance of Hope'}
           </span>
         )}
         {event.price_gbp > 0 ? (
@@ -449,7 +433,7 @@ export default function EventsPage() {
           Events
         </h1>
         <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0 }}>
-          Community sessions and workshops delivered in partnership with Radiance of Hope.
+          Community sessions and workshops to support Muslim families on the path to marriage.
         </p>
       </div>
 

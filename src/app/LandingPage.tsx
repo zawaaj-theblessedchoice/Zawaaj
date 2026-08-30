@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import ZawaajLogo from '@/components/ZawaajLogo'
-import { CHARITY_NOTICE } from '@/lib/charityNotice'
 import { PLAN_CONFIG, PLAN_PRICES, PLAN_LABELS } from '@/lib/plan-config'
 
 // ─── Plan data — limits derived from central PLAN_CONFIG ─────────────────────
@@ -204,9 +203,6 @@ function PlanCard({ plan, annual, isLoggedIn }: { plan: typeof PLANS[number]; an
         {saving && (
           <span className="mt-1 inline-block text-xs text-gold font-medium">Save 20% · £{plan.annual * 12}/yr</span>
         )}
-        {price > 0 && (
-          <span className="mt-1 block text-xs text-muted">{CHARITY_NOTICE}</span>
-        )}
         <p className="mt-2 text-sm text-muted">{plan.description}</p>
       </div>
 
@@ -278,7 +274,6 @@ function formatHomepageEventDate(dateStr: string): string {
 }
 
 function HomepageEventCard({ event }: { event: HomepageEvent }) {
-  const showRohBadge = event.organiser === 'radiance_of_hope' || event.organiser === 'both'
   const categoryLabel = event.event_category ? CATEGORY_LABELS[event.event_category] : null
   const locationLabel = event.is_online ? 'Online' : (event.location_text ?? null)
 
@@ -310,21 +305,6 @@ function HomepageEventCard({ event }: { event: HomepageEvent }) {
             padding: '2px 8px',
           }}>
             {categoryLabel}
-          </span>
-        )}
-        {showRohBadge && (
-          <span style={{
-            fontSize: 10,
-            fontWeight: 600,
-            textTransform: 'uppercase',
-            letterSpacing: '0.07em',
-            color: '#0d9488',
-            background: 'rgba(13,148,136,0.1)',
-            border: '0.5px solid rgba(13,148,136,0.3)',
-            borderRadius: 999,
-            padding: '2px 8px',
-          }}>
-            {event.organiser_label ?? 'Radiance of Hope'}
           </span>
         )}
       </div>
@@ -734,7 +714,7 @@ export default function LandingPage({ isLoggedIn = false, featuredEvents = [] }:
             <p className="text-xs font-semibold text-gold uppercase tracking-widest mb-3">Community</p>
             <h2 className="text-3xl font-bold text-ink mb-4">Upcoming events</h2>
             <p className="text-muted text-sm max-w-xl mx-auto">
-              Our workshops and community sessions are delivered in partnership with Radiance of Hope — a charity committed to strengthening Muslim families.
+              Workshops and community sessions to support Muslim families on the path to marriage.
             </p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
@@ -826,7 +806,7 @@ export default function LandingPage({ isLoggedIn = false, featuredEvents = [] }:
         </div>
         <div className="border-t border-br">
           <p className="max-w-5xl mx-auto px-4 md:px-5 py-4 text-xs text-muted text-center md:text-left">
-            Zawaaj is operated by Ingenious Education Ltd. A portion of proceeds is set aside to fund Radiance of Hope, a charitable initiative currently being established.
+            Zawaaj is operated by Ingenious Education Ltd.
           </p>
         </div>
       </footer>

@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import ZawaajLogo from '@/components/ZawaajLogo'
-import { CHARITY_NOTICE } from '@/lib/charityNotice'
 import { PLAN_CONFIG, PLAN_PRICES } from '@/lib/plan-config'
 import { planDisplayName } from '@/lib/zawaaj/planDisplayName'
 import { createClient } from '@/lib/supabase/client'
@@ -173,9 +172,6 @@ export default function PricingPage() {
                 {annual && p.monthly > 0 && (
                   <p className="text-xs text-gold mt-1">£{p.annual * 12}/yr · save 20%</p>
                 )}
-                {price > 0 && (
-                  <p className="text-xs text-white/40 mt-1">{CHARITY_NOTICE}</p>
-                )}
                 {p.cta ? (
                   <Link href={p.cta}
                     className={`mt-3 block py-2 rounded-xl text-xs font-semibold transition-colors ${
@@ -233,10 +229,11 @@ export default function PricingPage() {
           Prices in GBP. Cancel or change plan at any time. No contracts.
         </p>
 
-        {/* Company / charity notice */}
+        {/* Company disclosure (operating legal entity) — kept as a minimal trading
+            disclosure; charity/ROH marketing copy removed. */}
         <div className="mt-8 max-w-2xl mx-auto border-t border-white/8 pt-6">
           <p className="text-center text-xs text-white/30 leading-relaxed">
-            Zawaaj is operated by Ingenious Education Ltd. A portion of proceeds is set aside to fund Radiance of Hope, a charitable initiative currently being established.
+            Zawaaj is operated by Ingenious Education Ltd.
           </p>
         </div>
 
