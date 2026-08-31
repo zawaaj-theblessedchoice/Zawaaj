@@ -388,8 +388,19 @@ export default function EventsPage() {
     setRegistering(null)
   }
 
-  const upcomingEvents = events.filter(e => e.status === 'upcoming')
-  const pastEvents = events.filter(e => e.status === 'ended' && e.show_in_history)
+  // Date-aware split: a past-DATED event must never show as upcoming even if an
+  // admin hasn't manually flipped its status to 'ended'. Events with no confirmed
+  // date (date_tbc, or no event_date) stay upcoming.
+  const startOfToday = new Date()
+  startOfToday.setHours(0, 0, 0, 0)
+  const isPastDated = (e: ZawaajEvent) =>
+    !e.date_tbc && !!e.event_date && new Date(e.event_date) < startOfToday
+
+  const upcomingEvents = events.filter(e => e.status === 'upcoming' && !isPastDated(e))
+  const pastEvents = events.filter(e =>
+    (e.status === 'ended' && e.show_in_history) ||
+    (e.status === 'upcoming' && isPastDated(e))
+  )
 
   const filteredUpcoming = categoryFilter === 'All'
     ? upcomingEvents
