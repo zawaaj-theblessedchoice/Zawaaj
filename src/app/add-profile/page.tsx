@@ -50,6 +50,7 @@ interface AddProfileForm {
   prefSchoolOfThought: string[]
   prefRelocation: string
   prefPartnerChildren: string
+  spousePreferences: string[]
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -62,6 +63,14 @@ const STEPS = [
   'About me',
   'Preferences',
   'Review',
+]
+
+// Spouse-preference chips — mirrors the admin profile editor + register/child so
+// values stay consistent across all surfaces. Stored as text[].
+const SPOUSE_PREF_OPTIONS = [
+  'Practising', 'Educated', 'Family-oriented', 'Ambitious', 'Homely',
+  'Open to relocation', 'Physically active', 'Non-smoker', 'No children',
+  'Open to children', 'Widowed / Divorced OK', 'Same ethnicity preferred',
 ]
 
 const SCHOOL_OPTIONS = [
@@ -161,6 +170,7 @@ const INITIAL_FORM: AddProfileForm = {
   prefSchoolOfThought: [],
   prefRelocation: '',
   prefPartnerChildren: '',
+  spousePreferences: [],
 }
 
 // ─── Display maps ─────────────────────────────────────────────────────────────
@@ -783,8 +793,16 @@ function Step6({
   return (
     <>
       <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '20px' }}>
-        All preferences are optional and help us surface more relevant profiles.
+        Spouse preferences are required; the rest are optional and help us surface more relevant profiles.
       </p>
+      <Field label="What are you looking for in a spouse? *">
+        <ChipGroup
+          options={SPOUSE_PREF_OPTIONS}
+          value={form.spousePreferences}
+          onChange={(val) => update({ spousePreferences: val as string[] })}
+          multi
+        />
+      </Field>
       <div style={{ marginBottom: '16px' }}>
         <label style={labelStyle}>Preferred age range</label>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -918,6 +936,7 @@ function Step7({
         <ReviewRow label="School of thought" value={form.prefSchoolOfThought.length > 0 ? form.prefSchoolOfThought.join(', ') : null} />
         <ReviewRow label="Relocation" value={form.prefRelocation || null} />
         <ReviewRow label="Partner children" value={form.prefPartnerChildren || null} />
+        <ReviewRow label="Spouse preferences" value={form.spousePreferences.length > 0 ? form.spousePreferences.join(', ') : null} />
       </ReviewSection>
     </>
   )
@@ -945,6 +964,7 @@ function validateStep(step: number, form: AddProfileForm): string {
       if (wordCount(form.bio) > 500) return `Bio must be 500 words or fewer. Currently ${wordCount(form.bio)} words.`
       return ''
     case 5: // Preferences
+      if (form.spousePreferences.length === 0) return 'Please select at least one spouse preference.'
       return ''
     case 6: // Review
       return ''

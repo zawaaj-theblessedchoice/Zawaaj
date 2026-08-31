@@ -77,6 +77,13 @@ const ETHNICITY_OPTIONS = [
   'West African', 'East African', 'Malaysian', 'Indonesian', 'White British',
   'White European', 'Mixed heritage', 'Other',
 ]
+// Spouse-preference chips — mirrors PREF_OPTIONS in the admin profile editor so
+// values stay consistent across registration and admin. Stored as text[].
+const SPOUSE_PREF_OPTIONS = [
+  'Practising', 'Educated', 'Family-oriented', 'Ambitious', 'Homely',
+  'Open to relocation', 'Physically active', 'Non-smoker', 'No children',
+  'Open to children', 'Widowed / Divorced OK', 'Same ethnicity preferred',
+]
 const GUARDIAN_RELATIONSHIP_OPTIONS = [
   // Female — preferred
   { value: 'mother',                label: 'Mother' },
@@ -249,6 +256,7 @@ interface FormData {
   marriageReason:     string   // required when maritalStatus === 'married' and gender === 'male'
   hasChildren:        string   // 'yes' | 'no' | ''
   openToMaritalStatus: string  // female only — open_to_marital_status preference
+  spousePreferences:  string[] // mandatory — what they're looking for in a spouse (text[])
   // Step 4 — Guardian
   guardianFullName:   string
   guardianRelationship: string
@@ -273,6 +281,7 @@ const EMPTY: FormData = {
   prefAgeMin: '', prefAgeMax: '', prefLocation: '', prefEthnicity: '',
   prefSchoolOfThought: '', openToRelocation: '', openToPartnersChildren: '',
   maritalStatus: '', marriageReason: '', hasChildren: '', openToMaritalStatus: '',
+  spousePreferences: [],
   guardianFullName: '', guardianRelationship: '', guardianNumber: '', guardianEmail: '',
   noFemaleContactFlag: false, fatherExplanation: '',
   termsAgreed: false, detailsAccurate: false, guardianConsents: false,
@@ -542,6 +551,8 @@ function RegisterChildPageInner() {
       if (!form.openToRelocation)            return 'Please indicate whether you are open to relocation.'
       if (!form.openToPartnersChildren && !(form.gender === 'female' && form.openToMaritalStatus === 'never_married_only'))
         return "Please indicate whether you are open to a partner's children."
+      if (form.spousePreferences.length === 0)
+        return 'Please select at least one spouse preference.'
     }
     if (step === 4) {
       const step4Errs: Record<string, string> = {}
@@ -696,6 +707,7 @@ function RegisterChildPageInner() {
           smoker:                form.smoker === 'yes' ? true : form.smoker === 'no' ? false : undefined,
           marriageReason:        form.gender === 'male' && form.maritalStatus === 'married' ? (form.marriageReason.trim() || undefined) : undefined,
           openToMaritalStatus:   form.gender === 'female' ? (form.openToMaritalStatus || undefined) : undefined,
+          spousePreferences:     form.spousePreferences.length > 0 ? form.spousePreferences : undefined,
         },
       }),
     })
@@ -1423,6 +1435,38 @@ function RegisterChildPageInner() {
                 )}
               </>
             )}
+
+            <SectionLabel label="Spouse preferences" />
+            <Field label="What are you looking for in a spouse?" required hint="Select all that apply.">
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {SPOUSE_PREF_OPTIONS.map(opt => {
+                  const selected = form.spousePreferences.includes(opt)
+                  return (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => set(
+                        'spousePreferences',
+                        selected
+                          ? form.spousePreferences.filter(p => p !== opt)
+                          : [...form.spousePreferences, opt]
+                      )}
+                      style={{
+                        padding: '9px 12px', borderRadius: 999, cursor: 'pointer',
+                        border: `0.5px solid ${selected ? 'var(--gold)' : 'var(--border-default)'}`,
+                        background: selected ? 'var(--gold-muted)' : 'var(--surface-3)',
+                        color: selected ? 'var(--gold)' : 'var(--text-secondary)',
+                        fontWeight: selected ? 600 : 400,
+                        fontSize: 13,
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      {opt}
+                    </button>
+                  )
+                })}
+              </div>
+            </Field>
           </div>
         )}
 

@@ -56,6 +56,7 @@ export async function POST(request: Request): Promise<Response> {
       prefSchoolOfThought?: string[]
       prefRelocation?: string
       prefPartnerChildren?: string
+      spousePreferences?: string[]
     }
 
     const { firstName, lastName, gender } = body
@@ -171,6 +172,7 @@ export async function POST(request: Request): Promise<Response> {
         pref_school_of_thought: body.prefSchoolOfThought?.length ? body.prefSchoolOfThought : null,
         pref_relocation: body.prefRelocation || null,
         pref_partner_children: body.prefPartnerChildren || null,
+        spouse_preferences: body.spousePreferences?.length ? body.spousePreferences : null,
         status: 'pending',
         submitted_date: new Date().toISOString(),
         consent_given: true,
