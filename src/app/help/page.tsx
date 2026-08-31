@@ -175,7 +175,7 @@ export default function HelpPage() {
                 </p>
               </div>
               <a
-                href="mailto:hello@zawaaj.uk"
+                href="mailto:zawaaj.theblessedchoice@gmail.com"
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -194,7 +194,7 @@ export default function HelpPage() {
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 7 10-7"/>
                 </svg>
-                Email hello@zawaaj.uk
+                Email zawaaj.theblessedchoice@gmail.com
               </a>
             </div>
           </section>

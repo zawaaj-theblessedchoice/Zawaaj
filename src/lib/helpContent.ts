@@ -1205,7 +1205,7 @@ export const ARTICLES: HelpArticle[] = [
       },
       {
         type: 'p',
-        text: 'Email us at hello@zawaaj.uk with as much detail as you can share. All reports are handled confidentially by the admin team.',
+        text: 'Email us at zawaaj.theblessedchoice@gmail.com with as much detail as you can share. All reports are handled confidentially by the admin team.',
       },
       {
         type: 'callout',
@@ -1232,7 +1232,7 @@ export const ARTICLES: HelpArticle[] = [
       },
       {
         type: 'p',
-        text: 'Email us at hello@zawaaj.uk with the profile in question. We will take action discreetly and promptly. You do not need to explain your reasons in detail — we respect your judgment.',
+        text: 'Email us at zawaaj.theblessedchoice@gmail.com with the profile in question. We will take action discreetly and promptly. You do not need to explain your reasons in detail — we respect your judgment.',
       },
       {
         type: 'callout',
@@ -1271,7 +1271,7 @@ export const ARTICLES: HelpArticle[] = [
       },
       {
         type: 'p',
-        text: 'Email hello@zawaaj.uk to request a copy of the data we hold about you. We will respond within 30 days.',
+        text: 'Email zawaaj.theblessedchoice@gmail.com to request a copy of the data we hold about you. We will respond within 30 days.',
       },
       {
         type: 'h2',
@@ -1329,7 +1329,7 @@ export const ARTICLES: HelpArticle[] = [
       },
       {
         type: 'p',
-        text: 'We are approachable and happy to talk. If you have questions about a profile or want to discuss the process, email us at hello@zawaaj.uk. We handle all conversations with care and confidentiality.',
+        text: 'We are approachable and happy to talk. If you have questions about a profile or want to discuss the process, email us at zawaaj.theblessedchoice@gmail.com. We handle all conversations with care and confidentiality.',
       },
     ],
   },
@@ -1870,7 +1870,7 @@ export const ARTICLES: HelpArticle[] = [
       {
         type: 'callout',
         title: 'Questions about a specific charge?',
-        body: 'Email hello@zawaaj.uk with your account email and the amount and date of the charge, and we will look into it for you.',
+        body: 'Email zawaaj.theblessedchoice@gmail.com with your account email and the amount and date of the charge, and we will look into it for you.',
       },
     ],
   },
@@ -1965,7 +1965,7 @@ export const ARTICLES: HelpArticle[] = [
       {
         type: 'callout',
         title: 'Get in touch',
-        body: 'If you believe you are owed a refund, email hello@zawaaj.uk with your account details and a description of the issue. We will respond within 3 business days.',
+        body: 'If you believe you are owed a refund, email zawaaj.theblessedchoice@gmail.com with your account details and a description of the issue. We will respond within 3 business days.',
       },
     ],
   },
@@ -2102,7 +2102,7 @@ export const ARTICLES: HelpArticle[] = [
       {
         type: 'callout',
         title: 'Data retention',
-        body: 'Deleting your account removes your profile from the directory immediately. We retain some records for up to two years for audit purposes. If you want earlier full deletion, email hello@zawaaj.uk.',
+        body: 'Deleting your account removes your profile from the directory immediately. We retain some records for up to two years for audit purposes. If you want earlier full deletion, email zawaaj.theblessedchoice@gmail.com.',
       },
       {
         type: 'p',
@@ -2146,7 +2146,7 @@ export const ARTICLES: HelpArticle[] = [
       {
         type: 'callout',
         title: 'The link expires after 30 days',
-        body: 'Your activation link is valid for 30 days from when it was sent. If your link has expired, please contact us at hello@zawaaj.uk or ask your manager to send a new one.',
+        body: 'Your activation link is valid for 30 days from when it was sent. If your link has expired, please contact us at zawaaj.theblessedchoice@gmail.com or ask your manager to send a new one.',
       },
       {
         type: 'h2',

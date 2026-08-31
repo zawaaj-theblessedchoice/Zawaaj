@@ -327,7 +327,7 @@ export function UpgradeClient({ currentPlan, profileId: _profileId }: Props) {
 
       <p style={{ fontSize: 12, color: 'var(--text-secondary)', textAlign: 'center', marginTop: 24 }}>
         Questions? Contact us at{' '}
-        <a href="mailto:team@zawaaj.uk" style={{ color: '#B8960C' }}>team@zawaaj.uk</a>
+        <a href="mailto:zawaaj.theblessedchoice@gmail.com" style={{ color: '#B8960C' }}>zawaaj.theblessedchoice@gmail.com</a>
       </p>
     </div>
   )

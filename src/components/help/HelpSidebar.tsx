@@ -174,7 +174,7 @@ export default function HelpSidebar({ activeCategoryId }: HelpSidebarProps) {
           Our team is happy to assist with anything not covered here.
         </div>
         <a
-          href="mailto:hello@zawaaj.uk"
+          href="mailto:zawaaj.theblessedchoice@gmail.com"
           style={{
             display: 'inline-block',
             fontSize: 12,

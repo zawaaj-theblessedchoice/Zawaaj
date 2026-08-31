@@ -606,7 +606,7 @@ export function premiumActivatedTemplate(
     <p style="margin:0;font-size:12px;color:#6b7280;line-height:1.6;">
       You can manage or cancel your membership at any time from Settings.
       If you have any questions, please contact us at
-      <a href="mailto:team@zawaaj.uk" style="color:#B8960C;text-decoration:none;">team@zawaaj.uk</a>.
+      <a href="mailto:zawaaj.theblessedchoice@gmail.com" style="color:#B8960C;text-decoration:none;">zawaaj.theblessedchoice@gmail.com</a>.
     </p>`
 
   return gcEmailWrapper('Your Zawaaj Premium is now active', body)
@@ -657,7 +657,7 @@ export function paymentFailedTemplate(
     </p>
     <p style="margin:0 0 20px;font-size:13px;color:#9ca3af;line-height:1.6;">
       If you need to update your payment details or have any questions, please contact us at
-      <a href="mailto:team@zawaaj.uk" style="color:#B8960C;text-decoration:none;">team@zawaaj.uk</a>.
+      <a href="mailto:zawaaj.theblessedchoice@gmail.com" style="color:#B8960C;text-decoration:none;">zawaaj.theblessedchoice@gmail.com</a>.
     </p>
     <a href="https://zawaaj.uk/settings?tab=membership"
       style="display:inline-block;padding:12px 28px;background:#B8960C;color:#111111;font-size:14px;font-weight:600;text-decoration:none;border-radius:10px;">
@@ -685,7 +685,7 @@ export function paymentFailedFinalTemplate(
     </p>
     <p style="margin:0 0 20px;font-size:13px;color:#9ca3af;line-height:1.6;">
       If you believe this is a mistake or would like to arrange payment, please contact us at
-      <a href="mailto:team@zawaaj.uk" style="color:#B8960C;text-decoration:none;">team@zawaaj.uk</a> as soon as possible.
+      <a href="mailto:zawaaj.theblessedchoice@gmail.com" style="color:#B8960C;text-decoration:none;">zawaaj.theblessedchoice@gmail.com</a> as soon as possible.
     </p>
     <a href="https://zawaaj.uk/settings?tab=membership"
       style="display:inline-block;padding:12px 28px;background:#B8960C;color:#111111;font-size:14px;font-weight:600;text-decoration:none;border-radius:10px;">
@@ -714,7 +714,7 @@ export function graceWarningTemplate(
     </p>
     <p style="margin:0 0 20px;font-size:13px;color:#9ca3af;line-height:1.6;">
       To resolve this urgently, please contact us at
-      <a href="mailto:team@zawaaj.uk" style="color:#B8960C;text-decoration:none;">team@zawaaj.uk</a>.
+      <a href="mailto:zawaaj.theblessedchoice@gmail.com" style="color:#B8960C;text-decoration:none;">zawaaj.theblessedchoice@gmail.com</a>.
     </p>`
 
   return gcEmailWrapper('Your grace period ends in 3 days', body)
@@ -791,7 +791,7 @@ export function interestReceivedTemplate(recipientName: string): string {
               <p style="margin:0;font-size:13px;color:#6b7280;line-height:1.6;">
                 Please do not contact the other family directly — our team manages all introductions.
                 If you have any questions, contact us at
-                <a href="mailto:team@zawaaj.uk" style="color:#B8960C;text-decoration:none;">team@zawaaj.uk</a>.
+                <a href="mailto:zawaaj.theblessedchoice@gmail.com" style="color:#B8960C;text-decoration:none;">zawaaj.theblessedchoice@gmail.com</a>.
               </p>
             </td>
           </tr>
@@ -847,7 +847,7 @@ export function managerAssignedFamilyTemplate(
               </p>
               <p style="margin:0;font-size:13px;color:#6b7280;line-height:1.6;">
                 If you need anything in the meantime, please contact us at
-                <a href="mailto:team@zawaaj.uk" style="color:#B8960C;text-decoration:none;">team@zawaaj.uk</a>.
+                <a href="mailto:zawaaj.theblessedchoice@gmail.com" style="color:#B8960C;text-decoration:none;">zawaaj.theblessedchoice@gmail.com</a>.
               </p>
             </td>
           </tr>
@@ -986,7 +986,7 @@ export function managerPromotionTemplate(
               </a>
               <p style="margin:0;font-size:13px;color:#6b7280;line-height:1.6;">
                 If you have any questions about your role, please reach out to us at
-                <a href="mailto:team@zawaaj.uk" style="color:#B8960C;text-decoration:none;">team@zawaaj.uk</a>.
+                <a href="mailto:zawaaj.theblessedchoice@gmail.com" style="color:#B8960C;text-decoration:none;">zawaaj.theblessedchoice@gmail.com</a>.
               </p>
             </td>
           </tr>
@@ -1042,7 +1042,7 @@ export function nikahAlhamdulillahTemplate(recipientName: string): string {
               <p style="margin:0;font-size:13px;color:#6b7280;line-height:1.6;">
                 Jazakallahu khayran for trusting Zawaaj with this journey.
                 If we can be of any further assistance, please don't hesitate to reach out at
-                <a href="mailto:team@zawaaj.uk" style="color:#B8960C;text-decoration:none;">team@zawaaj.uk</a>.
+                <a href="mailto:zawaaj.theblessedchoice@gmail.com" style="color:#B8960C;text-decoration:none;">zawaaj.theblessedchoice@gmail.com</a>.
               </p>
             </td>
           </tr>
@@ -1101,7 +1101,7 @@ export function notProceededTemplate(recipientName: string): string {
               </a>
               <p style="margin:24px 0 0;font-size:13px;color:#6b7280;line-height:1.6;">
                 If you have any questions, please don't hesitate to reach out to us at
-                <a href="mailto:team@zawaaj.uk" style="color:#B8960C;text-decoration:none;">team@zawaaj.uk</a>.
+                <a href="mailto:zawaaj.theblessedchoice@gmail.com" style="color:#B8960C;text-decoration:none;">zawaaj.theblessedchoice@gmail.com</a>.
               </p>
             </td>
           </tr>

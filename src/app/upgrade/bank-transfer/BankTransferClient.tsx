@@ -360,7 +360,7 @@ export function BankTransferClient({
 
       <p style={{ fontSize: 12, color: 'var(--text-secondary)', textAlign: 'center', marginTop: 20, lineHeight: 1.6 }}>
         Questions? Email us at{' '}
-        <a href="mailto:team@zawaaj.uk" style={{ color: '#B8960C', textDecoration: 'none' }}>team@zawaaj.uk</a>
+        <a href="mailto:zawaaj.theblessedchoice@gmail.com" style={{ color: '#B8960C', textDecoration: 'none' }}>zawaaj.theblessedchoice@gmail.com</a>
       </p>
     </div>
   )
