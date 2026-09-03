@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { premiumPricePounds, isLaunchDiscountActive, LAUNCH_DISCOUNT_BADGE } from '@/lib/launchDiscount'
 
 interface Props {
   initialPlan:     'premium' | null
@@ -19,7 +20,6 @@ interface Props {
 type Step = 'details' | 'success'
 type CopyKey = 'ref' | 'sort' | 'acc' | 'name'
 
-const PLAN_PRICE = 10   // Premium £/month (bank transfer). Keep in sync with PLAN_PRICES.premium.monthly
 
 // ─── Small copy button ─────────────────────────────────────────────────────────
 
@@ -130,7 +130,10 @@ export function BankTransferClient({
   const [error,     setError]     = useState<string | null>(null)
   const [copied,    setCopied]    = useState<CopyKey | null>(null)
 
-  const activePrice = existingRequest?.amount ?? PLAN_PRICE
+  // Premium monthly, launch-discounted at request time (£5 pre-cutoff, £10 after).
+  const planPrice = premiumPricePounds({ billingCycle: 'monthly', subscribedAt: new Date() })
+  const discountActive = isLaunchDiscountActive()
+  const activePrice = existingRequest?.amount ?? planPrice
 
   function copy(key: CopyKey, value: string) {
     navigator.clipboard.writeText(value).then(() => {
@@ -171,7 +174,7 @@ export function BankTransferClient({
           Upgrade to Premium
         </h1>
         <p style={{ fontSize: 14, color: 'var(--text-secondary)', margin: '0 0 28px', lineHeight: 1.6 }}>
-          Transfer exactly <strong style={{ color: 'var(--text-primary)' }}>£{PLAN_PRICE}</strong>{' '}to the account below.
+          Transfer exactly <strong style={{ color: 'var(--text-primary)' }}>£{planPrice}</strong>{' '}to the account below.
           You&apos;ll get a unique reference on the next step — please use it so we can match your payment.
         </p>
 
@@ -202,8 +205,12 @@ export function BankTransferClient({
               Amount
             </p>
             <p style={{ margin: '3px 0 0', fontSize: 20, color: 'var(--text-primary)', fontWeight: 700 }}>
-              £{PLAN_PRICE}<span style={{ fontSize: 13, fontWeight: 400, color: 'var(--text-secondary)' }}> / month</span>
+              {discountActive && <span style={{ fontSize: 15, fontWeight: 500, color: 'var(--text-muted)', textDecoration: 'line-through', marginRight: 6 }}>£10</span>}
+              £{planPrice}<span style={{ fontSize: 13, fontWeight: 400, color: 'var(--text-secondary)' }}> / month</span>
             </p>
+            {discountActive && (
+              <p style={{ margin: '4px 0 0', fontSize: 11, fontWeight: 700, color: '#B8960C' }}>{LAUNCH_DISCOUNT_BADGE}</p>
+            )}
           </div>
         </div>
 
@@ -220,7 +227,7 @@ export function BankTransferClient({
             style={{ marginTop: 2, accentColor: '#B8960C', width: 15, height: 15, flexShrink: 0, cursor: 'pointer' }}
           />
           <span style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-            I understand I need to make a bank transfer of <strong style={{ color: 'var(--text-primary)' }}>£{PLAN_PRICE}</strong> and use the reference provided. My account will be upgraded within 1 working day of payment being received.
+            I understand I need to make a bank transfer of <strong style={{ color: 'var(--text-primary)' }}>£{planPrice}</strong> and use the reference provided. My account will be upgraded within 1 working day of payment being received.
           </span>
         </label>
 

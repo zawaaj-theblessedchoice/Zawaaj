@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import ZawaajLogo from '@/components/ZawaajLogo'
 import { PLAN_CONFIG, PLAN_PRICES } from '@/lib/plan-config'
+import { premiumPriceView } from '@/lib/launchDiscount'
 import { planDisplayName } from '@/lib/zawaaj/planDisplayName'
 import { createClient } from '@/lib/supabase/client'
 
@@ -91,9 +92,10 @@ export default function PricingPage() {
     }
   }
 
+  const pv = premiumPriceView()
   const plans = [
-    { name: planDisplayName('voluntary'), monthly: PLAN_PRICES.free.monthly, annual: PLAN_PRICES.free.annual, highlight: false, ctaLabel: 'Get started', cta: '/signup' },
-    { name: planDisplayName('premium'), monthly: PLAN_PRICES.premium.monthly, annual: PLAN_PRICES.premium.annual, highlight: true, ctaLabel: 'Get Premium', cta: null },
+    { name: planDisplayName('voluntary'), monthly: PLAN_PRICES.free.monthly, annual: PLAN_PRICES.free.annual, highlight: false, ctaLabel: 'Get started', cta: '/signup' as string | null, premium: false },
+    { name: planDisplayName('premium'), monthly: PLAN_PRICES.premium.monthly, annual: PLAN_PRICES.premium.annual, highlight: true, ctaLabel: 'Get Premium', cta: null as string | null, premium: true },
   ]
 
   return (
@@ -146,7 +148,9 @@ export default function PricingPage() {
         <div className="grid grid-cols-3 gap-4 mb-2 max-w-2xl mx-auto">
           <div /> {/* feature column spacer */}
           {plans.map(p => {
-            const price = annual ? p.annual : p.monthly
+            const fullPrice = annual ? p.annual : p.monthly
+            const price = p.premium ? (annual ? pv.annualPerMo.now : pv.monthly.now) : fullPrice
+            const struck = p.premium && pv.discounted
             return (
               <div key={p.name} className={`rounded-2xl p-5 text-center border ${
                 p.highlight
@@ -164,13 +168,23 @@ export default function PricingPage() {
                     <span className="text-2xl font-bold text-white">Free</span>
                   ) : (
                     <>
+                      {struck && (
+                        <span className="text-base font-semibold text-white/40 line-through mb-1">£{fullPrice}</span>
+                      )}
                       <span className="text-2xl font-bold text-white">£{price}</span>
                       <span className="text-white/40 text-xs mb-1">/mo</span>
                     </>
                   )}
                 </div>
+                {struck && (
+                  <p className="text-[10px] font-bold text-gold mt-1">{pv.badge}</p>
+                )}
                 {annual && p.monthly > 0 && (
-                  <p className="text-xs text-gold mt-1">£{p.annual * 12}/yr · save 20%</p>
+                  <p className="text-xs text-gold mt-1">
+                    {p.premium && pv.discounted
+                      ? <>£{pv.annualPerYr.now}/yr · <span className="line-through opacity-60">£{pv.annualPerYr.full}</span></>
+                      : <>£{p.annual * 12}/yr · save 20%</>}
+                  </p>
                 )}
                 {p.cta ? (
                   <Link href={p.cta}

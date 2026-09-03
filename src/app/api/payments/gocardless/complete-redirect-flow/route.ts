@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { gocardless } from '@/lib/gocardless/client'
 import { GC_PRICES, GC_ENABLED } from '@/lib/gocardless/config'
+import { premiumPricePence } from '@/lib/launchDiscount'
 import { sendEmail, premiumActivatedTemplate } from '@/lib/email'
 
 export async function POST(req: Request) {
@@ -84,10 +85,16 @@ export async function POST(req: Request) {
     const billingCycle: 'monthly' | 'annual' = description.toLowerCase().includes('annual') ? 'annual' : 'monthly'
     const priceConfig = GC_PRICES.premium[billingCycle]
 
+    // Launch discount: the amount is computed from NOW (subscription-creation time)
+    // vs the cutoff. Pre-cutoff joiners are created at the discounted amount; since
+    // a GoCardless subscription's amount persists across renewals, this LOCKS the
+    // discounted price for the life of the subscription — no re-discounting needed.
+    const chargeAmount = premiumPricePence({ billingCycle, subscribedAt: new Date() })
+
     // Create GoCardless subscription
     // GC SDK requires amount and interval as strings (not numbers)
     const subscription = await gocardless.subscriptions.create({
-      amount: String(priceConfig.amount),
+      amount: String(chargeAmount),
       currency: priceConfig.currency,
       name: priceConfig.name,
       interval_unit: priceConfig.interval_unit,
@@ -135,7 +142,7 @@ export async function POST(req: Request) {
       await sendEmail({
         to: fam.contact_email,
         subject: 'Your Zawaaj Premium Direct Debit is set up',
-        html: premiumActivatedTemplate(recipientName, nextChargeDate, billingCycle, priceConfig.amount / 100),
+        html: premiumActivatedTemplate(recipientName, nextChargeDate, billingCycle, chargeAmount / 100),
       })
     }
 

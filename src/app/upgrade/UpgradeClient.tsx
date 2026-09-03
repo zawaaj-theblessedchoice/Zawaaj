@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { planDisplayName } from '@/lib/zawaaj/planDisplayName'
-import { PLAN_PRICES } from '@/lib/plan-config'
+import { premiumPriceView } from '@/lib/launchDiscount'
 import { GC_ENABLED } from '@/lib/gocardless/config'
 
 interface Props {
@@ -49,7 +49,9 @@ export function UpgradeClient({ currentPlan, profileId: _profileId }: Props) {
   const [promoCode, setPromoCode] = useState('')
 
   const isPremium = currentPlan === 'premium'
-  const premiumPrice = billing === 'monthly' ? PLAN_PRICES.premium.monthly : PLAN_PRICES.premium.annual
+  const pv = premiumPriceView()
+  const premiumFull = billing === 'monthly' ? pv.monthly.full : pv.annualPerMo.full
+  const premiumPrice = billing === 'monthly' ? pv.monthly.now : pv.annualPerMo.now
 
   return (
     <div style={{ padding: '40px 32px', maxWidth: 720, margin: '0 auto' }}>
@@ -132,13 +134,21 @@ export function UpgradeClient({ currentPlan, profileId: _profileId }: Props) {
             <p style={{ fontSize: 12, fontWeight: 700, color: '#B8960C', textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0 }}>
               {planDisplayName('premium')}
             </p>
-            <div style={{ marginTop: 10, display: 'flex', alignItems: 'baseline', gap: 4 }}>
+            <div style={{ marginTop: 10, display: 'flex', alignItems: 'baseline', gap: 6 }}>
+              {pv.discounted && (
+                <span style={{ fontSize: 18, fontWeight: 600, color: 'var(--text-muted)', textDecoration: 'line-through' }}>£{premiumFull}</span>
+              )}
               <span style={{ fontSize: 28, fontWeight: 700, color: 'var(--text-primary)' }}>£{premiumPrice}</span>
               <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>/mo</span>
             </div>
+            {pv.discounted && (
+              <p style={{ fontSize: 11, color: '#B8960C', fontWeight: 700, margin: '4px 0 0' }}>
+                {pv.badge}
+              </p>
+            )}
             {billing === 'annual' && (
               <p style={{ fontSize: 11, color: '#B8960C', margin: '4px 0 0' }}>
-                Billed as £{PLAN_PRICES.premium.annual * 12}/yr
+                Billed as {pv.discounted && <span style={{ textDecoration: 'line-through', color: 'var(--text-muted)' }}>£{pv.annualPerYr.full}</span>} £{pv.annualPerYr.now}/yr
               </p>
             )}
           </div>

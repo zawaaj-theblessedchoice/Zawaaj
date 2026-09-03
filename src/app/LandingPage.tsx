@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import ZawaajLogo from '@/components/ZawaajLogo'
 import { PLAN_CONFIG, PLAN_PRICES, PLAN_LABELS } from '@/lib/plan-config'
+import { premiumPriceView } from '@/lib/launchDiscount'
 
 // ─── Plan data — limits derived from central PLAN_CONFIG ─────────────────────
 
@@ -170,7 +171,11 @@ function FaqItem({ q, a }: { q: string; a: string }) {
 }
 
 function PlanCard({ plan, annual, isLoggedIn }: { plan: typeof PLANS[number]; annual: boolean; isLoggedIn: boolean }) {
-  const price = annual ? plan.annual : plan.monthly
+  const pv = premiumPriceView()
+  const isPremium = plan.key === 'premium'
+  const fullPrice = annual ? plan.annual : plan.monthly
+  const price = isPremium ? (annual ? pv.annualPerMo.now : pv.monthly.now) : fullPrice
+  const struck = isPremium && pv.discounted
   const saving = annual && plan.monthly > 0
 
   const ctaHref = plan.key === 'premium'
@@ -195,13 +200,21 @@ function PlanCard({ plan, annual, isLoggedIn }: { plan: typeof PLANS[number]; an
             <span className="text-3xl font-bold text-ink">Free</span>
           ) : (
             <>
+              {struck && <span className="text-lg font-semibold text-muted line-through mb-1">£{fullPrice}</span>}
               <span className="text-3xl font-bold text-ink">£{price}</span>
               <span className="text-muted mb-1 text-sm">/mo</span>
             </>
           )}
         </div>
+        {struck && (
+          <span className="mt-1 inline-block text-xs text-gold font-bold">{pv.badge}</span>
+        )}
         {saving && (
-          <span className="mt-1 inline-block text-xs text-gold font-medium">Save 20% · £{plan.annual * 12}/yr</span>
+          <span className="mt-1 inline-block text-xs text-gold font-medium">
+            {isPremium && pv.discounted
+              ? <>£{pv.annualPerYr.now}/yr · <span className="line-through opacity-60">£{pv.annualPerYr.full}</span></>
+              : <>Save 20% · £{plan.annual * 12}/yr</>}
+          </span>
         )}
         <p className="mt-2 text-sm text-muted">{plan.description}</p>
       </div>

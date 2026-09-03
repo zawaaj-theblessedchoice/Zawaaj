@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import Sidebar from '@/components/Sidebar'
 import { GC_PRICES, GC_ENABLED } from '@/lib/gocardless/config'
+import { premiumPricePence, isLaunchDiscountActive, LAUNCH_DISCOUNT_BADGE } from '@/lib/launchDiscount'
 
 // The DD subscription can only be created once the family is 'intro_ready' (the
 // representative has joined) — Premium is moot before then. Map the readiness
@@ -125,6 +126,11 @@ function DirectDebitContent() {
   if (!GC_ENABLED) return null
 
   const priceConfig = GC_PRICES.premium[billing]
+  // Launch discount — the amount the subscriber will ACTUALLY be charged (locked
+  // when the GC subscription is created with this same helper).
+  const discountActive = isLaunchDiscountActive()
+  const chargeAmount = premiumPricePence({ billingCycle: billing, subscribedAt: new Date() })
+  const fullAmount = priceConfig.amount
 
   async function handleSetupDirectDebit() {
     setLoading(true)
@@ -149,9 +155,7 @@ function DirectDebitContent() {
     }
   }
 
-  const displayPrice = billing === 'monthly'
-    ? `£${priceConfig.amount / 100}/month`
-    : `£${priceConfig.amount / 100}/year`
+  const unit = billing === 'monthly' ? 'month' : 'year'
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface)' }}>
@@ -191,12 +195,20 @@ function DirectDebitContent() {
             <p style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
               Zawaaj Premium — {billing === 'monthly' ? 'Monthly' : 'Annual'}
             </p>
-            <p style={{ fontSize: 14, color: 'var(--text-secondary)', margin: '6px 0 0' }}>
-              {displayPrice}
+            <p style={{ fontSize: 14, color: 'var(--text-secondary)', margin: '6px 0 0', display: 'flex', alignItems: 'baseline', gap: 8 }}>
+              {discountActive && (
+                <span style={{ textDecoration: 'line-through', color: 'var(--text-muted)' }}>£{fullAmount / 100}</span>
+              )}
+              <span>£{chargeAmount / 100}/{unit}</span>
             </p>
+            {discountActive && (
+              <p style={{ fontSize: 11, color: '#B8960C', fontWeight: 700, margin: '6px 0 0' }}>
+                {LAUNCH_DISCOUNT_BADGE}
+              </p>
+            )}
             {billing === 'annual' && (
               <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: '4px 0 0' }}>
-                Billed as a single payment of £{(priceConfig.amount / 100).toFixed(0)}/year
+                Billed as a single payment of £{(chargeAmount / 100).toFixed(0)}/year
               </p>
             )}
           </div>

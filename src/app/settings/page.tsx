@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import Sidebar from '@/components/Sidebar'
 import { PLAN_LABELS, PLAN_PRICES, PLAN_CONFIG } from '@/lib/plan-config'
+import { premiumPriceView, premiumPricePounds, type BillingCycle } from '@/lib/launchDiscount'
 import { planDisplayName } from '@/lib/zawaaj/planDisplayName'
 
 type Plan = 'free' | 'plus' | 'premium'
@@ -47,6 +48,9 @@ interface Subscription {
   // GoCardless fields
   payment_provider: string | null
   renewal_at: string | null
+  // Used to reproduce the grandfathered launch-discount price for existing subs.
+  created_at: string | null
+  billing_cycle: string | null
 }
 
 const PLAN_COLORS: Record<Plan, string> = {
@@ -198,14 +202,14 @@ function SettingsContent() {
       // Load subscription (include GoCardless fields)
       const { data: subData } = await supabase
         .from('zawaaj_subscriptions')
-        .select('plan, status, current_period_end, cancel_at_period_end, payment_provider, renewal_at')
+        .select('plan, status, current_period_end, cancel_at_period_end, payment_provider, renewal_at, created_at, billing_cycle')
         .eq('user_id', user.id)
         .in('status', ['active', 'pending', 'past_due', 'cancelled'])
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle()
 
-      setSub(subData ?? { plan: 'free', status: 'active', current_period_end: null, cancel_at_period_end: false, payment_provider: null, renewal_at: null })
+      setSub(subData ?? { plan: 'free', status: 'active', current_period_end: null, cancel_at_period_end: false, payment_provider: null, renewal_at: null, created_at: null, billing_cycle: null })
 
       // Check if this user is a candidate (has a family account via their profile but is NOT the rep)
       if (settings?.active_profile_id) {
@@ -479,6 +483,18 @@ function SettingsContent() {
                                 : `Renews ${fmtRenewal}`}
                             </p>
                           )}
+                          {isPaid && currentPlan === 'premium' && sub?.created_at && (() => {
+                            // Grandfathered price: derived from the subscription's OWN
+                            // start date, so a pre-cutoff joiner keeps seeing £5/£48
+                            // even after the launch discount ends.
+                            const cycle: BillingCycle = sub.billing_cycle === 'annual' ? 'annual' : 'monthly'
+                            const paid = premiumPricePounds({ billingCycle: cycle, subscribedAt: sub.created_at })
+                            return (
+                              <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>
+                                £{paid}/{cycle === 'annual' ? 'yr' : 'mo'}
+                              </p>
+                            )
+                          })()}
                           {isPaid && isGC && (
                             <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
                               Payment: Direct Debit (GoCardless)
@@ -621,7 +637,18 @@ function SettingsContent() {
                   {/* Plan upgrade cards */}
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
                     {(['free', 'premium'] as const).map(p => {
-                      const price = annual ? PLAN_PRICES[p].annual : PLAN_PRICES[p].monthly
+                      // For an EXISTING premium subscriber, price is re-derived from
+                      // their subscription START date (grandfathered) — not today.
+                      // For everyone else the premium card shows today's joiner price.
+                      const premiumAnchor = (p === 'premium' && currentPlan === 'premium' && sub?.created_at)
+                        ? sub.created_at
+                        : new Date()
+                      const pv = premiumPriceView(premiumAnchor)
+                      const fullPrice = annual ? PLAN_PRICES[p].annual : PLAN_PRICES[p].monthly
+                      const price = p === 'premium'
+                        ? (annual ? pv.annualPerMo.now : pv.monthly.now)
+                        : fullPrice
+                      const struck = p === 'premium' && pv.discounted
                       const isCurrent = p === currentPlan
                       return (
                         <div
@@ -642,11 +669,23 @@ function SettingsContent() {
                           )}
                           <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>{PLAN_LABELS[p]}</p>
                           <p style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)' }}>
-                            {price === 0 ? 'Free' : `£${price}`}
+                            {price === 0 ? 'Free' : (
+                              <>
+                                {struck && <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-muted)', textDecoration: 'line-through', marginRight: 5 }}>£{fullPrice}</span>}
+                                {`£${price}`}
+                              </>
+                            )}
                             {price > 0 && <span style={{ fontSize: 12, fontWeight: 400, color: 'var(--text-muted)' }}>/mo</span>}
                           </p>
+                          {struck && (
+                            <p style={{ fontSize: 9, fontWeight: 700, color: 'var(--gold)', marginBottom: 2 }}>{pv.badge}</p>
+                          )}
                           {annual && PLAN_PRICES[p].monthly > 0 && (
-                            <p style={{ fontSize: 10, color: 'var(--gold)', marginBottom: 10 }}>£{PLAN_PRICES[p].annual * 12}/yr · save 20%</p>
+                            <p style={{ fontSize: 10, color: 'var(--gold)', marginBottom: 10 }}>
+                              {p === 'premium' && pv.discounted
+                                ? <>£{pv.annualPerYr.now}/yr · <span style={{ textDecoration: 'line-through', opacity: 0.6 }}>£{pv.annualPerYr.full}</span></>
+                                : <>£{PLAN_PRICES[p].annual * 12}/yr · save 20%</>}
+                            </p>
                           )}
                           {!isCurrent && p !== 'free' && (
                             <button

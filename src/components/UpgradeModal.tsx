@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { planDisplayName } from '@/lib/zawaaj/planDisplayName'
+import { premiumPriceView } from '@/lib/launchDiscount'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -106,7 +107,12 @@ export default function UpgradeModal({ trigger, onClose }: UpgradeModalProps) {
         {/* Plan cards */}
         <div style={{ padding: '14px 16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
           {plans.map(p => {
-            const price = annual ? p.annual : p.monthly
+            const pv = premiumPriceView()
+            const fullPrice = annual ? p.annual : p.monthly
+            const price = p.key === 'premium'
+              ? (annual ? pv.annualPerMo.now : pv.monthly.now)
+              : fullPrice
+            const struck = p.key === 'premium' && pv.discounted
             return (
               <div
                 key={p.key}
@@ -126,11 +132,23 @@ export default function UpgradeModal({ trigger, onClose }: UpgradeModalProps) {
                   )}
                   <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 2 }}>{p.name}</p>
                   <p style={{ fontSize: price === 0 ? 16 : 20, fontWeight: 700, color: 'var(--text-primary)' }}>
-                    {price === 0 ? 'Free' : `£${price}`}
+                    {price === 0 ? 'Free' : (
+                      <>
+                        {struck && <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-muted)', textDecoration: 'line-through', marginRight: 4 }}>£{fullPrice}</span>}
+                        {`£${price}`}
+                      </>
+                    )}
                     {price > 0 && <span style={{ fontSize: 11, fontWeight: 400, color: 'var(--text-muted)' }}>/mo</span>}
                   </p>
+                  {struck && (
+                    <p style={{ fontSize: 9, fontWeight: 700, color: 'var(--gold)' }}>{pv.badge}</p>
+                  )}
                   {annual && p.monthly > 0 && (
-                    <p style={{ fontSize: 10, color: 'var(--gold)' }}>£{p.annual * 12}/yr</p>
+                    <p style={{ fontSize: 10, color: 'var(--gold)' }}>
+                      {p.key === 'premium' && pv.discounted
+                        ? <>£{pv.annualPerYr.now}/yr · <span style={{ textDecoration: 'line-through', opacity: 0.6 }}>£{pv.annualPerYr.full}</span></>
+                        : <>£{p.annual * 12}/yr</>}
+                    </p>
                   )}
                 </div>
                 {p.key === 'free' ? (

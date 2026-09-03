@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { premiumPricePounds } from '@/lib/launchDiscount'
 
 // Whole £ per month, recorded on the bank-transfer payment request.
-const PLAN_AMOUNTS: Record<string, number> = {
-  plus: 5,
-  premium: 10,
-}
+// Premium is resolved via the launch-discount helper below (£5 pre-cutoff, £10
+// after); Plus is a flat £5 and is not part of the discount.
+const PLUS_AMOUNT = 5
 
 export async function POST(req: Request) {
   const supabase = await createClient()
@@ -55,7 +55,11 @@ export async function POST(req: Request) {
     })
   }
 
-  const amountGbp = PLAN_AMOUNTS[plan]
+  // Bank transfer is billed monthly here; Premium honours the launch discount at
+  // request-creation time (locked on the recorded amount_gbp).
+  const amountGbp = plan === 'premium'
+    ? premiumPricePounds({ billingCycle: 'monthly', subscribedAt: new Date() })
+    : PLUS_AMOUNT
 
   // Insert the request (reference generated from the UUID after insert)
   const { data: request, error } = await supabaseAdmin
