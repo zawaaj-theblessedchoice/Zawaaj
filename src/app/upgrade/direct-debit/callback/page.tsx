@@ -34,8 +34,9 @@ function CallbackContent() {
           return
         }
         setState('success')
-        // Wait briefly so the user sees the success message, then redirect
-        setTimeout(() => router.push('/settings?tab=membership'), 2500)
+        // Give the user time to read the "payment pending" message before landing
+        // on the membership page (which repeats the same pending state).
+        setTimeout(() => router.push('/settings?tab=membership'), 4000)
       } catch {
         setState('error')
         setErrorMsg('Something went wrong — please try again.')
@@ -75,11 +76,19 @@ function CallbackContent() {
               Direct Debit authorised
             </h2>
             <p style={{ fontSize: 14, color: 'var(--text-secondary)', margin: '0 0 20px', lineHeight: 1.6 }}>
-              Your Direct Debit is set up. Your Premium membership will activate once the first payment clears — usually within 1–3 working days.
+              Your Direct Debit is set up. Your Premium membership will activate once the first payment
+              clears — usually within 1–3 working days. There&rsquo;s nothing more you need to do; we&rsquo;ll
+              email you when it&rsquo;s active.
             </p>
-            <p style={{ fontSize: 13, color: 'var(--text-muted)', margin: 0 }}>
-              Redirecting to your membership settings…
-            </p>
+            <button
+              onClick={() => router.push('/settings?tab=membership')}
+              style={{
+                padding: '12px 24px', borderRadius: 10, fontSize: 13, fontWeight: 600,
+                background: '#B8960C', color: '#111', border: 'none', cursor: 'pointer',
+              }}
+            >
+              View membership
+            </button>
           </>
         )}
 

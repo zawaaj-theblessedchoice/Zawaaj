@@ -259,6 +259,9 @@ function SettingsContent() {
 
   const currentPlan: Plan = (sub?.plan as Plan) ?? 'free'
   const isPaid = currentPlan !== 'free'
+  // Direct Debit set up but the first payment hasn't cleared yet — Premium is not
+  // active. Show a clear "set up, payment pending" state so it doesn't look failed.
+  const isPendingActivation = sub?.status === 'pending' && currentPlan !== 'free'
 
   function startCheckout(plan: 'plus' | 'premium') {
     setCheckoutLoading(plan)
@@ -444,6 +447,31 @@ function SettingsContent() {
               <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Loading…</p>
             ) : (
               <>
+                {/* Direct Debit set up — awaiting first payment (Premium not yet active) */}
+                {isPendingActivation && (
+                  <div style={{
+                    background: 'var(--gold-muted)',
+                    border: '0.5px solid var(--border-gold)',
+                    borderRadius: 14,
+                    padding: '16px 18px',
+                    marginBottom: 16,
+                    display: 'flex',
+                    gap: 12,
+                    alignItems: 'flex-start',
+                  }}>
+                    <span style={{ fontSize: 20, lineHeight: 1, flexShrink: 0 }}>✅</span>
+                    <div>
+                      <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 4px' }}>
+                        Direct Debit set up — payment pending
+                      </p>
+                      <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.55 }}>
+                        Your Premium membership will activate once your first payment clears — usually within
+                        1–3 working days. Nothing more to do; we&rsquo;ll email you when it&rsquo;s active.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 {/* Current plan card */}
                 {(() => {
                   const isGC = sub?.payment_provider === 'gocardless'

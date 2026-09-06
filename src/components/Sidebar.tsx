@@ -234,6 +234,9 @@ export default function Sidebar({
   // from the "Browsing as" impersonation banner (SA viewing a member).
   const [sessionRole, setSessionRole] = useState<'member' | 'manager' | 'super_admin' | null>(null)
   const [sessionEmail, setSessionEmail] = useState<string | null>(null)
+  // Latest subscription (active/pending) — drives the Premium CTA state so a
+  // just-set-up Direct Debit shows "Payment pending", not a fresh upgrade prompt.
+  const [subState, setSubState] = useState<{ plan: string; status: string } | null>(null)
 
   useEffect(() => {
     const supabase = createClient()
@@ -268,6 +271,26 @@ export default function Sidebar({
           // and for any user with no family account row (edge case / legacy).
           // Hide for Path A parents (registration_path='parent').
           setHasOwnProfile(!data || data.registration_path !== 'parent')
+        })
+    })
+  }, [])
+
+  // Latest subscription status for the Premium CTA (pending vs active vs upgrade).
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return
+      supabase
+        .from('zawaaj_subscriptions')
+        .select('plan, status')
+        .eq('user_id', user.id)
+        .in('status', ['active', 'pending', 'past_due'])
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+        .then(({ data }) => {
+          const row = data as { plan?: string; status?: string } | null
+          if (row?.plan && row?.status) setSubState({ plan: row.plan, status: row.status })
         })
     })
   }, [])
@@ -483,33 +506,55 @@ export default function Sidebar({
         ))}
       </nav>
 
-      {/* Upgrade — Premium CTA */}
-      <div style={{ padding: '6px 12px 10px' }}>
-        <Link
-          href="/settings?tab=membership"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 9,
-            padding: '9px 12px',
-            borderRadius: 10,
-            background: 'var(--gold-muted)',
-            border: '0.5px solid rgba(201,168,76,0.25)',
-            textDecoration: 'none',
-            transition: 'background 0.15s',
-          }}
-          onMouseEnter={e => ((e.currentTarget as HTMLAnchorElement).style.background = 'var(--gold-muted)')}
-          onMouseLeave={e => ((e.currentTarget as HTMLAnchorElement).style.background = 'var(--gold-muted)')}
-        >
-          <span style={{
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            width: 26, height: 26, borderRadius: 7, background: 'rgba(201,168,76,0.15)', flexShrink: 0,
-          }}>
-            <span style={{ color: 'var(--gold-light)', display: 'flex' }}><TrophyIcon /></span>
-          </span>
-          <span style={{ flex: 1, fontSize: 12.5, fontWeight: 500, color: 'var(--gold-light)' }}>Premium</span>
-        </Link>
-      </div>
+      {/* Premium CTA — reflects subscription state:
+          • active premium  → no upsell (hidden)
+          • payment pending → "Payment pending" (Direct Debit set up, awaiting first payment)
+          • otherwise       → "Premium" upgrade prompt */}
+      {(() => {
+        const isPremiumActive = subState?.status === 'active' && subState.plan === 'premium'
+        if (isPremiumActive) return null
+        const isPaymentPending =
+          subState?.status === 'pending' && (subState.plan === 'premium' || subState.plan === 'plus')
+
+        return (
+          <div style={{ padding: '6px 12px 10px' }}>
+            <Link
+              href="/settings?tab=membership"
+              title={isPaymentPending
+                ? 'Direct Debit set up — Premium activates once your first payment clears'
+                : undefined}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 9,
+                padding: '9px 12px',
+                borderRadius: 10,
+                background: isPaymentPending ? 'var(--surface-3)' : 'var(--gold-muted)',
+                border: `0.5px solid ${isPaymentPending ? 'var(--border-default)' : 'rgba(201,168,76,0.25)'}`,
+                textDecoration: 'none',
+              }}
+            >
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                width: 26, height: 26, borderRadius: 7,
+                background: isPaymentPending ? 'rgba(255,255,255,0.06)' : 'rgba(201,168,76,0.15)', flexShrink: 0,
+              }}>
+                <span style={{ color: isPaymentPending ? 'var(--text-muted)' : 'var(--gold-light)', display: 'flex', fontSize: 14 }}>
+                  {isPaymentPending ? '⏳' : <TrophyIcon />}
+                </span>
+              </span>
+              {isPaymentPending ? (
+                <span style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  <span style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--text-secondary)' }}>Payment pending</span>
+                  <span style={{ fontSize: 10.5, color: 'var(--text-muted)', lineHeight: 1.3 }}>Premium activates soon</span>
+                </span>
+              ) : (
+                <span style={{ flex: 1, fontSize: 12.5, fontWeight: 500, color: 'var(--gold-light)' }}>Premium</span>
+              )}
+            </Link>
+          </div>
+        )
+      })()}
 
       {/* Divider */}
       <div style={{ height: '0.5px', background: 'var(--border-default)', margin: '0' }} />
