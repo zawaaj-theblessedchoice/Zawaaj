@@ -6,6 +6,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { gocardless } from '@/lib/gocardless/client'
+import { completeRedirectFlow } from '@/lib/gocardless/completeRedirectFlow'
 import { GC_PRICES, GC_ENABLED } from '@/lib/gocardless/config'
 import { premiumPricePence } from '@/lib/launchDiscount'
 import { sendEmail, premiumActivatedTemplate } from '@/lib/email'
@@ -67,10 +68,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorised' }, { status: 403 })
     }
 
-    // Complete the redirect flow — validates session_token matches
-    const completedFlow = await gocardless.redirectFlows.complete(redirect_flow_id, {
-      session_token: user.id,
-    })
+    // Complete the redirect flow — validates the session_token matches the one
+    // used at creation (both are the authenticated user's id). Uses a direct
+    // request with the correct `data` envelope; the SDK's own complete() sends the
+    // wrong `redirect_flows` envelope and is rejected 400 by GoCardless.
+    const completedFlow = await completeRedirectFlow(redirect_flow_id, user.id)
 
     const mandateId = completedFlow.links?.mandate
     const customerId = completedFlow.links?.customer

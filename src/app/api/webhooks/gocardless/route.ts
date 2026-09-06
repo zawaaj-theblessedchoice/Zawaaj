@@ -92,8 +92,23 @@ async function getFamilyContactEmail(familyAccountId: string): Promise<{ email: 
 
 // ─── Event handler ────────────────────────────────────────────────────────────
 
+// We integrate via the Redirect Flows API, not the Billing Requests API, so any
+// billing_requests* events GoCardless emits are irrelevant to us. Acknowledge and
+// ignore them quietly rather than logging them as "unhandled".
+const IGNORED_RESOURCE_TYPES = new Set([
+  'billing_requests',
+  'billing_request_flows',
+  'billing_request_templates',
+])
+
 async function handleGCEvent(event: GCWebhookEvent): Promise<void> {
   const key = `${event.resource_type}/${event.action}`
+
+  if (IGNORED_RESOURCE_TYPES.has(event.resource_type)) {
+    console.log(`[GC webhook] ignoring ${key} — Billing Requests API not used`)
+    return
+  }
+
   console.log(`[GC webhook] processing event ${event.id}: ${key}`)
 
   switch (key) {
