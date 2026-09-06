@@ -52,7 +52,7 @@ function LoginForm() {
       try {
         if (localStorage.getItem('zawaaj_premium_intent') === '1') {
           localStorage.removeItem('zawaaj_premium_intent')
-          redirect = '/upgrade/bank-transfer'
+          redirect = '/upgrade'
         }
       } catch { /* ignore */ }
     }

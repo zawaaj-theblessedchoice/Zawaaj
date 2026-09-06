@@ -85,7 +85,7 @@ export default function PricingPage() {
 
   function handleGetPremium() {
     if (isLoggedIn) {
-      router.push('/upgrade/bank-transfer')
+      router.push('/upgrade')
     } else {
       localStorage.setItem('zawaaj_premium_intent', '1')
       router.push('/register?intent=premium')

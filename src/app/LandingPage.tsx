@@ -179,7 +179,7 @@ function PlanCard({ plan, annual, isLoggedIn }: { plan: typeof PLANS[number]; an
   const saving = annual && plan.monthly > 0
 
   const ctaHref = plan.key === 'premium'
-    ? (isLoggedIn ? '/upgrade/bank-transfer' : '/register?intent=premium')
+    ? (isLoggedIn ? '/upgrade' : '/register?intent=premium')
     : (isLoggedIn ? '/browse' : '/register')
 
   return (

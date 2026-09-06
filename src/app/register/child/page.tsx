@@ -749,7 +749,7 @@ function RegisterChildPageInner() {
         premiumIntent = localStorage.getItem('zawaaj_premium_intent') === '1'
         if (premiumIntent) localStorage.removeItem('zawaaj_premium_intent')
       } catch { /* ignore */ }
-      router.push(premiumIntent ? '/upgrade/bank-transfer' : '/browse')
+      router.push(premiumIntent ? '/upgrade' : '/browse')
       return
     }
 

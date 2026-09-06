@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { premiumPricePounds } from '@/lib/launchDiscount'
+import { BANK_TRANSFER_ENABLED } from '@/lib/payments/bankTransfer'
 
 // Whole £ per month, recorded on the bank-transfer payment request.
 // Premium is resolved via the launch-discount helper below (£5 pre-cutoff, £10
@@ -9,6 +10,12 @@ import { premiumPricePounds } from '@/lib/launchDiscount'
 const PLUS_AMOUNT = 5
 
 export async function POST(req: Request) {
+  // Retired from the user flow — Direct Debit is the sole payment path. Kept
+  // dormant behind this flag so the endpoint is recoverable if ever needed.
+  if (!BANK_TRANSFER_ENABLED) {
+    return NextResponse.json({ error: 'Bank transfer is no longer available. Please pay by Direct Debit.' }, { status: 410 })
+  }
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

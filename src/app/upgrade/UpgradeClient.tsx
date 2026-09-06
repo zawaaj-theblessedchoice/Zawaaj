@@ -1,10 +1,8 @@
 'use client'
-// Trigger rebuild: picks up NEXT_PUBLIC_GOCARDLESS_ENABLED from Vercel env
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { planDisplayName } from '@/lib/zawaaj/planDisplayName'
 import { premiumPriceView } from '@/lib/launchDiscount'
-import { GC_ENABLED } from '@/lib/gocardless/config'
 
 interface Props {
   currentPlan: string
@@ -162,13 +160,7 @@ export function UpgradeClient({ currentPlan, profileId: _profileId }: Props) {
             </button>
           ) : (
             <button
-              onClick={() => {
-                if (GC_ENABLED) {
-                  router.push(`/upgrade/direct-debit?plan=premium&billing=${billing}`)
-                } else {
-                  router.push(`/upgrade/bank-transfer?plan=premium`)
-                }
-              }}
+              onClick={() => router.push(`/upgrade/direct-debit?plan=premium&billing=${billing}`)}
               style={{
                 padding: '10px 0', borderRadius: 9, fontSize: 13, fontWeight: 600,
                 border: 'none', cursor: 'pointer', background: '#B8960C', color: '#111',
@@ -181,73 +173,31 @@ export function UpgradeClient({ currentPlan, profileId: _profileId }: Props) {
         </div>
       </div>
 
-      {/* ── Payment method section ─────────────────────────────────────────── */}
+      {/* ── Direct Debit — the single payment path ─────────────────────────── */}
       {!isPremium && (
-        <div style={{ marginBottom: 32 }}>
-          <p style={{
-            fontSize: 11, fontWeight: 700, color: 'var(--text-muted)',
-            textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16,
-          }}>
-            How would you like to pay?
+        <div style={{
+          background: 'var(--surface-2)',
+          border: '1px solid rgba(184,150,12,0.3)',
+          borderRadius: 14, padding: '22px 20px',
+          display: 'flex', flexDirection: 'column', gap: 10,
+          marginBottom: 32,
+        }}>
+          <p style={{ margin: 0, fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>
+            Secure Direct Debit
           </p>
-
-          {/* Direct Debit — primary */}
-          {GC_ENABLED && (
-            <div style={{
-              background: 'var(--surface-2)',
-              border: '1px solid rgba(184,150,12,0.3)',
-              borderRadius: 14, padding: '22px 20px',
-              display: 'flex', flexDirection: 'column', gap: 10,
-              marginBottom: 12, position: 'relative',
-            }}>
-              <span style={{
-                position: 'absolute', top: -10, left: 16,
-                background: '#B8960C', color: '#111',
-                fontSize: 9, fontWeight: 700, letterSpacing: '0.08em',
-                padding: '2px 10px', borderRadius: 99,
-              }}>
-                ★ RECOMMENDED
-              </span>
-              <p style={{ margin: 0, fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>
-                Secure Direct Debit
-              </p>
-              <p style={{ margin: 0, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                Set up a recurring Direct Debit via GoCardless. Cancel anytime.
-                Protected by the Direct Debit Guarantee.
-              </p>
-              <button
-                onClick={() => router.push(`/upgrade/direct-debit?plan=premium&billing=${billing}`)}
-                style={{
-                  marginTop: 4, padding: '10px 0', borderRadius: 9, fontSize: 13, fontWeight: 600,
-                  border: 'none', cursor: 'pointer', background: '#B8960C', color: '#111',
-                  transition: 'opacity 0.15s',
-                }}
-              >
-                Set up Direct Debit →
-              </button>
-            </div>
-          )}
-
-          {/* Divider */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-            <div style={{ flex: 1, height: 1, background: 'var(--border-default)' }} />
-            <span style={{ fontSize: 11, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
-              {GC_ENABLED ? 'Prefer to pay by bank transfer?' : 'Payment method'}
-            </span>
-            <div style={{ flex: 1, height: 1, background: 'var(--border-default)' }} />
-          </div>
-
-          {/* Bank Transfer — secondary */}
+          <p style={{ margin: 0, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+            Set up a recurring Direct Debit via GoCardless. Cancel anytime.
+            Protected by the Direct Debit Guarantee.
+          </p>
           <button
-            onClick={() => router.push('/upgrade/bank-transfer')}
+            onClick={() => router.push(`/upgrade/direct-debit?plan=premium&billing=${billing}`)}
             style={{
-              width: '100%', padding: '10px 0', borderRadius: 9, fontSize: 13, fontWeight: 500,
-              border: '1px solid var(--border-default)', cursor: 'pointer',
-              background: 'transparent', color: 'var(--text-secondary)',
-              transition: 'all 0.15s',
+              marginTop: 4, padding: '10px 0', borderRadius: 9, fontSize: 13, fontWeight: 600,
+              border: 'none', cursor: 'pointer', background: '#B8960C', color: '#111',
+              transition: 'opacity 0.15s',
             }}
           >
-            Pay by Bank Transfer
+            Set up Direct Debit →
           </button>
         </div>
       )}
@@ -256,7 +206,7 @@ export function UpgradeClient({ currentPlan, profileId: _profileId }: Props) {
         fontSize: 12, color: 'var(--text-muted)', textAlign: 'center',
         marginBottom: 32, lineHeight: 1.6,
       }}>
-        Premium memberships are currently available via Direct Debit or Bank Transfer.
+        Premium memberships are set up via secure Direct Debit (GoCardless).
         We do not accept card payments at this time.
       </p>
 

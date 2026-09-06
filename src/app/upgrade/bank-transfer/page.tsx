@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import Sidebar from '@/components/Sidebar'
 import { BankTransferClient } from './BankTransferClient'
+import { BANK_TRANSFER_ENABLED } from '@/lib/payments/bankTransfer'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,6 +12,10 @@ export default async function BankTransferPage({
 }: {
   searchParams: Promise<{ plan?: string }>
 }) {
+  // Retired from the user flow — Direct Debit is the sole payment path. The page
+  // is kept (dormant) but a direct/bookmarked URL is redirected to /upgrade.
+  if (!BANK_TRANSFER_ENABLED) redirect('/upgrade')
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -35,7 +40,7 @@ export default async function BankTransferPage({
   if (profile.status === 'pending') redirect('/pending')
 
   // Always premium — Plus is no longer offered
-  const initialPlan: 'premium' = 'premium'
+  const initialPlan = 'premium' as const
   void searchParams // suppress unused warning
 
   // Check for any existing pending request for this profile
