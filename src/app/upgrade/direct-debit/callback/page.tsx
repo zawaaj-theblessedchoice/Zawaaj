@@ -33,10 +33,10 @@ function CallbackContent() {
           setErrorMsg(json.error ?? 'Something went wrong — please try again.')
           return
         }
+        // Persistent success — do NOT auto-redirect. A successful setup that
+        // flashes past and dumps the user back on an unchanged page reads as a
+        // failure. The user reads the confirmation and navigates themselves.
         setState('success')
-        // Give the user time to read the "payment pending" message before landing
-        // on the membership page (which repeats the same pending state).
-        setTimeout(() => router.push('/settings?tab=membership'), 4000)
       } catch {
         setState('error')
         setErrorMsg('Something went wrong — please try again.')
@@ -73,22 +73,33 @@ function CallbackContent() {
           <>
             <div style={{ fontSize: 40, marginBottom: 16 }}>✅</div>
             <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 10px' }}>
-              Direct Debit authorised
+              Direct Debit set up successfully
             </h2>
-            <p style={{ fontSize: 14, color: 'var(--text-secondary)', margin: '0 0 20px', lineHeight: 1.6 }}>
-              Your Direct Debit is set up. Your Premium membership will activate once the first payment
-              clears — usually within 1–3 working days. There&rsquo;s nothing more you need to do; we&rsquo;ll
-              email you when it&rsquo;s active.
+            <p style={{ fontSize: 14, color: 'var(--text-secondary)', margin: '0 0 24px', lineHeight: 1.6 }}>
+              Your Premium membership will activate once your first payment clears — usually 1–3 working
+              days. We&rsquo;ll email you when it&rsquo;s active. There&rsquo;s nothing more you need to do.
             </p>
             <button
               onClick={() => router.push('/settings?tab=membership')}
               style={{
                 padding: '12px 24px', borderRadius: 10, fontSize: 13, fontWeight: 600,
-                background: '#B8960C', color: '#111', border: 'none', cursor: 'pointer',
+                background: '#B8960C', color: '#111', border: 'none', cursor: 'pointer', marginBottom: 10,
               }}
             >
-              View membership
+              View my membership
             </button>
+            <div>
+              <button
+                onClick={() => router.push('/browse')}
+                style={{
+                  padding: '8px 16px', borderRadius: 10, fontSize: 13, fontWeight: 500,
+                  background: 'transparent', color: 'var(--text-secondary)',
+                  border: '0.5px solid var(--border-default)', cursor: 'pointer',
+                }}
+              >
+                Back to browsing
+              </button>
+            </div>
           </>
         )}
 
