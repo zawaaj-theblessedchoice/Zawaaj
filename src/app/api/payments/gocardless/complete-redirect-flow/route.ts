@@ -9,7 +9,7 @@ import { gocardless } from '@/lib/gocardless/client'
 import { completeRedirectFlow } from '@/lib/gocardless/completeRedirectFlow'
 import { GC_PRICES, GC_ENABLED } from '@/lib/gocardless/config'
 import { premiumPricePence } from '@/lib/launchDiscount'
-import { sendEmail, premiumActivatedTemplate } from '@/lib/email'
+import { sendEmail, premiumActivatedTemplate, founderAlertTemplate, FOUNDER_EMAIL } from '@/lib/email'
 
 export async function POST(req: Request) {
   if (!GC_ENABLED) {
@@ -106,18 +106,28 @@ export async function POST(req: Request) {
 
     const nextChargeDate = subscription.upcoming_payments?.[0]?.charge_date ?? null
 
-    // Upsert zawaaj_subscriptions row
+    // ── CANONICAL WRITE ───────────────────────────────────────────────────────
+    // The zawaaj_subscriptions row is the source of truth for entitlement AND
+    // Settings (both read it by user_id + status='active'). It MUST be written,
+    // and its error MUST be surfaced, before we claim success or touch the family
+    // mirror. Provisional Premium is granted immediately: status 'active' (so
+    // entitlement passes now) + is_provisional; the first payment_confirmed
+    // webhook clears the flag, and the grace-period cron downgrades it if no
+    // payment confirms in time.
+    //
+    // onConflict MUST be 'user_id' — the table's only unique constraint
+    // (UNIQUE(user_id), migration 006). A previous version used
+    // 'family_account_id', which has only a plain index (025) and no unique
+    // constraint, so every upsert failed with Postgres 42P10. supabase-js returns
+    // that error (it does not throw) and the code never checked .error, so the
+    // failure was silently swallowed and no row was ever created.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (supabaseAdmin as any)
+    const { error: subError } = await (supabaseAdmin as any)
       .from('zawaaj_subscriptions')
       .upsert({
         family_account_id: familyAccountId,
         user_id: user.id,
         plan: 'premium',
-        // Instant access: PROVISIONAL Premium is granted immediately (status
-        // 'active' so all entitlement checks pass right away) and marked
-        // is_provisional. The first payment_confirmed webhook clears the flag;
-        // the grace-period cron downgrades it if no payment confirms in time.
         status: 'active',
         is_provisional: true,
         granted_at: new Date().toISOString(),
@@ -130,11 +140,41 @@ export async function POST(req: Request) {
         cancel_at_period_end: false,
         payment_failure_count: 0,
       }, {
-        onConflict: 'family_account_id',
+        onConflict: 'user_id',
       })
 
-    // Update family account — Premium is live immediately (provisional).
-    await supabaseAdmin
+    if (subError) {
+      // The GoCardless subscription already exists, so the member WILL be charged.
+      // Do NOT report success and do NOT leave the family mirror claiming Premium.
+      // Surface the failure and alert the founder to reconcile manually.
+      console.error('[GC complete-redirect-flow] subscription upsert failed:', subError)
+      try {
+        await sendEmail({
+          to: FOUNDER_EMAIL,
+          subject: '[Zawaaj] URGENT — DD completed but subscription row NOT recorded',
+          html: founderAlertTemplate(
+            'Direct Debit completed but the subscription row failed to write',
+            [
+              { label: 'Family account', value: familyAccountId },
+              { label: 'Member', value: `${fam.contact_full_name ?? '—'}${fam.contact_email ? ` <${fam.contact_email}>` : ''}` },
+              { label: 'GC subscription', value: subscription.id ?? '—' },
+              { label: 'GC mandate', value: mandateId },
+              { label: 'DB error', value: (subError as { message?: string }).message ?? String(subError) },
+            ],
+            'The member will be charged by GoCardless but has NO Premium record. Reconcile the subscription row manually.',
+          ),
+        })
+      } catch { /* best effort */ }
+      return NextResponse.json(
+        { error: 'We could not finish setting up your membership. Please contact support — no payment has been lost.' },
+        { status: 500 },
+      )
+    }
+
+    // Mirror the plan onto the family account (read by the admin families list).
+    // Non-fatal: entitlement already reads the canonical subscription row above,
+    // and the payment webhooks keep this in sync afterwards.
+    const { error: famError } = await supabaseAdmin
       .from('zawaaj_family_accounts')
       .update({
         plan: 'premium',
@@ -143,6 +183,9 @@ export async function POST(req: Request) {
         renewal_date: nextChargeDate,
       })
       .eq('id', familyAccountId)
+    if (famError) {
+      console.error('[GC complete-redirect-flow] family mirror update failed (non-fatal):', famError.message)
+    }
 
     // Send confirmation email
     if (fam.contact_email) {

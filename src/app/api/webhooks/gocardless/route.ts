@@ -181,7 +181,24 @@ async function handleGCEvent(event: GCWebhookEvent): Promise<void> {
       // Payment succeeded — activate subscription
       const sub = await getSubByGCSubscriptionId(event.links.subscription)
       if (!sub) {
-        console.warn(`[GC webhook] No sub found for GC subscription ${event.links.subscription ?? '—'}`)
+        // A confirmed payment with NO matching subscription row means a member is
+        // being charged with nothing recorded — must never be silent. Alert.
+        console.error(`[GC webhook] CONFIRMED PAYMENT with no subscription row — GC subscription ${event.links.subscription ?? '—'}`)
+        try {
+          await sendEmail({
+            to: FOUNDER_EMAIL,
+            subject: '[Zawaaj] URGENT — confirmed payment with no subscription record',
+            html: founderAlertTemplate(
+              'GoCardless confirmed a payment but no subscription row exists',
+              [
+                { label: 'GC subscription', value: event.links.subscription ?? '—' },
+                { label: 'GC payment', value: event.links.payment ?? '—' },
+                { label: 'Event', value: event.id },
+              ],
+              'A member is being charged but has no Premium record. Create the subscription row manually to grant access.',
+            ),
+          })
+        } catch { /* best effort */ }
         break
       }
 
