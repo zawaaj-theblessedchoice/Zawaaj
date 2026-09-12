@@ -520,24 +520,27 @@ export default function LandingPage({ isLoggedIn = false, featuredEvents = [] }:
         </div>
       </nav>
 
-      {/* ── Hero ── */}
-      <section className="max-w-4xl mx-auto px-4 md:px-5 pt-1 pb-3 md:pt-2 md:pb-4 text-center">
-        {/* Arabic calligraphy logo — responsive so the square PNG never overflows
-            narrow viewports (was a fixed 400px → horizontal scroll on mobile). */}
-        <div className="flex justify-center" style={{ marginBottom: -8 }}>
-          <ZawaajLogo height={400} style={{ height: 'clamp(150px, 42vw, 400px)', width: 'auto', maxWidth: '100%' }} />
+      {/* ── Hero ── contained to exactly one screen (100dvh minus the 4rem nav).
+           Content is vertically centred; the badge is the last visible element,
+           with the trust bar starting below the fold. */}
+      <section className="max-w-4xl mx-auto px-4 md:px-5 py-3 min-h-[calc(100dvh-4rem)] flex flex-col items-center justify-center gap-3 sm:gap-5 text-center">
+        {/* Arabic calligraphy logo — sized off the AVAILABLE HEIGHT (dvh) so it
+            fills the room the constrained hero gives it (much larger than a
+            width-based size on a narrow phone), capped for desktop. max-width
+            keeps the square PNG from ever overflowing a 360px viewport. */}
+        <div className="flex justify-center w-full min-h-0">
+          <ZawaajLogo height={460} style={{ height: 'clamp(150px, 30dvh, 440px)', width: 'auto', maxWidth: '100%' }} />
         </div>
-        <h1 className="text-[2rem] sm:text-5xl md:text-6xl font-bold text-ink leading-tight tracking-tight mb-3">
+        <h1 className="text-[2rem] sm:text-5xl md:text-6xl font-bold text-ink leading-[1.1] tracking-tight">
           A dignified path to<br />
           <span style={{ color: 'var(--gold)' }}>your spouse</span>
         </h1>
-        <p className="text-base text-dim max-w-xl mx-auto leading-relaxed mb-5">
-          Zawaaj is a private, family-aligned matrimonial platform.<br />
-          Every profile is reviewed, every introduction admin-verified.<br />
-          No direct messaging or casual chatting. No time-wasting.<br />
-          Just a proper, family-led process.
+        <p className="text-sm sm:text-base text-dim max-w-xl mx-auto leading-relaxed">
+          Zawaaj is a private, family-aligned matrimonial platform. Every profile is reviewed,
+          every introduction admin-verified. No direct messaging or casual chatting — just a
+          proper, family-led process.
         </p>
-        <div className="flex flex-col sm:flex-row gap-3 justify-center mb-4">
+        <div className="flex flex-col sm:flex-row gap-3 justify-center w-full sm:w-auto">
           {isLoggedIn ? (
             <Link href="/browse" className="w-full sm:w-auto px-8 py-3.5 rounded-xl text-sm font-semibold bg-gold text-black hover:bg-[var(--gold-hover)] transition-colors">
               Browse profiles →
@@ -591,7 +594,7 @@ export default function LandingPage({ isLoggedIn = false, featuredEvents = [] }:
       {/* ── Quranic ayah ── */}
       <section style={{ background: 'var(--gold-muted)', borderTop: '0.5px solid var(--border-gold)', borderBottom: '0.5px solid var(--border-gold)' }}>
         <div className="max-w-3xl mx-auto px-4 md:px-6 py-10 md:py-20 text-center flex flex-col items-center gap-6">
-          <p dir="rtl" lang="ar" style={{ fontFamily: 'var(--font-amiri, Georgia, serif)', fontSize: 'clamp(1.35rem, 3vw, 1.95rem)', lineHeight: 2, color: 'var(--gold)', fontWeight: 400, letterSpacing: '0.01em' }}>
+          <p dir="rtl" lang="ar" style={{ fontFamily: 'var(--font-amiri, Georgia, serif)', fontSize: 'clamp(1.1rem, 4.6vw, 1.9rem)', lineHeight: 2.1, color: 'var(--gold)', fontWeight: 400, maxWidth: '100%', overflowWrap: 'break-word' }}>
             وَمِنۡ اٰيٰتِهٖۤ اَنۡ خَلَقَ لَكُمۡ مِّنۡ اَنۡفُسِكُمۡ اَزۡوَاجًا لِّتَسۡكُنُوۡۤا اِلَيۡهَا وَجَعَلَ بَيۡنَكُمۡ مَّوَدَّةً وَّرَحۡمَةً ؕ اِنَّ فِىۡ ذٰلِكَ لَاٰيٰتٍ لِّقَوۡمٍ يَّتَفَكَّرُوۡنَ ٢١
           </p>
           <div style={{ width: 40, height: 1, background: 'var(--border-gold)', flexShrink: 0 }} />
