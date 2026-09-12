@@ -53,7 +53,7 @@ export default async function UpgradePage() {
         shortlistCount={shortlistCount ?? 0}
         introRequestsCount={introCount ?? 0}
       />
-      <main style={{ flex: 1, marginLeft: 240 }}>
+      <main className="member-main" style={{ flex: 1 }}>
         <UpgradeClient currentPlan={currentPlan} profileId={profileId} />
       </main>
     </div>

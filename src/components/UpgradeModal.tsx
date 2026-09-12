@@ -146,7 +146,7 @@ export default function UpgradeModal({ trigger, onClose }: UpgradeModalProps) {
                   {annual && p.monthly > 0 && (
                     <p style={{ fontSize: 10, color: 'var(--gold)' }}>
                       {p.key === 'premium' && pv.discounted
-                        ? <>£{pv.annualPerYr.now}/yr · <span style={{ textDecoration: 'line-through', opacity: 0.6 }}>£{pv.annualPerYr.full}</span></>
+                        ? <>£{pv.annualPerYr.now}/yr <span style={{ color: 'var(--text-muted)' }}>(was £{pv.annualPerYr.full})</span></>
                         : <>£{p.annual * 12}/yr</>}
                     </p>
                   )}

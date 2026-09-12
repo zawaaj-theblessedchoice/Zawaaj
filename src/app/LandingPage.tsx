@@ -207,12 +207,12 @@ function PlanCard({ plan, annual, isLoggedIn }: { plan: typeof PLANS[number]; an
           )}
         </div>
         {struck && (
-          <span className="mt-1 inline-block text-xs text-gold font-bold">{pv.badge}</span>
+          <span className="mt-1 block text-xs text-gold font-bold">{pv.badge}</span>
         )}
         {saving && (
-          <span className="mt-1 inline-block text-xs text-gold font-medium">
+          <span className="mt-0.5 block text-xs text-gold font-medium">
             {isPremium && pv.discounted
-              ? <>£{pv.annualPerYr.now}/yr · <span className="line-through opacity-60">£{pv.annualPerYr.full}</span></>
+              ? <>£{pv.annualPerYr.now}/yr <span className="text-muted">(was £{pv.annualPerYr.full})</span></>
               : <>Save 20% · £{plan.annual * 12}/yr</>}
           </span>
         )}
@@ -409,7 +409,7 @@ export default function LandingPage({ isLoggedIn = false, featuredEvents = [] }:
 
       {/* ── Nav ── logo left | links centre | CTA right */}
       <nav className="sticky top-0 z-50 border-b border-br bg-surface/90 backdrop-blur-md">
-        <div className="max-w-6xl mx-auto px-5 h-16 grid grid-cols-2 md:grid-cols-3 items-center">
+        <div className="max-w-6xl mx-auto px-5 h-16 grid grid-cols-2 lg:grid-cols-3 items-center">
 
           {/* Left — logo only */}
           <div className="flex items-center">
@@ -419,7 +419,7 @@ export default function LandingPage({ isLoggedIn = false, featuredEvents = [] }:
           </div>
 
           {/* Centre — navigation links (desktop) */}
-          <div className="hidden md:flex items-center justify-center gap-5 text-sm text-dim">
+          <div className="hidden lg:flex items-center justify-center gap-5 text-sm text-dim">
             <a href="#how-it-works" className="hover:text-ink transition-colors whitespace-nowrap">How it works</a>
             <a href="#values" className="hover:text-ink transition-colors whitespace-nowrap">Our values</a>
             <a href="#membership" className="hover:text-ink transition-colors whitespace-nowrap">Membership</a>
@@ -433,13 +433,13 @@ export default function LandingPage({ isLoggedIn = false, featuredEvents = [] }:
             {isLoggedIn ? (
               <Link
                 href="/browse"
-                className="hidden md:inline-flex text-sm font-semibold px-5 py-2 rounded-xl transition-colors"
+                className="hidden lg:inline-flex text-sm font-semibold px-5 py-2 rounded-xl transition-colors"
                 style={{ background: 'var(--gold)', color: '#000' }}
               >
                 Browse profiles →
               </Link>
             ) : (
-              <div className="hidden md:flex items-center gap-2">
+              <div className="hidden lg:flex items-center gap-2">
                 <Link
                   href="/login"
                   className="text-sm font-medium px-4 py-2 rounded-xl transition-colors"
@@ -463,7 +463,7 @@ export default function LandingPage({ isLoggedIn = false, featuredEvents = [] }:
             <button
               onClick={() => setMenuOpen(o => !o)}
               aria-label="Menu"
-              className="md:hidden p-2 rounded-lg"
+              className="lg:hidden p-2 rounded-lg"
               style={{ color: 'var(--text-secondary)', background: 'none', border: 'none', cursor: 'pointer' }}
             >
               {menuOpen ? (
@@ -481,7 +481,7 @@ export default function LandingPage({ isLoggedIn = false, featuredEvents = [] }:
         </div>
 
         {/* Mobile menu */}
-        <div className={`md:hidden overflow-hidden transition-all duration-200 ${menuOpen ? 'max-h-96' : 'max-h-0'}`}
+        <div className={`lg:hidden overflow-hidden transition-all duration-200 ${menuOpen ? 'max-h-96' : 'max-h-0'}`}
           style={{ borderTop: menuOpen ? '0.5px solid var(--border-default)' : 'none' }}
         >
           <div className="flex flex-col py-3">
@@ -522,9 +522,10 @@ export default function LandingPage({ isLoggedIn = false, featuredEvents = [] }:
 
       {/* ── Hero ── */}
       <section className="max-w-4xl mx-auto px-4 md:px-5 pt-1 pb-3 md:pt-2 md:pb-4 text-center">
-        {/* Arabic calligraphy logo */}
+        {/* Arabic calligraphy logo — responsive so the square PNG never overflows
+            narrow viewports (was a fixed 400px → horizontal scroll on mobile). */}
         <div className="flex justify-center" style={{ marginBottom: -8 }}>
-          <ZawaajLogo height={400} />
+          <ZawaajLogo height={400} style={{ height: 'clamp(150px, 42vw, 400px)', width: 'auto', maxWidth: '100%' }} />
         </div>
         <h1 className="text-[2rem] sm:text-5xl md:text-6xl font-bold text-ink leading-tight tracking-tight mb-3">
           A dignified path to<br />

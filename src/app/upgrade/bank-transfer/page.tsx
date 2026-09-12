@@ -77,7 +77,7 @@ export default async function BankTransferPage({
         shortlistCount={shortlistCount ?? 0}
         introRequestsCount={introCount ?? 0}
       />
-      <main style={{ flex: 1, marginLeft: 240 }}>
+      <main className="member-main" style={{ flex: 1 }}>
         <BankTransferClient
           initialPlan={initialPlan}
           bankName={bankName}

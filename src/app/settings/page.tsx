@@ -360,7 +360,7 @@ function SettingsContent() {
         introRequestsCount={0}
         profile={profile}
       />
-      <main style={{ marginLeft: 200, flex: 1, padding: '32px 32px 60px', maxWidth: 760 }}>
+      <main className="member-main" style={{ flex: 1, padding: '32px 32px 60px', maxWidth: 760 }}>
         <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>Settings</h1>
         <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 28 }}>Manage your account and membership preferences.</p>
 
@@ -710,7 +710,7 @@ function SettingsContent() {
                           {annual && PLAN_PRICES[p].monthly > 0 && (
                             <p style={{ fontSize: 10, color: 'var(--gold)', marginBottom: 10 }}>
                               {p === 'premium' && pv.discounted
-                                ? <>£{pv.annualPerYr.now}/yr · <span style={{ textDecoration: 'line-through', opacity: 0.6 }}>£{pv.annualPerYr.full}</span></>
+                                ? <>£{pv.annualPerYr.now}/yr <span style={{ color: 'var(--text-muted)' }}>(was £{pv.annualPerYr.full})</span></>
                                 : <>£{PLAN_PRICES[p].annual * 12}/yr · save 20%</>}
                             </p>
                           )}

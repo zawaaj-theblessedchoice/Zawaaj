@@ -165,7 +165,7 @@ function DirectDebitContent() {
         shortlistCount={shortlistCount}
         introRequestsCount={introCount}
       />
-      <main style={{ flex: 1, marginLeft: 240, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px' }}>
+      <main className="member-main" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px' }}>
         <div style={{ maxWidth: 480, width: '100%' }}>
           {/* Header */}
           <div style={{ marginBottom: 32 }}>

@@ -146,7 +146,7 @@ export function UpgradeClient({ currentPlan, profileId: _profileId }: Props) {
             )}
             {billing === 'annual' && (
               <p style={{ fontSize: 11, color: '#B8960C', margin: '4px 0 0' }}>
-                Billed as {pv.discounted && <span style={{ textDecoration: 'line-through', color: 'var(--text-muted)' }}>£{pv.annualPerYr.full}</span>} £{pv.annualPerYr.now}/yr
+                Billed as £{pv.annualPerYr.now}/yr{pv.discounted && <span style={{ color: 'var(--text-muted)' }}> (was £{pv.annualPerYr.full})</span>}
               </p>
             )}
           </div>

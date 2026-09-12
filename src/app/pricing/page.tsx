@@ -144,9 +144,10 @@ export default function PricingPage() {
           </div>
         </div>
 
-        {/* Price header row */}
-        <div className="grid grid-cols-3 gap-4 mb-2 max-w-2xl mx-auto">
-          <div /> {/* feature column spacer */}
+        {/* Price header row — 2-up on mobile (cards fill width), 3-col on sm+ so the
+            cards align over the free/premium columns of the comparison table. */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 mb-2 max-w-2xl mx-auto">
+          <div className="hidden sm:block" /> {/* feature column spacer (desktop only) */}
           {plans.map(p => {
             const fullPrice = annual ? p.annual : p.monthly
             const price = p.premium ? (annual ? pv.annualPerMo.now : pv.monthly.now) : fullPrice
@@ -182,7 +183,7 @@ export default function PricingPage() {
                 {annual && p.monthly > 0 && (
                   <p className="text-xs text-gold mt-1">
                     {p.premium && pv.discounted
-                      ? <>£{pv.annualPerYr.now}/yr · <span className="line-through opacity-60">£{pv.annualPerYr.full}</span></>
+                      ? <>£{pv.annualPerYr.now}/yr <span className="text-white/40">(was £{pv.annualPerYr.full})</span></>
                       : <>£{p.annual * 12}/yr · save 20%</>}
                   </p>
                 )}

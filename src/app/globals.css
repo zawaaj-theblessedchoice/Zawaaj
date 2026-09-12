@@ -217,6 +217,21 @@ input:focus, textarea:focus, select:focus {
   .browse-main { margin-left: 180px !important; }
 }
 
+/* Generic member content pane (settings, upgrade, DD): offsets the fixed 200px
+   sidebar on desktop, narrows on tablet, and goes full-width on mobile where the
+   sidebar is a slide-in drawer. Prevents content being pushed off-screen. */
+.member-main { margin-left: 200px; }
+@media (min-width: 768px) and (max-width: 1024px) {
+  .member-main { margin-left: 180px !important; }
+}
+@media (max-width: 767px) {
+  .member-main {
+    margin-left: 0 !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+}
+
 /* Bottom nav: only visible on mobile */
 .bottom-nav-bar { display: none; }
 @media (max-width: 767px) {
