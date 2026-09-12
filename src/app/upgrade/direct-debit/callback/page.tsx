@@ -73,11 +73,15 @@ function CallbackContent() {
           <>
             <div style={{ fontSize: 40, marginBottom: 16 }}>✅</div>
             <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 10px' }}>
-              Direct Debit set up successfully
+              Premium is active — welcome
             </h2>
-            <p style={{ fontSize: 14, color: 'var(--text-secondary)', margin: '0 0 24px', lineHeight: 1.6 }}>
-              Your Premium membership will activate once your first payment clears — usually 1–3 working
-              days. We&rsquo;ll email you when it&rsquo;s active. There&rsquo;s nothing more you need to do.
+            <p style={{ fontSize: 14, color: 'var(--text-secondary)', margin: '0 0 12px', lineHeight: 1.6 }}>
+              Your Direct Debit is set up and your Premium membership is active right now — you have full
+              access straightaway.
+            </p>
+            <p style={{ fontSize: 12.5, color: 'var(--text-muted)', margin: '0 0 24px', lineHeight: 1.55 }}>
+              Your first payment is processing in the background; continued access depends on your Direct
+              Debit being honoured. We&rsquo;ll email you if there&rsquo;s ever an issue.
             </p>
             <button
               onClick={() => router.push('/settings?tab=membership')}

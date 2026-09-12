@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/expire-intros",
       "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron/subscription-grace",
+      "schedule": "0 3 * * *"
     }
   ]
 }

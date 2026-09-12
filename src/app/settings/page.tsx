@@ -51,6 +51,8 @@ interface Subscription {
   // Used to reproduce the grandfathered launch-discount price for existing subs.
   created_at: string | null
   billing_cycle: string | null
+  // True while Premium is provisional (DD set up, first payment not yet confirmed).
+  is_provisional: boolean | null
 }
 
 const PLAN_COLORS: Record<Plan, string> = {
@@ -202,14 +204,14 @@ function SettingsContent() {
       // Load subscription (include GoCardless fields)
       const { data: subData } = await supabase
         .from('zawaaj_subscriptions')
-        .select('plan, status, current_period_end, cancel_at_period_end, payment_provider, renewal_at, created_at, billing_cycle')
+        .select('plan, status, current_period_end, cancel_at_period_end, payment_provider, renewal_at, created_at, billing_cycle, is_provisional')
         .eq('user_id', user.id)
         .in('status', ['active', 'pending', 'past_due', 'cancelled'])
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle()
 
-      setSub(subData ?? { plan: 'free', status: 'active', current_period_end: null, cancel_at_period_end: false, payment_provider: null, renewal_at: null, created_at: null, billing_cycle: null })
+      setSub(subData ?? { plan: 'free', status: 'active', current_period_end: null, cancel_at_period_end: false, payment_provider: null, renewal_at: null, created_at: null, billing_cycle: null, is_provisional: null })
 
       // Check if this user is a candidate (has a family account via their profile but is NOT the rep)
       if (settings?.active_profile_id) {
@@ -259,9 +261,10 @@ function SettingsContent() {
 
   const currentPlan: Plan = (sub?.plan as Plan) ?? 'free'
   const isPaid = currentPlan !== 'free'
-  // Direct Debit set up but the first payment hasn't cleared yet — Premium is not
-  // active. Show a clear "set up, payment pending" state so it doesn't look failed.
-  const isPendingActivation = sub?.status === 'pending' && currentPlan !== 'free'
+  // Premium is granted immediately on DD setup as PROVISIONAL (full access now);
+  // the first payment confirms it. Show a positive "active now" note during this
+  // window rather than implying access is pending.
+  const isProvisional = sub?.is_provisional === true && currentPlan !== 'free'
 
   function startCheckout(plan: 'plus' | 'premium') {
     setCheckoutLoading(plan)
@@ -447,8 +450,8 @@ function SettingsContent() {
               <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Loading…</p>
             ) : (
               <>
-                {/* Direct Debit set up — awaiting first payment (Premium not yet active) */}
-                {isPendingActivation && (
+                {/* Provisional Premium — full access now, first payment processing */}
+                {isProvisional && (
                   <div style={{
                     background: 'var(--gold-muted)',
                     border: '0.5px solid var(--border-gold)',
@@ -462,11 +465,11 @@ function SettingsContent() {
                     <span style={{ fontSize: 20, lineHeight: 1, flexShrink: 0 }}>✅</span>
                     <div>
                       <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 4px' }}>
-                        Direct Debit set up — payment pending
+                        Premium is active
                       </p>
                       <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.55 }}>
-                        Your Premium membership will activate once your first payment clears — usually within
-                        1–3 working days. Nothing more to do; we&rsquo;ll email you when it&rsquo;s active.
+                        You have full Premium access right now. Your first Direct Debit payment is processing —
+                        continued access depends on it being honoured. Nothing more to do.
                       </p>
                     </div>
                   </div>
@@ -493,11 +496,11 @@ function SettingsContent() {
                           <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 500 }}>Current plan</p>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
                             <PlanBadge plan={currentPlan} />
-                            {sub?.status === 'active' && isPaid && (
+                            {sub?.status === 'active' && isPaid && !isProvisional && (
                               <span style={{ fontSize: 11, color: 'var(--status-success)' }}>● Active</span>
                             )}
-                            {sub?.status === 'pending' && isPaid && (
-                              <span style={{ fontSize: 11, color: '#fbbf24' }}>● Pending</span>
+                            {isProvisional && (
+                              <span style={{ fontSize: 11, color: '#fbbf24' }}>● Active · confirming payment</span>
                             )}
                             {sub?.status === 'past_due' && (
                               <span style={{ fontSize: 11, color: 'var(--status-error)' }}>● Payment due</span>

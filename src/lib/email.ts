@@ -16,6 +16,10 @@ interface SendEmailResult {
 // Sender address. Override via RESEND_FROM if the verified domain differs.
 const FROM_ADDRESS = process.env.RESEND_FROM ?? 'Zawaaj <noreply@zawaaj.uk>'
 
+// Founder / ops inbox — receives membership + revocation alerts so Khalil has
+// full visibility of the subscription lifecycle without manual monitoring.
+export const FOUNDER_EMAIL = 'zawaaj.theblessedchoice@gmail.com'
+
 export async function sendEmail({ to, subject, html }: SendEmailOptions): Promise<SendEmailResult> {
   const apiKey = process.env.RESEND_API_KEY
   if (!apiKey) {
@@ -562,6 +566,28 @@ function gcEmailWrapper(title: string, bodyHtml: string): string {
 </html>`
 }
 
+/**
+ * Internal ops alert to the founder — information-dense, not member-facing.
+ * `rows` are the identifying facts; `actionTaken` states what the system did.
+ */
+export function founderAlertTemplate(
+  heading: string,
+  rows: { label: string; value: string }[],
+  actionTaken: string,
+): string {
+  const rowsHtml = rows.map(r => `
+    <tr>
+      <td style="padding:4px 14px 4px 0;font-size:13px;color:#9ca3af;white-space:nowrap;vertical-align:top;">${r.label}</td>
+      <td style="padding:4px 0;font-size:13px;color:#e5e7eb;font-weight:500;">${r.value}</td>
+    </tr>`).join('')
+  const body = `
+    <h1 style="margin:0 0 16px;font-size:18px;font-weight:600;color:#ffffff;">${heading}</h1>
+    <table cellpadding="0" cellspacing="0" style="margin:0 0 20px;width:100%;">${rowsHtml}</table>
+    <p style="margin:0 0 4px;font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:0.06em;">Action taken</p>
+    <p style="margin:0;font-size:14px;color:#e5e7eb;line-height:1.6;">${actionTaken}</p>`
+  return gcEmailWrapper('Membership alert', body)
+}
+
 function fmtDate(d: string | null | undefined): string {
   if (!d) return 'a future date'
   return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -599,6 +625,9 @@ export function premiumActivatedTemplate(
     </ul>
     ${priceLine}
     ${renewalLine}
+    <p style="margin:0 0 16px;font-size:12px;color:#6b7280;line-height:1.6;">
+      Your access starts now. Continued access depends on your Direct Debit being honoured — if a payment can&rsquo;t be collected we&rsquo;ll let you know.
+    </p>
     <a href="https://zawaaj.uk/settings?tab=membership"
       style="display:inline-block;padding:12px 28px;background:#B8960C;color:#111111;font-size:14px;font-weight:600;text-decoration:none;border-radius:10px;margin-bottom:20px;">
       View membership settings

@@ -114,7 +114,13 @@ export async function POST(req: Request) {
         family_account_id: familyAccountId,
         user_id: user.id,
         plan: 'premium',
-        status: 'pending',  // → 'active' on first payment_confirmed webhook
+        // Instant access: PROVISIONAL Premium is granted immediately (status
+        // 'active' so all entitlement checks pass right away) and marked
+        // is_provisional. The first payment_confirmed webhook clears the flag;
+        // the grace-period cron downgrades it if no payment confirms in time.
+        status: 'active',
+        is_provisional: true,
+        granted_at: new Date().toISOString(),
         payment_provider: 'gocardless',
         gocardless_customer_id: customerId,
         gocardless_mandate_id: mandateId,
@@ -127,13 +133,13 @@ export async function POST(req: Request) {
         onConflict: 'family_account_id',
       })
 
-    // Update family account
+    // Update family account — Premium is live immediately (provisional).
     await supabaseAdmin
       .from('zawaaj_family_accounts')
       .update({
         plan: 'premium',
         subscription_source: 'gocardless',
-        subscription_status: 'pending',
+        subscription_status: 'active',
         renewal_date: nextChargeDate,
       })
       .eq('id', familyAccountId)
@@ -143,7 +149,7 @@ export async function POST(req: Request) {
       const recipientName = fam.contact_full_name?.split(' ')[0] ?? 'there'
       await sendEmail({
         to: fam.contact_email,
-        subject: 'Your Zawaaj Premium Direct Debit is set up',
+        subject: 'Your Zawaaj Premium is active',
         html: premiumActivatedTemplate(recipientName, nextChargeDate, billingCycle, chargeAmount / 100),
       })
     }
