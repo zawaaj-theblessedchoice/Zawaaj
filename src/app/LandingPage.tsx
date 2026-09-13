@@ -529,7 +529,7 @@ export default function LandingPage({ isLoggedIn = false, featuredEvents = [] }:
             width-based size on a narrow phone), capped for desktop. max-width
             keeps the square PNG from ever overflowing a 360px viewport. */}
         <div className="flex justify-center w-full min-h-0">
-          <ZawaajLogo height={460} style={{ height: 'clamp(150px, 30dvh, 440px)', width: 'auto', maxWidth: '100%' }} />
+          <ZawaajLogo height={460} style={{ height: 'clamp(150px, 38dvh, 440px)', width: 'auto', maxWidth: '100%' }} />
         </div>
         <h1 className="text-[2rem] sm:text-5xl md:text-6xl font-bold text-ink leading-[1.1] tracking-tight">
           A dignified path to<br />
