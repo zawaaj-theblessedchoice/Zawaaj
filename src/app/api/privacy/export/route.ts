@@ -103,7 +103,7 @@ export async function POST(request: Request): Promise<Response> {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          from: 'Zawaaj Privacy <info@ingeniouseducation.uk>',
+          from: 'Zawaaj Privacy <privacy@zawaaj.uk>',
           to: [user.email!],
           subject: 'Your Zawaaj data export — Article 15 UK GDPR',
           html: dataExportEmailTemplate(user.email!),
