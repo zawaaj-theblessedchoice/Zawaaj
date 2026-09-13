@@ -245,7 +245,7 @@ export default function RightsClient({ userEmail, firstName, profileStatus, init
             </div>
 
             <p style={{ fontSize: 11, color: '#4b5563', lineHeight: 1.6, marginTop: 4 }}>
-              We will respond to all requests within 30 calendar days. For questions: <a href="mailto:privacy@ingenious-education.co.uk" style={{ color: '#6b7280' }}>privacy@ingenious-education.co.uk</a> ·{' '}
+              We will respond to all requests within 30 calendar days. For questions: <a href="mailto:info@ingeniouseducation.uk" style={{ color: '#6b7280' }}>info@ingeniouseducation.uk</a> ·{' '}
               <Link href="/privacy" style={{ color: '#6b7280' }}>Privacy Policy</Link> ·{' '}
               <a href="https://ico.org.uk" target="_blank" rel="noopener noreferrer" style={{ color: '#6b7280' }}>ICO</a>
             </p>
@@ -336,7 +336,7 @@ export default function RightsClient({ userEmail, firstName, profileStatus, init
                   A deletion request is already pending. Check your email for the cancellation link if you changed your mind.
                 </p>
                 <p style={{ fontSize: 12, color: '#6b7280', marginTop: 8 }}>
-                  Contact <a href="mailto:privacy@zawaaj.uk" style={{ color: '#9ca3af' }}>privacy@zawaaj.uk</a> if you did not submit this request.
+                  Contact <a href="mailto:info@ingeniouseducation.uk" style={{ color: '#9ca3af' }}>info@ingeniouseducation.uk</a> if you did not submit this request.
                 </p>
               </div>
             ) : (
@@ -348,7 +348,7 @@ export default function RightsClient({ userEmail, firstName, profileStatus, init
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                   <div>
-                    <label style={labelStyle}>Type "DELETE MY ACCOUNT" to confirm</label>
+                    <label style={labelStyle}>Type &quot;DELETE MY ACCOUNT&quot; to confirm</label>
                     <input
                       style={{ ...inputStyle, borderColor: erasePhrase && erasePhrase !== 'DELETE MY ACCOUNT' ? 'rgba(239,68,68,0.5)' : 'rgba(255,255,255,0.12)' }}
                       value={erasePhrase}
@@ -419,7 +419,7 @@ export default function RightsClient({ userEmail, firstName, profileStatus, init
         <div style={{ marginTop: 40, paddingTop: 20, borderTop: '0.5px solid rgba(255,255,255,0.08)', display: 'flex', gap: 20, flexWrap: 'wrap' }}>
           <Link href="/privacy" style={{ fontSize: 12, color: '#4b5563', textDecoration: 'none' }}>Privacy Policy</Link>
           <Link href="/terms" style={{ fontSize: 12, color: '#4b5563', textDecoration: 'none' }}>Terms & Conditions</Link>
-          <a href="mailto:privacy@ingenious-education.co.uk" style={{ fontSize: 12, color: '#4b5563', textDecoration: 'none' }}>Controller contact</a>
+          <a href="mailto:info@ingeniouseducation.uk" style={{ fontSize: 12, color: '#4b5563', textDecoration: 'none' }}>Controller contact</a>
           <a href="https://ico.org.uk" target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: '#4b5563', textDecoration: 'none' }}>ICO</a>
         </div>
       </div>

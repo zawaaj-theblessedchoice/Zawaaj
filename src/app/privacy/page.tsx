@@ -7,7 +7,7 @@ const SECTIONS = [
   {
     number: '1.',
     title: 'Who We Are',
-    body: `Zawaaj (zawaaj.uk) is a private Muslim matrimonial platform. Your personal data is controlled by Ingenious Education Ltd ("the Controller"), and processed by Zawaaj ("the Processor") on the Controller's instructions.\n\nData Controller: Ingenious Education Ltd · privacy@ingenious-education.co.uk\nData Processor: Zawaaj · privacy@zawaaj.uk\n\nFor all data protection matters, contact: privacy@ingenious-education.co.uk`,
+    body: `Zawaaj (zawaaj.uk) is a private Muslim matrimonial platform. Your personal data is controlled by Ingenious Education Ltd ("the Controller"), and processed by Zawaaj ("the Processor") on the Controller's instructions.\n\nData Controller: Ingenious Education Ltd · info@ingeniouseducation.uk\nData Processor: Zawaaj · info@ingeniouseducation.uk\n\nFor all data protection matters, contact: info@ingeniouseducation.uk`,
   },
   {
     number: '2.',
@@ -94,8 +94,8 @@ export default function PrivacyPage() {
             how long it is kept, and what your rights are. Zawaaj processes your data as a
             Data Processor on behalf of <strong style={{ color: '#fff' }}>Ingenious Education Ltd</strong>,
             who is the Data Controller. For all privacy matters, contact{' '}
-            <a href="mailto:privacy@ingenious-education.co.uk" style={{ color: '#B8960C' }}>
-              privacy@ingenious-education.co.uk
+            <a href="mailto:info@ingeniouseducation.uk" style={{ color: '#B8960C' }}>
+              info@ingeniouseducation.uk
             </a>.
           </p>
         </div>
@@ -160,7 +160,7 @@ export default function PrivacyPage() {
           <Link href="/terms" style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, textDecoration: 'none' }}>
             Terms &amp; Conditions
           </Link>
-          <a href="mailto:privacy@zawaaj.uk" style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, textDecoration: 'none' }}>
+          <a href="mailto:info@ingeniouseducation.uk" style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, textDecoration: 'none' }}>
             Contact
           </a>
         </div>

@@ -103,7 +103,7 @@ export async function POST(request: Request): Promise<Response> {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          from: 'Zawaaj Privacy <privacy@zawaaj.uk>',
+          from: 'Zawaaj Privacy <info@ingeniouseducation.uk>',
           to: [user.email!],
           subject: 'Your Zawaaj data export — Article 15 UK GDPR',
           html: dataExportEmailTemplate(user.email!),
@@ -114,7 +114,7 @@ export async function POST(request: Request): Promise<Response> {
 
     // Notify controller
     await sendEmail({
-      to: 'privacy@ingenious-education.co.uk',
+      to: 'info@ingeniouseducation.uk',
       subject: `[Zawaaj DSR] Article 15 access request — ${new Date().toISOString()}`,
       html: `<p>A data subject access request was submitted and fulfilled.<br>Request ID: ${req.id}<br>Subject email: ${user.email}</p>`,
     }).catch(() => {})
@@ -141,6 +141,6 @@ function dataExportEmailTemplate(email: string): string {
 <p style="color:#B8960C;font-size:20px;font-weight:700;margin:0 0 20px">Zawaaj — Your Data Export</p>
 <p style="color:#d1d5db;font-size:14px;line-height:1.6">Your personal data export is attached to this email as <strong>zawaaj-data-export.json</strong>.</p>
 <p style="color:#d1d5db;font-size:14px;line-height:1.6">This export contains all personal data held by Zawaaj on behalf of Ingenious Education Ltd (Data Controller) in relation to the account registered under <strong>${email}</strong>.</p>
-<p style="color:#9ca3af;font-size:12px;line-height:1.6;margin-top:24px">Data Controller: Ingenious Education Ltd · privacy@ingenious-education.co.uk<br>Data Processor: Zawaaj · privacy@zawaaj.uk<br>Request fulfilled under Article 15 UK GDPR</p>
+<p style="color:#9ca3af;font-size:12px;line-height:1.6;margin-top:24px">Data Controller: Ingenious Education Ltd · info@ingeniouseducation.uk<br>Data Processor: Zawaaj · info@ingeniouseducation.uk<br>Request fulfilled under Article 15 UK GDPR</p>
 </div></body></html>`
 }

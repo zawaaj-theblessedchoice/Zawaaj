@@ -70,7 +70,7 @@ export async function POST(request: Request): Promise<Response> {
 
     // Notify controller
     await sendEmail({
-      to: 'privacy@ingenious-education.co.uk',
+      to: 'info@ingeniouseducation.uk',
       subject: `[Zawaaj DSR] Article 16 rectification request — ${body.field_name}`,
       html: `<p>A rectification request has been submitted.<br>Request ID: ${req.id}<br>Subject email: ${user.email}<br>Field: ${body.field_name}<br>Current value: ${body.current_value ?? 'not provided'}<br>Requested value: ${body.requested_value}<br>Note: ${body.supporting_note ?? 'none'}</p><p>Statutory deadline: ${new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-GB')}</p>`,
     }).catch(() => {})

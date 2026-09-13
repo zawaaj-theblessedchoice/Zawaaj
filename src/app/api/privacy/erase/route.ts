@@ -84,7 +84,7 @@ export async function POST(request: Request): Promise<Response> {
 
     // Notify controller
     await sendEmail({
-      to: 'privacy@ingenious-education.co.uk',
+      to: 'info@ingeniouseducation.uk',
       subject: `[Zawaaj DSR] Article 17 erasure request — execution scheduled ${executeAt}`,
       html: `<p>An erasure request has been submitted.<br>Request ID: ${req.id}<br>Subject email: ${user.email}<br>Scheduled execution: ${new Date(executeAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</p>`,
     }).catch(() => {})
@@ -109,6 +109,6 @@ function erasureConfirmationEmail(email: string, executeAt: string, cancellation
 <p style="color:#d1d5db;font-size:14px;line-height:1.6">Your profile has been removed from the member directory immediately. Your account data will be permanently deleted on <strong>${executeDate}</strong>.</p>
 <p style="color:#d1d5db;font-size:14px;line-height:1.6">If you submitted this request by mistake, you can cancel it by clicking below before that date:</p>
 <a href="${cancellationUrl}" style="display:inline-block;margin:16px 0;padding:12px 24px;background:#B8960C;color:#111;font-weight:700;font-size:14px;border-radius:8px;text-decoration:none">Cancel deletion →</a>
-<p style="color:#9ca3af;font-size:12px;line-height:1.6;margin-top:24px">If you did not submit this request, contact us immediately at privacy@zawaaj.uk.<br><br>Data Controller: Ingenious Education Ltd · privacy@ingenious-education.co.uk<br>Data Processor: Zawaaj · privacy@zawaaj.uk</p>
+<p style="color:#9ca3af;font-size:12px;line-height:1.6;margin-top:24px">If you did not submit this request, contact us immediately at info@ingeniouseducation.uk.<br><br>Data Controller: Ingenious Education Ltd · info@ingeniouseducation.uk<br>Data Processor: Zawaaj · info@ingeniouseducation.uk</p>
 </div></body></html>`
 }
