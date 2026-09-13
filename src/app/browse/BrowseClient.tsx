@@ -15,6 +15,7 @@ import { scoreCompatibility } from '@/lib/compatibility'
 import { getPlanConfig } from '@/lib/plan-config'
 import type { Plan } from '@/lib/plan-config'
 import { getRecommendations, EXCLUSION_STATUSES, TOP_PICKS_COUNT } from '@/lib/recommendations'
+import { applyBoostRanking, pickSpotlight, BOOST_SPOTLIGHT_ENABLED } from '@/lib/boostSpotlight'
 import { EMPTY_FILTERS } from '@/lib/filter-types'
 import type { FilterState, MustHaveableKey } from '@/lib/filter-types'
 
@@ -67,6 +68,8 @@ export interface BrowseClientProps {
    * shortlisting is allowed but expressing interest is blocked until a representative joins.
    */
   familyReadinessState?: string | null
+  /** Per-request seed used to fairly rotate boosted/spotlighted profiles. */
+  rotationSeed?: number
 }
 
 // FilterState, MustHaveableKey, and EMPTY_FILTERS are imported from '@/lib/filter-types'
@@ -730,6 +733,7 @@ export default function BrowseClient({
   activeLimit = null,
   initialFilters = null,
   familyReadinessState = null,
+  rotationSeed = 0,
 }: BrowseClientProps) {
   const planConfig = getPlanConfig((plan ?? 'free') as Plan)
   const canFilter      = planConfig.advancedFilters   // false for Free
@@ -942,9 +946,13 @@ export default function BrowseClient({
 
   const sortedAndFiltered = useMemo(() => {
     const filtered = applyFilters(applySearch(tabProfiles))
-    return applySort(filtered, effectiveSortKey)
+    const sorted = applySort(filtered, effectiveSortKey)
+    // Boost ranking runs LAST, on the fully-filtered+sorted list. When the feature
+    // is disabled (dark) or no profile is actively boosted it returns `sorted`
+    // unchanged (same reference) — so browse order is byte-identical to today.
+    return applyBoostRanking(sorted, { enabled: BOOST_SPOTLIGHT_ENABLED, rotationSeed })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tabProfiles, appliedFilters, searchQuery, effectiveSortKey])
+  }, [tabProfiles, appliedFilters, searchQuery, effectiveSortKey, rotationSeed])
 
   // Reset pagination when filters/tab/search/sort change
   useEffect(() => {
@@ -952,6 +960,14 @@ export default function BrowseClient({
   }, [activeTab, appliedFilters, searchQuery, effectiveSortKey])
 
   const displayedProfiles = sortedAndFiltered.slice(0, visibleCount)
+
+  // Spotlight — one profile in a dedicated slot above the grid, rotating fairly
+  // between all active spotlights. Null when the feature is disabled or nothing
+  // is spotlighted, so no slot renders (dark = no change).
+  const spotlightProfile = useMemo(
+    () => pickSpotlight(profiles, { enabled: BOOST_SPOTLIGHT_ENABLED, rotationSeed }),
+    [profiles, rotationSeed],
+  )
 
   const showCompatBar = activeTab === 'recommended' || activeTab === 'all'
 
@@ -2224,6 +2240,29 @@ export default function BrowseClient({
                   {activeTab === 'shortlist'
                     ? 'Browse profiles and tap the heart icon to save them to your shortlist.'
                     : 'Try adjusting your filters or search to see more profiles.'}
+                </div>
+              </div>
+            )}
+
+            {/* Spotlight slot — a distinct position above the grid, NOT mixed into
+                the ranked list. One profile at a time, rotating between active
+                spotlights. Renders only when the feature is on and one is active. */}
+            {BOOST_SPOTLIGHT_ENABLED && spotlightProfile && activeTab === 'all' && (
+              <div style={{ marginBottom: 20 }}>
+                <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--gold)', margin: '0 0 8px', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span aria-hidden>✨</span> Spotlight
+                </p>
+                <div style={{ border: '1px solid var(--border-gold)', borderRadius: 16, padding: 10, background: 'var(--gold-muted)', maxWidth: 260 }}>
+                  <ProfileCard
+                    profile={spotlightProfile}
+                    isNew={false}
+                    isSaved={savedIds.has(spotlightProfile.id)}
+                    introStatus={getIntroStatus(spotlightProfile.id)}
+                    score={compatScores.get(spotlightProfile.id) ?? 0}
+                    showCompatBar={false}
+                    onOpen={() => { setOpenProfileId(spotlightProfile.id); recordProfileView(spotlightProfile.id) }}
+                    onToggleSave={() => handleToggleSave(spotlightProfile.id)}
+                  />
                 </div>
               </div>
             )}

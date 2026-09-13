@@ -12,6 +12,9 @@ import type { Plan } from '@/lib/plan-config'
 
 export interface ProfileRecord {
   id: string
+  // Boost/Spotlight (optional — populated only when the feature is enabled).
+  boosted_until?: string | null
+  spotlighted_until?: string | null
   display_initials: string
   first_name: string | null
   last_name: string | null

@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import Sidebar from '@/components/Sidebar'
 import { PLAN_LABELS, PLAN_PRICES, PLAN_CONFIG } from '@/lib/plan-config'
 import { premiumPriceView, premiumPricePounds, type BillingCycle } from '@/lib/launchDiscount'
+import { BOOST_SPOTLIGHT_ENABLED } from '@/lib/boostSpotlight'
 import { planDisplayName } from '@/lib/zawaaj/planDisplayName'
 
 type Plan = 'free' | 'plus' | 'premium'
@@ -109,6 +110,11 @@ function SettingsContent() {
   const [tab, setTab] = useState<Tab>((searchParams.get('tab') as Tab) ?? 'membership')
   const [sub, setSub] = useState<Subscription | null>(null)
   const [loading, setLoading] = useState(true)
+  // Boost/Spotlight (feature-flagged; null until fetched / when disabled)
+  type BoostSlot = { allowance: number; used: number; remaining: number; activeUntil: string | null }
+  const [boostStatus, setBoostStatus] = useState<{ boost: BoostSlot | null; spotlight: BoostSlot | null } | null>(null)
+  const [boostBusy, setBoostBusy] = useState<'boost' | 'spotlight' | null>(null)
+  const [boostMsg, setBoostMsg] = useState<string | null>(null)
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)
   const [checkoutError, setCheckoutError] = useState<string | null>(null)
 
@@ -265,6 +271,32 @@ function SettingsContent() {
   // the first payment confirms it. Show a positive "active now" note during this
   // window rather than implying access is pending.
   const isProvisional = sub?.is_provisional === true && currentPlan !== 'free'
+
+  async function refreshBoostStatus() {
+    if (!BOOST_SPOTLIGHT_ENABLED) return
+    try {
+      const res = await fetch('/api/boost/status')
+      const data = await res.json()
+      if (data?.enabled) setBoostStatus({ boost: data.boost ?? null, spotlight: data.spotlight ?? null })
+    } catch { /* ignore */ }
+  }
+  useEffect(() => { void refreshBoostStatus() }, [])
+
+  async function grantBoost(kind: 'boost' | 'spotlight') {
+    setBoostBusy(kind)
+    setBoostMsg(null)
+    try {
+      const res = await fetch(kind === 'boost' ? '/api/boost' : '/api/spotlight', { method: 'POST' })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) { setBoostMsg(data?.error ?? 'Something went wrong — please try again.'); return }
+      setBoostMsg(kind === 'boost' ? 'Your profile is boosted for 48 hours.' : 'Your profile is spotlighted.')
+      await refreshBoostStatus()
+    } catch {
+      setBoostMsg('Something went wrong — please try again.')
+    } finally {
+      setBoostBusy(null)
+    }
+  }
 
   function startCheckout(plan: 'plus' | 'premium') {
     setCheckoutLoading(plan)
@@ -641,6 +673,57 @@ function SettingsContent() {
                     </div>
                   )
                 })()}
+
+                {/* Boost & Spotlight — feature-flagged; hidden entirely when the
+                    feature is off or the plan includes no allowance. */}
+                {BOOST_SPOTLIGHT_ENABLED && boostStatus && ((boostStatus.boost?.allowance ?? 0) > 0 || (boostStatus.spotlight?.allowance ?? 0) > 0) && (
+                  <div style={{ marginTop: 20, background: 'var(--surface-2)', border: '0.5px solid var(--border-default)', borderRadius: 16, padding: 20 }}>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 4px' }}>Visibility</p>
+                    <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: '0 0 16px', lineHeight: 1.5 }}>
+                      Lift your profile in browse. Allowances reset at the start of each month.
+                    </p>
+
+                    {boostStatus.boost && boostStatus.boost.allowance > 0 && (
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: boostStatus.spotlight && boostStatus.spotlight.allowance > 0 ? 14 : 0 }}>
+                        <div>
+                          <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 2px' }}>🚀 Profile boost</p>
+                          <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>
+                            {boostStatus.boost.remaining} of {boostStatus.boost.allowance} left this month
+                            {boostStatus.boost.activeUntil && ` · active until ${new Date(boostStatus.boost.activeUntil).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}`}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => grantBoost('boost')}
+                          disabled={boostBusy !== null || boostStatus.boost.remaining <= 0 || !!boostStatus.boost.activeUntil}
+                          style={{ flexShrink: 0, padding: '8px 16px', borderRadius: 9, fontSize: 12, fontWeight: 600, border: 'none', background: (boostBusy || boostStatus.boost.remaining <= 0 || boostStatus.boost.activeUntil) ? 'var(--surface-3)' : 'var(--gold)', color: (boostBusy || boostStatus.boost.remaining <= 0 || boostStatus.boost.activeUntil) ? 'var(--text-muted)' : 'var(--surface)', cursor: (boostBusy || boostStatus.boost.remaining <= 0 || boostStatus.boost.activeUntil) ? 'not-allowed' : 'pointer' }}
+                        >
+                          {boostStatus.boost.activeUntil ? 'Active' : boostBusy === 'boost' ? 'Boosting…' : 'Boost'}
+                        </button>
+                      </div>
+                    )}
+
+                    {boostStatus.spotlight && boostStatus.spotlight.allowance > 0 && (
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                        <div>
+                          <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 2px' }}>✨ Spotlight</p>
+                          <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>
+                            {boostStatus.spotlight.remaining} of {boostStatus.spotlight.allowance} left this month
+                            {boostStatus.spotlight.activeUntil && ` · active until ${new Date(boostStatus.spotlight.activeUntil).toLocaleString('en-GB', { day: 'numeric', month: 'short' })}`}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => grantBoost('spotlight')}
+                          disabled={boostBusy !== null || boostStatus.spotlight.remaining <= 0 || !!boostStatus.spotlight.activeUntil}
+                          style={{ flexShrink: 0, padding: '8px 16px', borderRadius: 9, fontSize: 12, fontWeight: 600, border: 'none', background: (boostBusy || boostStatus.spotlight.remaining <= 0 || boostStatus.spotlight.activeUntil) ? 'var(--surface-3)' : 'var(--gold)', color: (boostBusy || boostStatus.spotlight.remaining <= 0 || boostStatus.spotlight.activeUntil) ? 'var(--text-muted)' : 'var(--surface)', cursor: (boostBusy || boostStatus.spotlight.remaining <= 0 || boostStatus.spotlight.activeUntil) ? 'not-allowed' : 'pointer' }}
+                        >
+                          {boostStatus.spotlight.activeUntil ? 'Active' : boostBusy === 'spotlight' ? 'Spotlighting…' : 'Spotlight'}
+                        </button>
+                      </div>
+                    )}
+
+                    {boostMsg && <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: '12px 0 0' }}>{boostMsg}</p>}
+                  </div>
+                )}
 
                 {/* Billing toggle */}
                 <div>

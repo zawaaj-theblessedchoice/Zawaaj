@@ -9,6 +9,7 @@ import { getPlanConfig } from '@/lib/plan-config'
 import type { Plan } from '@/lib/plan-config'
 import { fetchPlanLimits } from '@/lib/config/profileOptions'
 import { isProfileComplete, isProfileBrowseVisible, type MandatoryProfileFields } from '@/lib/zawaaj/profileCompleteness'
+import { BOOST_SPOTLIGHT_ENABLED } from '@/lib/boostSpotlight'
 import Link from 'next/link'
 
 const FILTER_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000 // 7 days
@@ -314,7 +315,29 @@ export default async function BrowsePage({
     place_of_birth: p.place_of_birth ?? null,
     marriage_reason: p.marriage_reason ?? null,
     open_to_marital_status: p.open_to_marital_status ?? null,
+    boosted_until: null,
+    spotlighted_until: null,
   }))
+
+  // Boost/Spotlight enrichment — ONLY when the feature is enabled (dark by
+  // default). Guarded: if migration 068 is not yet applied the columns don't
+  // exist, the query errors, and we proceed with no boost data (ranking stays
+  // identity). While the flag is off this block never runs, so browse has zero
+  // dependency on migration 068 and is byte-identical to today.
+  if (BOOST_SPOTLIGHT_ENABLED && profiles.length > 0) {
+    const { data: boostRows, error: boostErr } = await supabase
+      .from('zawaaj_profiles')
+      .select('id, boosted_until, spotlighted_until')
+      .in('id', profiles.map(p => p.id))
+    if (!boostErr && boostRows) {
+      const bmap = new Map((boostRows as { id: string; boosted_until: string | null; spotlighted_until: string | null }[]).map(r => [r.id, r]))
+      for (const p of profiles) {
+        const r = bmap.get(p.id)
+        p.boosted_until = r?.boosted_until ?? null
+        p.spotlighted_until = r?.spotlighted_until ?? null
+      }
+    }
+  }
 
   // 4b. Get all profiles linked to this account (for profile switcher)
   // Minimal fields only — used for the Sidebar switcher UI.
@@ -393,6 +416,9 @@ export default async function BrowsePage({
   // "X of N" counts this month's requests EXCEPT expired (withdrawn isn't fetched
   // here anyway). Declined DOES count against the cap on the server — keep it counted.
   const now = new Date()
+  // Per-request seed for fair boost/spotlight rotation (derived from the existing
+  // request timestamp — a pure read, so it doesn't trip the render-purity rule).
+  const rotationSeed = Math.floor(now.getTime() / 1000)
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
   const CAP_EXCLUDED_STATUSES = new Set(['withdrawn', 'expired'])
   const monthlyUsed = introRequests.filter(
@@ -476,6 +502,7 @@ export default async function BrowsePage({
       activeLimit={activeLimit}
       initialFilters={initialFilters}
       familyReadinessState={familyReadinessState ?? undefined}
+      rotationSeed={rotationSeed}
     />
   )
 }
