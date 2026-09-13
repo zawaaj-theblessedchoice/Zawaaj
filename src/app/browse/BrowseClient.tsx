@@ -2298,6 +2298,7 @@ export default function BrowseClient({
         onToggleSave={handleToggleSave}
         introStatus={openProfileId ? getIntroStatus(openProfileId) : 'none'}
         onRequestIntro={handleRequestIntro}
+        plan={plan}
         monthlyUsed={monthlyUsed}
         monthlyLimit={monthlyLimit}
         readinessState={familyReadinessState ?? undefined}
