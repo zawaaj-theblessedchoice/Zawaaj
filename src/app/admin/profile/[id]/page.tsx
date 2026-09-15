@@ -332,35 +332,53 @@ export default function ProfileEditPage({
 
           {/* Quick status actions */}
           <div className="flex flex-wrap gap-2 flex-shrink-0">
-            {profile.status !== 'approved' && (
-              <button onClick={() => setStatus('approved')} disabled={saving}
-                className="px-3 py-1.5 rounded-lg text-xs font-medium bg-green-600 text-white hover:bg-green-700 disabled:opacity-50">
-                Approve
+            {profile.status === 'withdrawn' ? (
+              // Withdrawn = the family asked to REMOVE this profile from Zawaaj.
+              // Do NOT offer the generic Approve/Reject review actions here — a
+              // single misclick on a green "Approve" would re-publish a profile a
+              // family withdrew. Offer only an explicit, clearly-labelled restore
+              // that requires confirmation.
+              <button
+                onClick={() => {
+                  if (window.confirm('This profile was WITHDRAWN — the family asked to remove it from Zawaaj.\n\nRestore it and re-publish it to member browse?')) {
+                    setStatus('approved')
+                  }
+                }}
+                disabled={saving}
+                className="px-3 py-1.5 rounded-lg text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-300 hover:bg-yellow-200 disabled:opacity-50">
+                Restore withdrawn profile
               </button>
-            )}
-            {profile.status === 'approved' && (
-              <button onClick={() => setStatus('suspended')} disabled={saving}
-                className="px-3 py-1.5 rounded-lg text-xs font-medium bg-yellow-100 text-yellow-700 hover:bg-yellow-200 disabled:opacity-50">
-                Suspend
-              </button>
-            )}
-            {profile.status === 'suspended' && (
-              <button onClick={() => setStatus('approved')} disabled={saving}
-                className="px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-100 text-blue-700 hover:bg-blue-200 disabled:opacity-50">
-                Reinstate
-              </button>
-            )}
-            {profile.status !== 'rejected' && (
-              <button onClick={() => setStatus('rejected')} disabled={saving}
-                className="px-3 py-1.5 rounded-lg text-xs font-medium bg-red-50 text-red-700 hover:bg-red-100 disabled:opacity-50">
-                Reject
-              </button>
-            )}
-            {profile.status !== 'withdrawn' && (
-              <button onClick={() => setStatus('withdrawn')} disabled={saving}
-                className="px-3 py-1.5 rounded-lg text-xs font-medium border border-white/10 text-white/60 hover:bg-white/5 disabled:opacity-50">
-                Withdraw
-              </button>
+            ) : (
+              <>
+                {profile.status !== 'approved' && (
+                  <button onClick={() => setStatus('approved')} disabled={saving}
+                    className="px-3 py-1.5 rounded-lg text-xs font-medium bg-green-600 text-white hover:bg-green-700 disabled:opacity-50">
+                    Approve
+                  </button>
+                )}
+                {profile.status === 'approved' && (
+                  <button onClick={() => setStatus('suspended')} disabled={saving}
+                    className="px-3 py-1.5 rounded-lg text-xs font-medium bg-yellow-100 text-yellow-700 hover:bg-yellow-200 disabled:opacity-50">
+                    Suspend
+                  </button>
+                )}
+                {profile.status === 'suspended' && (
+                  <button onClick={() => setStatus('approved')} disabled={saving}
+                    className="px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-100 text-blue-700 hover:bg-blue-200 disabled:opacity-50">
+                    Reinstate
+                  </button>
+                )}
+                {profile.status !== 'rejected' && (
+                  <button onClick={() => setStatus('rejected')} disabled={saving}
+                    className="px-3 py-1.5 rounded-lg text-xs font-medium bg-red-50 text-red-700 hover:bg-red-100 disabled:opacity-50">
+                    Reject
+                  </button>
+                )}
+                <button onClick={() => setStatus('withdrawn')} disabled={saving}
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium border border-white/10 text-white/60 hover:bg-white/5 disabled:opacity-50">
+                  Withdraw
+                </button>
+              </>
             )}
           </div>
         </div>
