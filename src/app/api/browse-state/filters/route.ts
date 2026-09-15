@@ -9,7 +9,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { getPlanConfig } from '@/lib/plan-config'
-import type { Plan } from '@/lib/plan-config'
+import { entitledPlan, ENTITLEMENT_SELECT, type EntitlementRow } from '@/lib/entitlement'
 
 export async function POST(request: Request): Promise<Response> {
   try {
@@ -36,12 +36,14 @@ export async function POST(request: Request): Promise<Response> {
     // ── 3. Plan gate — Free users: silent no-op ───────────────────────────────
     const { data: subRow } = await supabase
       .from('zawaaj_subscriptions')
-      .select('plan')
+      .select(ENTITLEMENT_SELECT)
       .eq('user_id', user.id)
-      .eq('status', 'active')
+      .in('status', ['active', 'cancelled'])
+      .order('created_at', { ascending: false })
+      .limit(1)
       .maybeSingle()
 
-    const plan = ((subRow?.plan ?? 'free') as Plan)
+    const plan = entitledPlan(subRow as EntitlementRow | null)
     const planConfig = getPlanConfig(plan)
 
     if (!planConfig.advancedFilters) {

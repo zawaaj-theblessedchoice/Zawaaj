@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server'
 import { getPlanConfig, INTRO_EXPIRY_DAYS } from '@/lib/plan-config'
 import type { Plan } from '@/lib/plan-config'
 import { fetchPlanLimits, PLAN_LIMITS_FALLBACK } from '@/lib/config/profileOptions'
+import { entitledPlan, ENTITLEMENT_SELECT, type EntitlementRow } from '@/lib/entitlement'
 import { sendEmail, interestReceivedTemplate } from '@/lib/email'
 
 // ─── POST — Create introduction request ──────────────────────────────────────
@@ -123,17 +124,18 @@ export async function POST(request: Request): Promise<Response> {
     // 4f. Monthly limit — look up user's active plan, then apply per-plan cap
     const { data: subRow } = await supabase
       .from('zawaaj_subscriptions')
-      .select('plan')
+      .select(ENTITLEMENT_SELECT)
       .eq('user_id', user.id)
-      .eq('status', 'active')
+      .in('status', ['active', 'cancelled'])
+      .order('created_at', { ascending: false })
+      .limit(1)
       .maybeSingle()
-    const rawPlan = (subRow?.plan ?? 'voluntary') as string
-    const userPlan = (rawPlan === 'free' ? 'voluntary' : rawPlan) as Plan
-    const planConfig = getPlanConfig(rawPlan === 'free' ? 'free' : userPlan as Plan)
+    const userPlan = entitledPlan(subRow as EntitlementRow | null)
+    const planConfig = getPlanConfig(userPlan)
 
     // DB-driven monthly limit
     const planLimits = await fetchPlanLimits(supabase)
-    const dbPlanKey = rawPlan === 'free' ? 'voluntary' : rawPlan
+    const dbPlanKey = userPlan === 'free' ? 'voluntary' : userPlan
     const monthlyInterestsLimit = planLimits[dbPlanKey]?.monthlyInterests
       ?? PLAN_LIMITS_FALLBACK[dbPlanKey as keyof typeof PLAN_LIMITS_FALLBACK]?.monthlyInterests
       ?? planConfig.monthlyLimit

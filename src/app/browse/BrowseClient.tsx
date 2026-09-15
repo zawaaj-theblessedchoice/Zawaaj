@@ -947,10 +947,13 @@ export default function BrowseClient({
   const sortedAndFiltered = useMemo(() => {
     const filtered = applyFilters(applySearch(tabProfiles))
     const sorted = applySort(filtered, effectiveSortKey)
-    // Boost ranking runs LAST, on the fully-filtered+sorted list. When the feature
-    // is disabled (dark) or no profile is actively boosted it returns `sorted`
-    // unchanged (same reference) — so browse order is byte-identical to today.
-    return applyBoostRanking(sorted, { enabled: BOOST_SPOTLIGHT_ENABLED, rotationSeed })
+    // Boost lifts ONLY within the default relevance view. When the member has
+    // chosen an explicit sort (newest / age), honour it exactly — the boost layer
+    // must never override an explicit sort (that is what made sort look broken).
+    // In the relevance view, applyBoostRanking still returns `sorted` unchanged
+    // when the feature is off or no profile is actively boosted.
+    const boostable = BOOST_SPOTLIGHT_ENABLED && effectiveSortKey === 'relevant'
+    return applyBoostRanking(sorted, { enabled: boostable, rotationSeed })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tabProfiles, appliedFilters, searchQuery, effectiveSortKey, rotationSeed])
 

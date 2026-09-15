@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import Sidebar from '@/components/Sidebar'
 import AvatarInitials, { isNamePending, NAME_PENDING_LABEL } from '@/components/AvatarInitials'
 import { getPlanConfig } from '@/lib/plan-config'
-import type { Plan } from '@/lib/plan-config'
+import { entitledPlan, ENTITLEMENT_SELECT, type EntitlementRow } from '@/lib/entitlement'
 import { fetchPlanLimits } from '@/lib/config/profileOptions'
 import { RELOCATION_LABELS, EDUCATION_LABELS, RELIGIOSITY_LABELS } from '@/lib/labels'
 import { isProfileBrowseVisible, type MandatoryProfileFields } from '@/lib/zawaaj/profileCompleteness'
@@ -374,14 +374,16 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
               .in('status', ['pending', 'accepted']),
             supabase
               .from('zawaaj_subscriptions')
-              .select('plan')
+              .select(ENTITLEMENT_SELECT)
               .eq('user_id', user.id)
-              .eq('status', 'active')
+              .in('status', ['active', 'cancelled'])
+              .order('created_at', { ascending: false })
+              .limit(1)
               .maybeSingle(),
           ])
           setShortlistCount(slResult.count ?? 0)
           setIntroRequestsCount(irCountResult.count ?? 0)
-          const userPlan = ((subRow.data as { plan?: string } | null)?.plan ?? 'free') as Plan
+          const userPlan = entitledPlan(subRow.data as EntitlementRow | null)
           // Read monthly limit from zawaaj_plans via fetchPlanLimits — DB is source of truth
           const planKey = userPlan === 'free' ? 'voluntary' : userPlan
           const planLimits = await fetchPlanLimits(supabase)

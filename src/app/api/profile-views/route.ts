@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { entitledPlan, ENTITLEMENT_SELECT, type EntitlementRow } from '@/lib/entitlement'
 
 // ─── POST /api/profile-views ──────────────────────────────────────────────────
 // Records a profile view. Called fire-and-forget from BrowseClient when a
@@ -88,14 +89,16 @@ export async function GET(_req: NextRequest) {
   const activeProfileId = settings?.active_profile_id
   if (!activeProfileId) return NextResponse.json({ views: [], gated: false, count: 0 })
 
-  // Resolve plan via subscription
+  // Resolve entitled plan (within a paid/granted period; cancelled-in-period counts)
   const { data: sub } = await supabase
     .from('zawaaj_subscriptions')
-    .select('plan')
+    .select(ENTITLEMENT_SELECT)
     .eq('user_id', user.id)
-    .eq('status', 'active')
+    .in('status', ['active', 'cancelled'])
+    .order('created_at', { ascending: false })
+    .limit(1)
     .maybeSingle()
-  const plan = (sub?.plan as string | null) ?? 'free'
+  const plan = entitledPlan(sub as EntitlementRow | null)
 
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
 

@@ -4,6 +4,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import type { Plan } from '@/lib/plan-config'
+import { getEntitledPlan } from '@/lib/entitlement'
 
 export type { Plan } from '@/lib/plan-config'
 export {
@@ -23,13 +24,9 @@ export {
  */
 export async function getUserPlan(userId: string): Promise<Plan> {
   const supabase = await createClient()
-  const { data } = await supabase
-    .from('zawaaj_subscriptions')
-    .select('plan')
-    .eq('user_id', userId)
-    .eq('status', 'active')
-    .maybeSingle()
-  return (data?.plan ?? 'free') as Plan
+  // Delegate to the single entitlement resolver so this agrees with every gate
+  // (includes provisional Premium and cancelled-but-within-period).
+  return getEntitledPlan(supabase, userId)
 }
 
 /**

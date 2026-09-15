@@ -10,6 +10,7 @@ import type { Plan } from '@/lib/plan-config'
 import { fetchPlanLimits } from '@/lib/config/profileOptions'
 import { isProfileComplete, isProfileBrowseVisible, type MandatoryProfileFields } from '@/lib/zawaaj/profileCompleteness'
 import { BOOST_SPOTLIGHT_ENABLED } from '@/lib/boostSpotlight'
+import { entitledPlan, ENTITLEMENT_SELECT, type EntitlementRow } from '@/lib/entitlement'
 import Link from 'next/link'
 
 const FILTER_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000 // 7 days
@@ -425,16 +426,17 @@ export default async function BrowsePage({
     r => r.created_at && r.created_at >= monthStart && !CAP_EXCLUDED_STATUSES.has(r.status)
   ).length
 
-  // Member's subscription plan (falls back to 'free' if no active subscription)
+  // Member's entitled plan — driven by "within a paid/granted period" so a
+  // cancelled-but-in-period member keeps Premium until the period end (CD-002).
   const { data: subData } = await supabase
     .from('zawaaj_subscriptions')
-    .select('plan')
+    .select(ENTITLEMENT_SELECT)
     .eq('user_id', user.id)
-    .eq('status', 'active')
+    .in('status', ['active', 'cancelled'])
+    .order('created_at', { ascending: false })
+    .limit(1)
     .maybeSingle()
-  // Normalise legacy 'voluntary' plan key → 'free'; guard against any unknown value
-  const rawPlan = (subData?.plan as string | null) ?? 'free'
-  const plan: Plan = (['free', 'plus', 'premium'].includes(rawPlan) ? rawPlan : 'free') as Plan
+  const plan: Plan = entitledPlan(subData as EntitlementRow | null)
 
   // Active (pending) introduction request count for this profile
   const { count: activeCountRaw } = await supabase
