@@ -5,7 +5,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
-import { gocardless } from '@/lib/gocardless/client'
+import { getGocardless } from '@/lib/gocardless/client'
 import { GC_ENABLED } from '@/lib/gocardless/config'
 
 export async function POST(req: Request) {
@@ -86,7 +86,7 @@ export async function POST(req: Request) {
     const givenName = nameParts[0] ?? undefined
     const familyName = nameParts.slice(1).join(' ') || undefined
 
-    const redirectFlow = await gocardless.redirectFlows.create({
+    const redirectFlow = await getGocardless().redirectFlows.create({
       description: `Zawaaj Premium — ${billing_cycle === 'annual' ? 'Annual' : 'Monthly'}`,
       session_token: user.id,
       success_redirect_url: `${siteUrl}/upgrade/direct-debit/callback`,

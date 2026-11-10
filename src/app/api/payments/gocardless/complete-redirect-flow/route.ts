@@ -5,7 +5,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
-import { gocardless } from '@/lib/gocardless/client'
+import { getGocardless } from '@/lib/gocardless/client'
 import { completeRedirectFlow } from '@/lib/gocardless/completeRedirectFlow'
 import { GC_PRICES, GC_ENABLED } from '@/lib/gocardless/config'
 import { premiumPricePence } from '@/lib/launchDiscount'
@@ -95,7 +95,7 @@ export async function POST(req: Request) {
 
     // Create GoCardless subscription
     // GC SDK requires amount and interval as strings (not numbers)
-    const subscription = await gocardless.subscriptions.create({
+    const subscription = await getGocardless().subscriptions.create({
       amount: String(chargeAmount),
       currency: priceConfig.currency,
       name: priceConfig.name,
