@@ -42,3 +42,14 @@ next-env.d.ts
 Resend API Keys.txt
 
 .vercel
+
+# Claude Code local config + internal worktrees
+.claude/settings.local.json
+.claude/worktrees/
+
+# Supabase CLI temp
+supabase/.temp/
+
+# Office lock / temp files
+~$*
+*.tmp
